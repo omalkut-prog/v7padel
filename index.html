@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — Управление</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --surface: #111111;
+    --surface2: #1a1a1a;
+    --border: rgba(255,255,255,0.08);
+    --border-hover: rgba(255,255,255,0.16);
+    --text: #f5f5f7;
+    --text2: #a1a1a6;
+    --text3: #6e6e73;
+    --accent: #d4f03a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 52px;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 32px; gap: 0;
+  }
+  .nav-logo { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links { display: flex; gap: 0; list-style: none; }
+  .nav-links a { display: block; padding: 0 16px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 52px; transition: color 0.2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-pill { background: rgba(212,240,58,0.1); border: 1px solid rgba(212,240,58,0.2); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.3px; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 120px 24px 100px;
+    position: relative; overflow: hidden;
+  }
+  .hero-glow {
+    position: absolute; width: 700px; height: 700px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(212,240,58,0.05) 0%, transparent 65%);
+    top: 50%; left: 50%; transform: translate(-50%,-50%);
+    pointer-events: none;
+  }
+  .hero-eye {
+    font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 24px;
+    opacity: 0; animation: fadeUp 0.6s ease 0.1s forwards;
+  }
+  .hero h1 {
+    font-size: clamp(52px, 8vw, 108px); font-weight: 600;
+    letter-spacing: -3px; line-height: 1.03; margin-bottom: 28px;
+    opacity: 0; animation: fadeUp 0.6s ease 0.22s forwards;
+  }
+  .hero h1 .muted { color: var(--text3); }
+  .hero-sub {
+    font-size: 21px; font-weight: 300; color: var(--text2);
+    max-width: 540px; line-height: 1.55; margin-bottom: 56px;
+    opacity: 0; animation: fadeUp 0.6s ease 0.38s forwards;
+  }
+  .hero-stats {
+    display: flex; gap: 56px;
+    opacity: 0; animation: fadeUp 0.6s ease 0.52s forwards;
+  }
+  .stat { text-align: center; }
+  .stat-n { font-size: 40px; font-weight: 600; letter-spacing: -1.5px; line-height: 1; color: var(--text); }
+  .stat-n em { color: var(--accent); font-style: normal; }
+  .stat-l { font-size: 12px; color: var(--text3); margin-top: 8px; letter-spacing: 0.3px; }
+  .hero-caret {
+    position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    opacity: 0; animation: fadeUp 0.6s ease 0.9s forwards;
+  }
+  .hero-caret span { font-size: 11px; color: var(--text3); letter-spacing: 2px; text-transform: uppercase; }
+  .caret-line { width: 1px; height: 48px; background: linear-gradient(to bottom, var(--text3), transparent); animation: caretPulse 2.5s ease-in-out infinite; }
+  @keyframes caretPulse { 0%,100%{opacity:0.3} 50%{opacity:0.9} }
+
+  /* MAIN */
+  main { max-width: 1200px; margin: 0 auto; padding: 0 24px 140px; }
+
+  .section-intro {
+    text-align: center; padding: 80px 0 60px;
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .section-intro.vis { opacity: 1; transform: none; }
+  .section-intro-label { font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 16px; }
+  .section-intro h2 { font-size: clamp(36px, 5vw, 60px); font-weight: 600; letter-spacing: -1.5px; line-height: 1.05; margin-bottom: 14px; }
+  .section-intro p { font-size: 19px; font-weight: 300; color: var(--text2); }
+
+  /* BENTO */
+  .bento { display: grid; grid-template-columns: repeat(12,1fr); gap: 14px; }
+  .col6 { grid-column: span 6; }
+  .col4 { grid-column: span 4; }
+  .col8 { grid-column: span 8; }
+  .col12 { grid-column: span 12; }
+
+  /* CARD */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 36px;
+    text-decoration: none;
+    color: inherit;
+    display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+    min-height: 340px;
+    transition: border-color 0.3s, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+    opacity: 0; transform: translateY(28px);
+  }
+  .card.vis { opacity: 1; transform: translateY(0); }
+  .card:hover { border-color: var(--border-hover); transform: translateY(-4px) scale(1.005); }
+
+  .card-glow {
+    position: absolute; width: 360px; height: 360px; border-radius: 50%;
+    bottom: -120px; right: -100px; pointer-events: none;
+    opacity: 0; transition: opacity 0.4s;
+  }
+  .card:hover .card-glow { opacity: 1; }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 36px; }
+  .card-num { font-size: 13px; font-weight: 500; color: var(--text3); }
+  .card-tag {
+    font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+    padding: 4px 10px; border-radius: 20px;
+  }
+  .tag-now { background: rgba(212,240,58,0.1); color: var(--accent); border: 1px solid rgba(212,240,58,0.2); }
+  .tag-soon { background: rgba(255,255,255,0.04); color: var(--text3); border: 1px solid var(--border); }
+
+  .card-icon { font-size: 38px; line-height: 1; margin-bottom: 16px; }
+  .card-title { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 10px; }
+  .card-desc { font-size: 14px; color: var(--text2); font-weight: 300; line-height: 1.55; flex: 1; padding-bottom: 24px; }
+
+  .card-list { border-top: 1px solid var(--border); padding-top: 18px; display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+  .card-list-item { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 8px; }
+  .card-list-item::before { content:''; width:3px; height:3px; border-radius:50%; background:var(--text3); flex-shrink:0; }
+
+  .card-arrow {
+    position: absolute; bottom: 28px; right: 28px;
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--text3);
+    transition: all 0.2s;
+  }
+  .card:hover .card-arrow { border-color: var(--border-hover); color: var(--text); transform: translate(2px,-2px); }
+
+  /* Color accents */
+  .green .card-title  { color: #d4f03a; }
+  .green .card-glow   { background: radial-gradient(circle, rgba(212,240,58,0.07), transparent); }
+  .teal .card-title   { color: #30d158; }
+  .teal .card-glow    { background: radial-gradient(circle, rgba(48,209,88,0.07), transparent); }
+  .blue .card-title   { color: #5ac8fa; }
+  .blue .card-glow    { background: radial-gradient(circle, rgba(90,200,250,0.07), transparent); }
+  .orange .card-title { color: #ff9f0a; }
+  .orange .card-glow  { background: radial-gradient(circle, rgba(255,159,10,0.07), transparent); }
+  .pink .card-title   { color: #ff375f; }
+  .pink .card-glow    { background: radial-gradient(circle, rgba(255,55,95,0.07), transparent); }
+  .purple .card-title { color: #bf5af2; }
+  .purple .card-glow  { background: radial-gradient(circle, rgba(191,90,242,0.07), transparent); }
+  .yellow .card-title { color: #ffd60a; }
+  .yellow .card-glow  { background: radial-gradient(circle, rgba(255,214,10,0.07), transparent); }
+  .cyan .card-title   { color: #64d2ff; }
+  .cyan .card-glow    { background: radial-gradient(circle, rgba(100,210,255,0.07), transparent); }
+
+  /* Featured card */
+  .card.featured {
+    background: linear-gradient(140deg, #0d1a00 0%, #0e0e0e 55%);
+    border-color: rgba(212,240,58,0.12);
+    min-height: 380px;
+  }
+  .card.featured .card-title { font-size: 36px; }
+
+  /* Horizontal card for tools */
+  .card.horizontal {
+    flex-direction: row; align-items: center; gap: 40px; min-height: 200px;
+  }
+  .card.horizontal .card-body { flex: 1; }
+  .card.horizontal .card-aside {
+    border-left: 1px solid var(--border); padding-left: 40px; min-width: 260px;
+  }
+  .card.horizontal .card-arrow { position: static; margin-left: auto; flex-shrink: 0; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 40px 24px; max-width: 1200px; margin: 0 auto;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;
+  }
+  .footer-logo { font-size: 14px; font-weight: 500; color: var(--text3); }
+  .footer-logo em { color: var(--accent); font-style: normal; }
+  .footer-text { font-size: 12px; color: var(--text3); }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+  @media(max-width:960px) {
+    .col6,.col4,.col8,.col12{grid-column:span 12}
+    .nav-links{display:none}
+    .card.horizontal{flex-direction:column}
+    .card.horizontal .card-aside{border-left:none;padding-left:0;border-top:1px solid var(--border);padding-top:16px;min-width:auto;width:100%}
+    .hero-stats{gap:32px}
+  }
+  @media(max-width:600px) {
+    .hero h1{font-size:44px;letter-spacing:-2px}
+    .hero-sub{font-size:17px}
+    .hero-stats{gap:24px;flex-wrap:wrap;justify-content:center}
+    .stat-n{font-size:32px}
+    main{padding:0 16px 80px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="#">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="#sections">Разделы</a></li>
+    <li><a href="#tools-section">Инструменты</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
+</nav>
+
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-eye">V7 Padel · Antalya · 2026</div>
+  <h1>Управление<br><span class="muted">клубом.</span></h1>
+  <p class="hero-sub">Данные, инструменты и отчёты команды — всё в одном месте.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-n">1<em>,</em>088</div>
+      <div class="stat-l">Клиентов</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">6<em>,</em>984</div>
+      <div class="stat-l">Бронирований</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">4</div>
+      <div class="stat-l">Корта</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">8</div>
+      <div class="stat-l">Разделов</div>
+    </div>
+  </div>
+  <div class="hero-caret">
+    <span>Листать</span>
+    <div class="caret-line"></div>
+  </div>
+</section>
+
+<main>
+  <div class="section-intro" id="sections">
+    <div class="section-intro-label">Платформа управления</div>
+    <h2>Все разделы</h2>
+    <p>Выберите раздел для работы</p>
+  </div>
+
+  <div class="bento">
+
+    <!-- 01 CEO Dashboard — wide featured -->
+    <div class="col8">
+      <a class="card featured green" href="dashboard.html">
+        <div class="card-glow"></div>
+        <div class="card-top"><span class="card-num">01</span><span class="card-tag tag-now">Приоритет</span></div>
+        <div class="card-icon">📊</div>
+        <div class="card-title">CEO Dashboard</div>
+        <div class="card-desc">Полная картина бизнеса: выручка, расходы, маржа и загрузка кортов за любой период.</div>
+        <div class="card-list">
+          <div class="card-list-item">Выручка по месяцам из P&L</div>
+          <div class="card-list-item">Структура: Падел / Турниры / Товары</div>
+          <div class="card-list-item">Бронирования и загрузка кортов P1–P4</div>
+        </div>
+        <div class="card-arrow">↗</div>
+      </a>
+    </div>
+
+    <!-- 02 Финансы — narrow -->
+    <div class="col4">
+      <a class="card teal" href="finance.html">
+        <div class="card-glow"></div>
+        <div class="card-top"><span class="card-num">02</span><span class="card-tag tag-now">Фаза 1</span></div>
+        <div class="card-icon">💰</div>
+        <div class="card-title">Финансы</div>
+        <div class="card-desc">P&L, доходы и расходы по статьям, бюджетирование и калькуляторы зарплат тренеров.</div>
+        <div class="card-list">
+          <div class="card-list-item">P&L (окт 2025 — фев 2026)</div>
+          <div class="card-list-item">Статьи расходов 04.10–04.80</div>
+          <div class="card-list-item">Калькуляторы Coach / Club</div>
+        </div>
+        <div class="card-arrow">↗</div>
+      </a>
+    </div>
+
+    <!-- 03 Персонал — narrow -->
+    <div class="col4">
+      <a class="card blue" href="staff.html">
+        <div class="card-glow"></div>
+        <div class="card-top"><span class="card-num">03</span><span class="card-tag tag-soon">Фаза 2</span></div>
+        <div class="card-icon">👥</div>
+        <div class="card-title">Персонал & KPI</div>
+        <div class="card-desc">KPI тренеров и администраторов, грейды, расписание смен и отзывы.</div>
+        <div class="card-list">
+          <div class="card-list-item">Coach → Senior → Expert</div>
+          <div class="card-list-item">Рейтинг по часам и оценкам</div>
+          <div class="card-list-item">Расписание смен</div>
+        </div>
+        <div class="card-arrow">↗</div>
+      </a>
+    </div>
+
+    <!-- 04 Турниры — wide -->
+    <div class="col8">
+      <a class="card orange" href="tournaments.html">
+        <div class="card-glow"></div>
+        <div class="card-top"><span class="card-num">04</span><span class="card-tag tag-now">Фаза 1</span></div>
+        <div class="card-icon">🏆</div>
+        <div class="card-title">Турниры & Ивенты</div>
+        <div class="card-desc">Календарь турниров, форматы, ценообразование по уровням членства, призовой фонд и корпоративные мероприятия.</div>
+        <div class="card-list">
+          <div class="card-list-item">Americano, Mexicano, Win the Court, Morning Coffee</div>
+          <div class="card-list-item">Цены Regular / Club / VIP</div>
+          <div class="card-list-item">Корп. ивенты и спонсоры TPL</div>
+        </div>
+        <div class="card-arrow">↗</div>
+      </a>
+    </div>
+
+    <!-- 05 Клиенты -->
+    <div class="col4">
+      <a class="card pink" href="clients.html">
+        <div class="card-glow"></div>
+        <div class="card-top"><span class="card-num">05</span><span class="card-tag tag-soon">Фаза 2</span></div>
+        <div class="card-icon">🎾</div>
+        <div class="card-title">Клиенты</div>
+        <div class="card-desc">База 1 088 клиентов, сегменты членства, удержание и NPS.</div>
+        <div class="card-list">
+          <div class="card-list-item">Regular / Club / VIP</div>
+          <div class="card-list-item">Топ клиенты по выручке</div>
+          <div class="card-list-item">Отток и активность</div>
+        </div>
+        <div class="card-arrow">↗</div>
+      </a>
+    </div>
+
+    <!-- 06 База знаний -->
+    <div class="col4">
+      <a class="card purple" href="knowledge.html">
+        <div class="card-glow"></div>
+        <div class="card-top"><span class="card-num">06</span><span class="card-tag tag-soon">Фаза 3</span></div>
+        <div class="card-icon">📚</div>
+        <div class="card-title">База знаний</div>
+        <div class="card-desc">Правила клуба, стандарты сервиса, регламенты, скрипты и онбординг.</div>
+        <div class="card-list">
+          <div class="card-list-item">Правила клуба RU / TR / EN</div>
+          <div class="card-list-item">Скрипты и шаблоны</div>
+          <div class="card-list-item">Онбординг новых сотрудников</div>
+        </div>
+        <div class="card-arrow">↗</div>
+      </a>
+    </div>
+
+    <!-- 07 Маркетинг -->
+    <div class="col4">
+      <a class="card yellow" href="marketing.html">
+        <div class="card-glow"></div>
+        <div class="card-top"><span class="card-num">07</span><span class="card-tag tag-soon">Фаза 3</span></div>
+        <div class="card-icon">📣</div>
+        <div class="card-title">Маркетинг</div>
+        <div class="card-desc">SMM, акции, партнёры, спонсорские пакеты TPL и брендбук.</div>
+        <div class="card-list">
+          <div class="card-list-item">Контент-план и акции</div>
+          <div class="card-list-item">Team / Premium / Title пакеты</div>
+          <div class="card-list-item">Брендбук и материалы</div>
+        </div>
+        <div class="card-arrow">↗</div>
+      </a>
+    </div>
+
+    <!-- 08 Инструменты — full horizontal -->
+    <div class="col12" id="tools-section">
+      <a class="card horizontal cyan" href="tools.html">
+        <div class="card-glow" style="left:-80px;right:auto;top:-80px;bottom:auto;"></div>
+        <div class="card-body">
+          <div class="card-top" style="margin-bottom:20px"><span class="card-num">08</span><span class="card-tag tag-now">Фаза 1</span></div>
+          <div class="card-icon">⚙️</div>
+          <div class="card-title">Инструменты</div>
+          <div class="card-desc">Все калькуляторы, генераторы отчётов и HTML-файлы, созданные с помощью Claude.</div>
+        </div>
+        <div class="card-aside card-list">
+          <div class="card-list-item">Coach Calculator v3</div>
+          <div class="card-list-item">Club & Coach Calculator</div>
+          <div class="card-list-item">Генераторы отчётов</div>
+          <div class="card-list-item">Все файлы от Claude</div>
+        </div>
+        <div class="card-arrow">↗</div>
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<footer>
+  <div class="footer-logo">V7 <em>Padel</em> · Antalya</div>
+  <div class="footer-text">Внутренний портал · Только для команды · 2026</div>
+</footer>
+
+<script>
+const io = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('vis');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+
+document.querySelectorAll('.card, .section-intro').forEach((el, i) => {
+  if (el.classList.contains('card')) {
+    el.style.transitionDelay = (i * 0.05) + 's';
+  }
+  io.observe(el);
+});
+</script>
+
+</body>
+</html>
