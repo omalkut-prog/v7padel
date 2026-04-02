@@ -1,0 +1,862 @@
+<html lang="ru"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel Antalya — Конструктор расписания</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#f0faf8;color:#2d3a38;overflow-x:hidden}
+:root{--purple:#4db8a4;--green:#16a34a;--red:#dc2626;--orange:#d97706;--pink:#d81b72;--blue:#0e9aa7;--border:#c8e6d0;--muted:#5a8a7e;--shadow:0 2px 12px rgba(77,184,164,.06)}
+
+/* TOP BAR */
+.top-bar{background:linear-gradient(135deg,#e0f5f0,#c8ede4);padding:10px 20px;display:flex;align-items:center;gap:10px;border-bottom:2px solid var(--border);position:sticky;top:0;z-index:200;box-shadow:var(--shadow);flex-wrap:wrap}
+.logo{font-size:20px;font-weight:800;white-space:nowrap;color:#1a3c34}.logo span{color:var(--purple)}
+.save-status{font-size:11px;color:var(--green);margin-left:4px;opacity:.8}
+.top-bar .spacer{flex:1}
+.top-bar button{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);transition:.2s;white-space:nowrap;display:flex;align-items:center;gap:4px}
+.top-bar button:hover{border-color:var(--purple);color:#2d6b5e}
+.top-bar button.primary{background:var(--purple);color:#fff;border-color:var(--purple)}
+.top-bar button.primary:hover{background:#3da897}
+.top-bar button.success{background:var(--green);color:#fff;border-color:var(--green)}
+.top-bar button.success:hover{background:#15803d}
+.top-bar button.danger{color:var(--red);border-color:var(--red)}
+
+/* LAYOUT */
+.layout{display:flex;height:calc(100vh - 94px)}
+
+/* STICKER PANEL */
+.panel{width:260px;background:#f7fcfa;border-right:1px solid var(--border);overflow-y:auto;padding:12px;flex-shrink:0}
+.panel h3{font-size:12px;font-weight:700;color:#2d6b5e;margin:12px 0 4px;text-transform:uppercase;letter-spacing:.5px;display:flex;align-items:center;gap:6px}
+.panel h3 .badge{background:var(--purple);color:#fff;font-size:9px;padding:1px 6px;border-radius:10px;font-weight:600}
+.panel .sub{font-size:10px;color:var(--muted);margin-bottom:8px}
+
+.sticker{padding:7px 10px;border-radius:8px;margin-bottom:5px;cursor:grab;font-size:11px;border-left:4px solid;user-select:none;transition:transform .15s,box-shadow .15s}
+.sticker:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.sticker:active{cursor:grabbing;transform:scale(.97)}
+.sticker .st-name{font-weight:700;font-size:11px;margin-bottom:1px}
+.sticker .st-det{color:rgba(0,0,0,.5);font-size:10px;line-height:1.3}
+.sticker .st-courts{display:inline-flex;gap:2px;margin-top:3px;align-items:center}
+.sticker .st-courts .ct{width:7px;height:7px;border-radius:2px;background:#ddd}
+.sticker .st-courts .ct.on{background:#4db8a4}
+.sticker .st-courts .ct-label{font-size:9px;color:rgba(0,0,0,.35);margin-left:4px}
+
+.st-coffee{background:#fff3e0;border-left-color:#ff9800}
+.st-ranked{background:#e8f5e9;border-left-color:var(--green)}
+.st-pair{background:#ede7f6;border-left-color:var(--purple)}
+.st-ladies{background:#fce4ec;border-left-color:var(--pink)}
+.st-begin{background:#e0f7fa;border-left-color:#00bcd4}
+.st-mixed{background:#fff3e0;border-left-color:#ff5722}
+.st-fun{background:#f3e5f5;border-left-color:#9c27b0}
+.st-custom{background:#fffde7;border-left-color:#ffc107}
+.st-morning{background:#e3f2fd;border-left-color:#2196f3}
+.st-basket{background:#fff8e1;border-left-color:#8d6e63}
+
+/* GRID AREA */
+.grid-area{flex:1;overflow:auto;padding:12px}
+.schedule-grid{display:grid;grid-template-columns:52px repeat(7,1fr);gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden;background:#fff;box-shadow:var(--shadow)}
+.day-hdr{padding:8px 4px;text-align:center;font-weight:700;font-size:12px;background:#4db8a4;color:#fff;border-right:1px solid rgba(255,255,255,.2)}
+.day-hdr.wk{background:#e07a5f}.day-hdr.corner{background:#e8f6f2;color:var(--muted);font-size:9px;display:flex;align-items:center;justify-content:center}
+.time-lbl{background:#f7fcfa;padding:3px 2px;font-size:9px;font-weight:600;color:var(--muted);text-align:center;border-bottom:1px solid var(--border);border-right:1px solid var(--border);display:flex;align-items:center;justify-content:center;min-height:84px}
+
+.cell{border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:2px;min-height:84px;position:relative;transition:background .15s;display:flex;flex-direction:column;gap:1px}
+.cell.drag-over{background:#e0f5f0;outline:2px dashed var(--purple);outline-offset:-2px}
+.cell.empty-cell{background:#fbfefd}
+
+/* Court meter */
+.court-meter{display:flex;gap:2px;align-items:center;padding:1px 2px;min-height:12px}
+.court-meter .cm-box{width:9px;height:9px;border-radius:2px;background:#e8e8e8;border:1px solid #ddd;flex-shrink:0}
+.court-meter .cm-box.used{border:1px solid rgba(0,0,0,.12)}
+.court-meter .cm-label{font-size:8px;color:var(--muted);margin-left:auto;font-weight:600;white-space:nowrap}
+.court-meter .cm-label.full{color:var(--red);font-weight:700}
+.court-meter .cm-label.good{color:var(--green)}
+
+/* Placed events */
+.cell .events-stack{display:flex;flex-direction:column;gap:2px;flex:1}
+.cell .placed{border-radius:5px;padding:3px 5px;font-size:9px;line-height:1.2;cursor:pointer;position:relative;border-left:3px solid;flex-shrink:0}
+.cell .placed .p-name{font-weight:700;font-size:10px;margin-bottom:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .placed .p-det{color:rgba(0,0,0,.5);font-size:8px}
+.cell .placed .p-badge{position:absolute;top:1px;right:16px;background:rgba(0,0,0,.08);border-radius:3px;font-size:7px;padding:1px 3px;font-weight:700}
+.cell .placed .remove-btn{position:absolute;top:1px;right:1px;width:13px;height:13px;border-radius:50%;background:rgba(0,0,0,.15);color:#fff;font-size:8px;display:none;align-items:center;justify-content:center;cursor:pointer;line-height:1}
+.cell .placed:hover .remove-btn{display:flex}
+/* Approved badge */
+.cell .placed .approved-tag{position:absolute;bottom:1px;right:2px;font-size:7px;font-weight:700;color:#fff;background:#16a34a;padding:1px 4px;border-radius:3px;letter-spacing:.3px}
+.cell .placed .draft-tag{position:absolute;bottom:1px;right:2px;font-size:7px;font-weight:700;color:#fff;background:#d97706;padding:1px 4px;border-radius:3px;letter-spacing:.3px;color:#fff}
+.cell .placed.is-approved{outline:2px solid #16a34a;outline-offset:-1px}
+.cell .placed.is-draft{opacity:.75;border-style:dashed}
+
+/* Summary row */
+.summary-cell{background:#e8f6f2;padding:5px 3px;border-right:1px solid var(--border);text-align:center;font-size:10px;font-weight:700;color:#2d6b5e}
+.summary-cell.corner{background:#e8f6f2;font-size:8px;color:var(--muted);display:flex;align-items:center;justify-content:center}
+.summary-cell .mini-bars{display:flex;gap:1px;justify-content:center;margin-top:2px}
+.summary-cell .mini-bars .mb{width:5px;height:14px;border-radius:1px;background:#dce8e4}
+.summary-cell .mini-bars .mb.l1{background:#4db8a4}
+.summary-cell .mini-bars .mb.l2{background:#d97706}
+.summary-cell .mini-bars .mb.l3{background:#e07a5f}
+.summary-cell .mini-bars .mb.l4{background:#dc2626}
+
+/* MODAL */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);z-index:300;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:#fff;border-radius:14px;padding:24px;width:440px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.2)}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:14px}
+.modal .fg{margin-bottom:10px}
+.modal .fg label{display:block;font-size:11px;color:var(--muted);margin-bottom:3px;font-weight:600}
+.modal .fg input,.modal .fg select,.modal .fg textarea{width:100%;padding:8px 10px;background:#f8f9fc;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit}
+.modal .fg textarea{resize:vertical;min-height:50px}
+.modal .fg input:focus,.modal .fg select:focus,.modal .fg textarea:focus{outline:none;border-color:var(--purple)}
+.courts-select{display:flex;gap:6px;margin-top:4px}
+.courts-select .cs-btn{width:36px;height:36px;border-radius:8px;border:2px solid var(--border);background:#f7fcfa;font-size:16px;font-weight:700;cursor:pointer;transition:.2s;color:#2d3a38}
+.courts-select .cs-btn:hover{border-color:var(--purple)}
+.courts-select .cs-btn.active{border-color:var(--purple);background:var(--purple);color:#fff}
+.modal .btns{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.modal .btns button{padding:8px 18px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+.btn-save{background:var(--purple);color:#fff}.btn-save:hover{background:#3da897}
+.btn-cancel{background:#e8f6f2;color:var(--muted)}.btn-cancel:hover{background:#d0ebe3}
+.btn-delete{background:var(--red);color:#fff}.btn-delete:hover{background:#b91c1c}
+
+/* Custom sticker creator */
+.creator{background:#e8f6f2;border-radius:10px;padding:10px;margin-top:10px;border:1px dashed var(--border)}
+.creator h4{font-size:11px;font-weight:700;margin-bottom:8px;color:#2d6b5e}
+.creator .fg{margin-bottom:5px}
+.creator .fg label{font-size:10px;color:var(--muted);display:block;margin-bottom:2px}
+.creator .fg input,.creator .fg select{width:100%;padding:5px 8px;font-size:11px;border:1px solid var(--border);border-radius:5px;background:#fff}
+.creator button{width:100%;padding:6px;border:none;border-radius:6px;background:var(--purple);color:#fff;font-weight:600;font-size:11px;cursor:pointer;margin-top:4px}
+.creator button:hover{background:#3da897}
+
+/* Stats bar */
+.stats{display:flex;gap:14px;padding:8px 16px;background:#e8f6f2;border-top:1px solid var(--border);font-size:11px;color:var(--muted);flex-wrap:wrap;align-items:center}
+.stats .stat-val{font-weight:700;color:#2d6b5e}
+.stats .stat-val.green{color:var(--green)}.stats .stat-val.red{color:var(--red)}.stats .stat-val.orange{color:#d97706}
+
+/* Toast */
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#2d6b5e;color:#fff;padding:10px 24px;border-radius:8px;font-size:13px;z-index:400;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* HELP MODAL */
+.help-content{max-height:60vh;overflow-y:auto;line-height:1.6;font-size:13px}
+.help-content h4{color:#2d6b5e;margin:14px 0 6px;font-size:14px}
+.help-content p{margin-bottom:8px}
+.help-content .key{display:inline-block;background:#e8f6f2;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;margin:0 2px}
+.help-content .step{display:flex;gap:10px;align-items:flex-start;margin-bottom:10px}
+.help-content .step-num{background:var(--purple);color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.help-content .step-text{flex:1}
+
+/* PRINT */
+@media print{
+  .top-bar,.panel,.stats,.toast,.modal-overlay{display:none!important}
+  .layout{display:block!important;height:auto!important}
+  .grid-area{padding:0!important;overflow:visible!important}
+  .schedule-grid{border-radius:0!important;box-shadow:none!important}
+  .cell .placed .remove-btn{display:none!important}
+  body{background:#fff!important}
+  @page{size:landscape;margin:10mm}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <div class="logo"><span>V7</span> Расписание</div>
+  <span class="save-status" id="save-status"></span>
+  <div class="spacer"></div>
+  <button onclick="showHelp()">❓ Как пользоваться</button>
+  <button onclick="resetSchedule()">🔄 Сброс</button>
+  <button class="danger" onclick="clearAll()">🗑 Очистить</button>
+  <button onclick="window.print()">🖨 Печать</button>
+  <button onclick="exportText()">📋 Текст</button>
+  <button class="success" onclick="downloadHTML()">💾 Скачать файл</button>
+</div>
+
+<div class="layout">
+  <!-- LEFT PANEL -->
+  <div class="panel" id="panel">
+    <h3>📌 Текущие <span class="badge" id="badge-existing">14</span></h3>
+    <div class="sub">Перетаскивайте в ячейки расписания</div>
+    <div id="stickers-existing"><div class="sticker st-coffee" draggable="true"><div class="st-name">☕ MORNING COFFEE</div><div class="st-det">16 чел · Win the Court<br>1400 / VIP 500</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-coffee" draggable="true"><div class="st-name">☕ EVENING COFFEE</div><div class="st-det">16 чел · Win the Court<br>1400 / VIP 500</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-ranked" draggable="true"><div class="st-name">📈 RANKED ≤999</div><div class="st-det">8 чел · Americano<br>1100 / VIP 200</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-ranked" draggable="true"><div class="st-name">📈 RANKED 900–1099</div><div class="st-det">8 чел · Americano<br>1100 / VIP 200</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-ranked" draggable="true"><div class="st-name">📈 RANKED ≤900</div><div class="st-det">8 чел · Americano<br>1100 / VIP 200</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-ranked" draggable="true"><div class="st-name">📈 RANKED 1100+</div><div class="st-det">16 чел · Win the Court<br>1500 / VIP 500</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-ranked" draggable="true"><div class="st-name">📈 AMERICANO 900–1100</div><div class="st-det">8 чел · Americano<br>1500 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-pair" draggable="true"><div class="st-name">🤝 ПАРНЫЙ AMERICANO</div><div class="st-det">16 чел · Pair<br>1500 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-mixed" draggable="true"><div class="st-name">👫 МИКСТ</div><div class="st-det">16 чел · Pair<br>1500 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-ladies" draggable="true"><div class="st-name">💅 ЖЕНСКИЙ RANKED</div><div class="st-det">8 чел · Americano<br>1100 / VIP 200</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-begin" draggable="true"><div class="st-name">🌱 НАЧИНАЮЩИЕ</div><div class="st-det">8 чел · Americano<br>800 / VIP Free</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-fun" draggable="true"><div class="st-name">🎾 PADEL vs TENNIS</div><div class="st-det">16 чел · Win the Court<br>1300 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-pair" draggable="true"><div class="st-name">🏆 Pair Mexicano</div><div class="st-det">16 чел<br>1400 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-ranked" draggable="true"><div class="st-name">📈 Americano 1100-</div><div class="st-det">8 чел<br>1500 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div></div>
+
+    <h3>🧺 Корзинки <span class="badge" id="badge-basket">4</span></h3>
+    <div class="sub">Americano по уровням · 2 корта</div>
+    <div id="stickers-basket"><div class="sticker st-basket" draggable="true"><div class="st-name">🧺 КОРЗИНКА 1</div><div class="st-det">8 чел · Americano<br>Americano</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-basket" draggable="true"><div class="st-name">🧺 КОРЗИНКА 2</div><div class="st-det">8 чел · Americano<br>Americano</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-basket" draggable="true"><div class="st-name">🧺 КОРЗИНКА 3</div><div class="st-det">8 чел · Americano<br>Americano</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-basket" draggable="true"><div class="st-name">🧺 КОРЗИНКА 4</div><div class="st-det">8 чел · Americano<br>Americano</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div></div>
+
+    <h3>🌅 Утренние 8–10 <span class="badge" id="badge-morning">5</span></h3>
+    <div class="sub">Новые форматы</div>
+    <div id="stickers-morning"><div class="sticker st-morning" draggable="true"><div class="st-name">☀️ SUNRISE PADEL</div><div class="st-det">8 чел · Americano<br>900 / VIP 200</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-morning" draggable="true"><div class="st-name">🧘 ЙОГА + PADEL</div><div class="st-det">12 чел · Йога+WtC<br>1600 / VIP 500</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct-label">3 корта</span></div></div><div class="sticker st-morning" draggable="true"><div class="st-name">💼 БИЗНЕС ЗАВТРАК</div><div class="st-det">8 чел · Americano+завтрак<br>2000 / VIP 700</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-morning" draggable="true"><div class="st-name">💅 ЖЕНСКОЕ УТРО</div><div class="st-det">8 чел · Win the Court<br>1200 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-morning" draggable="true"><div class="st-name">🎯 DRILL &amp; PLAY</div><div class="st-det">8 чел · Дриллы+Americano<br>1400 / VIP 400</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div></div>
+
+    <h3 style="color:#dc2626">🔴 Воронка — разрывы <span class="badge" id="badge-funnel" style="background:#dc2626">6</span></h3>
+    <div class="sub">Чего не хватает в пути игроков</div>
+    <div id="stickers-funnel"><div class="sticker st-ranked" draggable="true"><div class="st-name">📈 RANKED 900–1099 вечер</div><div class="st-det">8 чел · Americano<br>1300 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-ranked" draggable="true"><div class="st-name">📈 BUDGET AMERICANO</div><div class="st-det">8 чел · Americano<br>900 / VIP 100</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-ranked" draggable="true"><div class="st-name">🏆 PRO LEAGUE 1300+</div><div class="st-det">8 чел · Americano<br>2000 / VIP 700</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-ranked" draggable="true"><div class="st-name">📈 RANKED 1100+ (доп)</div><div class="st-det">16 чел · Win the Court<br>1500 / VIP 500</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-begin" draggable="true"><div class="st-name">🌱 BEGINNERS (доп)</div><div class="st-det">8 чел · Americano<br>800 / VIP Free</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-coffee" draggable="true"><div class="st-name">☕ COFFEE (доп)</div><div class="st-det">16 чел · Win the Court<br>1300 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div></div>
+
+    <h3 style="color:#d81b72">👩 Женская воронка <span class="badge" id="badge-women" style="background:#d81b72">5</span></h3>
+    <div class="sub">Критично! Нет пути для девушек</div>
+    <div id="stickers-women"><div class="sticker st-ladies" draggable="true"><div class="st-name">🌸 LADY'S BEGINNERS</div><div class="st-det">8 чел · Americano<br>800 / VIP Free</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-ladies" draggable="true" style="opacity: 1;"><div class="st-name">💅 LADY'S EVENING</div><div class="st-det">8 чел · Americano<br>1100 / VIP 200</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-ladies" draggable="true"><div class="st-name">💅 LADY'S ADVANCED</div><div class="st-det">8 чел · Americano<br>1300 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-ladies" draggable="true"><div class="st-name">💅 LADY'S COFFEE</div><div class="st-det">12 чел · Win the Court<br>1200 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct-label">3 корта</span></div></div><div class="sticker st-mixed" draggable="true"><div class="st-name">👫 MIXED PAIR (доп)</div><div class="st-det">16 чел · Pair M+Ж<br>1500 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div></div>
+
+    <h3 style="color:#d97706">🎉 Социальные <span class="badge" id="badge-social" style="background:#d97706">6</span></h3>
+    <div class="sub">Фан, юниоры, корпоративы</div>
+    <div id="stickers-social"><div class="sticker st-fun" draggable="true"><div class="st-name">🎉 FUN FRIDAY</div><div class="st-det">16 чел · Тема+DJ<br>1500 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-fun" draggable="true"><div class="st-name">🎉 PADEL PARTY</div><div class="st-det">16 чел · DJ + BBQ<br>2000 / VIP 700</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-custom" draggable="true"><div class="st-name">👦 ЮНИОРЫ 10–17</div><div class="st-det">8 чел · Americano<br>600</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div><div class="sticker st-fun" draggable="true"><div class="st-name">👨‍👩‍👧 FAMILY DAY</div><div class="st-det">12 чел · Team Format<br>1200 / семья</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct-label">3 корта</span></div></div><div class="sticker st-custom" draggable="true"><div class="st-name">🏢 КОРПОРАТИВ</div><div class="st-det">16 чел · Team vs Team<br>2500 / команда</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div><div class="sticker st-custom" draggable="true"><div class="st-name">👴 СЕНЬОРЫ 45+</div><div class="st-det">8 чел · Americano<br>1000 / VIP 200</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct"></span><span class="ct-label">2 корта</span></div></div></div>
+
+    <h3>💡 Идеи <span class="badge" id="badge-ideas">3</span></h3>
+    <div class="sub">Дополнительные варианты</div>
+    <div id="stickers-ideas"><div class="sticker st-ranked" draggable="true"><div class="st-name">🏆 MEXICANO</div><div class="st-det">12 чел · Mexicano<br>1500 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct-label">3 корта</span></div></div><div class="sticker st-fun" draggable="true"><div class="st-name">🌙 НОЧНОЙ PADEL</div><div class="st-det">12 чел · Win the Court<br>1600 / VIP 500</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct"></span><span class="ct-label">3 корта</span></div></div><div class="sticker st-fun" draggable="true"><div class="st-name">🎾 PADEL vs TENNIS</div><div class="st-det">16 чел · Win the Court<br>1300 / VIP 300</div><div class="st-courts"><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct on"></span><span class="ct-label">4 корта</span></div></div></div>
+
+    <div class="creator">
+      <h4>➕ Создать свой стикер</h4>
+      <div class="fg"><label>Название</label><input id="cr-name" placeholder="Например: VIP Турнир"></div>
+      <div class="fg"><label>Формат</label><input id="cr-format" placeholder="8 pl · Americano"></div>
+      <div class="fg"><label>Цена</label><input id="cr-price" placeholder="1500 / VIP 300"></div>
+      <div class="fg"><label>Корты</label>
+        <select id="cr-courts"><option value="1">1 корт</option><option value="2" selected="">2 корта</option><option value="3">3 корта</option><option value="4">4 корта</option></select>
+      </div>
+      <div class="fg"><label>Тип</label>
+        <select id="cr-type">
+          <option value="ranked">Рейтинговый</option>
+          <option value="coffee">Кофе / Социальный</option>
+          <option value="pair">Парный</option>
+          <option value="ladies">Женский</option>
+          <option value="begin">Начинающие</option>
+          <option value="mixed">Микст</option>
+          <option value="fun">Развлекательный</option>
+          <option value="basket">Корзинка</option>
+          <option value="morning">Утренний</option>
+          <option value="custom">Другое</option>
+        </select>
+      </div>
+      <button onclick="createCustomSticker()">Создать</button>
+    </div>
+  </div>
+
+  <!-- GRID -->
+  <div class="grid-area">
+    <div class="schedule-grid" id="grid"><div class="day-hdr corner">4 корта</div><div class="day-hdr">ПН</div><div class="day-hdr">ВТ</div><div class="day-hdr">СР</div><div class="day-hdr">ЧТ</div><div class="day-hdr">ПТ</div><div class="day-hdr wk">СБ</div><div class="day-hdr wk">ВС</div><div class="time-lbl">08:00<br>–<br>10:00</div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(33, 150, 243);"></span><span class="cm-box used" style="background: rgb(33, 150, 243);"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-label">2/4</span></div><div class="events-stack"><div class="placed is-draft" draggable="true" style="background: rgb(227, 242, 253); border-left-color: rgb(33, 150, 243);"><div class="p-name">☀️ SUNRISE AMERICANO</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="draft-tag">черновик</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(216, 27, 114);"></span><span class="cm-box used" style="background: rgb(216, 27, 114);"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-label">2/4</span></div><div class="events-stack"><div class="placed is-draft" draggable="true" style="background: rgb(252, 228, 236); border-left-color: rgb(216, 27, 114);"><div class="p-name">🌸 LADY'S BEGINNERS</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="draft-tag">черновик</span><div class="remove-btn">✕</div></div></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="time-lbl">10:00<br>–<br>12:00</div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(255, 243, 224); border-left-color: rgb(230, 149, 0);"><div class="p-name">☕ MORNING COFFEE</div><div class="p-det">16 чел · Win the Court · 4кт</div><span class="p-badge">4🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(14, 154, 167);"></span><span class="cm-box used" style="background: rgb(14, 154, 167);"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-label">2/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(224, 247, 250); border-left-color: rgb(14, 154, 167);"><div class="p-name">🌱 BEGINNERS</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(216, 27, 114);"></span><span class="cm-box used" style="background: rgb(216, 27, 114);"></span><span class="cm-box used" style="background: rgb(216, 27, 114);"></span><span class="cm-box used" style="background: rgb(216, 27, 114);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(252, 228, 236); border-left-color: rgb(216, 27, 114);"><div class="p-name">💅 LADY'S RANKED</div><div class="p-det">8 чел · Americano · 4кт</div><span class="p-badge">4🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-label">2/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(232, 245, 233); border-left-color: rgb(77, 184, 164);"><div class="p-name">📈 RANKED 900–1099</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(255, 243, 224); border-left-color: rgb(230, 149, 0);"><div class="p-name">☕ MORNING COFFEE</div><div class="p-det">16 чел · Win the Court · 4кт</div><span class="p-badge">4🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(142, 68, 173);"></span><span class="cm-box used" style="background: rgb(142, 68, 173);"></span><span class="cm-box used" style="background: rgb(142, 68, 173);"></span><span class="cm-box used" style="background: rgb(142, 68, 173);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-draft" draggable="true" style="background: rgb(243, 229, 245); border-left-color: rgb(142, 68, 173);"><div class="p-name">🎯 MEXICANO</div><div class="p-det">12+ чел · Mexicano · 4кт</div><span class="p-badge">4🏟</span><span class="draft-tag">черновик</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(232, 245, 233); border-left-color: rgb(77, 184, 164);"><div class="p-name">📈 SUNDAY 1100+</div><div class="p-det">16 чел · Win the Court · 4кт</div><span class="p-badge">4🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="time-lbl">12:00<br>–<br>14:00</div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(232, 245, 233); border-left-color: rgb(77, 184, 164);"><div class="p-name">📈 SUNDAY ≤1100</div><div class="p-det">16 чел · Win the Court · 4кт</div><span class="p-badge">4🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="time-lbl">14:00<br>–<br>17:00</div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(141, 110, 99);"></span><span class="cm-box used" style="background: rgb(141, 110, 99);"></span><span class="cm-box used" style="background: rgb(141, 110, 99);"></span><span class="cm-box used" style="background: rgb(141, 110, 99);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(255, 248, 225); border-left-color: rgb(141, 110, 99);"><div class="p-name">🧺 КОРЗИНКА 1</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div><div class="placed is-approved" draggable="true" style="background: rgb(255, 248, 225); border-left-color: rgb(141, 110, 99);"><div class="p-name">🧺 КОРЗИНКА 3</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(90, 158, 143);"></span><span class="cm-box used" style="background: rgb(90, 158, 143);"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-label">2/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(237, 231, 246); border-left-color: rgb(90, 158, 143);"><div class="p-name">🤝 PAIR AMERICANO</div><div class="p-det">8 чел · Pair · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(141, 110, 99);"></span><span class="cm-box used" style="background: rgb(141, 110, 99);"></span><span class="cm-box used" style="background: rgb(141, 110, 99);"></span><span class="cm-box used" style="background: rgb(141, 110, 99);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(255, 248, 225); border-left-color: rgb(141, 110, 99);"><div class="p-name">🧺 КОРЗИНКА 2</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div><div class="placed is-approved" draggable="true" style="background: rgb(255, 248, 225); border-left-color: rgb(141, 110, 99);"><div class="p-name">🧺 КОРЗИНКА 4</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(224, 122, 95);"></span><span class="cm-box used" style="background: rgb(224, 122, 95);"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-label">2/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(255, 243, 224); border-left-color: rgb(224, 122, 95);"><div class="p-name">👫 MIXED PAIR</div><div class="p-det">8 чел · Pair · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="time-lbl">17:00<br>–<br>19:00</div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="time-lbl">19:00<br>–<br>21:00</div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(216, 27, 114);"></span><span class="cm-box used" style="background: rgb(216, 27, 114);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(232, 245, 233); border-left-color: rgb(77, 184, 164);"><div class="p-name">📈 Americano 1100-</div><div class="p-det">8 чел · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div><div class="placed is-draft" draggable="true" style="background: rgb(252, 228, 236); border-left-color: rgb(216, 27, 114);"><div class="p-name">💅 LADY'S EVENING</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="draft-tag">черновик</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-label">2/4</span></div><div class="events-stack"><div class="placed is-draft" draggable="true" style="background: rgb(232, 245, 233); border-left-color: rgb(77, 184, 164);"><div class="p-name">📈 RANKED 900–1099</div><div class="p-det">8 чел · Americano · 2кт</div><span class="p-badge">2🏟</span><span class="draft-tag">черновик</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-box used" style="background: rgb(230, 149, 0);"></span><span class="cm-label full">4/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(255, 243, 224); border-left-color: rgb(230, 149, 0);"><div class="p-name">☕ EVENING COFFEE</div><div class="p-det">12 чел · Win the Court · 4кт</div><span class="p-badge">4🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell"><div class="court-meter"><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box used" style="background: rgb(77, 184, 164);"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-label">2/4</span></div><div class="events-stack"><div class="placed is-approved" draggable="true" style="background: rgb(232, 245, 233); border-left-color: rgb(77, 184, 164);"><div class="p-name">📈 RANKED 1100+</div><div class="p-det">16 чел · Win the Court · 2кт</div><span class="p-badge">2🏟</span><span class="approved-tag">✓ АПР</span><div class="remove-btn">✕</div></div></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="cell empty-cell"><div class="court-meter"><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span><span class="cm-box"></span></div><div class="events-stack"></div></div><div class="summary-cell corner">Σ кортов</div><div class="summary-cell"><span style="font-size:13px;color:var(--green)">8/24</span><br><span style="font-size:9px;color:var(--muted)">33%</span><div class="mini-bars"><div class="mb " title="0/4"></div><div class="mb l3" title="4/4"></div><div class="mb " title="0/4"></div><div class="mb " title="0/4"></div><div class="mb " title="0/4"></div><div class="mb l3" title="4/4"></div></div></div><div class="summary-cell"><span style="font-size:13px;color:var(--green)">8/24</span><br><span style="font-size:9px;color:var(--muted)">33%</span><div class="mini-bars"><div class="mb " title="0/4"></div><div class="mb l1" title="2/4"></div><div class="mb " title="0/4"></div><div class="mb l3" title="4/4"></div><div class="mb " title="0/4"></div><div class="mb l1" title="2/4"></div></div></div><div class="summary-cell"><span style="font-size:13px;color:var(--purple)">12/24</span><br><span style="font-size:9px;color:var(--muted)">50%</span><div class="mini-bars"><div class="mb l1" title="2/4"></div><div class="mb l3" title="4/4"></div><div class="mb " title="0/4"></div><div class="mb l1" title="2/4"></div><div class="mb " title="0/4"></div><div class="mb l3" title="4/4"></div></div></div><div class="summary-cell"><span style="font-size:13px;color:var(--purple)">10/24</span><br><span style="font-size:9px;color:var(--muted)">42%</span><div class="mini-bars"><div class="mb l1" title="2/4"></div><div class="mb l1" title="2/4"></div><div class="mb " title="0/4"></div><div class="mb l3" title="4/4"></div><div class="mb " title="0/4"></div><div class="mb l1" title="2/4"></div></div></div><div class="summary-cell"><span style="font-size:13px;color:var(--green)">6/24</span><br><span style="font-size:9px;color:var(--muted)">25%</span><div class="mini-bars"><div class="mb " title="0/4"></div><div class="mb l3" title="4/4"></div><div class="mb " title="0/4"></div><div class="mb l1" title="2/4"></div><div class="mb " title="0/4"></div><div class="mb " title="0/4"></div></div></div><div class="summary-cell"><span style="font-size:13px;color:var(--green)">4/24</span><br><span style="font-size:9px;color:var(--muted)">17%</span><div class="mini-bars"><div class="mb " title="0/4"></div><div class="mb l3" title="4/4"></div><div class="mb " title="0/4"></div><div class="mb " title="0/4"></div><div class="mb " title="0/4"></div><div class="mb " title="0/4"></div></div></div><div class="summary-cell"><span style="font-size:13px;color:var(--green)">8/24</span><br><span style="font-size:9px;color:var(--muted)">33%</span><div class="mini-bars"><div class="mb " title="0/4"></div><div class="mb l3" title="4/4"></div><div class="mb l3" title="4/4"></div><div class="mb " title="0/4"></div><div class="mb " title="0/4"></div><div class="mb " title="0/4"></div></div></div></div>
+  </div>
+</div>
+
+<!-- STATS BAR -->
+<div class="stats" id="stats-bar">
+  <span>Турниров: <span class="stat-val" id="st-events">21</span></span>
+  <span>Слотов: <span class="stat-val" id="st-filled">18</span>/42</span>
+  <span>Кортов: <span class="stat-val" id="st-courts">56</span>/168</span>
+  <span>Загрузка: <span class="stat-val orange" id="st-load">33%</span></span>
+  <span>Свободно: <span class="stat-val green" id="st-free">112</span></span>
+  <span>✅ Утверждено: <span class="stat-val green" id="st-approved">16</span></span>
+  <span>📝 Черновик: <span class="stat-val orange" id="st-draft">5</span></span>
+  <span>Утро 8–10: <span class="stat-val" id="st-am">4</span>/28</span>
+  <span>Вечер 19–21: <span class="stat-val" id="st-pm">12</span>/28</span>
+</div>
+
+<!-- EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>✏️ Редактировать турнир</h3>
+    <div class="fg"><label>Название</label><input id="ed-name"></div>
+    <div class="fg"><label>Формат / кол-во игроков</label><input id="ed-format"></div>
+    <div class="fg"><label>Цены</label><input id="ed-price"></div>
+    <div class="fg">
+      <label>Корты</label>
+      <div class="courts-select">
+        <div class="cs-btn" data-c="1" onclick="setModalCourts(1)">1</div>
+        <div class="cs-btn" data-c="2" onclick="setModalCourts(2)">2</div>
+        <div class="cs-btn" data-c="3" onclick="setModalCourts(3)">3</div>
+        <div class="cs-btn active" data-c="4" onclick="setModalCourts(4)">4</div>
+      </div>
+    </div>
+    <div class="fg"><label>Тип</label>
+      <select id="ed-type">
+        <option value="ranked">Рейтинговый</option>
+        <option value="coffee">Кофе / Социальный</option>
+        <option value="pair">Парный</option>
+        <option value="ladies">Женский</option>
+        <option value="begin">Начинающие</option>
+        <option value="mixed">Микст</option>
+        <option value="fun">Развлекательный</option>
+        <option value="basket">Корзинка</option>
+        <option value="morning">Утренний</option>
+        <option value="custom">Другое</option>
+      </select>
+    </div>
+    <div class="fg"><label>Заметки</label><textarea id="ed-notes" rows="2" placeholder="Заметки для команды..."></textarea></div>
+    <div class="fg" style="display:flex;align-items:center;gap:8px;padding:8px 0">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#16a34a">
+        <input type="checkbox" id="ed-approved" style="width:18px;height:18px;accent-color:#16a34a;cursor:pointer"> ✅ Утверждён на апрель
+      </label>
+      <span style="font-size:10px;color:var(--muted)">(снимите галочку для черновика)</span>
+    </div>
+    <div class="btns">
+      <button class="btn-delete" onclick="deleteFromModal()">Удалить</button>
+      <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+      <button class="btn-save" onclick="saveModal()">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- HELP MODAL -->
+<div class="modal-overlay" id="help-modal">
+  <div class="modal" style="width:520px">
+    <h3>📖 Как пользоваться конструктором</h3>
+    <div class="help-content">
+      <div class="step"><div class="step-num">1</div><div class="step-text"><b>Перетащите стикер</b> из левой панели в нужную ячейку расписания. Каждый стикер показывает сколько кортов он займёт.</div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-text"><b>Смотрите на индикатор кортов</b> — 4 квадратика вверху каждой ячейки. Цветные = занятые корты, серые = свободные. Нельзя добавить турнир если кортов не хватает.</div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-text"><b>Редактируйте</b> — кликните на турнир в ячейке чтобы изменить название, формат, цену, кол-во кортов или добавить заметку.</div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-text"><b>Перемещайте</b> — перетащите турнир из одной ячейки в другую. Он удалится из старого места.</div></div>
+      <div class="step"><div class="step-num">5</div><div class="step-text"><b>Удаляйте</b> — наведите на турнир и нажмите ✕, или откройте редактор и нажмите "Удалить".</div></div>
+      <div class="step"><div class="step-num">6</div><div class="step-text"><b>Создайте свой стикер</b> — форма внизу левой панели. Задайте название, формат, цену и кол-во кортов.</div></div>
+
+      <h4>Кнопки</h4>
+      <p><span class="key">🔄 Сброс</span> — вернуть расписание к начальной версии</p>
+      <p><span class="key">🗑 Очистить</span> — удалить всё из расписания</p>
+      <p><span class="key">🖨 Печать</span> — распечатать расписание (только таблица)</p>
+      <p><span class="key">📋 Текст</span> — скопировать расписание как текст</p>
+      <p><span class="key">💾 Скачать файл</span> — скачать HTML-файл с текущим расписанием. Можно отправить коллегам — откроют в браузере и смогут редактировать!</p>
+
+      <h4>Индикатор загрузки</h4>
+      <p>Внизу таблицы — итоговая строка с загрузкой кортов по дням. Внизу экрана — общая статистика: кол-во турниров, занятых кортов из 168 (6 слотов × 7 дней × 4 корта), загрузка в процентах.</p>
+
+      <h4>Автосохранение</h4>
+      <p>Все изменения автоматически сохраняются в браузере. При следующем открытии файла расписание восстановится.</p>
+    </div>
+    <div class="btns" style="margin-top:16px">
+      <button class="btn-save" onclick="closeHelp()">Понятно!</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Файл скачан! Отправьте коллегам — откроют в браузере</div>
+
+<script>
+// ==================== CONSTANTS ====================
+var DAYS=['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'];
+var TIMES=['08:00–10:00','10:00–12:00','12:00–14:00','14:00–17:00','17:00–19:00','19:00–21:00'];
+var MAX_COURTS=4;
+var SAVE_KEY='v7_schedule_grid_v4';
+
+var TYPE_CLASSES={coffee:'st-coffee',ranked:'st-ranked',pair:'st-pair',ladies:'st-ladies',begin:'st-begin',mixed:'st-mixed',fun:'st-fun',custom:'st-custom',morning:'st-morning',basket:'st-basket'};
+var PLACED_BG={coffee:'#fff3e0',ranked:'#e8f5e9',pair:'#ede7f6',ladies:'#fce4ec',begin:'#e0f7fa',mixed:'#fff3e0',fun:'#f3e5f5',custom:'#fffde7',morning:'#e3f2fd',basket:'#fff8e1'};
+var PLACED_BORDER={coffee:'#e69500',ranked:'#4db8a4',pair:'#5a9e8f',ladies:'#d81b72',begin:'#0e9aa7',mixed:'#e07a5f',fun:'#8e44ad',custom:'#d4a017',morning:'#2196f3',basket:'#8d6e63'};
+
+// ==================== STATE ====================
+var grid = makeEmptyGrid();
+var editingCell = null;
+var modalCourts = 2;
+var dragData = null;
+
+function makeEmptyGrid(){ return Array.from({length:6},function(){return Array.from({length:7},function(){return []})}); }
+function cellCourtsUsed(r,c){ return grid[r][c].reduce(function(s,e){return s+e.courts},0); }
+function cellCourtsFree(r,c){ return MAX_COURTS - cellCourtsUsed(r,c); }
+
+// ==================== DEFAULT SCHEDULE ====================
+var DEFAULTS = [
+  // 08:00–10:00 — черновики (Sunrise + Lady's Beginners)
+  {r:0,c:0,name:'☀️ SUNRISE AMERICANO',format:'8 чел · Americano',price:'1100 / VIP 200',type:'morning',courts:2,approved:false},
+  {r:0,c:2,name:'☀️ SUNRISE AMERICANO',format:'8 чел · Americano',price:'1100 / VIP 200',type:'morning',courts:2,approved:false},
+  {r:0,c:3,name:'🌸 LADY\'S BEGINNERS',format:'8 чел · Americano',price:'800 / VIP Free',type:'ladies',courts:2,approved:false},
+  // 10:00–12:00 — все утверждены на апрель
+  {r:1,c:0,name:'☕ MORNING COFFEE',format:'16 чел · Win the Court',price:'1400 / VIP 500',type:'coffee',courts:4,approved:true},
+  {r:1,c:1,name:'🌱 BEGINNERS',format:'8 чел · Americano',price:'800 / VIP Free',type:'begin',courts:2,approved:true},
+  {r:1,c:2,name:'💅 LADY\'S RANKED',format:'8 чел · Americano',price:'1100 / VIP 200',type:'ladies',courts:4,approved:true},
+  {r:1,c:3,name:'📈 RANKED 900–1099',format:'8 чел · Americano',price:'1100 / VIP 200',type:'ranked',courts:2,approved:true},
+  {r:1,c:4,name:'☕ MORNING COFFEE',format:'16 чел · Win the Court',price:'1300 / VIP 300',type:'coffee',courts:4,approved:true},
+  {r:1,c:5,name:'🎯 MEXICANO',format:'12+ чел · Mexicano',price:'1400 / VIP 300',type:'fun',courts:4,approved:false},
+  {r:1,c:6,name:'📈 SUNDAY 1100+',format:'16 чел · Win the Court',price:'1500 / VIP 500',type:'ranked',courts:4,approved:true},
+  // 12:00–14:00
+  {r:2,c:6,name:'📈 SUNDAY ≤1100',format:'16 чел · Win the Court',price:'1500 / VIP 500',type:'ranked',courts:4,approved:true},
+  // 14:00–17:00
+  {r:3,c:1,name:'🧺 КОРЗИНКА 1',format:'8 чел · Americano',price:'Americano',type:'basket',courts:2,approved:true},
+  {r:3,c:1,name:'🧺 КОРЗИНКА 3',format:'8 чел · Americano',price:'Americano',type:'basket',courts:2,approved:true},
+  {r:3,c:2,name:'🤝 PAIR AMERICANO',format:'8 чел · Pair',price:'1500 / VIP 300',type:'pair',courts:2,approved:true},
+  {r:3,c:3,name:'🧺 КОРЗИНКА 2',format:'8 чел · Americano',price:'Americano',type:'basket',courts:2,approved:true},
+  {r:3,c:3,name:'🧺 КОРЗИНКА 4',format:'8 чел · Americano',price:'Americano',type:'basket',courts:2,approved:true},
+  {r:3,c:4,name:'👫 MIXED PAIR',format:'16 чел · Pair',price:'1500 / VIP 300',type:'mixed',courts:2,approved:true},
+  // 19:00–21:00
+  {r:5,c:0,name:'📈 Americano 1100-',format:'8 чел',price:'1500 / VIP 300',type:'ranked',courts:2,approved:true},
+  {r:5,c:1,name:'💅 LADY\'S EVENING',format:'8 чел · Americano',price:'1100 / VIP 200',type:'ladies',courts:2,approved:false},
+  {r:5,c:4,name:'🏆 PAIR MEXICANO',format:'12+ чел · Pair Mexicano',price:'1500 / VIP 300',type:'pair',courts:4,approved:false},
+  {r:5,c:1,name:'📈 RANKED 900–1099',format:'8 чел · Americano',price:'1100 / VIP 200',type:'ranked',courts:2,approved:false},
+  {r:5,c:2,name:'☕ EVENING COFFEE',format:'12 чел · Win the Court',price:'1400 / VIP 500',type:'coffee',courts:4,approved:true},
+  {r:5,c:3,name:'📈 RANKED 1100+',format:'16 чел · Win the Court',price:'1500 / VIP 500',type:'ranked',courts:2,approved:true}
+];
+
+function loadDefaults(){
+  grid = makeEmptyGrid();
+  DEFAULTS.forEach(function(d){ grid[d.r][d.c].push({name:d.name,format:d.format,price:d.price,type:d.type,notes:'',courts:d.courts,approved:d.approved||false}); });
+}
+
+// ==================== STICKER DEFINITIONS ====================
+var STICKERS_EXISTING=[
+  {name:'☕ MORNING COFFEE',format:'16 чел · Win the Court',price:'1400 / VIP 500',type:'coffee',courts:4},
+  {name:'☕ EVENING COFFEE',format:'16 чел · Win the Court',price:'1400 / VIP 500',type:'coffee',courts:4},
+  {name:'📈 RANKED ≤999',format:'8 чел · Americano',price:'1100 / VIP 200',type:'ranked',courts:2},
+  {name:'📈 RANKED 900–1099',format:'8 чел · Americano',price:'1100 / VIP 200',type:'ranked',courts:2},
+  {name:'📈 RANKED ≤900',format:'8 чел · Americano',price:'1100 / VIP 200',type:'ranked',courts:2},
+  {name:'📈 RANKED 1100+',format:'16 чел · Win the Court',price:'1500 / VIP 500',type:'ranked',courts:4},
+  {name:'📈 AMERICANO 900–1100',format:'8 чел · Americano',price:'1500 / VIP 300',type:'ranked',courts:2},
+  {name:'🤝 ПАРНЫЙ AMERICANO',format:'16 чел · Pair',price:'1500 / VIP 300',type:'pair',courts:4},
+  {name:'👫 МИКСТ',format:'16 чел · Pair',price:'1500 / VIP 300',type:'mixed',courts:4},
+  {name:'💅 ЖЕНСКИЙ RANKED',format:'8 чел · Americano',price:'1100 / VIP 200',type:'ladies',courts:2},
+  {name:'🌱 НАЧИНАЮЩИЕ',format:'8 чел · Americano',price:'800 / VIP Free',type:'begin',courts:2},
+  {name:'🎾 PADEL vs TENNIS',format:'16 чел · Win the Court',price:'1300 / VIP 300',type:'fun',courts:4},
+  {name:'🏆 Pair Mexicano',format:'16 чел',price:'1400 / VIP 300',type:'pair',courts:4},
+  {name:'📈 Americano 1100-',format:'8 чел',price:'1500 / VIP 300',type:'ranked',courts:2}
+];
+var STICKERS_BASKET=[
+  {name:'🧺 КОРЗИНКА 1',format:'8 чел · Americano',price:'Americano',type:'basket',courts:2},
+  {name:'🧺 КОРЗИНКА 2',format:'8 чел · Americano',price:'Americano',type:'basket',courts:2},
+  {name:'🧺 КОРЗИНКА 3',format:'8 чел · Americano',price:'Americano',type:'basket',courts:2},
+  {name:'🧺 КОРЗИНКА 4',format:'8 чел · Americano',price:'Americano',type:'basket',courts:2}
+];
+var STICKERS_MORNING=[
+  {name:'☀️ SUNRISE PADEL',format:'8 чел · Americano',price:'900 / VIP 200',type:'morning',courts:2},
+  {name:'🧘 ЙОГА + PADEL',format:'12 чел · Йога+WtC',price:'1600 / VIP 500',type:'morning',courts:3},
+  {name:'💼 БИЗНЕС ЗАВТРАК',format:'8 чел · Americano+завтрак',price:'2000 / VIP 700',type:'morning',courts:2},
+  {name:'💅 ЖЕНСКОЕ УТРО',format:'8 чел · Win the Court',price:'1200 / VIP 300',type:'morning',courts:2},
+  {name:'🎯 DRILL & PLAY',format:'8 чел · Дриллы+Americano',price:'1400 / VIP 400',type:'morning',courts:2}
+];
+// Стикеры по анализу воронки — разрывы мужской воронки
+var STICKERS_FUNNEL=[
+  {name:'📈 RANKED 900–1099 вечер',format:'8 чел · Americano',price:'1300 / VIP 300',type:'ranked',courts:2},
+  {name:'📈 BUDGET AMERICANO',format:'8 чел · Americano',price:'900 / VIP 100',type:'ranked',courts:2},
+  {name:'🏆 PRO LEAGUE 1300+',format:'8 чел · Americano',price:'2000 / VIP 700',type:'ranked',courts:2},
+  {name:'📈 RANKED 1100+ (доп)',format:'16 чел · Win the Court',price:'1500 / VIP 500',type:'ranked',courts:4},
+  {name:'🌱 BEGINNERS (доп)',format:'8 чел · Americano',price:'800 / VIP Free',type:'begin',courts:2},
+  {name:'☕ COFFEE (доп)',format:'16 чел · Win the Court',price:'1300 / VIP 300',type:'coffee',courts:4}
+];
+// Стикеры — женская воронка (критично!)
+var STICKERS_WOMEN=[
+  {name:'🌸 LADY\'S BEGINNERS',format:'8 чел · Americano',price:'800 / VIP Free',type:'ladies',courts:2},
+  {name:'💅 LADY\'S EVENING',format:'8 чел · Americano',price:'1100 / VIP 200',type:'ladies',courts:2},
+  {name:'💅 LADY\'S ADVANCED',format:'8 чел · Americano',price:'1300 / VIP 300',type:'ladies',courts:2},
+  {name:'💅 LADY\'S COFFEE',format:'12 чел · Win the Court',price:'1200 / VIP 300',type:'ladies',courts:3},
+  {name:'👫 MIXED PAIR (доп)',format:'16 чел · Pair M+Ж',price:'1500 / VIP 300',type:'mixed',courts:4}
+];
+// Стикеры — социальные / фан форматы
+var STICKERS_SOCIAL=[
+  {name:'🎉 FUN FRIDAY',format:'16 чел · Тема+DJ',price:'1500 / VIP 300',type:'fun',courts:4},
+  {name:'🎉 PADEL PARTY',format:'16 чел · DJ + BBQ',price:'2000 / VIP 700',type:'fun',courts:4},
+  {name:'👦 ЮНИОРЫ 10–17',format:'8 чел · Americano',price:'600',type:'custom',courts:2},
+  {name:'👨‍👩‍👧 FAMILY DAY',format:'12 чел · Team Format',price:'1200 / семья',type:'fun',courts:3},
+  {name:'🏢 КОРПОРАТИВ',format:'16 чел · Team vs Team',price:'2500 / команда',type:'custom',courts:4},
+  {name:'👴 СЕНЬОРЫ 45+',format:'8 чел · Americano',price:'1000 / VIP 200',type:'custom',courts:2}
+];
+var STICKERS_IDEAS=[
+  {name:'🏆 MEXICANO',format:'12 чел · Mexicano',price:'1500 / VIP 300',type:'ranked',courts:3},
+  {name:'🌙 НОЧНОЙ PADEL',format:'12 чел · Win the Court',price:'1600 / VIP 500',type:'fun',courts:3},
+  {name:'🎾 PADEL vs TENNIS',format:'16 чел · Win the Court',price:'1300 / VIP 300',type:'fun',courts:4}
+];
+
+// ==================== RENDER STICKERS ====================
+function courtDotsHTML(courts){
+  var h='';
+  for(var i=0;i<4;i++) h+='<span class="ct'+(i<courts?' on':'')+'"></span>';
+  return h;
+}
+
+function renderStickers(list, containerId){
+  var c=document.getElementById(containerId);
+  c.innerHTML='';
+  list.forEach(function(s){
+    var el=document.createElement('div');
+    el.className='sticker '+(TYPE_CLASSES[s.type]||'st-custom');
+    el.draggable=true;
+    el.innerHTML='<div class="st-name">'+esc(s.name)+'</div><div class="st-det">'+esc(s.format)+'<br>'+esc(s.price)+'</div><div class="st-courts">'+courtDotsHTML(s.courts)+'<span class="ct-label">'+s.courts+' корт'+(s.courts===1?'':s.courts<5?'а':'ов')+'</span></div>';
+    el.addEventListener('dragstart',function(e){
+      dragData={name:s.name,format:s.format,price:s.price,type:s.type,courts:s.courts,notes:''};
+      e.dataTransfer.effectAllowed='copy';
+      e.dataTransfer.setData('text/plain','sticker');
+      el.style.opacity='.5';
+    });
+    el.addEventListener('dragend',function(){el.style.opacity='1';dragData=null;});
+    c.appendChild(el);
+  });
+  // Update badge
+  var badgeId=containerId.replace('stickers-','badge-');
+  var badge=document.getElementById(badgeId);
+  if(badge) badge.textContent=list.length;
+}
+
+// ==================== BUILD GRID ====================
+function buildGrid(){
+  var g=document.getElementById('grid');
+  g.innerHTML='';
+
+  // Header
+  var corner=document.createElement('div');
+  corner.className='day-hdr corner';
+  corner.innerHTML='4 корта';
+  g.appendChild(corner);
+
+  DAYS.forEach(function(d,i){
+    var hdr=document.createElement('div');
+    hdr.className='day-hdr'+(i>=5?' wk':'');
+    hdr.textContent=d;
+    g.appendChild(hdr);
+  });
+
+  // Rows
+  TIMES.forEach(function(t,r){
+    var tlbl=document.createElement('div');
+    tlbl.className='time-lbl';
+    tlbl.innerHTML=t.replace('–','<br>–<br>');
+    g.appendChild(tlbl);
+
+    for(var c=0;c<7;c++){
+      (function(row,col){
+        var events=grid[row][col];
+        var cell=document.createElement('div');
+        cell.className='cell'+(events.length===0?' empty-cell':'');
+
+        // --- Drag handlers ---
+        cell.addEventListener('dragover',function(e){
+          e.preventDefault();
+          var fr=cellCourtsFree(row,col);
+          if(dragData && fr>=dragData.courts){
+            e.dataTransfer.dropEffect='copy';
+            cell.classList.add('drag-over');
+          } else {
+            e.dataTransfer.dropEffect='none';
+          }
+        });
+        cell.addEventListener('dragleave',function(){cell.classList.remove('drag-over');});
+        cell.addEventListener('drop',function(e){
+          e.preventDefault();
+          cell.classList.remove('drag-over');
+          if(!dragData) return;
+          var fr=cellCourtsFree(row,col);
+          if(dragData.courts>fr){
+            showToast('Нет места! Свободно '+fr+' из 4 кортов');
+            dragData=null; return;
+          }
+          grid[row][col].push({name:dragData.name,format:dragData.format,price:dragData.price,type:dragData.type,notes:dragData.notes||'',courts:dragData.courts,approved:dragData.approved||false});
+          dragData=null;
+          renderGrid(); updateStats(); autoSave();
+        });
+
+        // --- Court meter ---
+        var meter=document.createElement('div');
+        meter.className='court-meter';
+        var used=cellCourtsUsed(row,col);
+        var courtIdx=0;
+        for(var i=0;i<4;i++){
+          var box=document.createElement('span');
+          box.className='cm-box';
+          var found=false;
+          var ci2=0;
+          for(var ei=0;ei<events.length;ei++){
+            for(var ci=0;ci<events[ei].courts;ci++){
+              if(ci2===i){
+                box.classList.add('used');
+                box.style.background=PLACED_BORDER[events[ei].type]||'#ffc107';
+                found=true; break;
+              }
+              ci2++;
+            }
+            if(found) break;
+          }
+          meter.appendChild(box);
+        }
+        if(used>0){
+          var lbl=document.createElement('span');
+          lbl.className='cm-label'+(used===4?' full':'');
+          lbl.textContent=used+'/4';
+          meter.appendChild(lbl);
+        }
+        cell.appendChild(meter);
+
+        // --- Events stack ---
+        var stack=document.createElement('div');
+        stack.className='events-stack';
+
+        events.forEach(function(ev,idx){
+          (function(evRow,evCol,evIdx,evData){
+            var div=document.createElement('div');
+            div.className='placed'+(evData.approved?' is-approved':' is-draft');
+            div.style.background=PLACED_BG[evData.type]||'#fffde7';
+            div.style.borderLeftColor=PLACED_BORDER[evData.type]||'#ffc107';
+            var statusTag=evData.approved?'<span class="approved-tag">✓ АПР</span>':'<span class="draft-tag">черновик</span>';
+            div.innerHTML='<div class="p-name">'+esc(evData.name)+'</div><div class="p-det">'+esc(evData.format)+' · '+evData.courts+'кт</div><span class="p-badge">'+evData.courts+'🏟</span>'+statusTag+'<div class="remove-btn">✕</div>';
+
+            div.querySelector('.remove-btn').addEventListener('click',function(e){
+              e.stopPropagation();
+              removeEvent(evRow,evCol,evIdx);
+            });
+            div.addEventListener('click',function(e){
+              e.stopPropagation();
+              openModal(evRow,evCol,evIdx);
+            });
+            div.draggable=true;
+            div.addEventListener('dragstart',function(e){
+              e.stopPropagation();
+              dragData={name:evData.name,format:evData.format,price:evData.price,type:evData.type,notes:evData.notes||'',courts:evData.courts,approved:evData.approved||false};
+              grid[evRow][evCol].splice(evIdx,1);
+              setTimeout(function(){renderGrid();updateStats();autoSave();},0);
+              e.dataTransfer.effectAllowed='move';
+              e.dataTransfer.setData('text/plain','move');
+            });
+            stack.appendChild(div);
+          })(row,col,idx,ev);
+        });
+
+        cell.appendChild(stack);
+        g.appendChild(cell);
+      })(r,c);
+    }
+  });
+
+  // Summary row
+  var sumCorner=document.createElement('div');
+  sumCorner.className='summary-cell corner';
+  sumCorner.innerHTML='Σ кортов';
+  g.appendChild(sumCorner);
+
+  for(var c=0;c<7;c++){
+    (function(col){
+      var totalCourts=0;
+      var slots=[];
+      for(var r=0;r<6;r++){
+        var u=cellCourtsUsed(r,col);
+        totalCourts+=u;
+        slots.push(u);
+      }
+      var pct=Math.round(totalCourts/24*100);
+      var sc=document.createElement('div');
+      sc.className='summary-cell';
+      var barsHtml='<div class="mini-bars">';
+      slots.forEach(function(u){
+        var lvl=u===0?'':u<=2?'l1':u<=3?'l2':'l3';
+        barsHtml+='<div class="mb '+lvl+'" title="'+u+'/4"></div>';
+      });
+      barsHtml+='</div>';
+      var color=pct>=70?'var(--red)':pct>=40?'var(--purple)':'var(--green)';
+      sc.innerHTML='<span style="font-size:13px;color:'+color+'">'+totalCourts+'/24</span><br><span style="font-size:9px;color:var(--muted)">'+pct+'%</span>'+barsHtml;
+      g.appendChild(sc);
+    })(c);
+  }
+}
+
+function renderGrid(){buildGrid();}
+
+function removeEvent(r,c,idx){grid[r][c].splice(idx,1);renderGrid();updateStats();autoSave();}
+
+// ==================== MODAL ====================
+function setModalCourts(n){
+  modalCourts=n;
+  document.querySelectorAll('.courts-select .cs-btn').forEach(function(b){
+    b.classList.toggle('active',parseInt(b.dataset.c)===n);
+  });
+}
+function openModal(r,c,idx){
+  editingCell={r:r,c:c,idx:idx};
+  var d=grid[r][c][idx];
+  if(!d) return;
+  document.getElementById('ed-name').value=d.name;
+  document.getElementById('ed-format').value=d.format;
+  document.getElementById('ed-price').value=d.price;
+  document.getElementById('ed-type').value=d.type;
+  document.getElementById('ed-notes').value=d.notes||'';
+  document.getElementById('ed-approved').checked=!!d.approved;
+  setModalCourts(d.courts);
+  document.getElementById('modal').classList.add('show');
+}
+function closeModal(){document.getElementById('modal').classList.remove('show');editingCell=null;}
+function saveModal(){
+  if(!editingCell) return;
+  var r=editingCell.r, c=editingCell.c, idx=editingCell.idx;
+  var otherCourts=grid[r][c].reduce(function(s,e,i){return i===idx?s:s+e.courts;},0);
+  if(otherCourts+modalCourts>MAX_COURTS){
+    showToast('Превышен лимит! Доступно '+(MAX_COURTS-otherCourts)+' кортов');
+    return;
+  }
+  grid[r][c][idx]={
+    name:document.getElementById('ed-name').value,
+    format:document.getElementById('ed-format').value,
+    price:document.getElementById('ed-price').value,
+    type:document.getElementById('ed-type').value,
+    notes:document.getElementById('ed-notes').value,
+    courts:modalCourts,
+    approved:document.getElementById('ed-approved').checked
+  };
+  closeModal();renderGrid();updateStats();autoSave();
+}
+function deleteFromModal(){
+  if(!editingCell) return;
+  grid[editingCell.r][editingCell.c].splice(editingCell.idx,1);
+  closeModal();renderGrid();updateStats();autoSave();
+}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeModal();});
+
+// ==================== HELP ====================
+function showHelp(){document.getElementById('help-modal').classList.add('show');}
+function closeHelp(){document.getElementById('help-modal').classList.remove('show');}
+document.getElementById('help-modal').addEventListener('click',function(e){if(e.target===e.currentTarget)closeHelp();});
+
+// ==================== CUSTOM STICKER ====================
+function createCustomSticker(){
+  var name=document.getElementById('cr-name').value.trim();
+  if(!name){showToast('Введите название');return;}
+  var s={
+    name:name,
+    format:document.getElementById('cr-format').value.trim()||'—',
+    price:document.getElementById('cr-price').value.trim()||'—',
+    type:document.getElementById('cr-type').value,
+    courts:parseInt(document.getElementById('cr-courts').value)||2
+  };
+  STICKERS_IDEAS.push(s);
+  renderStickers(STICKERS_IDEAS,'stickers-ideas');
+  document.getElementById('cr-name').value='';
+  document.getElementById('cr-format').value='';
+  document.getElementById('cr-price').value='';
+  showToast('Стикер "'+name+'" создан!');
+}
+
+// ==================== STATS ====================
+function updateStats(){
+  var totalEvents=0,totalCourts=0,amCourts=0,pmCourts=0,filledSlots=0,approvedCount=0,draftCount=0;
+  for(var r=0;r<6;r++) for(var c=0;c<7;c++){
+    var evts=grid[r][c];
+    if(evts.length>0) filledSlots++;
+    evts.forEach(function(e){
+      totalEvents++;
+      totalCourts+=e.courts;
+      if(r===0) amCourts+=e.courts;
+      if(r===5) pmCourts+=e.courts;
+      if(e.approved) approvedCount++; else draftCount++;
+    });
+  }
+  document.getElementById('st-events').textContent=totalEvents;
+  document.getElementById('st-filled').textContent=filledSlots;
+  document.getElementById('st-courts').textContent=totalCourts;
+  var pct=Math.round(totalCourts/168*100);
+  var loadEl=document.getElementById('st-load');
+  loadEl.textContent=pct+'%';
+  loadEl.className='stat-val'+(pct>=50?' green':pct>=25?' orange':' red');
+  document.getElementById('st-free').textContent=168-totalCourts;
+  document.getElementById('st-approved').textContent=approvedCount;
+  document.getElementById('st-draft').textContent=draftCount;
+  document.getElementById('st-am').textContent=amCourts;
+  document.getElementById('st-pm').textContent=pmCourts;
+}
+
+// ==================== SAVE / LOAD (localStorage) ====================
+function autoSave(){
+  try{
+    localStorage.setItem(SAVE_KEY,JSON.stringify(grid));
+    var el=document.getElementById('save-status');
+    el.textContent='✓ сохранено';
+    setTimeout(function(){el.textContent='';},2000);
+  }catch(e){}
+}
+function autoLoad(){
+  try{
+    var data=localStorage.getItem(SAVE_KEY);
+    if(data){
+      var parsed=JSON.parse(data);
+      if(parsed && parsed.length===6){
+        grid=parsed;
+        return true;
+      }
+    }
+  }catch(e){}
+  return false;
+}
+
+// ==================== RESET / CLEAR ====================
+function resetSchedule(){
+  if(!confirm('Вернуть расписание к начальной версии? Текущие изменения будут потеряны.')) return;
+  loadDefaults();renderGrid();updateStats();autoSave();
+  showToast('Расписание сброшено');
+}
+function clearAll(){
+  if(!confirm('Очистить ВСЁ расписание?')) return;
+  grid=makeEmptyGrid();renderGrid();updateStats();autoSave();
+  showToast('Расписание очищено');
+}
+
+// ==================== EXPORT TEXT ====================
+function exportText(){
+  var txt='V7 PADEL ANTALYA — ЕЖЕНЕДЕЛЬНОЕ РАСПИСАНИЕ (4 КОРТА)\n'+'═'.repeat(55)+'\n\n';
+  TIMES.forEach(function(t,r){
+    txt+='⏰ '+t+'\n';
+    DAYS.forEach(function(d,c){
+      var evts=grid[r][c];
+      if(evts.length===0){
+        txt+='  '+d+': — свободно (4 корта)\n';
+      } else {
+        var used=cellCourtsUsed(r,c);
+        evts.forEach(function(ev){
+          txt+='  '+d+': '+(ev.approved?'✅':'📝')+' '+ev.name+' | '+ev.format+' | '+ev.price+' | '+ev.courts+' корт'+(ev.courts>1?'а':'')+'\n';
+        });
+        if(used<4) txt+='  '+d+': [свободно '+(4-used)+' корт'+((4-used)===1?'':'а')+']\n';
+      }
+    });
+    txt+='\n';
+  });
+  txt+='\nЗАГРУЗКА ПО ДНЯМ:\n';
+  DAYS.forEach(function(d,c){
+    var total=0;
+    for(var r=0;r<6;r++) total+=cellCourtsUsed(r,c);
+    txt+='  '+d+': '+total+'/24 кортов ('+Math.round(total/24*100)+'%)\n';
+  });
+  navigator.clipboard.writeText(txt).then(function(){showToast('Расписание скопировано!');}).catch(function(){
+    var ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);showToast('Скопировано!');
+  });
+}
+
+// ==================== DOWNLOAD HTML ====================
+function downloadHTML(){
+  // Generate a self-contained HTML with current grid state baked in
+  var currentGrid=JSON.stringify(grid);
+  var html=document.documentElement.outerHTML;
+  // Replace the init section to load saved grid instead of defaults
+  var marker='/*__INIT_MARKER__*/
+var __SAVED_GRID__=[[[],[],[{"name":"☀️ SUNRISE AMERICANO","format":"8 чел · Americano","price":"1100 / VIP 200","type":"morning","notes":"","courts":2,"approved":false}],[{"name":"🌸 LADY'S BEGINNERS","format":"8 чел · Americano","price":"800 / VIP Free","type":"ladies","notes":"","courts":2,"approved":false}],[],[],[]],[[{"name":"☕ MORNING COFFEE","format":"16 чел · Win the Court","price":"1400 / VIP 500","type":"coffee","notes":"","courts":4,"approved":true}],[{"name":"🌱 BEGINNERS","format":"8 чел · Americano","price":"800 / VIP Free","type":"begin","notes":"","courts":2,"approved":true}],[{"name":"💅 LADY'S RANKED","format":"8 чел · Americano","price":"1100 / VIP 200","type":"ladies","notes":"","courts":4,"approved":true}],[{"name":"📈 RANKED 900–1099","format":"8 чел · Americano","price":"1100 / VIP 200","type":"ranked","notes":"","courts":2,"approved":true}],[{"name":"☕ MORNING COFFEE","format":"16 чел · Win the Court","price":"1300 / VIP 300","type":"coffee","notes":"","courts":4,"approved":true}],[{"name":"🎯 MEXICANO","format":"12+ чел · Mexicano","price":"1400 / VIP 300","type":"fun","notes":"","courts":4,"approved":false}],[{"name":"📈 SUNDAY 1100+","format":"16 чел · Win the Court","price":"1500 / VIP 500","type":"ranked","notes":"","courts":4,"approved":true}]],[[],[],[],[],[],[],[{"name":"📈 SUNDAY ≤1100","format":"16 чел · Win the Court","price":"1500 / VIP 500","type":"ranked","notes":"","courts":4,"approved":true}]],[[],[{"name":"🧺 КОРЗИНКА 1","format":"8 чел · Americano","price":"Americano","type":"basket","notes":"","courts":2,"approved":true},{"name":"🧺 КОРЗИНКА 3","format":"8 чел · Americano","price":"Americano","type":"basket","notes":"","courts":2,"approved":true}],[{"name":"🤝 PAIR AMERICANO","format":"8 чел · Pair","price":"1500 / VIP 300","type":"pair","notes":"","courts":2,"approved":true}],[{"name":"🧺 КОРЗИНКА 2","format":"8 чел · Americano","price":"Americano","type":"basket","notes":"","courts":2,"approved":true},{"name":"🧺 КОРЗИНКА 4","format":"8 чел · Americano","price":"Americano","type":"basket","notes":"","courts":2,"approved":true}],[{"name":"👫 MIXED PAIR","format":"8 чел · Pair","price":"1500 / VIP 300","type":"mixed","notes":"","courts":2,"approved":true}],[],[]],[[],[],[],[],[],[],[]],[[{"name":"📈 Americano 1100-","format":"8 чел","price":"1500 / VIP 300","type":"ranked","notes":"","courts":2,"approved":true},{"name":"💅 LADY'S EVENING","format":"8 чел · Americano","price":"1100 / VIP 200","type":"ladies","notes":"","courts":2,"approved":false}],[{"name":"📈 RANKED 900–1099","format":"8 чел · Americano","price":"1100 / VIP 200","type":"ranked","notes":"","courts":2,"approved":false}],[{"name":"☕ EVENING COFFEE","format":"12 чел · Win the Court","price":"1400 / VIP 500","type":"coffee","notes":"","courts":4,"approved":true}],[{"name":"📈 RANKED 1100+","format":"16 чел · Win the Court","price":"1500 / VIP 500","type":"ranked","notes":"","courts":2,"approved":true}],[],[],[]]];
+';
+  if(html.indexOf(marker)===-1){
+    showToast('Ошибка генерации файла');
+    return;
+  }
+  var replacement='/*__INIT_MARKER__*/\nvar __SAVED_GRID__='+currentGrid+';\n';
+  html=html.replace(marker,replacement);
+  var blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  var today=new Date();
+  var dateStr=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  a.download='V7_Расписание_'+dateStr+'.html';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Файл скачан! Отправьте коллегам — откроют в браузере');
+}
+
+// ==================== UTILITIES ====================
+function showToast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},3000);
+}
+function esc(s){return s?s.replace(/</g,'&lt;').replace(/>/g,'&gt;'):'';}
+
+// ==================== INIT ====================
+/*__INIT_MARKER__*/
+(function(){
+  // If grid was baked in via download, use it
+  if(typeof __SAVED_GRID__!=='undefined' && __SAVED_GRID__){
+    grid=__SAVED_GRID__;
+  }
+  // Otherwise try localStorage
+  else if(!autoLoad()){
+    loadDefaults();
+  }
+  renderStickers(STICKERS_EXISTING,'stickers-existing');
+  renderStickers(STICKERS_BASKET,'stickers-basket');
+  renderStickers(STICKERS_MORNING,'stickers-morning');
+  renderStickers(STICKERS_FUNNEL,'stickers-funnel');
+  renderStickers(STICKERS_WOMEN,'stickers-women');
+  renderStickers(STICKERS_SOCIAL,'stickers-social');
+  renderStickers(STICKERS_IDEAS,'stickers-ideas');
+  renderGrid();
+  updateStats();
+})();
+</script>
+
+
+</body></html>
