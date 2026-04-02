@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7PADEL — Coach Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #c8f535;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #7a7a7a;
+    --success: #4ade80;
+    --coach-color: #f59e0b;
+    --senior-color: #60a5fa;
+    --expert-color: #c8f535;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 2px solid var(--accent);
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .logo-text {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .logo-text span {
+    color: #fff;
+  }
+
+  .header-title {
+    border-left: 2px solid var(--border);
+    padding-left: 20px;
+  }
+
+  .header-title h1 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .header-title p {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 300;
+    margin-top: 3px;
+  }
+
+  /* LANG SWITCHER */
+  .lang-switcher {
+    display: flex;
+    gap: 6px;
+  }
+
+  .lang-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 7px 16px;
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+
+  .lang-btn:hover { border-color: var(--accent); color: var(--text); }
+  .lang-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+  /* LAYOUT */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px;
+  }
+
+  .card h2 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 17px;
+    letter-spacing: 1.2px;
+    color: var(--accent);
+    margin-bottom: 18px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .tag {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    background: var(--border);
+    color: var(--muted);
+    padding: 2px 8px;
+    border-radius: 3px;
+    letter-spacing: 0;
+    font-weight: 500;
+  }
+
+  /* LEVEL SELECTOR */
+  .level-selector {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .level-btn {
+    flex: 1;
+    min-width: 150px;
+    padding: 16px 18px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .level-btn .lvl-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .level-btn .lvl-pct {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--muted);
+    display: block;
+  }
+
+  .level-btn .lvl-desc {
+    font-size: 11px;
+    color: var(--muted);
+    display: block;
+    margin-top: 5px;
+    line-height: 1.4;
+  }
+
+  .level-btn[data-level="coach"] .lvl-name { color: var(--coach-color); }
+  .level-btn[data-level="coach"].active { border-color: var(--coach-color); background: rgba(245,158,11,0.07); }
+
+  .level-btn[data-level="senior"] .lvl-name { color: var(--senior-color); }
+  .level-btn[data-level="senior"].active { border-color: var(--senior-color); background: rgba(96,165,250,0.07); }
+
+  .level-btn[data-level="expert"] .lvl-name { color: var(--expert-color); }
+  .level-btn[data-level="expert"].active { border-color: var(--expert-color); background: rgba(200,245,53,0.07); }
+
+  /* SETTINGS */
+  .settings-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .field { display: flex; flex-direction: column; gap: 5px; }
+
+  .field label {
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .field input[type="number"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    padding: 9px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    width: 100%;
+    -moz-appearance: textfield;
+    transition: border-color 0.2s;
+  }
+
+  .field input[type="number"]::-webkit-outer-spin-button,
+  .field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .field input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  .field .unit { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* TABLE */
+  .training-table { width: 100%; border-collapse: collapse; }
+
+  .training-table th {
+    text-align: left;
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 500;
+  }
+
+  .training-table th.right { text-align: right; }
+
+  .training-table td {
+    padding: 11px 12px;
+    border-bottom: 1px solid #1e1e1e;
+    vertical-align: middle;
+    font-size: 15px;
+  }
+
+  .training-table tr:last-child td { border-bottom: none; }
+  .training-table tr:hover td { background: rgba(200,245,53,0.03); }
+
+  .type-badge {
+    display: inline-block;
+    padding: 3px 9px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .badge-ind   { background: rgba(200,245,53,0.12); color: var(--accent); }
+  .badge-pair  { background: rgba(255,107,53,0.12); color: var(--accent2); }
+  .badge-group { background: rgba(74,222,128,0.12); color: var(--success); }
+
+  .val        { font-weight: 600; color: var(--text); }
+  .val-accent { color: var(--accent); font-weight: 700; }
+  .val-muted  { color: var(--muted); font-size: 13px; }
+
+  .inline-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--accent);
+    padding: 5px 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    width: 68px;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+
+  .inline-input::-webkit-outer-spin-button,
+  .inline-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .inline-input:focus { outline: none; border-color: var(--accent); background: #1e230a; }
+
+  /* SESSIONS */
+  .sessions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 10px;
+  }
+
+  .session-field {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .session-field .name { font-size: 13px; color: var(--muted); line-height: 1.4; flex: 1; }
+
+  .session-field input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 7px 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    width: 54px;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+
+  .session-field input::-webkit-outer-spin-button,
+  .session-field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .session-field input:focus { outline: none; border-color: var(--accent); }
+
+  .note {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    padding: 10px 14px;
+    background: var(--surface2);
+    border-radius: 5px;
+    border-left: 3px solid var(--border);
+    margin-top: 14px;
+  }
+  .note strong { color: var(--text); }
+
+  /* SUMMARY BAR */
+  .summary {
+    background: linear-gradient(135deg, #1a1a1a, #1e230a);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 22px 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .summary-block { text-align: center; }
+
+  .summary-block .label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+
+  .summary-block .big {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 30px;
+    color: var(--accent);
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+
+  .summary-block .big.ok { color: var(--success); }
+  .summary-block .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .divider { width: 1px; height: 54px; background: var(--border); }
+
+  /* EVENT FIELDS */
+  .event-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="logo-text">V7 <span>PADEL</span></div>
+    <div class="header-title">
+      <h1 data-i18n="title">РАСЧЁТ ЗАРПЛАТЫ ТРЕНЕРА</h1>
+      <p data-i18n="subtitle">% от базы после вычета аренды корта</p>
+    </div>
+  </div>
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+    <button class="lang-btn" onclick="setLang('tr')">TR</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- LEVEL -->
+  <div class="card">
+    <h2>🎾 <span data-i18n="levelTitle">Уровень тренера</span> <span class="tag" data-i18n="levelTag">ВЫБЕРИТЕ</span></h2>
+    <div class="level-selector">
+      <div class="level-btn active" data-level="coach" onclick="setLevel('coach')">
+        <span class="lvl-name">V7 Coach</span>
+        <span class="lvl-pct" data-i18n="coachPct">Взрослые 30% · Дети 40%</span>
+      </div>
+      <div class="level-btn" data-level="senior" onclick="setLevel('senior')">
+        <span class="lvl-name">V7 Senior</span>
+        <span class="lvl-pct" data-i18n="seniorPct">Взрослые 40% · Дети 50%</span>
+      </div>
+      <div class="level-btn" data-level="expert" onclick="setLevel('expert')">
+        <span class="lvl-name">V7 Expert</span>
+        <span class="lvl-pct" data-i18n="expertPct">Взрослые 50% · Дети 60%</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="card">
+    <h2>⚙️ <span data-i18n="settingsTitle">Базовые настройки</span> <span class="tag" data-i18n="settingsTag">РЕДАКТИРУЙТЕ</span></h2>
+    <div class="settings-row">
+      <div class="field">
+        <label data-i18n="minSalaryLabel">Мин. ставка (₺/мес)</label>
+        <input type="number" id="minSalary" value="28000" oninput="recalc()">
+        <div class="unit" data-i18n="minSalaryUnit">гарантированная минималка</div>
+      </div>
+      <div class="field">
+        <label data-i18n="courtLabel">Аренда корта (₺/час)</label>
+        <input type="number" id="courtCost" value="2000" oninput="rebuildTable()">
+        <div class="unit" data-i18n="courtUnit">вычитается из цены тренировки</div>
+      </div>
+    </div>
+    <!-- Expert event fields -->
+    <div class="event-fields" id="eventFields" style="display:none">
+      <div class="field">
+        <label data-i18n="eventLabel">Ивент % от прибыли</label>
+        <input type="number" id="eventPct" value="20" oninput="recalc()">
+        <div class="unit" data-i18n="eventUnit">только для V7 Expert</div>
+      </div>
+      <div class="field">
+        <label data-i18n="eventProfitLabel">Прибыль от ивентов (₺/мес)</label>
+        <input type="number" id="eventProfit" value="0" oninput="recalc()">
+        <div class="unit" data-i18n="eventProfitUnit">чистая прибыль за месяц</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="card">
+    <h2>💡 <span data-i18n="tableTitle">Расчёт по типам тренировок</span> <span class="tag" data-i18n="tableTag">% МОЖНО ИЗМЕНИТЬ</span></h2>
+    <table class="training-table">
+      <thead>
+        <tr>
+          <th data-i18n="colType">Тип тренировки</th>
+          <th class="right" data-i18n="colPrice">Цена клиента</th>
+          <th class="right" data-i18n="colCourt">− Корт</th>
+          <th class="right" data-i18n="colBase">= База</th>
+          <th style="text-align:center" data-i18n="colPct">% тренеру</th>
+          <th class="right" data-i18n="colEarn">→ Получает / сессия</th>
+        </tr>
+      </thead>
+      <tbody id="trainingBody"></tbody>
+    </table>
+    <div class="note" id="tableNote"></div>
+  </div>
+
+  <!-- SESSIONS + SUMMARY side by side -->
+  <div class="grid">
+    <div class="card">
+      <h2>📅 <span data-i18n="activityTitle">Количество сессий за месяц</span></h2>
+      <div class="sessions-grid" id="sessionsGrid"></div>
+    </div>
+
+    <div class="card">
+      <h2>💰 <span data-i18n="summaryTitle">Итог за месяц</span></h2>
+      <table class="training-table">
+        <thead>
+          <tr>
+            <th data-i18n="colSource">Источник</th>
+            <th class="right" data-i18n="colAmount">Сумма (₺)</th>
+          </tr>
+        </thead>
+        <tbody id="summaryBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- FINAL BAR -->
+  <div class="summary" id="finalSummary"></div>
+
+</div>
+
+<script>
+const i18n = {
+  ru: {
+    title: 'РАСЧЁТ ЗАРПЛАТЫ ТРЕНЕРА',
+    subtitle: '% от базы после вычета аренды корта',
+    levelTitle: 'Уровень тренера', levelTag: 'ВЫБЕРИТЕ',
+    coachPct: 'Взрослые 30% · Дети 40%',
+    seniorPct: 'Взрослые 40% · Дети 50%',
+    expertPct: 'Взрослые 50% · Дети 60%',
+    settingsTitle: 'Базовые настройки', settingsTag: 'РЕДАКТИРУЙТЕ',
+    minSalaryLabel: 'Мин. ставка (₺/мес)', minSalaryUnit: 'гарантированная минималка',
+    courtLabel: 'Аренда корта (₺/час)', courtUnit: 'вычитается из цены тренировки',
+    eventLabel: 'Ивент % от прибыли', eventUnit: 'только для V7 Expert',
+    eventProfitLabel: 'Прибыль от ивентов (₺/мес)', eventProfitUnit: 'чистая прибыль за месяц',
+    tableTitle: 'Расчёт по типам тренировок', tableTag: '% МОЖНО ИЗМЕНИТЬ',
+    colType: 'Тип тренировки', colPrice: 'Цена клиента', colCourt: '− Корт',
+    colBase: '= База', colPct: '% тренеру', colEarn: '→ Получает / сессия',
+    activityTitle: 'Количество сессий за месяц',
+    summaryTitle: 'Итог за месяц', colSource: 'Источник', colAmount: 'Сумма (₺)',
+    noteText: '<strong>Логика:</strong> База = цена тренировки − аренда корта. Взрослые / Дети: V7 Coach 30%/40% · V7 Senior 40%/50% · V7 Expert 50%/60%.',
+    summaryMin: 'Мин. ставка', summaryGuarantee: 'гарантия',
+    summaryBonus: 'Бонус от тренировок', summaryBonusSub: '% от базы',
+    summaryIvents: 'Ивенты', summaryIventsSub: '% от прибыли',
+    summaryTotal: 'ИТОГО К ВЫПЛАТЕ', summaryTotalSub: 'мин. ставка + бонус',
+    noData: 'Введите количество сессий слева',
+    indAdult: 'Инд. (взрослые)', indKids: 'Инд. (дети)',
+    pairAdult: 'Парное (взрослые)', pairKids: 'Парное (дети)',
+    grp3Adult: 'Группа 3 чел. (взросл.)', grp4Adult: 'Группа 4 чел. (взросл.)',
+    grp3Kids: 'Группа 3 чел. (дети)', grp4Kids: 'Группа 4 чел. (дети)',
+    iventRow: 'Ивенты',
+  },
+  tr: {
+    title: 'ANTRENÖR MAAŞ HESAPLAMA',
+    subtitle: 'Kort kirasından sonra kalan bazdan %',
+    levelTitle: 'Antrenör Seviyesi', levelTag: 'SEÇİN',
+    coachPct: 'Yetişkin %30 · Çocuk %40',
+    seniorPct: 'Yetişkin %40 · Çocuk %50',
+    expertPct: 'Yetişkin %50 · Çocuk %60',
+    settingsTitle: 'Temel Ayarlar', settingsTag: 'DÜZENLEYİN',
+    minSalaryLabel: 'Min. maaş (₺/ay)', minSalaryUnit: 'garanti asgari ücret',
+    courtLabel: 'Kort kirası (₺/saat)', courtUnit: 'antrenman fiyatından düşülür',
+    eventLabel: 'Etkinlik kâr %\'si', eventUnit: 'yalnızca V7 Expert',
+    eventProfitLabel: 'Etkinlik kârı (₺/ay)', eventProfitUnit: 'aylık net kâr',
+    tableTitle: 'Antrenman Türlerine Göre Hesaplama', tableTag: '% DEĞİŞTİRİLEBİLİR',
+    colType: 'Antrenman Türü', colPrice: 'Müşteri fiyatı', colCourt: '− Kort',
+    colBase: '= Baz', colPct: 'Antrenör %', colEarn: '→ Kazanç / seans',
+    activityTitle: 'Aylık Seans Sayısı',
+    summaryTitle: 'Aylık Özet', colSource: 'Kaynak', colAmount: 'Tutar (₺)',
+    noteText: '<strong>Mantık:</strong> Baz = antrenman fiyatı − kort kirası. Yetişkin / Çocuk: V7 Coach %30/%40 · V7 Senior %40/%50 · V7 Expert %50/%60.',
+    summaryMin: 'Asgari ücret', summaryGuarantee: 'garanti',
+    summaryBonus: 'Antrenman bonusu', summaryBonusSub: 'bazdan %',
+    summaryIvents: 'Etkinlikler', summaryIventsSub: 'kârdan %',
+    summaryTotal: 'TOPLAM ÖDENECEK', summaryTotalSub: 'asgari + bonus',
+    noData: 'Soldaki seans sayısını girin',
+    indAdult: 'Bireysel (yetişkin)', indKids: 'Bireysel (çocuk)',
+    pairAdult: 'İkili (yetişkin)', pairKids: 'İkili (çocuk)',
+    grp3Adult: 'Grup 3 kişi (yetişkin)', grp4Adult: 'Grup 4 kişi (yetişkin)',
+    grp3Kids: 'Grup 3 kişi (çocuk)', grp4Kids: 'Grup 4 kişi (çocuk)',
+    iventRow: 'Etkinlikler',
+  },
+  en: {
+    title: 'COACH SALARY CALCULATOR',
+    subtitle: '% from base after court rental deduction',
+    levelTitle: 'Coach Level', levelTag: 'SELECT',
+    coachPct: 'Adults 30% · Kids 40%',
+    seniorPct: 'Adults 40% · Kids 50%',
+    expertPct: 'Adults 50% · Kids 60%',
+    settingsTitle: 'Base Settings', settingsTag: 'EDITABLE',
+    minSalaryLabel: 'Min. salary (₺/mo)', minSalaryUnit: 'guaranteed minimum',
+    courtLabel: 'Court rental (₺/hr)', courtUnit: 'deducted from session price',
+    eventLabel: 'Event profit %', eventUnit: 'V7 Expert only',
+    eventProfitLabel: 'Event profit (₺/mo)', eventProfitUnit: 'net profit per month',
+    tableTitle: 'Breakdown by Training Type', tableTag: '% EDITABLE',
+    colType: 'Training type', colPrice: 'Client price', colCourt: '− Court',
+    colBase: '= Base', colPct: 'Coach %', colEarn: '→ Earns / session',
+    activityTitle: 'Sessions per Month',
+    summaryTitle: 'Monthly Summary', colSource: 'Source', colAmount: 'Amount (₺)',
+    noteText: '<strong>Logic:</strong> Base = session price − court rental. Adults / Kids: V7 Coach 30%/40% · V7 Senior 40%/50% · V7 Expert 50%/60%.',
+    summaryMin: 'Min. salary', summaryGuarantee: 'guaranteed',
+    summaryBonus: 'Training bonus', summaryBonusSub: '% from base',
+    summaryIvents: 'Events', summaryIventsSub: '% from profit',
+    summaryTotal: 'TOTAL TO PAY', summaryTotalSub: 'min + bonus',
+    noData: 'Enter session counts on the left',
+    indAdult: 'Individual (adults)', indKids: 'Individual (kids)',
+    pairAdult: 'Pair (adults)', pairKids: 'Pair (kids)',
+    grp3Adult: 'Group 3 ppl (adults)', grp4Adult: 'Group 4 ppl (adults)',
+    grp3Kids: 'Group 3 ppl (kids)', grp4Kids: 'Group 4 ppl (kids)',
+    iventRow: 'Events',
+  }
+};
+
+// adult pct / kids pct (+10% for kids)
+const levelPcts = {
+  coach:  { adult: 30, kids: 40 },
+  senior: { adult: 40, kids: 50 },
+  expert: { adult: 50, kids: 60 },
+};
+let currentLang = 'ru';
+let currentLevel = 'coach';
+
+const trainings = [
+  { key: 'indAdult',  labelKey: 'indAdult',  badge: 'badge-ind',   price: 2800, isKids: false },
+  { key: 'indKids',   labelKey: 'indKids',   badge: 'badge-ind',   price: 2600, isKids: true  },
+  { key: 'pairAdult', labelKey: 'pairAdult', badge: 'badge-pair',  price: 3200, isKids: false },
+  { key: 'pairKids',  labelKey: 'pairKids',  badge: 'badge-pair',  price: 2600, isKids: true  },
+  { key: 'grp3Adult', labelKey: 'grp3Adult', badge: 'badge-group', price: 3300, isKids: false },
+  { key: 'grp4Adult', labelKey: 'grp4Adult', badge: 'badge-group', price: 4400, isKids: false },
+  { key: 'grp3Kids',  labelKey: 'grp3Kids',  badge: 'badge-group', price: 2400, isKids: true  },
+  { key: 'grp4Kids',  labelKey: 'grp4Kids',  badge: 'badge-group', price: 3200, isKids: true  },
+];
+
+function t(key) { return i18n[currentLang][key] || key; }
+
+function fmt(n) {
+  const loc = currentLang === 'en' ? 'en-US' : currentLang === 'tr' ? 'tr-TR' : 'ru-RU';
+  return Math.round(n).toLocaleString(loc);
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${lang}')"]`).classList.add('active');
+  applyTranslations();
+  rebuildTable();
+}
+
+function setLevel(level) {
+  currentLevel = level;
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.level-btn[data-level="${level}"]`).classList.add('active');
+  document.getElementById('eventFields').style.display = level === 'expert' ? '' : 'none';
+  rebuildTable();
+}
+
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[currentLang][key] !== undefined) el.innerHTML = i18n[currentLang][key];
+  });
+}
+
+function rebuildTable() {
+  const court = +document.getElementById('courtCost').value || 2000;
+  const tbody = document.getElementById('trainingBody');
+
+  // save session values
+  const prevSess = {};
+  trainings.forEach(tr => {
+    const el = document.getElementById('sess_' + tr.key);
+    if (el) prevSess[tr.key] = el.value;
+  });
+
+  tbody.innerHTML = '';
+  trainings.forEach(tr => {
+    const pct  = tr.isKids ? levelPcts[currentLevel].kids : levelPcts[currentLevel].adult;
+    const base = tr.price - court;
+    const earn = base * pct / 100;
+    const kidsTag = tr.isKids ? ` <span style="font-size:10px;color:var(--blue);margin-left:4px;font-weight:600">+10%</span>` : '';
+    const kidsStyle = tr.isKids ? 'background:rgba(96,165,250,0.03)' : '';
+    const row = document.createElement('tr');
+    row.setAttribute('style', kidsStyle);
+    row.innerHTML = `
+      <td><span class="type-badge ${tr.badge}">${t(tr.labelKey)}</span>${kidsTag}</td>
+      <td class="right val">${fmt(tr.price)} ₺</td>
+      <td class="right val-muted">−${fmt(court)} ₺</td>
+      <td class="right val">${fmt(base)} ₺</td>
+      <td style="text-align:center">
+        <input class="inline-input" type="number" id="pct_${tr.key}" value="${pct}" min="0" max="100" oninput="recalc()"> %
+      </td>
+      <td class="right val-accent" id="earn_${tr.key}">${fmt(earn)} ₺</td>
+    `;
+    tbody.appendChild(row);
+  });
+
+  document.getElementById('tableNote').innerHTML = t('noteText');
+
+  // rebuild sessions grid
+  const grid = document.getElementById('sessionsGrid');
+  grid.innerHTML = '';
+  trainings.forEach(tr => {
+    const div = document.createElement('div');
+    div.className = 'session-field';
+    div.innerHTML = `
+      <div class="name">${t(tr.labelKey)}</div>
+      <input type="number" id="sess_${tr.key}" value="${prevSess[tr.key] || 0}" min="0" oninput="recalc()">
+    `;
+    grid.appendChild(div);
+  });
+
+  recalc();
+}
+
+function recalc() {
+  const court       = +document.getElementById('courtCost').value   || 2000;
+  const minSal      = +document.getElementById('minSalary').value   || 28000;
+  const eventPct    = +document.getElementById('eventPct').value    || 20;
+  const eventProfit = +document.getElementById('eventProfit').value || 0;
+
+  let totalBonus = 0;
+  const rows = [];
+
+  trainings.forEach(tr => {
+    const pctEl  = document.getElementById('pct_'  + tr.key);
+    const sessEl = document.getElementById('sess_' + tr.key);
+    const earnEl = document.getElementById('earn_' + tr.key);
+    if (!pctEl || !sessEl) return;
+
+    const pct     = +pctEl.value  || 0;
+    const sess    = +sessEl.value || 0;
+    const base    = tr.price - court;
+    const perSess = base * pct / 100;
+    const total   = perSess * sess;
+    totalBonus += total;
+
+    if (earnEl) earnEl.textContent = fmt(perSess) + ' ₺';
+    if (sess > 0) rows.push({ label: t(tr.labelKey), sess, earn: total });
+  });
+
+  const iventTotal = currentLevel === 'expert' ? (eventProfit * eventPct / 100) : 0;
+  const grandBonus = totalBonus + iventTotal;
+  const finalPay   = minSal + grandBonus;
+
+  // Summary table
+  const sb = document.getElementById('summaryBody');
+  sb.innerHTML = '';
+
+  const addRow = (label, val, accent) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:14px">${label}</td>
+      <td class="right val${accent ? '-accent' : ''}" style="font-size:14px">${fmt(val)} ₺</td>
+    `;
+    sb.appendChild(tr);
+  };
+
+  rows.forEach(r => addRow(`${r.label} × ${r.sess}`, r.earn, false));
+  if (iventTotal > 0) addRow(`${t('iventRow')} (${eventPct}% × ${fmt(eventProfit)}₺)`, iventTotal, false);
+
+  if (rows.length === 0 && iventTotal === 0) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="2" style="color:var(--muted);text-align:center;padding:24px;font-size:14px">${t('noData')}</td>`;
+    sb.appendChild(tr);
+  }
+
+  const sep = document.createElement('tr');
+  sep.innerHTML = `<td colspan="2" style="border-bottom:1px solid var(--border);padding:2px 0"></td>`;
+  sb.appendChild(sep);
+  addRow(t('summaryMin') + ':', minSal, false);
+  addRow('⬆ ' + t('summaryTotal') + ':', finalPay, true);
+
+  // Final bar
+  const levelColors = { coach: 'var(--coach-color)', senior: 'var(--senior-color)', expert: 'var(--expert-color)' };
+  const lc = levelColors[currentLevel];
+
+  let iventBlock = '';
+  if (currentLevel === 'expert') {
+    iventBlock = `
+      <div class="divider"></div>
+      <div class="summary-block">
+        <div class="label">${t('summaryIvents')}</div>
+        <div class="big ${iventTotal > 0 ? 'ok' : ''}">${fmt(iventTotal)} ₺</div>
+        <div class="sub">${t('summaryIventsSub')}</div>
+      </div>
+    `;
+  }
+
+  document.getElementById('finalSummary').innerHTML = `
+    <div class="summary-block">
+      <div class="label">${t('summaryMin')}</div>
+      <div class="big" style="color:${lc}">${fmt(minSal)} ₺</div>
+      <div class="sub">${t('summaryGuarantee')}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="summary-block">
+      <div class="label">${t('summaryBonus')}</div>
+      <div class="big ${totalBonus > 0 ? 'ok' : ''}">${fmt(totalBonus)} ₺</div>
+      <div class="sub">${t('summaryBonusSub')}</div>
+    </div>
+    ${iventBlock}
+    <div class="divider"></div>
+    <div class="summary-block">
+      <div class="label">💳 ${t('summaryTotal')}</div>
+      <div class="big ok">${fmt(finalPay)} ₺</div>
+      <div class="sub">+${fmt(grandBonus)} ${t('summaryBonusSub')}</div>
+    </div>
+  `;
+}
+
+// INIT
+applyTranslations();
+rebuildTable();
+</script>
+</body>
+</html>
