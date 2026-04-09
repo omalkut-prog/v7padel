@@ -1,0 +1,193 @@
+/* V7 Padel — единый слой тем
+ * Загружается ПОСЛЕ локальных <style> блоков. Override через html[data-theme="..."]
+ * имеет специфичность (0,1,1) и побеждает :root (0,1,0). 3 темы: tiffany / dark / v7.
+ * Источник переменных: theme.js (localStorage['v7-theme']).
+ */
+
+html[data-theme="tiffany"] {
+  --bg: #f5f7f8;
+  --surface: #ffffff;
+  --surface2: #f1f5f9;
+  --border: rgba(15,23,42,0.08);
+  --border-hover: rgba(15,23,42,0.18);
+  --text: #0f172a;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --accent: #0ABAB5;
+  --accent-soft: rgba(10,186,181,0.1);
+  --accent-border: rgba(10,186,181,0.25);
+  --shadow: 0 1px 3px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
+}
+
+html[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface2: #0b1220;
+  --border: rgba(148,163,184,0.12);
+  --border-hover: rgba(148,163,184,0.28);
+  --text: #f1f5f9;
+  --text2: #cbd5e1;
+  --text3: #64748b;
+  --accent: #7C3AED;
+  --accent-soft: rgba(124,58,237,0.14);
+  --accent-border: rgba(124,58,237,0.3);
+  --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 24px rgba(0,0,0,0.35);
+}
+
+html[data-theme="v7"] {
+  --bg: #000000;
+  --surface: #111111;
+  --surface2: #1a1a1a;
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(255,255,255,0.18);
+  --text: #f5f5f7;
+  --text2: #a1a1a6;
+  --text3: #6e6e73;
+  --accent: #d4f03a;
+  --accent-soft: rgba(212,240,58,0.1);
+  --accent-border: rgba(212,240,58,0.22);
+  --shadow: 0 1px 2px rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.5);
+}
+
+/* ---- БАЗА: body, nav, footer перебиваем через высокую специфичность ---- */
+html[data-theme] body { background: var(--bg) !important; color: var(--text) !important; }
+
+html[data-theme="tiffany"] nav { background: rgba(255,255,255,0.85) !important; border-bottom-color: var(--border) !important; }
+html[data-theme="dark"]    nav { background: rgba(15,23,42,0.82) !important; border-bottom-color: var(--border) !important; }
+html[data-theme="v7"]      nav { background: rgba(0,0,0,0.8) !important;     border-bottom-color: var(--border) !important; }
+
+html[data-theme] nav .nav-logo { color: var(--text) !important; }
+html[data-theme] nav .nav-logo em,
+html[data-theme] .footer-logo em,
+html[data-theme] .stat-n em,
+html[data-theme] .hero-eye { color: var(--accent) !important; }
+html[data-theme] nav .nav-links a { color: var(--text2) !important; }
+html[data-theme] nav .nav-links a:hover { color: var(--text) !important; }
+
+html[data-theme] .nav-pill { background: var(--accent-soft) !important; border-color: var(--accent-border) !important; color: var(--accent) !important; }
+
+html[data-theme] footer { border-top-color: var(--border) !important; }
+html[data-theme] .footer-logo, html[data-theme] .footer-text { color: var(--text3) !important; }
+
+/* ---- КАРТОЧКИ ---- */
+html[data-theme] .card { background: var(--surface) !important; border-color: var(--border) !important; color: var(--text) !important; box-shadow: var(--shadow); }
+html[data-theme] .card:hover { border-color: var(--border-hover) !important; }
+html[data-theme] .card-desc, html[data-theme] .card-list-item { color: var(--text2) !important; }
+html[data-theme] .card-num, html[data-theme] .card-arrow { color: var(--text3) !important; border-color: var(--border) !important; }
+html[data-theme] .card-list { border-top-color: var(--border) !important; }
+
+html[data-theme] .tag-now  { background: var(--accent-soft) !important; color: var(--accent) !important; border-color: var(--accent-border) !important; }
+html[data-theme] .tag-soon { background: transparent !important; color: var(--text3) !important; border-color: var(--border) !important; }
+
+/* В tiffany / dark — цветные карточки становятся нейтральными (accent вместо красок)
+   В v7 — оставляем оригинальные краски для сочности. */
+html[data-theme="tiffany"] .card.green  .card-title,
+html[data-theme="tiffany"] .card.teal   .card-title,
+html[data-theme="tiffany"] .card.blue   .card-title,
+html[data-theme="tiffany"] .card.orange .card-title,
+html[data-theme="tiffany"] .card.pink   .card-title,
+html[data-theme="tiffany"] .card.purple .card-title,
+html[data-theme="tiffany"] .card.yellow .card-title,
+html[data-theme="tiffany"] .card.cyan   .card-title { color: var(--text) !important; }
+
+html[data-theme="dark"] .card.green  .card-title,
+html[data-theme="dark"] .card.teal   .card-title,
+html[data-theme="dark"] .card.blue   .card-title,
+html[data-theme="dark"] .card.orange .card-title,
+html[data-theme="dark"] .card.pink   .card-title,
+html[data-theme="dark"] .card.purple .card-title,
+html[data-theme="dark"] .card.yellow .card-title,
+html[data-theme="dark"] .card.cyan   .card-title { color: var(--text) !important; }
+
+html[data-theme="tiffany"] .card.featured { background: linear-gradient(140deg, #e6fbfa 0%, #ffffff 55%) !important; border-color: var(--accent-border) !important; }
+html[data-theme="dark"]    .card.featured { background: linear-gradient(140deg, #1a1240 0%, #1e293b 55%) !important; border-color: var(--accent-border) !important; }
+html[data-theme="tiffany"] .card.featured .card-title { color: var(--accent) !important; }
+html[data-theme="dark"]    .card.featured .card-title { color: var(--accent) !important; }
+
+/* ---- HERO (index.html) ---- */
+html[data-theme="tiffany"] .hero-glow { background: radial-gradient(circle, rgba(10,186,181,0.08) 0%, transparent 65%) !important; }
+html[data-theme="dark"]    .hero-glow { background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 65%) !important; }
+html[data-theme] .hero h1 { color: var(--text) !important; }
+html[data-theme] .hero h1 .muted { color: var(--text3) !important; }
+html[data-theme] .hero-sub { color: var(--text2) !important; }
+html[data-theme] .stat-n { color: var(--text) !important; }
+html[data-theme] .stat-l { color: var(--text3) !important; }
+html[data-theme] .section-intro h2 { color: var(--text) !important; }
+html[data-theme] .section-intro p, html[data-theme] .section-intro-label { color: var(--text2) !important; }
+
+/* ---- DASHBOARD / DATA общие классы ---- */
+html[data-theme] .kpi, html[data-theme] .kpi-card, html[data-theme] .panel, html[data-theme] .block,
+html[data-theme] .stat-box, html[data-theme] .metric, html[data-theme] .table-wrap {
+  background: var(--surface) !important; border-color: var(--border) !important; color: var(--text) !important;
+}
+html[data-theme] h1, html[data-theme] h2, html[data-theme] h3, html[data-theme] h4 { color: var(--text); }
+html[data-theme] table { color: var(--text); }
+html[data-theme] th { color: var(--text2) !important; border-color: var(--border) !important; background: var(--surface2) !important; }
+html[data-theme] td { border-color: var(--border) !important; }
+html[data-theme] tr:hover td { background: var(--surface2) !important; }
+html[data-theme] .muted, html[data-theme] small { color: var(--text3) !important; }
+html[data-theme] a { color: var(--accent); }
+html[data-theme] input, html[data-theme] select, html[data-theme] textarea {
+  background: var(--surface) !important; color: var(--text) !important; border-color: var(--border) !important;
+}
+html[data-theme] input::placeholder { color: var(--text3) !important; }
+html[data-theme] button.primary, html[data-theme] .btn-primary {
+  background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important;
+}
+
+/* ---- ПЕРЕКЛЮЧАТЕЛЬ ТЕМ ---- */
+.theme-switcher {
+  position: fixed; top: 10px; right: 14px; z-index: 500;
+  display: flex; gap: 4px; padding: 4px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 100px; box-shadow: var(--shadow);
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+.theme-switcher button {
+  appearance: none; background: transparent; border: 0;
+  color: var(--text3); width: 30px; height: 30px; border-radius: 50%;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .2s;
+}
+.theme-switcher button:hover { color: var(--text); background: var(--surface2); }
+.theme-switcher button.active { color: #fff; background: var(--accent); }
+
+/* Nav с padding справа чтоб переключатель не налезал */
+@media (min-width: 961px) {
+  html[data-theme] nav { padding-right: 140px !important; }
+}
+
+/* ---- ROLE PICKER MODAL (только на index.html) ---- */
+.role-picker-backdrop {
+  position: fixed; inset: 0; z-index: 999;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(10px) saturate(140%);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+.role-picker {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 44px 36px 36px;
+  max-width: 560px; width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+}
+.role-picker-eye { font-size: 11px; font-weight: 500; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+.role-picker h2 { font-size: 30px; font-weight: 600; letter-spacing: -0.8px; color: var(--text); margin-bottom: 10px; }
+.role-picker p { font-size: 15px; color: var(--text2); margin-bottom: 32px; font-weight: 300; }
+.role-picker-options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.role-picker-btn {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 16px;
+  padding: 22px 14px 18px; cursor: pointer; text-align: center;
+  transition: all .25s; color: var(--text);
+  appearance: none; font-family: inherit;
+}
+.role-picker-btn:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: var(--shadow); }
+.role-picker-btn .ico { display: block; font-size: 30px; margin-bottom: 12px; line-height: 1; }
+.role-picker-btn strong { display: block; font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+.role-picker-btn span { display: block; font-size: 11px; color: var(--text3); letter-spacing: .3px; }
+@media (max-width: 560px) { .role-picker-options { grid-template-columns: 1fr; } .role-picker { padding: 32px 20px 24px; } .role-picker h2 { font-size: 24px; } }

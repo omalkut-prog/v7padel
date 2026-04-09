@@ -6,6 +6,8 @@
 <title>V7 Padel — Управление</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
 <style>
   :root {
     --bg: #000000;
@@ -444,5 +446,54 @@ document.querySelectorAll('.card, .section-intro').forEach((el, i) => {
 });
 </script>
 
+<!-- ROLE PICKER: показывается один раз при первом входе -->
+<script>
+(function(){
+  try {
+    if (localStorage.getItem('v7-theme')) return;
+  } catch(e){ return; }
+
+  var host = document.createElement('div');
+  host.className = 'role-picker-backdrop';
+  host.innerHTML =
+    '<div class="role-picker" role="dialog" aria-modal="true" aria-labelledby="rp-title">' +
+      '<div class="role-picker-eye">V7 Padel · Выбор роли</div>' +
+      '<h2 id="rp-title">Кто вы?</h2>' +
+      '<p>Выберите роль — интерфейс настроится под вашу задачу. Переключить можно потом в правом верхнем углу.</p>' +
+      '<div class="role-picker-options">' +
+        '<button class="role-picker-btn" data-theme="tiffany">' +
+          '<span class="ico">◔</span>' +
+          '<strong>CEO</strong>' +
+          '<span>Tiffany · премиум</span>' +
+        '</button>' +
+        '<button class="role-picker-btn" data-theme="dark">' +
+          '<span class="ico">◑</span>' +
+          '<strong>PM</strong>' +
+          '<span>Dark · рабочий</span>' +
+        '</button>' +
+        '<button class="role-picker-btn" data-theme="v7">' +
+          '<span class="ico">●</span>' +
+          '<strong>Команда</strong>' +
+          '<span>V7 · фирменный</span>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(host);
+
+  host.querySelectorAll('.role-picker-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var t = btn.dataset.theme;
+      if (window.V7Theme) window.V7Theme.set(t);
+      else {
+        try { localStorage.setItem('v7-theme', t); } catch(e){}
+        document.documentElement.dataset.theme = t;
+      }
+      host.style.opacity = '0';
+      host.style.transition = 'opacity .25s';
+      setTimeout(function(){ host.remove(); }, 260);
+    });
+  });
+})();
+</script>
 </body>
 </html>
