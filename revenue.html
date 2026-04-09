@@ -105,6 +105,10 @@
   table.weekly th { font-size: 10px; padding: 8px 8px; }
   table.weekly tr.current-week { outline: 2px solid var(--accent); outline-offset: -1px; border-radius: 4px; }
   table.weekly td.heat { border-radius: 4px; font-weight: 500; color: var(--text); }
+  table.weekly tr.month-subtotal { background: var(--surface2); font-weight: 700; }
+  table.weekly tr.month-subtotal td { border-top: 2px solid var(--border); border-bottom: 2px solid var(--border); color: var(--text); }
+  table.weekly tfoot td { font-weight: 600; background: var(--surface2); color: var(--text); border-top: 2px solid var(--border); }
+  table.weekly td.note { font-size: 11px; color: var(--text3); max-width: 160px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: left; }
 
   .pos { color: var(--good) !important; }
   .neg { color: var(--bad) !important; }
@@ -208,12 +212,13 @@
       <table class="fin weekly" id="weekly-table">
         <thead>
           <tr>
-            <th>#</th><th>Неделя</th>
+            <th>#</th><th>Период</th>
             <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
-            <th>Тотал</th><th>Ср/день</th><th>&Delta; к пред.</th><th>% цели</th>
+            <th>Тотал</th><th>Ср/день</th><th>Рост</th><th>% цели</th><th>Примечания</th>
           </tr>
         </thead>
-        <tbody><tr><td colspan="13" class="loading">Загрузка данных…</td></tr></tbody>
+        <tbody><tr><td colspan="14" class="loading">Загрузка данных…</td></tr></tbody>
+        <tfoot id="weekly-foot"></tfoot>
       </table>
       <button class="toggle-btn" id="toggle-weeks" style="display:none">Показать все</button>
     </div>
@@ -495,51 +500,140 @@ function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
     return { maxDay, maxTotal };
   }
 
+  const MONTH_NAMES_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+
+  // Auto-generate notes based on data patterns
+  function autoNote(w, prevWk) {
+    const notes = [];
+    // Count zero days
+    const zeroDays = w.days.filter(d => d === 0).length;
+    if (zeroDays >= 4) notes.push('дожди/простой');
+    else if (zeroDays >= 2) notes.push(zeroDays + ' дн. без выручки');
+    // Big single-day spike
+    const maxDay = Math.max(...w.days);
+    if (maxDay > w.total * 0.4 && w.total > 50000) {
+      const dayIdx = w.days.indexOf(maxDay);
+      notes.push('пик ' + DOW_NAMES[dayIdx] + ' ' + fmtInt(Math.round(maxDay)));
+    }
+    return notes.join('; ');
+  }
+
   function renderWeeklyTable() {
-    const keysToShow = showAll ? weekKeys : weekKeys.slice(0, VISIBLE_WEEKS);
+    // Always show chronologically (oldest first) like the Excel
+    const keysChron = [...weekKeys].reverse();
+    const keysToShow = showAll ? keysChron : keysChron.slice(-VISIBLE_WEEKS);
     const { maxDay, maxTotal } = computeMaxes(weekKeys);
     const tbody = document.querySelector('#weekly-table tbody');
+    const tfoot = document.getElementById('weekly-foot');
     let html = '';
+    let lastMonth = '';
+
+    // Track monthly subtotals
+    let monthTotal = 0;
+    let monthAvgDays = 0;
+    let monthName = '';
+
+    function flushMonth() {
+      if (!monthName) return '';
+      const avgPerDay = monthAvgDays > 0 ? monthTotal / monthAvgDays : 0;
+      return '<tr class="month-subtotal">' +
+        '<td></td><td>Итого ' + monthName + '</td>' +
+        '<td colspan="7"></td>' +
+        '<td class="num">' + fmtInt(Math.round(monthTotal)) + '</td>' +
+        '<td class="num">' + fmtInt(Math.round(avgPerDay)) + '</td>' +
+        '<td colspan="3"></td></tr>';
+    }
 
     keysToShow.forEach((wk, i) => {
       const w = weekMap[wk];
       const sun = getSunday(w.mon);
+      // Determine month of this week (by Thursday = day+3)
+      const thu = new Date(w.mon); thu.setDate(thu.getDate() + 3);
+      const wkMonth = thu.getFullYear() + '-' + String(thu.getMonth()+1).padStart(2,'0');
+      const wkMonthLabel = MONTH_NAMES_RU[thu.getMonth()];
+
+      // If month changed, flush previous month subtotal
+      if (wkMonth !== lastMonth && lastMonth) {
+        html += flushMonth();
+        monthTotal = 0; monthAvgDays = 0;
+      }
+      lastMonth = wkMonth;
+      monthName = wkMonthLabel;
+      monthTotal += w.total;
+      // Count actual days with data this week
+      const daysWithData = w.days.filter(d => d > 0).length || 7;
+      monthAvgDays += daysWithData;
+
       const rangeStr = fmtDate(w.mon) + ' – ' + fmtDate(sun);
       const isCurrent = wk === curWeekKey;
       const avg = w.total / 7;
-      // Delta to previous week
-      const prevIdx = weekKeys.indexOf(wk) + 1;
-      const prevWk = prevIdx < weekKeys.length ? weekMap[weekKeys[prevIdx]] : null;
+
+      // Delta (absolute + %)
+      const prevIdx = keysChron.indexOf(wk) - 1;
+      const prevWk = prevIdx >= 0 ? weekMap[keysChron[prevIdx]] : null;
       let deltaStr = '—';
       let deltaCls = 'muted';
       if (prevWk && prevWk.total > 0) {
-        const d = ((w.total - prevWk.total) / prevWk.total * 100);
-        deltaStr = (d >= 0 ? '+' : '') + d.toFixed(1) + '%';
-        deltaCls = d >= 0 ? 'pos' : 'neg';
+        const diff = w.total - prevWk.total;
+        const pct = (diff / prevWk.total * 100);
+        deltaStr = (diff >= 0 ? '+' : '') + fmtInt(Math.round(diff));
+        deltaCls = diff >= 0 ? 'pos' : 'neg';
       }
       const goalPctWeek = WEEKLY_GOAL > 0 ? (w.total / WEEKLY_GOAL * 100).toFixed(0) + '%' : '—';
+      const note = autoNote(w, prevWk);
+
+      // Week number (chronological)
+      const weekNum = keysChron.indexOf(wk) + 1;
 
       html += '<tr' + (isCurrent ? ' class="current-week"' : '') + '>';
-      html += '<td class="muted">' + (weekKeys.length - weekKeys.indexOf(wk)) + '</td>';
+      html += '<td class="muted">' + weekNum + '</td>';
       html += '<td style="white-space:nowrap;font-weight:500">' + rangeStr + '</td>';
       for (let d = 0; d < 7; d++) {
         const val = w.days[d];
         const bg = heatColor(val, maxDay[d]);
-        html += '<td class="heat num" style="background:' + bg + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">—</span>') + '</td>';
+        html += '<td class="heat num" style="background:' + bg + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">0</span>') + '</td>';
       }
       html += '<td class="num" style="font-weight:700;background:' + heatColor(w.total, maxTotal) + '">' + fmtInt(Math.round(w.total)) + '</td>';
       html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
       html += '<td class="' + deltaCls + '">' + deltaStr + '</td>';
       html += '<td class="num">' + goalPctWeek + '</td>';
+      html += '<td class="note" title="' + note.replace(/"/g,'&quot;') + '">' + note + '</td>';
       html += '</tr>';
     });
 
+    // Flush last month
+    html += flushMonth();
+
     tbody.innerHTML = html;
+
+    // Footer: averages per day of week + grand total
+    const allKeys = showAll ? keysChron : keysChron.slice(-VISIBLE_WEEKS);
+    const footDow = [0,0,0,0,0,0,0];
+    const footCnt = [0,0,0,0,0,0,0];
+    let grandTotal = 0;
+    allKeys.forEach(wk => {
+      const w = weekMap[wk];
+      grandTotal += w.total;
+      for (let d = 0; d < 7; d++) {
+        footDow[d] += w.days[d];
+        if (w.days[d] > 0) footCnt[d]++;
+      }
+    });
+    let footHtml = '<tr>';
+    footHtml += '<td></td><td style="font-weight:700">СРЕДНЕЕ</td>';
+    for (let d = 0; d < 7; d++) {
+      const avg = footCnt[d] > 0 ? footDow[d] / footCnt[d] : 0;
+      footHtml += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
+    }
+    footHtml += '<td class="num" style="font-weight:700">' + fmtInt(Math.round(grandTotal)) + '</td>';
+    footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / Math.max(allKeys.length * 7, 1))) + '</td>';
+    footHtml += '<td colspan="3"></td></tr>';
+    tfoot.innerHTML = footHtml;
 
     const btn = document.getElementById('toggle-weeks');
     if (weekKeys.length > VISIBLE_WEEKS) {
       btn.style.display = '';
-      btn.textContent = showAll ? 'Показать последние 12' : 'Показать все (' + weekKeys.length + ')';
+      btn.textContent = showAll ? 'Последние 12 недель' : 'Все ' + weekKeys.length + ' недель';
     } else {
       btn.style.display = 'none';
     }
