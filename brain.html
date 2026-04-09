@@ -110,9 +110,14 @@
         <tr><td>memberships</td><td>membership_id, holder, card_type, rate, payment, subs_date, paid_until, next_fee, status, first_fee, fee</td><td><span class="tag tag-ok">ok</span></td></tr>
         <tr><td>transactions</td><td>date, month, category, subcategory, status, players, price, amount1, method1, currency1, amount2, method2, currency2, coach, comment, admin, total, source, transaction_id</td><td><span class="tag tag-ok">ok</span></td></tr>
         <tr><td>expenses</td><td>date, month, category, item, comment, amount, currency, method, payer, capex_flag, prepaid, amortize_months, source, amort_monthly_try, expense_id</td><td><span class="tag tag-ok">ok</span></td></tr>
-        <tr><td>pnl_monthly</td><td>period_month, code, parent_code, level, article_name, branch, cashless, cash, total, source, pnl_row_id</td><td><span class="tag tag-ok">ok</span></td></tr>
+        <tr><td>pnl_monthly</td><td>period_month, code, parent_code, level, article_name, branch, cashless, cash, total, source, pnl_row_id</td><td><span class="tag tag-warn">deprecated → PnL бухгалтера</span></td></tr>
         <tr><td>liabilities</td><td>liability_id, date, amount, currency, creditor, description, status</td><td><span class="tag tag-ok">ok</span></td></tr>
-        <tr><td>tournaments</td><td colspan="2"><span class="tag tag-warn">пустая — ждёт Racket.ID</span></td></tr>
+        <tr><td>pnl_monthly</td><td colspan="2"><span class="tag tag-warn">deprecated — используем PnL бухгалтера напрямую</span></td></tr>
+        <tr><td colspan="3" style="padding:8px;font-weight:600;background:var(--surface2)">Racket.ID (Firestore, публичный доступ)</td></tr>
+        <tr><td>racketid_members</td><td>user_id, name, padel_rating, phone, gender, email</td><td><span class="tag tag-ok">351 записей</span></td></tr>
+        <tr><td>racketid_tournaments</td><td>product_id, title, status, date, end_time, sport, doubles, slots, participants_count, gameplan_state</td><td><span class="tag tag-ok">338 записей</span></td></tr>
+        <tr><td>racketid_participants</td><td>product_id, user_id, title, date</td><td><span class="tag tag-ok">2,597 записей</span></td></tr>
+        <tr><td>customer_linkage</td><td>rid_user_id, rid_name, rid_rating, rid_phone, rid_participations, mp_code, mp_name, confidence, method</td><td><span class="tag tag-ok">269/349 matched (77%)</span></td></tr>
       </tbody>
     </table>
 
