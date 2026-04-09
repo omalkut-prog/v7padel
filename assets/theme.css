@@ -134,6 +134,11 @@ html[data-theme] input::placeholder { color: var(--text3) !important; }
 html[data-theme] button.primary, html[data-theme] .btn-primary {
   background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important;
 }
+/* v7 theme: accent is bright yellow-green, needs dark text for contrast */
+html[data-theme="v7"] button.primary, html[data-theme="v7"] .btn-primary {
+  color: #000 !important;
+}
+html[data-theme="v7"] .theme-switcher button.active { color: #000; }
 
 /* ---- TEAM LINK: скрываем в тёме tiffany (CEO не видит внутреннюю кухню) ---- */
 html[data-theme="tiffany"] .team-link,
