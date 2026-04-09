@@ -218,7 +218,7 @@
       <div class="kpi" data-seg="new">
         <div class="label">Новых за 30 дней</div>
         <div class="value" id="sum-new">—</div>
-        <div class="sub">registered 30d ago</div>
+        <div class="sub">за последние 30 дней</div>
       </div>
       <div class="kpi" data-seg="active">
         <div class="label">Активных</div>
@@ -375,11 +375,21 @@ const state = {
     });
   }
 
-  // --- Bookings: customer_id is empty → no per-customer linkage possible ---
+  // --- Bookings: build per-customer booking map ---
   let totalBookings = 0, bookingsLinkable = false;
+  const bkByCustomerId = {}; // customer_id -> [{date, status}]
   if (bookings && bookings.length) {
     totalBookings = bookings.length;
-    bookingsLinkable = bookings.some(b => b.customer_id && String(b.customer_id).trim());
+    bookings.forEach(b => {
+      const cid = (b.customer_id || '').toString().trim();
+      if (!cid) return;
+      bookingsLinkable = true;
+      if (!bkByCustomerId[cid]) bkByCustomerId[cid] = [];
+      bkByCustomerId[cid].push({
+        date: parseDate(b.start_ts) || parseDate(b.date),
+        status: b.status || ''
+      });
+    });
   }
   state.bookingsLinkable = bookingsLinkable;
   state.totalBookings = totalBookings;
@@ -403,28 +413,38 @@ const state = {
       card = memb.card === 'Other' && memb.cardType ? memb.cardType : memb.card;
     }
 
-    // Segment (data-aware fallback):
-    //   active  = has active membership
-    //   never   = no active membership
-    //   sleeping = unavailable (no per-customer booking history)
-    const segment = (memb && memb.isActive) ? 'active' : 'never';
+    // Booking history for this customer
+    const custBk = bkByCustomerId[id] || [];
+    const bkCount = custBk.length;
+    const sortedBk = custBk.filter(b => b.date).sort((a, b) => b.date - a.date);
+    const lastBk = sortedBk.length ? sortedBk[0].date : null;
+    const cutoff30bk = new Date(now); cutoff30bk.setDate(cutoff30bk.getDate() - 30);
+    const recentBk = sortedBk.filter(b => b.date >= cutoff30bk);
+    const hasRecent = recentBk.length > 0;
+
+    // Segment: active (membership or recent play), sleeping (played but not recently), never
+    let segment;
+    if (memb && memb.isActive) segment = 'active';
+    else if (hasRecent) segment = 'active';
+    else if (bkCount > 0) segment = 'sleeping';
+    else segment = 'never';
 
     return {
       id,
       name,
       phone: c.phone || '—',
       email: c.email || '—',
-      source: c.nationality || '—', // no 'source' column — use nationality as origin proxy
+      source: c.nationality || '—',
       level: c.level || '',
       gender: c.gender || '',
       age: c.age || '',
       createdRaw: c.subs_date || '—',
       regDate,
-      lastBk: null,        // N/A — bookings.customer_id empty
-      bkCount: null,       // N/A
-      bk: [],              // N/A
+      lastBk,
+      bkCount,
+      bk: custBk,
       isNew,
-      hasRecent: false,
+      hasRecent,
       segment,
       card,
       memb
@@ -547,10 +567,10 @@ function renderTable() {
         c.segment === 'sleeping' ? 'seg-sleeping' :
         c.segment === 'never' ? 'seg-never' : 'seg-never';
       const badgeText =
-        c.segment === 'active' ? 'active' :
-        c.segment === 'sleeping' ? 'sleep' :
-        c.segment === 'never' ? 'never' : '—';
-      const newMark = c.isNew ? ' <span class="seg-badge seg-new">new</span>' : '';
+        c.segment === 'active' ? 'активный' :
+        c.segment === 'sleeping' ? 'спящий' :
+        c.segment === 'never' ? 'нет игр' : '—';
+      const newMark = c.isNew ? ' <span class="seg-badge seg-new">новый</span>' : '';
       return '<tr data-idx="' + i + '">' +
         '<td class="name-cell">' + c.name + '</td>' +
         '<td>' + c.phone + '</td>' +
@@ -632,10 +652,10 @@ function openCard(c) {
   const membPaidUntil = c.memb && c.memb.paidUntil ? c.memb.paidUntil : '—';
 
   const segLabel =
-    c.segment === 'active' ? '<span class="seg-badge seg-active">active</span>' :
-    c.segment === 'sleeping' ? '<span class="seg-badge seg-sleeping">sleeping</span>' :
-    c.segment === 'never' ? '<span class="seg-badge seg-never">never</span>' : '—';
-  const newLabel = c.isNew ? ' <span class="seg-badge seg-new">new</span>' : '';
+    c.segment === 'active' ? '<span class="seg-badge seg-active">активный</span>' :
+    c.segment === 'sleeping' ? '<span class="seg-badge seg-sleeping">спящий</span>' :
+    c.segment === 'never' ? '<span class="seg-badge seg-never">нет игр</span>' : '—';
+  const newLabel = c.isNew ? ' <span class="seg-badge seg-new">новый</span>' : '';
   const bkCountStr = c.bkCount == null ? '<span style="color:var(--text3);font-style:italic">н/д</span>' : c.bkCount;
 
   const body = document.getElementById('modal-body');
