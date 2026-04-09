@@ -158,12 +158,15 @@
   <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
   <ul class="nav-links">
     <li><a href="index.html">Главная</a></li>
-    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
     <li><a href="management.html">Управление</a></li>
-    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="finance.html">Финансы</a></li>
     <li><a href="revenue.html" class="active">Выручка</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li class="team-link"><a href="team.html">Команда</a></li>
   </ul>
-  <span class="nav-pill">Revenue Pulse</span>
+  <span class="nav-pill">Внутренний портал</span>
 </nav>
 
 <main>
@@ -702,8 +705,8 @@ function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
     catTotal += t.total;
   });
 
-  const catOrder = REV_CAT_ORDER || ['Корты и инвентарь','Клубные карты','Тренировки','Турниры','Товары','Прочее'];
-  const catColors = REV_CAT_COLORS || ['#0ABAB5','#7C3AED','#13c296','#f39c12','#5ac8fa','#8a9ba8'];
+  const catOrder = REV_CAT_ORDER || ['Корты','Инвентарь','Клубные карты','Тренировки','Турниры','Товары','Прочее'];
+  const catColors = REV_CAT_COLORS || ['#0ABAB5','#0e8a87','#7C3AED','#13c296','#f39c12','#5ac8fa','#8a9ba8'];
   const catLabels = [];
   const catValues = [];
   const catColorsUsed = [];

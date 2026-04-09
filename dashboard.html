@@ -126,12 +126,20 @@
 </head>
 <body>
 
-<header class="top">
-  <a class="logo" href="index.html">V7<em>Padel</em></a>
-  <span class="sub">Дашборд · Анталья</span>
-  <a class="back" href="data.html" style="margin-right:14px">Данные →</a>
-  <a class="back" href="index.html">← на главную</a>
-</header>
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html" class="active">Дашборд</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li class="team-link"><a href="team.html">Команда</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
+</nav>
 
 <div class="container">
   <h1 class="page-title">Финансовый дашборд</h1>
@@ -291,7 +299,8 @@ async function loadPnL() {
 // ---------------- REVENUE MIX ----------------
 function categorize(cat) {
   const s = (cat || "").toLowerCase();
-  if (s.includes("rent from") || s.includes("equipment rental")) return "Корты и инвентарь";
+  if (s.includes("rent from")) return "Корты";
+  if (s.includes("equipment rental") || s.includes("equipment")) return "Инвентарь";
   if (s.includes("club card")) return "Клубные карты";
   if (s.includes("tournament")) return "Турниры";
   if (s.includes("training") || s.includes("individual") || s.includes("group") || s.includes("children") || s.includes("kids") || s.includes("adult")) return "Тренировки";
@@ -312,7 +321,7 @@ async function loadRevMix() {
     if (!g) return;
     agg[g] = (agg[g] || 0) + toNum(r.total);
   });
-  const order = ["Корты и инвентарь","Клубные карты","Тренировки","Турниры","Товары","Прочее"];
+  const order = ["Корты","Инвентарь","Клубные карты","Тренировки","Турниры","Товары","Прочее"];
   const labels = order.filter(k => agg[k] > 0);
   const data   = labels.map(k => agg[k]);
   const total  = data.reduce((a,b)=>a+b,0);

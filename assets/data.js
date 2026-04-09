@@ -29,8 +29,8 @@
   const GVIZ_BASE = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=';
   const DEFAULT_TIMEOUT = 10000;
 
-  const REV_CAT_ORDER  = ['Корты и инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Товары', 'Прочее'];
-  const REV_CAT_COLORS = ['#0ABAB5', '#7C3AED', '#13c296', '#f39c12', '#5ac8fa', '#8a9ba8'];
+  const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Товары', 'Прочее'];
+  const REV_CAT_COLORS = ['#0ABAB5', '#0e8a87', '#7C3AED', '#13c296', '#f39c12', '#5ac8fa', '#8a9ba8'];
 
   /* -------------------------------------------------------------------------
    * CSV parsing (RFC 4180 minimal: handles quoted fields + "" escaping + CRLF)
@@ -397,7 +397,8 @@
   function categorizeRevenue(category) {
     const s = (category || '').toString().toLowerCase();
     if (!s) return 'Прочее';
-    if (s.indexOf('rent from') >= 0 || s.indexOf('equipment rental') >= 0) return 'Корты и инвентарь';
+    if (s.indexOf('rent from') >= 0) return 'Корты';
+    if (s.indexOf('equipment rental') >= 0 || s.indexOf('equipment') >= 0) return 'Инвентарь';
     if (s.indexOf('club card') >= 0) return 'Клубные карты';
     if (s.indexOf('tournament') >= 0) return 'Турниры';
     if (s.indexOf('training') >= 0 || s.indexOf('individual') >= 0 || s.indexOf('group') >= 0 ||
