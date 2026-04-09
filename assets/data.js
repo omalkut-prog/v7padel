@@ -364,6 +364,9 @@
         var opex = 0;
         exRows.forEach(function(r) {
           if (r.month !== curYM) return;
+          var src = (r.source || '').toLowerCase();
+          // Skip payroll for live month — staff list is unstable, wait for accountant PnL
+          if (src === 'payroll') return;
           var a = num(r.amount);
           // Exclude capex
           if ((r.capex_flag || '').toLowerCase() === 'true' || (r.capex_flag || '') === '1') return;
@@ -371,7 +374,6 @@
           // Categorize expenses
           var item = (r.category || r.item || '').toLowerCase();
           if (item.indexOf('market') >= 0 || item.indexOf('реклам') >= 0) details.marketing = (details.marketing || 0) + Math.abs(a);
-          else if (item.indexOf('salary') >= 0 || item.indexOf('payroll') >= 0 || item.indexOf('зарплат') >= 0) details.staff = (details.staff || 0) + Math.abs(a);
           else if (item.indexOf('utility') >= 0 || item.indexOf('electric') >= 0 || item.indexOf('water') >= 0) details.utilities = (details.utilities || 0) + Math.abs(a);
           else details.admin = (details.admin || 0) + Math.abs(a);
         });
