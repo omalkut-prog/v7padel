@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — Клиенты</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  :root {
+    --bg: #f5f7f9;
+    --surface: #ffffff;
+    --surface2: #f1f5f9;
+    --border: #e5ecef;
+    --border-hover: rgba(15,23,42,0.18);
+    --text: #0b1620;
+    --text2: #4a5967;
+    --text3: #8a9ba8;
+    --accent: #0ABAB5;
+    --accent-soft: rgba(10,186,181,0.12);
+    --accent-border: rgba(10,186,181,0.25);
+    --good: #13c296;
+    --bad: #e74c3c;
+    --warn: #f39c12;
+    --radius: 16px;
+    --shadow: 0 1px 3px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px;
+  }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links { display: flex; list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+  .section-head .hint { font-size: 11px; color: var(--text3); }
+
+  /* Summary cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 22px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 6px;
+    cursor: pointer; transition: transform .2s, border-color .2s;
+  }
+  .kpi:hover { transform: translateY(-2px); border-color: var(--border-hover); }
+  .kpi.active { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .kpi .label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); }
+  .kpi .value { font-size: 30px; font-weight: 700; letter-spacing: -0.8px; color: var(--text); line-height: 1.1; }
+  .kpi .sub { font-size: 11px; color: var(--text3); }
+
+  /* Funnel */
+  .funnel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+  .funnel-row { display: grid; grid-template-columns: 200px 1fr 120px 90px; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--border); }
+  .funnel-row:first-child { border-top: 0; }
+  .funnel-row .stage { font-size: 13px; font-weight: 500; color: var(--text); }
+  .funnel-row .stage small { display: block; color: var(--text3); font-size: 11px; margin-top: 2px; font-weight: 400; }
+  .funnel-bar-bg { background: var(--surface2); height: 30px; border-radius: 8px; overflow: hidden; }
+  .funnel-bar { background: var(--accent); height: 100%; border-radius: 8px; transition: width .8s ease; display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: 600; }
+  .funnel-row .count { font-size: 18px; font-weight: 700; text-align: right; color: var(--text); }
+  .funnel-row .conv { font-size: 12px; color: var(--text3); text-align: right; }
+
+  /* Filters */
+  .filters { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
+  .filters input, .filters select {
+    background: var(--surface); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 14px; font-size: 13px; font-family: inherit;
+    outline: none; transition: border-color .2s;
+  }
+  .filters input { min-width: 260px; }
+  .filters input:focus, .filters select:focus { border-color: var(--accent); }
+  .filters .chip {
+    padding: 6px 12px; font-size: 12px; font-weight: 500; border-radius: 20px;
+    background: var(--surface2); border: 1px solid var(--border); color: var(--text2);
+    cursor: pointer; transition: all .2s;
+  }
+  .filters .chip:hover { border-color: var(--accent); color: var(--text); }
+  .filters .chip.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .filters .count { font-size: 12px; color: var(--text3); margin-left: auto; }
+
+  /* Table */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+  table.clients { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.clients th {
+    text-align: left; padding: 14px 16px; color: var(--text3);
+    font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px;
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  table.clients td { padding: 14px 16px; color: var(--text2); border-bottom: 1px solid var(--border); }
+  table.clients tr { cursor: pointer; transition: background .15s; }
+  table.clients tr:hover td { background: var(--surface2); }
+  table.clients tbody tr:last-child td { border-bottom: 0; }
+  table.clients .name-cell { color: var(--text); font-weight: 500; }
+  .seg-badge {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+  }
+  .seg-active  { background: rgba(19,194,150,0.12); color: var(--good); }
+  .seg-sleeping{ background: rgba(243,156,18,0.12); color: var(--warn); }
+  .seg-new     { background: var(--accent-soft); color: var(--accent); }
+  .seg-never   { background: rgba(138,155,168,0.12); color: var(--text3); }
+
+  /* Pagination */
+  .pag {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px; background: var(--surface);
+    border-top: 1px solid var(--border);
+  }
+  .pag .info { font-size: 12px; color: var(--text3); }
+  .pag .btns { display: flex; gap: 8px; }
+  .pag button {
+    appearance: none; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 7px 14px; border-radius: 8px; font-size: 12px;
+    font-family: inherit; cursor: pointer; transition: all .15s;
+  }
+  .pag button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .pag button:disabled { opacity: 0.4; cursor: not-allowed; }
+  .pag button.current { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); z-index: 600; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop.active { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    max-width: 740px; width: 100%; max-height: 88vh; overflow: auto;
+    padding: 30px 32px; box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+  }
+  .modal-close { float: right; background: transparent; border: 0; font-size: 24px; color: var(--text3); cursor: pointer; line-height: 1; padding: 0; }
+  .modal h3 { font-size: 24px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+  .modal .sub { font-size: 12px; color: var(--text3); margin-bottom: 22px; }
+  .modal .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 22px; margin-bottom: 20px; font-size: 13px; }
+  .modal .fields .f { display: flex; flex-direction: column; gap: 2px; }
+  .modal .fields .f b { color: var(--text); font-weight: 600; }
+  .modal .fields .f span { color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .modal h4 { font-size: 12px; font-weight: 600; margin: 20px 0 10px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; }
+  .modal table { width: 100%; font-size: 12px; border-collapse: collapse; }
+  .modal th, .modal td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text2); }
+  .modal th { color: var(--text3); font-weight: 500; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; }
+  .modal .pattern-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .modal .pattern-bars.tod { grid-template-columns: 2fr 2fr 3fr; margin-bottom: 14px; }
+  .modal .pattern-bars .pb { background: var(--surface2); border-radius: 8px; padding: 10px 6px; text-align: center; }
+  .modal .pattern-bars .pb b { display: block; font-size: 16px; color: var(--text); }
+  .modal .pattern-bars .pb span { font-size: 10px; color: var(--text3); display: block; margin-top: 2px; }
+
+  .loading { color: var(--text3); font-size: 13px; text-align: center; padding: 28px; }
+  .error   { color: var(--bad);  font-size: 13px; text-align: center; padding: 28px; }
+
+  @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 760px)  {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .funnel-row { grid-template-columns: 130px 1fr 70px; }
+    .funnel-row .conv { display: none; }
+    .filters input { min-width: 0; width: 100%; }
+    table.clients th:nth-child(3), table.clients td:nth-child(3) { display: none; }
+    table.clients th:nth-child(4), table.clients td:nth-child(4) { display: none; }
+  }
+  @media (max-width: 520px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    h1.page-title { font-size: 22px; }
+    .modal .fields { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="clients.html" class="active">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+  </ul>
+  <span class="nav-pill">Clients</span>
+</nav>
+
+<main>
+  <h1 class="page-title">Клиенты</h1>
+  <p class="page-sub">База клиентов с сегментацией, воронкой и drill-down карточкой · источник: v7padel_db</p>
+
+  <!-- BLOCK 1: SUMMARY -->
+  <section class="section">
+    <div class="section-head"><h2>1 · Сводка</h2><span class="hint">клик на карточку → фильтр таблицы по сегменту</span></div>
+    <div class="kpi-grid">
+      <div class="kpi" data-seg="all">
+        <div class="label">Всего клиентов</div>
+        <div class="value" id="sum-total">—</div>
+        <div class="sub">в базе customers</div>
+      </div>
+      <div class="kpi" data-seg="new">
+        <div class="label">Новых за 30 дней</div>
+        <div class="value" id="sum-new">—</div>
+        <div class="sub">registered 30d ago</div>
+      </div>
+      <div class="kpi" data-seg="active">
+        <div class="label">Активных</div>
+        <div class="value" id="sum-active">—</div>
+        <div class="sub">брон. за 30 дней</div>
+      </div>
+      <div class="kpi" data-seg="sleeping">
+        <div class="label">Спящих</div>
+        <div class="value" id="sum-sleep">—</div>
+        <div class="sub">играли раньше, сейчас нет</div>
+      </div>
+      <div class="kpi" data-seg="never">
+        <div class="label">Никогда не играл</div>
+        <div class="value" id="sum-never">—</div>
+        <div class="sub">0 бронирований</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLOCK 2: FUNNEL -->
+  <section class="section">
+    <div class="section-head"><h2>2 · Воронка</h2><span class="hint">зарегистрирован → VIP карта</span></div>
+    <div class="funnel" id="funnel"><div class="loading">Считаю воронку…</div></div>
+  </section>
+
+  <!-- BLOCK 3: TABLE -->
+  <section class="section">
+    <div class="section-head"><h2>3 · Таблица клиентов</h2><span class="hint">клик по строке → карточка</span></div>
+    <div class="filters">
+      <input type="search" id="flt-search" placeholder="Поиск по имени или телефону…">
+      <button class="chip active" data-seg="all">Все</button>
+      <button class="chip" data-seg="new">Новые</button>
+      <button class="chip" data-seg="active">Активные</button>
+      <button class="chip" data-seg="sleeping">Спящие</button>
+      <button class="chip" data-seg="never">Никогда</button>
+      <span class="count" id="flt-count">—</span>
+    </div>
+    <div class="table-wrap">
+      <table class="clients">
+        <thead>
+          <tr>
+            <th>Имя</th>
+            <th>Телефон</th>
+            <th>Регистрация</th>
+            <th>Последняя игра</th>
+            <th>Карта</th>
+            <th>Игр</th>
+            <th>Сегмент</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="7" class="loading">Загружаю…</td></tr></tbody>
+      </table>
+      <div class="pag">
+        <div class="info" id="pag-info">—</div>
+        <div class="btns">
+          <button id="pag-prev">← Назад</button>
+          <button id="pag-next">Вперёд →</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div class="modal-backdrop" id="modal-backdrop"><div class="modal" id="modal-body"></div></div>
+
+<script>
+/* ========================================================================
+ * V7 Padel — clients.html
+ * Источники: customers + bookings + memberships из v7padel_db (gviz CSV)
+ * Сегментация (договорённость):
+ *   active   = есть booking за последние 30 дней
+ *   sleeping = есть booking(и), но не за последние 30 дней
+ *   new      = created_at за последние 30 дней (независимо от bookings)
+ *   never    = 0 bookings за весь период данных
+ * ======================================================================== */
+
+const SHEET_ID = '1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY';
+const GVIZ = (name) =>
+  'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+  '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(name);
+const PAGE_SIZE = 50;
+
+/* ---------- CSV parser (RFC 4180 minimal) ---------- */
+function parseCSV(text) {
+  const rows = []; let i = 0, field = '', row = [], inQ = false;
+  while (i < text.length) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"' && text[i+1] === '"') { field += '"'; i += 2; continue; }
+      if (c === '"') { inQ = false; i++; continue; }
+      field += c; i++; continue;
+    }
+    if (c === '"') { inQ = true; i++; continue; }
+    if (c === ',') { row.push(field); field = ''; i++; continue; }
+    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+    if (c === '\r') { i++; continue; }
+    field += c; i++;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  if (!rows.length) return [];
+  const headers = rows[0].map(h => (h || '').trim());
+  return rows.slice(1).filter(r => r.some(v => v && v.trim())).map(r => {
+    const o = {}; headers.forEach((h, idx) => o[h] = (r[idx] || '').trim()); return o;
+  });
+}
+async function loadSheet(name) {
+  try {
+    const r = await fetch(GVIZ(name));
+    if (!r.ok) throw new Error(r.status);
+    return parseCSV(await r.text());
+  } catch (e) {
+    console.warn('[gviz]', name, 'failed:', e);
+    return null;
+  }
+}
+
+/* ---------- helpers ---------- */
+function parseDate(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  let d = new Date(s);
+  if (!isNaN(d)) return d;
+  const m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+  if (m) {
+    let [_, dd, mm, yy] = m; yy = yy.length === 2 ? '20' + yy : yy;
+    d = new Date(+yy, +mm - 1, +dd);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+/* ---------- Key detection ---------- */
+function findKey(obj, ...regexes) {
+  const keys = Object.keys(obj);
+  for (const re of regexes) {
+    const k = keys.find(x => re.test(x));
+    if (k) return k;
+  }
+  return null;
+}
+
+/* ---------- State ---------- */
+const state = {
+  customers: [],       // enriched list
+  filteredIdx: [],     // indices into customers after filter/search
+  page: 0,
+  segment: 'all',
+  search: ''
+};
+
+/* ---------- MAIN: load + enrich + render ---------- */
+(async function main() {
+  const [customers, bookings, memberships] = await Promise.all([
+    loadSheet('customers'), loadSheet('bookings'), loadSheet('memberships')
+  ]);
+
+  if (!customers || !customers.length) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="7" class="error">Нет данных customers</td></tr>';
+    return;
+  }
+
+  // Keys
+  const ckFirst = customers[0];
+  const kCustId    = findKey(ckFirst, /^customer_?id$/i, /client_?id/i, /^id$/i);
+  const kName      = findKey(ckFirst, /^full_?name$/i, /^name$/i, /имя/i, /client_?name/i);
+  const kPhone     = findKey(ckFirst, /phone/i, /телефон/i, /mobile/i);
+  const kEmail     = findKey(ckFirst, /email/i, /почта/i);
+  const kSource    = findKey(ckFirst, /^source$/i, /источник/i, /channel/i);
+  const kCreated   = findKey(ckFirst, /created/i, /registered/i, /регистр/i, /signup/i);
+
+  // Bookings index
+  const bkByCust = {};   // id -> array of {date, court, time, hour}
+  if (bookings && bookings.length) {
+    const b0 = bookings[0];
+    const kBCust  = findKey(b0, /^customer_?id$/i, /client_?id/i);
+    const kBDate  = findKey(b0, /^date$/i, /дата/i, /^start/i, /booking_?date/i);
+    const kBCourt = findKey(b0, /court/i, /корт/i);
+    const kBTime  = findKey(b0, /^time$/i, /hour/i, /час/i, /^start_?time/i);
+    bookings.forEach(b => {
+      const id = b[kBCust]; if (!id) return;
+      const d = parseDate(b[kBDate]);
+      let h = null;
+      if (kBTime && b[kBTime]) { const m = String(b[kBTime]).match(/(\d{1,2})/); if (m) h = parseInt(m[1], 10); }
+      if (h == null && d) h = d.getHours();
+      if (!bkByCust[id]) bkByCust[id] = [];
+      bkByCust[id].push({ date: d, dateRaw: b[kBDate], court: b[kBCourt] || '—', time: b[kBTime] || '—', hour: h });
+    });
+    // sort each customer's bookings desc by date
+    Object.values(bkByCust).forEach(list => list.sort((a,b) => (b.date ? b.date.getTime() : 0) - (a.date ? a.date.getTime() : 0)));
+  }
+
+  // Memberships index
+  const mbByCust = {};
+  if (memberships && memberships.length) {
+    const m0 = memberships[0];
+    const kMCust   = findKey(m0, /^customer_?id$/i, /client_?id/i);
+    const kMType   = findKey(m0, /^type$/i, /тип/i, /plan/i);
+    const kMStatus = findKey(m0, /status/i, /статус/i);
+    memberships.forEach(m => {
+      const id = m[kMCust]; if (!id) return;
+      mbByCust[id] = { type: m[kMType] || '', status: m[kMStatus] || '' };
+    });
+  }
+
+  // Enrich each customer
+  const now = new Date();
+  const cutoff30 = new Date(now); cutoff30.setDate(cutoff30.getDate() - 30);
+  state.customers = customers.map(c => {
+    const id = c[kCustId];
+    const bk = bkByCust[id] || [];
+    const lastBk = bk.length ? bk[0] : null;
+    const bkCount = bk.length;
+    const regDate = parseDate(c[kCreated]);
+    const hasRecent = bk.some(b => b.date && b.date >= cutoff30);
+    const isNew = regDate && regDate >= cutoff30;
+
+    let segment;
+    if (bkCount === 0) segment = 'never';
+    else if (hasRecent) segment = 'active';
+    else segment = 'sleeping';
+    // "new" is an additional overlay — we still put it into the "new" bucket for summary,
+    // but in the table segment column we prefer behavioral segment (active/sleeping/never).
+    // For the filter chip "new" — we match by isNew flag.
+
+    const memb = mbByCust[id];
+    let card = '—';
+    if (memb) {
+      const t = (memb.type || '').toLowerCase();
+      if (t.indexOf('vip') >= 0)  card = 'VIP';
+      else if (t.indexOf('club') >= 0) card = 'Club';
+      else if (memb.type) card = memb.type;
+    }
+
+    return {
+      id,
+      name: c[kName] || '—',
+      phone: c[kPhone] || '—',
+      email: c[kEmail] || '—',
+      source: c[kSource] || '—',
+      createdRaw: c[kCreated] || '—',
+      regDate,
+      lastBk,
+      bkCount,
+      bk,
+      isNew,
+      hasRecent,
+      segment,
+      card,
+      memb: memb || null
+    };
+  });
+
+  renderSummary();
+  renderFunnel();
+  applyFilters();
+  bindUI();
+})();
+
+function renderSummary() {
+  const cs = state.customers;
+  const total = cs.length;
+  const n_new = cs.filter(c => c.isNew).length;
+  const n_active = cs.filter(c => c.segment === 'active').length;
+  const n_sleep = cs.filter(c => c.segment === 'sleeping').length;
+  const n_never = cs.filter(c => c.segment === 'never').length;
+  document.getElementById('sum-total').textContent  = total;
+  document.getElementById('sum-new').textContent    = n_new;
+  document.getElementById('sum-active').textContent = n_active;
+  document.getElementById('sum-sleep').textContent  = n_sleep;
+  document.getElementById('sum-never').textContent  = n_never;
+}
+
+function renderFunnel() {
+  const cs = state.customers;
+  const total = cs.length;
+  const firstVisit = cs.filter(c => c.bkCount >= 1).length;
+  const twoThree = cs.filter(c => c.bkCount >= 2 && c.bkCount <= 3).length;
+  // "Regular 4+" = 4+ bookings in last 30 days
+  const now = new Date();
+  const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 30);
+  const regular = cs.filter(c => c.bk.filter(b => b.date && b.date >= cutoff).length >= 4).length;
+  const club = cs.filter(c => c.card === 'Club').length;
+  const vip = cs.filter(c => c.card === 'VIP').length;
+
+  const stages = [
+    { name: 'Зарегистрирован', sub: 'в customers', n: total },
+    { name: 'Первый визит', sub: '≥1 брон.', n: firstVisit },
+    { name: '2–3 игры', sub: '2–3 брон. всего', n: twoThree },
+    { name: 'Регулярный 4+', sub: '≥4 брон. за 30 дней', n: regular },
+    { name: 'Club карта', sub: 'memberships', n: club },
+    { name: 'VIP карта', sub: 'memberships', n: vip }
+  ];
+  const maxN = Math.max.apply(null, stages.map(s => s.n).concat(1));
+  const html = stages.map((s, i) => {
+    const prev = i > 0 ? stages[i-1].n : s.n;
+    const conv = prev > 0 ? Math.round((s.n / prev) * 100) : 0;
+    const w = Math.max(2, Math.round((s.n / maxN) * 100));
+    return '<div class="funnel-row">' +
+      '<div class="stage">' + s.name + '<small>' + s.sub + '</small></div>' +
+      '<div class="funnel-bar-bg"><div class="funnel-bar" style="width:' + w + '%">' + (s.n > 0 ? s.n : '') + '</div></div>' +
+      '<div class="count">' + s.n + '</div>' +
+      '<div class="conv">' + (i > 0 ? conv + '%' : '—') + '</div>' +
+    '</div>';
+  }).join('');
+  document.getElementById('funnel').innerHTML = html;
+}
+
+/* ---------- Filters / pagination ---------- */
+function applyFilters() {
+  const q = state.search.trim().toLowerCase();
+  const seg = state.segment;
+  state.filteredIdx = state.customers.reduce((acc, c, i) => {
+    // segment filter
+    if (seg === 'new') { if (!c.isNew) return acc; }
+    else if (seg !== 'all' && c.segment !== seg) return acc;
+    // search
+    if (q) {
+      const hay = (c.name + ' ' + c.phone + ' ' + c.email).toLowerCase();
+      if (hay.indexOf(q) < 0) return acc;
+    }
+    acc.push(i);
+    return acc;
+  }, []);
+  state.page = 0;
+  document.getElementById('flt-count').textContent = 'найдено: ' + state.filteredIdx.length;
+  renderTable();
+}
+
+function renderTable() {
+  const tbody = document.getElementById('tbody');
+  const { filteredIdx, page, customers } = state;
+  const start = page * PAGE_SIZE;
+  const slice = filteredIdx.slice(start, start + PAGE_SIZE);
+  if (!slice.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="loading">Нет клиентов по фильтру</td></tr>';
+  } else {
+    tbody.innerHTML = slice.map(i => {
+      const c = customers[i];
+      const lastStr = c.lastBk ? fmtDate(c.lastBk.date) : '—';
+      const badgeClass =
+        c.segment === 'active' ? 'seg-active' :
+        c.segment === 'sleeping' ? 'seg-sleeping' :
+        c.segment === 'never' ? 'seg-never' : 'seg-never';
+      const badgeText =
+        c.segment === 'active' ? 'active' :
+        c.segment === 'sleeping' ? 'sleep' :
+        c.segment === 'never' ? 'never' : '—';
+      const newMark = c.isNew ? ' <span class="seg-badge seg-new">new</span>' : '';
+      return '<tr data-idx="' + i + '">' +
+        '<td class="name-cell">' + c.name + '</td>' +
+        '<td>' + c.phone + '</td>' +
+        '<td>' + (c.createdRaw || '—') + '</td>' +
+        '<td>' + lastStr + '</td>' +
+        '<td>' + c.card + '</td>' +
+        '<td>' + c.bkCount + '</td>' +
+        '<td><span class="seg-badge ' + badgeClass + '">' + badgeText + '</span>' + newMark + '</td>' +
+      '</tr>';
+    }).join('');
+    tbody.querySelectorAll('tr').forEach(tr => {
+      tr.addEventListener('click', () => openCard(customers[+tr.dataset.idx]));
+    });
+  }
+  // Pagination info
+  const total = filteredIdx.length;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const from = total ? start + 1 : 0;
+  const to = Math.min(start + PAGE_SIZE, total);
+  document.getElementById('pag-info').textContent =
+    total ? from + '–' + to + ' из ' + total + ' · страница ' + (page + 1) + ' из ' + pages : '0 из 0';
+  document.getElementById('pag-prev').disabled = page <= 0;
+  document.getElementById('pag-next').disabled = page >= pages - 1;
+}
+
+function bindUI() {
+  document.getElementById('flt-search').addEventListener('input', e => {
+    state.search = e.target.value; applyFilters();
+  });
+  document.querySelectorAll('.filters .chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.filters .chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      state.segment = chip.dataset.seg;
+      // sync kpi highlight
+      document.querySelectorAll('.kpi').forEach(k => k.classList.toggle('active', k.dataset.seg === state.segment));
+      applyFilters();
+    });
+  });
+  document.querySelectorAll('.kpi').forEach(kpi => {
+    kpi.addEventListener('click', () => {
+      const seg = kpi.dataset.seg;
+      state.segment = seg;
+      document.querySelectorAll('.filters .chip').forEach(c => c.classList.toggle('active', c.dataset.seg === seg));
+      document.querySelectorAll('.kpi').forEach(k => k.classList.toggle('active', k.dataset.seg === seg));
+      applyFilters();
+      document.querySelector('.filters').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+  document.getElementById('pag-prev').addEventListener('click', () => { if (state.page > 0) { state.page--; renderTable(); } });
+  document.getElementById('pag-next').addEventListener('click', () => {
+    const pages = Math.ceil(state.filteredIdx.length / PAGE_SIZE);
+    if (state.page < pages - 1) { state.page++; renderTable(); }
+  });
+  document.getElementById('modal-backdrop').addEventListener('click', e => { if (e.target.id === 'modal-backdrop') closeCard(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCard(); });
+}
+
+/* ---------- Client card (modal) ---------- */
+function openCard(c) {
+  if (!c) return;
+  const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const dowCnt = [0,0,0,0,0,0,0];
+  const tod = { morn: 0, day: 0, eve: 0 };
+  c.bk.forEach(b => {
+    if (b.date) dowCnt[(b.date.getDay() + 6) % 7]++;
+    const h = b.hour;
+    if (h != null) {
+      if (h < 12) tod.morn++;
+      else if (h < 17) tod.day++;
+      else tod.eve++;
+    }
+  });
+  const lastTen = c.bk.slice(0, 10);
+  const membStatus = c.memb ? (c.memb.status || '—') : '—';
+
+  const segLabel =
+    c.segment === 'active' ? '<span class="seg-badge seg-active">active</span>' :
+    c.segment === 'sleeping' ? '<span class="seg-badge seg-sleeping">sleeping</span>' :
+    c.segment === 'never' ? '<span class="seg-badge seg-never">never</span>' : '—';
+  const newLabel = c.isNew ? ' <span class="seg-badge seg-new">new</span>' : '';
+
+  const body = document.getElementById('modal-body');
+  body.innerHTML =
+    '<button class="modal-close" aria-label="Закрыть" onclick="closeCard()">×</button>' +
+    '<h3>' + c.name + '</h3>' +
+    '<div class="sub">ID: ' + (c.id || '—') + ' · ' + segLabel + newLabel + '</div>' +
+    '<div class="fields">' +
+      '<div class="f"><span>Телефон</span><b>' + c.phone + '</b></div>' +
+      '<div class="f"><span>Email</span><b>' + c.email + '</b></div>' +
+      '<div class="f"><span>Источник</span><b>' + c.source + '</b></div>' +
+      '<div class="f"><span>Регистрация</span><b>' + c.createdRaw + '</b></div>' +
+      '<div class="f"><span>Карта</span><b>' + c.card + ' · ' + membStatus + '</b></div>' +
+      '<div class="f"><span>Всего бронирований</span><b>' + c.bkCount + '</b></div>' +
+    '</div>' +
+    '<h4>Паттерн игры · время суток</h4>' +
+    '<div class="pattern-bars tod">' +
+      '<div class="pb"><b>' + tod.morn + '</b><span>Утро &lt;12</span></div>' +
+      '<div class="pb"><b>' + tod.day + '</b><span>День 12–17</span></div>' +
+      '<div class="pb"><b>' + tod.eve + '</b><span>Вечер 17+</span></div>' +
+    '</div>' +
+    '<h4>Дни недели</h4>' +
+    '<div class="pattern-bars">' +
+      DOW.map((d, i) => '<div class="pb"><b>' + dowCnt[i] + '</b><span>' + d + '</span></div>').join('') +
+    '</div>' +
+    '<h4>Последние 10 бронирований</h4>' +
+    (lastTen.length
+      ? '<table><thead><tr><th>Дата</th><th>Корт</th><th>Время</th></tr></thead><tbody>' +
+          lastTen.map(b => '<tr><td>' + (b.date ? fmtDate(b.date) : (b.dateRaw || '—')) + '</td><td>' + b.court + '</td><td>' + b.time + '</td></tr>').join('') +
+        '</tbody></table>'
+      : '<div class="loading">Нет истории бронирований</div>');
+
+  document.getElementById('modal-backdrop').classList.add('active');
+}
+function closeCard() { document.getElementById('modal-backdrop').classList.remove('active'); }
+window.closeCard = closeCard;
+</script>
+
+</body>
+</html>
