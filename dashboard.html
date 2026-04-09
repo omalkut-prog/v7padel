@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — Дашборд</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #f5f7f9;
+    --surface: #ffffff;
+    --border: #e5ecef;
+    --text: #0b1620;
+    --text2: #4a5967;
+    --text3: #8a9ba8;
+    --accent: #0ABAB5;
+    --accent-soft: rgba(10,186,181,0.12);
+    --good: #13c296;
+    --bad: #e74c3c;
+    --warn: #f39c12;
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+
+  /* TOPBAR */
+  header.top {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+    display: flex; align-items: center; gap: 16px;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .top a.logo {
+    font-size: 17px; font-weight: 700; text-decoration: none; color: var(--text);
+    letter-spacing: -0.3px;
+  }
+  .top a.logo em { font-style: normal; color: var(--accent); }
+  .top .sub { color: var(--text3); font-size: 13px; margin-left: 6px; }
+  .top .back { margin-left: auto; font-size: 13px; color: var(--text2); text-decoration: none; }
+  .top .back:hover { color: var(--accent); }
+
+  /* LAYOUT */
+  .container { max-width: 1280px; margin: 0 auto; padding: 24px; }
+  .page-title { font-size: 28px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.5px; }
+  .page-desc { color: var(--text2); font-size: 14px; margin-bottom: 28px; }
+
+  .loading { color: var(--text3); font-size: 14px; padding: 20px; text-align: center; }
+
+  /* KPI CARDS */
+  .kpi-row {
+    display: grid; gap: 16px; margin-bottom: 28px;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .kpi .label { font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+  .kpi .value { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+  .kpi .sub { font-size: 12px; color: var(--text2); }
+  .kpi .value.good { color: var(--good); }
+  .kpi .value.bad { color: var(--bad); }
+
+  /* CHART CARDS */
+  .grid {
+    display: grid; gap: 16px; margin-bottom: 24px;
+    grid-template-columns: 2fr 1fr;
+  }
+  .grid.equal { grid-template-columns: 1fr 1fr; }
+  .grid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 20px;
+  }
+  .card h3 { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
+  .card h3 small { color: var(--text3); font-weight: 400; font-size: 12px; margin-left: 8px; }
+  .chart-wrap { position: relative; height: 280px; }
+  .chart-wrap.tall { height: 320px; }
+  .chart-wrap.short { height: 220px; }
+
+  /* Membership progress */
+  .mem-bar { background: #e8eef1; border-radius: 8px; height: 10px; overflow: hidden; margin-top: 6px; }
+  .mem-bar > span { display: block; height: 100%; background: var(--accent); border-radius: 8px; transition: width .6s ease; }
+  .mem-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 12px; color: var(--text2); }
+  .mem-legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+
+  /* TABLE */
+  table.mini { width: 100%; font-size: 13px; border-collapse: collapse; }
+  table.mini th { text-align: left; font-weight: 500; color: var(--text3); font-size: 11px; text-transform: uppercase; padding: 6px 8px; border-bottom: 1px solid var(--border); letter-spacing: 0.4px; }
+  table.mini td { padding: 8px; border-bottom: 1px solid var(--border); color: var(--text); }
+  table.mini tr:last-child td { border-bottom: none; }
+  table.mini td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+
+  footer.meta {
+    margin-top: 32px; padding-top: 16px; border-top: 1px solid var(--border);
+    color: var(--text3); font-size: 12px; text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .grid, .grid.equal, .grid.three { grid-template-columns: 1fr; }
+    .container { padding: 16px; }
+    .page-title { font-size: 22px; }
+    .kpi .value { font-size: 22px; }
+  }
+  @media (max-width: 500px) {
+    .kpi-row { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .kpi { padding: 14px; }
+    .card { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="logo" href="index.html">V7<em>Padel</em></a>
+  <span class="sub">Дашборд · Анталья</span>
+  <a class="back" href="index.html">← на главную</a>
+</header>
+
+<div class="container">
+  <h1 class="page-title">Финансовый дашборд</h1>
+  <div class="page-desc">Живые данные из <code>v7padel_db</code> · обновляется при перезагрузке страницы</div>
+
+  <!-- KPI row -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span></div>
+    <div class="kpi"><span class="label">OPEX (посл. месяц)</span><span class="value" id="kpi-opex">—</span><span class="sub" id="kpi-opex-mo"></span></div>
+    <div class="kpi"><span class="label">Операц. P&L</span><span class="value" id="kpi-pnl">—</span><span class="sub" id="kpi-pnl-mo"></span></div>
+    <div class="kpi"><span class="label">Клиентов всего</span><span class="value" id="kpi-clients">—</span><span class="sub" id="kpi-clients-sub"></span></div>
+  </div>
+
+  <!-- Revenue / OPEX by month + P&L -->
+  <div class="grid">
+    <div class="card">
+      <h3>Выручка / OPEX / P&L по месяцам <small>₺</small></h3>
+      <div class="chart-wrap tall"><canvas id="chart-pnl"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Структура выручки <small>посл. 6 мес</small></h3>
+      <div class="chart-wrap tall"><canvas id="chart-rev-mix"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Courts load + Memberships -->
+  <div class="grid equal">
+    <div class="card">
+      <h3>Загрузка кортов P1–P4 <small>активные брони по месяцам</small></h3>
+      <div class="chart-wrap"><canvas id="chart-courts"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Активные карты <small>потолок 55</small></h3>
+      <div id="mem-box">
+        <div class="kpi" style="border:none;padding:0;margin-bottom:10px;">
+          <span class="value" id="mem-total">—</span>
+          <span class="sub">из 55 мест</span>
+        </div>
+        <div class="mem-bar"><span id="mem-fill" style="width:0%"></span></div>
+        <div class="mem-legend">
+          <span><span class="dot" style="background:var(--accent)"></span>Club <b id="mem-club">—</b></span>
+          <span><span class="dot" style="background:#0e8a87"></span>VIP <b id="mem-vip">—</b></span>
+          <span id="mem-free"></span>
+        </div>
+        <div style="margin-top:18px;">
+          <div class="chart-wrap short"><canvas id="chart-mem-type"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clients + Liabilities -->
+  <div class="grid equal">
+    <div class="card">
+      <h3>Клиенты <small>динамика регистраций по месяцам</small></h3>
+      <div class="chart-wrap"><canvas id="chart-clients"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Обязательства</h3>
+      <table class="mini" id="tbl-liab">
+        <thead><tr><th>Дата</th><th>Кредитор</th><th>Описание</th><th class="num">Сумма, ₺</th></tr></thead>
+        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer class="meta">
+    V7 Padel · источник данных: <code>v7padel_db</code> (Google Sheets, gviz CSV) ·
+    обновлено <span id="ts">—</span>
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// V7 PADEL DASHBOARD — reads v7padel_db via public gviz CSV
+// ============================================================
+const DB_ID = "1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY";
+const ACCENT = "#0ABAB5";
+const ACCENT_D = "#0e8a87";
+const PALETTE = ["#0ABAB5","#0e8a87","#f39c12","#9b59b6","#e74c3c","#2980b9","#16a085","#7f8c8d"];
+
+// Chart.js defaults
+Chart.defaults.font.family = "Inter, -apple-system, sans-serif";
+Chart.defaults.color = "#4a5967";
+Chart.defaults.borderColor = "#e5ecef";
+
+const fmt   = v => (Math.round(v)).toLocaleString("ru-RU");
+const fmtK  = v => { const a=Math.abs(v); if(a>=1e6) return (v/1e6).toFixed(1)+" M"; if(a>=1e3) return (v/1e3).toFixed(0)+" K"; return fmt(v); };
+const toNum = v => { if(v===null||v===undefined) return 0; const s=String(v).replace(/\s|\u00a0/g,"").replace(",","."); const n=parseFloat(s); return isNaN(n)?0:n; };
+
+async function gviz(sheetName) {
+  const url = `https://docs.google.com/spreadsheets/d/${DB_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${sheetName} → ${r.status}`);
+  const text = await r.text();
+  return parseCSV(text);
+}
+
+// Simple CSV parser that handles quoted fields
+function parseCSV(str) {
+  const rows = [];
+  let cur = [], field = "", q = false;
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i];
+    if (q) {
+      if (c === '"') { if (str[i+1]==='"'){ field+='"'; i++; } else q=false; }
+      else field += c;
+    } else {
+      if (c === '"') q = true;
+      else if (c === ",") { cur.push(field); field = ""; }
+      else if (c === "\n") { cur.push(field); rows.push(cur); cur=[]; field=""; }
+      else if (c === "\r") {}
+      else field += c;
+    }
+  }
+  if (field.length || cur.length) { cur.push(field); rows.push(cur); }
+  const header = rows[0] || [];
+  return rows.slice(1).filter(r => r.length > 1 || (r[0] && r[0].length))
+    .map(r => { const o = {}; header.forEach((h,i)=>o[h]=r[i]??""); return o; });
+}
+
+function byMonth(rows, monthKey) {
+  const out = {};
+  rows.forEach(r => {
+    const m = r[monthKey];
+    if (!m) return;
+    out[m] = (out[m] || 0) + 1;
+  });
+  return out;
+}
+function sortedMonths(obj) { return Object.keys(obj).sort(); }
+
+// ---------------- P&L MONTHLY ----------------
+async function loadPnL() {
+  const rows = await gviz("pnl_monthly");
+  const byM = {};
+  rows.forEach(r => {
+    if (r.level !== "0") return;
+    const m = r.period_month;
+    if (!m || !/^\d{4}-\d{2}$/.test(m)) return;
+    byM[m] = byM[m] || { revenue: 0, opex: 0 };
+    const total = toNum(r.total);
+    if (r.branch === "revenue" && r.article_name && r.article_name.toLowerCase().includes("доход")) {
+      byM[m].revenue += total;
+    } else if (r.branch === "expense") {
+      byM[m].opex += Math.abs(total);
+    }
+  });
+  const months = Object.keys(byM).sort();
+  const rev  = months.map(m => byM[m].revenue);
+  const opex = months.map(m => byM[m].opex);
+  const pnl  = months.map(m => byM[m].revenue - byM[m].opex);
+
+  // KPI
+  if (months.length) {
+    const last = months[months.length - 1];
+    document.getElementById("kpi-rev").textContent = fmtK(byM[last].revenue) + " ₺";
+    document.getElementById("kpi-rev-mo").textContent = last;
+    document.getElementById("kpi-opex").textContent = fmtK(byM[last].opex) + " ₺";
+    document.getElementById("kpi-opex-mo").textContent = last;
+    const p = byM[last].revenue - byM[last].opex;
+    const el = document.getElementById("kpi-pnl");
+    el.textContent = (p>=0?"+":"") + fmtK(p) + " ₺";
+    el.classList.add(p >= 0 ? "good" : "bad");
+    document.getElementById("kpi-pnl-mo").textContent = last;
+  }
+
+  new Chart(document.getElementById("chart-pnl"), {
+    type: "bar",
+    data: {
+      labels: months,
+      datasets: [
+        { label: "Выручка", data: rev, backgroundColor: ACCENT, borderRadius: 4, order: 2 },
+        { label: "OPEX",    data: opex, backgroundColor: "#f39c12", borderRadius: 4, order: 2 },
+        { label: "P&L",     data: pnl, type: "line", borderColor: "#0b1620", backgroundColor: "#0b1620",
+          pointRadius: 4, pointHoverRadius: 6, tension: 0.25, borderWidth: 2, order: 1 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 14 } },
+        tooltip: { callbacks: { label: c => c.dataset.label + ": " + fmt(c.parsed.y) + " ₺" } }
+      },
+      scales: {
+        y: { ticks: { callback: v => fmtK(v) }, grid: { color: "#eef2f4" } },
+        x: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ---------------- REVENUE MIX ----------------
+function categorize(cat) {
+  const s = (cat || "").toLowerCase();
+  if (s.includes("rent from") || s.includes("equipment rental")) return "Корты и инвентарь";
+  if (s.includes("club card")) return "Клубные карты";
+  if (s.includes("tournament")) return "Турниры";
+  if (s.includes("training") || s.includes("individual") || s.includes("group") || s.includes("children") || s.includes("kids") || s.includes("adult")) return "Тренировки";
+  if (s.includes("inventory") || s.includes("giftbox") || s.includes("accessor")) return "Товары";
+  if (s.includes("internal") || s.includes("deposit")) return null;
+  return "Прочее";
+}
+
+async function loadRevMix() {
+  const rows = await gviz("transactions");
+  // last 6 months window
+  const allMonths = [...new Set(rows.map(r => r.month).filter(Boolean))].sort();
+  const window = new Set(allMonths.slice(-6));
+  const agg = {};
+  rows.forEach(r => {
+    if (!window.has(r.month)) return;
+    const g = categorize(r.category);
+    if (!g) return;
+    agg[g] = (agg[g] || 0) + toNum(r.total);
+  });
+  const order = ["Корты и инвентарь","Клубные карты","Тренировки","Турниры","Товары","Прочее"];
+  const labels = order.filter(k => agg[k] > 0);
+  const data   = labels.map(k => agg[k]);
+  const total  = data.reduce((a,b)=>a+b,0);
+
+  new Chart(document.getElementById("chart-rev-mix"), {
+    type: "doughnut",
+    data: { labels, datasets: [{ data, backgroundColor: PALETTE, borderColor:"#fff", borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: "62%",
+      plugins: {
+        legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 12, font: { size: 12 } } },
+        tooltip: { callbacks: {
+          label: c => {
+            const v = c.parsed;
+            const pct = total ? (v*100/total).toFixed(1) : 0;
+            return c.label + ": " + fmt(v) + " ₺ (" + pct + "%)";
+          }
+        }}
+      }
+    }
+  });
+}
+
+// ---------------- COURTS LOAD ----------------
+async function loadCourts() {
+  const rows = await gviz("bookings");
+  const byMC = {}; // month -> {P1,P2,P3,P4}
+  rows.forEach(r => {
+    if ((r.status || "").toLowerCase() !== "active") return;
+    const ts = r.start_ts || "";
+    const m = ts.slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(m)) return;
+    byMC[m] = byMC[m] || { P1:0, P2:0, P3:0, P4:0 };
+    const c = r.court_id;
+    if (byMC[m][c] !== undefined) byMC[m][c]++;
+  });
+  const months = Object.keys(byMC).sort().slice(-8);
+  const datasets = ["P1","P2","P3","P4"].map((p,i) => ({
+    label: p, data: months.map(m => byMC[m][p] || 0),
+    backgroundColor: PALETTE[i], borderRadius: 3
+  }));
+  new Chart(document.getElementById("chart-courts"), {
+    type: "bar",
+    data: { labels: months, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 12 } } },
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, grid: { color: "#eef2f4" } }
+      }
+    }
+  });
+}
+
+// ---------------- MEMBERSHIPS ----------------
+async function loadMemberships() {
+  const rows = await gviz("memberships");
+  let club = 0, vip = 0;
+  rows.forEach(r => {
+    if ((r.status || "").toLowerCase() !== "active") return;
+    const t = (r.card_type || "").toLowerCase();
+    if (t.includes("vip")) vip++;
+    else if (t.includes("club")) club++;
+  });
+  const total = club + vip;
+  const CAP = 55;
+  document.getElementById("mem-total").textContent = total;
+  document.getElementById("mem-club").textContent = club;
+  document.getElementById("mem-vip").textContent = vip;
+  document.getElementById("mem-free").textContent = "свободно: " + Math.max(0, CAP - total);
+  document.getElementById("mem-fill").style.width = Math.min(100, total*100/CAP).toFixed(1) + "%";
+
+  new Chart(document.getElementById("chart-mem-type"), {
+    type: "doughnut",
+    data: {
+      labels: ["Club","VIP","Свободно"],
+      datasets: [{
+        data: [club, vip, Math.max(0, CAP - total)],
+        backgroundColor: [ACCENT, ACCENT_D, "#e8eef1"],
+        borderColor: "#fff", borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: "64%",
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ": " + c.parsed } } }
+    }
+  });
+}
+
+// ---------------- CLIENTS ----------------
+async function loadClients() {
+  const rows = await gviz("customers");
+  document.getElementById("kpi-clients").textContent = fmt(rows.length);
+  const byM = {};
+  rows.forEach(r => {
+    // subs_date e.g. "08/04/2026" → 2026-04
+    const s = (r.subs_date || "").trim();
+    let m = "";
+    const dm = s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})$/);
+    const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dm) m = dm[3] + "-" + dm[2].padStart(2, "0");
+    else if (iso) m = iso[1] + "-" + iso[2];
+    if (!m) return;
+    byM[m] = (byM[m] || 0) + 1;
+  });
+  const months = Object.keys(byM).sort().slice(-12);
+  const vals = months.map(m => byM[m]);
+  let running = 0;
+  const cum = vals.map(v => running += v);
+  const firstM = months[0];
+  // compute baseline of pre-window clients
+  const pre = rows.length - vals.reduce((a,b)=>a+b,0);
+  const cumAbs = cum.map(v => v + pre);
+  document.getElementById("kpi-clients-sub").textContent = "+" + vals[vals.length - 1] + " за " + (months[months.length - 1] || "");
+
+  new Chart(document.getElementById("chart-clients"), {
+    type: "line",
+    data: {
+      labels: months,
+      datasets: [
+        { label: "Новые", data: vals, type: "bar", backgroundColor: ACCENT, borderRadius: 3, yAxisID: "y", order: 2 },
+        { label: "Всего", data: cumAbs, borderColor: ACCENT_D, backgroundColor: "rgba(14,138,135,0.1)",
+          tension: 0.25, pointRadius: 3, yAxisID: "y1", order: 1, fill: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 12 } } },
+      scales: {
+        y:  { position: "left", grid: { color: "#eef2f4" }, title: { display: true, text: "новых", font: { size: 11 } } },
+        y1: { position: "right", grid: { display: false }, title: { display: true, text: "всего", font: { size: 11 } } },
+        x:  { grid: { display: false } }
+      }
+    }
+  });
+}
+
+// ---------------- LIABILITIES ----------------
+async function loadLiabilities() {
+  const rows = await gviz("liabilities");
+  const tbody = document.querySelector("#tbl-liab tbody");
+  tbody.innerHTML = "";
+  if (!rows.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет обязательств</td></tr>';
+    return;
+  }
+  rows.forEach(r => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${r.date||""}</td><td>${r.creditor||""}</td><td>${(r.description||"").slice(0, 80)}</td><td class="num">${fmt(toNum(r.amount))}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ---------------- INIT ----------------
+(async function() {
+  try {
+    await Promise.all([
+      loadPnL().catch(e => console.error("pnl:", e)),
+      loadRevMix().catch(e => console.error("revmix:", e)),
+      loadCourts().catch(e => console.error("courts:", e)),
+      loadMemberships().catch(e => console.error("mem:", e)),
+      loadClients().catch(e => console.error("clients:", e)),
+      loadLiabilities().catch(e => console.error("liab:", e)),
+    ]);
+    document.getElementById("ts").textContent = new Date().toLocaleString("ru-RU");
+  } catch (e) {
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>
