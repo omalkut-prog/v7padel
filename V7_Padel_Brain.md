@@ -17,20 +17,39 @@
 ## 🏛 Архитектура
 
 **Источники данных:**
-- **Matchpoint** — операционная CRM: bookings, customers, memberships. ASP.NET WebForms, без REST API.
+- **Matchpoint** — операционная CRM: bookings, customers, memberships. ASP.NET WebForms, двухшаговый логин (credentials → cashbox). ✅ **АВТОМАТИЗИРОВАН** — еженедельный синк customers через `sync_customers_matchpoint.py`.
 - **Google Sheets** — учёт доходов и расходов бухгалтера, PnL, справочники, liabilities.
 - **Racket.ID** — ✅ **ПОДКЛЮЧЕН** через Firestore REST API (публичный доступ без авторизации). 351 участник, 338 турниров, 2,597 записей участия.
 - **PnL бухгалтера** — ✅ отдельный Google Sheets файл с помесячным P&L. Читается напрямую через V7.loadPnL().
+- **Таблица Оли** — дополнительный источник данных о клиентах: язык, telegram, whatsapp, день рождения, уровень. ✅ **АВТОМАТИЗИРОВАН** — еженедельное обогащение через `enrich_customers.py`.
 
-**Единая база:**
-- `v7padel_db` — Google Sheet: `transactions`, `expenses`, `bookings`, `customers`, `memberships`, `pnl_monthly` (deprecated), `liabilities`.
-- `data/` — CSV файлы в репо: `booking_matches.csv`, `racketid_members.csv`, `racketid_tournaments.csv`, `racketid_participants.csv`, `customer_linkage.csv`.
+**Единая база (v7padel_db) — статус на 09.04.2026:**
 
-**ETL:**
-- Python-скрипты в `scripts/`:
+| Вкладка | Строк | Колонок | Описание |
+|---------|------:|--------:|----------|
+| customers | 1 173 | 13 | A-M: id, name, phone, email, gender, age, subs_date, level, nationality, language, telegram, whatsapp, birthday |
+| bookings | 7 268 | 7 | Бронирования из Matchpoint |
+| memberships | 39 | 11 | Абонементы |
+| courts | 4 | 3 | Корты |
+| pnl_monthly | 587 | 11 | Помесячный P&L |
+| racketid_members | 351 | 6 | Участники Racket.ID |
+| racketid_tournaments | 338 | 11 | Турниры Racket.ID |
+| racketid_participants | 2 597 | 4 | Участие в турнирах |
+
+- `data/` — CSV файлы в репо: `racketid_members.csv`, `racketid_tournaments.csv`, `racketid_participants.csv`.
+
+**ETL (автоматизация):**
+- Python-скрипты в `etl/`:
+  - `sync_customers_matchpoint.py` — ✅ **НОВЫЙ** синк customers из Matchpoint (1173 клиентов, двухшаговый логин, HTML-парсинг с пагинацией). Вс 05:30.
+  - `enrich_customers.py` — ✅ **НОВЫЙ** обогащение customers из таблицы Оли (язык, telegram, whatsapp, birthday). Вс 06:00.
+  - `csv_to_sheets.py` — загрузка CSV в Google Sheets (racketid_members, racketid_tournaments, racketid_participants). Ежедневно 06:00.
   - `fuzzy_match.py` — привязка bookings ↔ customers по тексту (14% покрытие)
   - `racketid_extract.py` — извлечение данных из Firestore
   - `cross_match.py` — кросс-матчинг Racket.ID ↔ Matchpoint (77% покрытие)
+- **Расписание Task Scheduler:**
+  - `V7Padel_Matchpoint_Weekly` — Вс 05:30 — синк customers из Matchpoint
+  - `V7Padel_Enrich_Weekly` — Вс 06:00 — обогащение из таблицы Оли
+  - `V7Padel_ETL_Daily` — ежедневно 06:00 — CSV → Google Sheets
 - Приоритет источников:
   1. **PnL бухгалтера** (отдельный Google Sheet) — всегда авторитет
   2. `transactions` — детализация доходов
@@ -56,32 +75,35 @@
 
 ---
 
-## 🏃 Активный спринт · Спринт 1 — ЗАВЕРШЁН ✅
+## 🏃 Спринт 1 — «Портал и данные» — ЗАВЕРШЁН ✅ (09.04.2026)
 
 **Цель спринта:** построить рабочий внутренний портал с данными и тремя дашбордами.
 
 - [x] Три темы дизайна (tiffany / dark / v7) + role picker на главной
-- [x] management.html — управленческий дашборд с 6 блоками
-- [x] clients.html — база клиентов с сегментацией, воронкой и drill-down
+- [x] management.html — управленческий дашборд с 6 блоками, KPI по daily run-rate
+- [x] clients.html — база клиентов с сегментацией, воронкой и drill-down (новые поля: язык, telegram, whatsapp, birthday)
 - [x] finance.html — P&L, структура выручки, расходы, отмены, обязательства
 - [x] Racket.ID интеграция — **✅ Firestore API открыт**, 351 участник, 338 турниров
 - [x] Fuzzy matching bookings ↔ customers — 1,027 бронирований (14%) привязаны
 - [x] Cross-matching Racket.ID ↔ Matchpoint — 269/349 (77%) связаны
 - [x] PnL бухгалтера подключён как новый источник
 - [x] brain.html — конституция с реальной схемой данных
+- [x] **ETL Matchpoint** — автоматический синк customers (1173 клиентов, двухшаговый логин ASP.NET WebForms)
+- [x] **ETL обогащение** — данные из таблицы Оли (523 ячейки: язык, telegram, whatsapp, birthday)
+- [x] **Task Scheduler** — 3 задачи: Matchpoint Вс 05:30, обогащение Вс 06:00, CSV ежедневно 06:00
+- [x] Навигация и локализация — CSS фикс на всех 8 страницах, перевод на русский
+- [x] Удалены устаревшие вкладки (booking_matches, customer_linkage)
 
 ---
 
-## 🎯 Следующий спринт · Спринт 2 — «Понимаю клиентов»
+## 🎯 Активный спринт · Спринт 2 — «Понимаю клиентов»
 
 **Гипотеза спринта:** если мы знаем поведение клиента точно — мы знаем, где теряем деньги и где можем поднять чек.
 
-- [ ] **Воронка с реальными цифрами** — использовать fuzzy matching + Racket.ID для сегментации: active/sleeping/never
-- [ ] **ETL автоматизация** — Python-скрипт с daily schedule: гвиз → v7padel_db, Racket.ID → CSV, кросс-матчинг
-- [ ] **Racket.ID на дашборде** — турниры, рейтинги, участники на management.html и отдельной странице
-- [ ] **Реактивация спящих** — список + WhatsApp шаблон сообщения
-- [ ] **Тренеры: Умур + новый** — учёт часов, ставки, расчёт ФОТ
-- [ ] **Уточнение unmatched** — ручная привязка 80 Racket.ID + 3,198 generic bookings
+- [ ] **Воронка клиентов с реальными цифрами** — решить проблему 14% покрытия bookings. Использовать Matchpoint customer_id для точного матчинга вместо fuzzy.
+- [ ] **Сегментация клиентов** — активные / спящие / никогда не играл. Определение критериев, визуализация на clients.html.
+- [ ] **Тренеры: Умур + новый** — часы, выручка, клиенты из Matchpoint. Учёт на дашборде.
+- [ ] **Карточка клиента** — добавить историю из Racket.ID (в каких турнирах участвовал, рейтинг, партнёры)
 
 ---
 
@@ -113,3 +135,4 @@
 
 - **2026-04-09** — создан файл, зафиксирован Спринт 1 и план Спринта 2.
 - **2026-04-09** — Спринт 1 завершён. Racket.ID подключён через Firestore. Fuzzy matching + cross-matching. PnL бухгалтера. Gulcan Yanar → staff_former.
+- **2026-04-09** — Спринт 1 закрыт окончательно. ETL Matchpoint (двухшаговый логин, 1173 customers). Обогащение из таблицы Оли (523 ячейки). Task Scheduler: 3 задачи. v7padel_db: 8 вкладок, 12 357 строк. Спринт 2 начат.

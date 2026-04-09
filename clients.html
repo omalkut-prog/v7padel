@@ -433,12 +433,16 @@ const state = {
     return {
       id,
       name,
-      phone: c.phone || '—',
+      phone: (c.phone || '—').replace(/^(\+?\d{1,4})\s+\+?\1/, '$1'),
       email: c.email || '—',
       source: c.nationality || '—',
       level: c.level || '',
       gender: c.gender || '',
       age: c.age || '',
+      language: c.language || '',
+      telegram: c.telegram || '',
+      whatsapp: c.whatsapp || '',
+      birthday: c.birthday || '',
       createdRaw: c.subs_date || '—',
       regDate,
       lastBk,
@@ -669,11 +673,15 @@ function openCard(c) {
       '<div class="f"><span>Email</span><b>' + c.email + '</b></div>' +
       '<div class="f"><span>Уровень</span><b>' + (c.level || '—') + '</b></div>' +
       '<div class="f"><span>Национальность</span><b>' + c.source + '</b></div>' +
+      (c.language ? '<div class="f"><span>Язык</span><b>' + c.language + '</b></div>' : '') +
+      (c.birthday ? '<div class="f"><span>День рождения</span><b>' + c.birthday + '</b></div>' : '') +
       '<div class="f"><span>Регистрация</span><b>' + c.createdRaw + '</b></div>' +
       '<div class="f"><span>Карта</span><b>' + c.card + ' · ' + membStatus + '</b></div>' +
       (c.memb ? '<div class="f"><span>Оплачено до</span><b>' + membPaidUntil + '</b></div>' : '') +
       (c.memb ? '<div class="f"><span>Стоимость</span><b>' + membFee + '</b></div>' : '') +
       '<div class="f"><span>Всего бронирований</span><b>' + bkCountStr + '</b></div>' +
+      (c.telegram ? '<div class="f"><span>Telegram</span><b><a href="https://t.me/' + c.telegram + '" target="_blank" style="color:var(--accent)">@' + c.telegram + '</a></b></div>' : '') +
+      (c.whatsapp ? '<div class="f"><span>WhatsApp</span><b><a href="https://wa.me/' + c.whatsapp.replace(/\D/g,'') + '" target="_blank" style="color:var(--accent)">' + c.whatsapp + '</a></b></div>' : '') +
     '</div>' +
     (bookingsAvailable
       ? ('<h4>Паттерн игры · время суток</h4>' +
