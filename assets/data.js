@@ -11,15 +11,21 @@
  *   - Таймаут gviz — 10 секунд. При таймауте — кнопка "Обновить".
  *   - Нет данных = явное сообщение с причиной, никогда вечный спиннер.
  *
- * Источник правды для P&L: pnl_monthly (source=accountant_pnl).
- *   Revenue = level=0, branch=revenue, article_name содержит "доход от деятельности"
- *   OPEX    = branch=expense, article_name содержит "условно-постоянные расходы"
+ * Источник правды для P&L: NEW_PNL spreadsheet (от бухгалтера, обновляется ежемесячно).
+ *   Строка «Доход от деятельности» (row index 1) = Revenue
+ *   Строка «Условно-постоянные расходы» (row index 11) = OPEX (absolute)
+ *   Строка «Прибыль» (row index 38) = PnL
+ *   Месяцы идут колонками: итого на позициях 5,9,13,17,21,25 (Oct→Mar 2025-2026)
+ *
+ * Старый pnl_monthly в v7padel_db — deprecated, данные читаются из NEW_PNL.
  * ========================================================================= */
 (function () {
   if (window.V7) return; // idempotent
 
   // --- Constants ---
   const SHEET_ID = '1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY';
+  const NEW_PNL_SHEET_ID = '1wLvhEUAsS08K6LvxSKAx5-soh5NxayMpU3brvd4rQ54';
+  const NEW_PNL_GID = '1844112584';
   const GVIZ_BASE = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=';
   const DEFAULT_TIMEOUT = 10000;
 
@@ -173,7 +179,8 @@
    * ----------------------------------------------------------------------- */
 
   // pnlByMonth(pnl_monthly_rows) -> { 'YYYY-MM': {revenue, opex, pnl} }
-  // AUTHORITATIVE — only accountant_pnl, never derived from transactions/expenses.
+  // LEGACY — reads from old pnl_monthly sheet in v7padel_db.
+  // Prefer loadPnL() which reads from NEW accountant's spreadsheet.
   function pnlByMonth(rows) {
     const out = {};
     if (!rows || !rows.length) return out;
@@ -196,6 +203,144 @@
     return out;
   }
 
+  /* -------------------------------------------------------------------------
+   * loadPnL() — reads NEW accountant PnL spreadsheet directly.
+   * Returns { 'YYYY-MM': { revenue, opex, pnl, details: {...} } }
+   *
+   * Sheet structure: months as columns, grouped by 4 (Cashless, Cash, итого, %).
+   *   итого columns at indices: 5, 9, 13, 17, 21, 25
+   *   Row 1 = «Доход от деятельности» (Revenue)
+   *   Row 11 = «Условно-постоянные расходы» (OPEX, negative)
+   *   Row 38 = «Прибыль» (PnL)
+   *   Rows 2-10 = revenue breakdown (Падел, Bookings, Membership, Classes, etc.)
+   *   Rows 12-36 = OPEX breakdown
+   * ----------------------------------------------------------------------- */
+  // Month mapping: column header prefix → YYYY-MM
+  var PNL_MONTH_MAP = {
+    'октябрь':  '2025-10',
+    'ноябрь':   '2025-11',
+    'декабрь':  '2025-12',
+    'январь':   '2026-01',
+    'февраль':  '2026-02',
+    'март':     '2026-03',
+    'апрель':   '2026-04',
+    'май':      '2026-05',
+    'июнь':     '2026-06',
+    'июль':     '2026-07',
+    'август':   '2026-08',
+    'сентябрь': '2026-09'
+  };
+
+  async function loadPnL(opts) {
+    opts = opts || {};
+    var timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT;
+    var url = 'https://docs.google.com/spreadsheets/d/' + NEW_PNL_SHEET_ID +
+              '/gviz/tq?tqx=out:csv&gid=' + NEW_PNL_GID;
+    var ctrl = new AbortController();
+    var tmr = setTimeout(function() { ctrl.abort(); }, timeoutMs);
+    try {
+      var r = await fetch(url, { signal: ctrl.signal });
+      if (!r.ok) throw new Error('HTTP ' + r.status + ' для PnL');
+      var text = await r.text();
+    } finally {
+      clearTimeout(tmr);
+    }
+
+    // Parse CSV into raw 2D array
+    var lines = text.replace(/\r/g, '').split('\n');
+    var rawRows = [];
+    // Simple CSV parse for this specific file
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li];
+      if (!line.trim()) continue;
+      var cells = [];
+      var inQ = false, field = '';
+      for (var ci = 0; ci < line.length; ci++) {
+        var ch = line[ci];
+        if (inQ) {
+          if (ch === '"' && line[ci+1] === '"') { field += '"'; ci++; }
+          else if (ch === '"') { inQ = false; }
+          else { field += ch; }
+        } else {
+          if (ch === '"') { inQ = true; }
+          else if (ch === ',') { cells.push(field); field = ''; }
+          else { field += ch; }
+        }
+      }
+      cells.push(field);
+      rawRows.push(cells);
+    }
+
+    if (rawRows.length < 2) return {};
+
+    // Detect month columns: find «итого» positions from header
+    var header = rawRows[0];
+    var months = []; // [{ym:'2025-10', col: 5}, ...]
+    for (var hi = 3; hi < header.length; hi += 4) {
+      var htext = (header[hi] || '').toLowerCase().trim();
+      // Extract month name (first word before "cashless")
+      var monthName = htext.replace(/\s*cashless.*/, '').trim();
+      var ym = PNL_MONTH_MAP[monthName];
+      if (ym) {
+        months.push({ ym: ym, col: hi + 2 }); // +2 = итого column (3rd in group)
+      }
+    }
+
+    // Extract values
+    var out = {};
+    // Row indices (0-based after header): row1=Revenue, row11=OPEX, row38=PnL
+    // Article name is in col 2
+    var REV_ROW = -1, OPEX_ROW = -1, PNL_ROW = -1;
+    // Revenue detail rows
+    var DETAIL_MAP = {}; // rowIdx -> key
+
+    for (var ri = 1; ri < rawRows.length; ri++) {
+      var art = (rawRows[ri][2] || '').trim().toLowerCase();
+      if (art.indexOf('доход от деятельности') >= 0 && REV_ROW < 0) REV_ROW = ri;
+      if (art.indexOf('условно-постоянные расход') >= 0 && OPEX_ROW < 0) OPEX_ROW = ri;
+      if (art.indexOf('прибыль') >= 0 && PNL_ROW < 0) PNL_ROW = ri;
+
+      // Revenue breakdown
+      var code = (rawRows[ri][1] || '').trim();
+      if (code === '01 -') DETAIL_MAP[ri] = 'padel';
+      if (code === '01.10 -') DETAIL_MAP[ri] = 'bookings';
+      if (code === '01.20 -') DETAIL_MAP[ri] = 'membership';
+      if (code === '01.30 -') DETAIL_MAP[ri] = 'classes';
+      if (code === '01.50 -') DETAIL_MAP[ri] = 'vouchers';
+      if (code === '02 -') DETAIL_MAP[ri] = 'tournaments';
+      if (code === '030 -' || code === '03 -') {
+        if (art.indexOf('чистый') >= 0) DETAIL_MAP[ri] = 'goods_net';
+        else DETAIL_MAP[ri] = 'goods_gross';
+      }
+      // OPEX breakdown
+      if (code === '04.40 -') DETAIL_MAP[ri] = 'utilities';
+      if (code === '04.50 -') DETAIL_MAP[ri] = 'marketing';
+      if (code === '04.70 -') DETAIL_MAP[ri] = 'staff';
+      if (code === '04.80 -') DETAIL_MAP[ri] = 'taxes';
+      if (code === '04.10 -') DETAIL_MAP[ri] = 'admin';
+      if (code === '04.20 -') DETAIL_MAP[ri] = 'bank';
+      if (code === '04.30 -') DETAIL_MAP[ri] = 'investments';
+    }
+
+    months.forEach(function(mo) {
+      var d = { revenue: 0, opex: 0, pnl: 0, details: {} };
+      if (REV_ROW >= 0) d.revenue = num(rawRows[REV_ROW][mo.col]);
+      if (OPEX_ROW >= 0) d.opex = Math.abs(num(rawRows[OPEX_ROW][mo.col]));
+      if (PNL_ROW >= 0) d.pnl = num(rawRows[PNL_ROW][mo.col]);
+
+      // Fill details
+      Object.keys(DETAIL_MAP).forEach(function(ri) {
+        var key = DETAIL_MAP[ri];
+        var val = num((rawRows[+ri] || [])[mo.col]);
+        d.details[key] = val;
+      });
+
+      out[mo.ym] = d;
+    });
+
+    return out;
+  }
+
   // categorizeRevenue(category_text) -> one of REV_CAT_ORDER or null (skip)
   function categorizeRevenue(category) {
     const s = (category || '').toString().toLowerCase();
@@ -214,8 +359,10 @@
   // Export
   window.V7 = {
     SHEET_ID,
+    NEW_PNL_SHEET_ID,
     parseCSV,
     loadSheet,
+    loadPnL,
     renderReloadNotice,
     num, fmt, fmtMoney, fmtPct, fmtSigned, fmtInt,
     parseDate, ymKey, ymLabel, nameKey,

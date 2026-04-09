@@ -285,16 +285,15 @@ const PREV_YM = ymKey(PREV);
  * BLOCK 1 — CEO Overview (KPI + anomalies)
  * ============================================================= */
 async function renderCEOOverview() {
-  const [pnl, bookings, transactions] = await Promise.all([
-    loadSheet('pnl_monthly'),
+  const [pnlAgg, bookings, transactions] = await Promise.all([
+    V7.loadPnL(),
     loadSheet('bookings'),
     loadSheet('transactions')
   ]);
 
-  // Revenue / OPEX / Op P&L from pnl_monthly via V7.pnlByMonth (authoritative)
+  // Revenue / OPEX / Op P&L from NEW accountant PnL spreadsheet (authoritative)
   let revCur = 0, revPrev = 0, opexCur = 0, opexPrev = 0, pnlCur = 0, pnlPrev = 0;
-  if (pnl && pnl.length) {
-    const pnlAgg = V7.pnlByMonth(pnl);
+  if (pnlAgg) {
     const cur = pnlAgg[CUR_YM];
     const prv = pnlAgg[PREV_YM];
     if (cur) { revCur = cur.revenue; opexCur = cur.opex; pnlCur = cur.pnl; }

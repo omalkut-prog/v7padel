@@ -241,30 +241,13 @@ function byMonth(rows, monthKey) {
 }
 function sortedMonths(obj) { return Object.keys(obj).sort(); }
 
-// ---------------- P&L MONTHLY ----------------
+// ---------------- P&L MONTHLY (NEW — reads from accountant's PnL spreadsheet) ----------------
 async function loadPnL() {
-  const rows = await gviz("pnl_monthly");
-  // AUTHORITATIVE mapping — match by exact article_name, not level aggregation
-  const byM = {};
-  rows.forEach(r => {
-    const m = r.period_month;
-    if (!m || !/^\d{4}-\d{2}$/.test(m)) return;
-    byM[m] = byM[m] || { revenue: 0, opex: 0 };
-    const total = toNum(r.total);
-    const art = (r.article_name || "").toLowerCase();
-    // Revenue — single row "Доход от деятельности" at level 0
-    if (r.level === "0" && r.branch === "revenue" && art.includes("доход от деятельности")) {
-      byM[m].revenue = total;
-    }
-    // OPEX — single aggregator row "Условно-постоянные расходы бизнеса" at level 1
-    if (r.branch === "expense" && art.includes("условно-постоянные расходы")) {
-      byM[m].opex = Math.abs(total);
-    }
-  });
-  const months = Object.keys(byM).sort();
+  const byM = await V7.loadPnL();
+  const months = Object.keys(byM).filter(m => m >= '2025-10').sort();
   const rev  = months.map(m => byM[m].revenue);
   const opex = months.map(m => byM[m].opex);
-  const pnl  = months.map(m => byM[m].revenue - byM[m].opex);
+  const pnl  = months.map(m => byM[m].pnl);
 
   // KPI
   if (months.length) {

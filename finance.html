@@ -151,13 +151,13 @@
 
 <main>
   <h1 class="page-title">Финансы</h1>
-  <p class="page-sub">P&amp;L · структура выручки · расходы · отмены · обязательства. Источник приоритета: <b>pnl_monthly</b> (accountant_pnl).</p>
+  <p class="page-sub">P&amp;L · структура выручки · расходы · отмены · обязательства. Источник приоритета: <b>PnL бухгалтера</b> (обновляемый файл).</p>
 
   <!-- BLOCK 1 — P&L по месяцам -->
   <section class="section">
     <div class="section-head">
       <h2>1 · P&amp;L по месяцам</h2>
-      <span class="hint">октябрь 2025 → сегодня · источник: pnl_monthly</span>
+      <span class="hint">октябрь 2025 → сегодня · источник: PnL бухгалтера</span>
     </div>
     <div class="panel">
       <div class="chart-box tall"><canvas id="pnl-chart"></canvas></div>
@@ -167,7 +167,7 @@
         <thead>
           <tr><th>Месяц</th><th>Выручка</th><th>OPEX</th><th>Оп. P&amp;L</th><th>Δ к прошлому</th></tr>
         </thead>
-        <tbody><tr><td colspan="5" class="loading">Читаю pnl_monthly…</td></tr></tbody>
+        <tbody><tr><td colspan="5" class="loading">Читаю PnL бухгалтера…</td></tr></tbody>
         <tfoot></tfoot>
       </table>
     </div>
@@ -299,16 +299,16 @@ const REV_COLORS   = V7.REV_CAT_COLORS;
 /* ========================================================================
  * BLOCK 1 — P&L monthly
  * ======================================================================== */
-let pnlData = {};   // ym -> {revenue, opex, pnl}  — from V7.pnlByMonth
+let pnlData = {};   // ym -> {revenue, opex, pnl, details}  — from V7.loadPnL (NEW accountant PnL)
 async function renderBlock1() {
-  const pnl = await loadSheet('pnl_monthly');
   const tbody = document.querySelector('#pnl-table tbody');
   const tfoot = document.querySelector('#pnl-table tfoot');
-  if (!pnl || !pnl.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">pnl_monthly пуст</td></tr>'; return; }
-
-  // V7.pnlByMonth — authoritative aggregation
-  // Reads article_name, branch, level, total fields directly.
-  pnlData = V7.pnlByMonth(pnl);
+  try {
+    pnlData = await V7.loadPnL();
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="5" class="error">Ошибка загрузки PnL: ' + e.message + '</td></tr>'; return;
+  }
+  if (!Object.keys(pnlData).length) { tbody.innerHTML = '<tr><td colspan="5" class="error">PnL пуст</td></tr>'; return; }
 
   const months = Object.keys(pnlData).filter(m => m >= '2025-10').sort();
   if (!months.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
