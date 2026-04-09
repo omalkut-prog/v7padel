@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — Revenue Pulse</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  :root {
+    --bg: #f5f7f9;
+    --surface: #ffffff;
+    --surface2: #f1f5f9;
+    --border: #e5ecef;
+    --border-hover: rgba(15,23,42,0.18);
+    --text: #0b1620;
+    --text2: #4a5967;
+    --text3: #8a9ba8;
+    --accent: #0ABAB5;
+    --accent-soft: rgba(10,186,181,0.12);
+    --accent-border: rgba(10,186,181,0.25);
+    --good: #13c296;
+    --bad: #e74c3c;
+    --warn: #f39c12;
+    --radius: 16px;
+    --shadow: 0 1px 3px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px;
+  }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links { display: flex; list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; gap: 16px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+  .section-head .hint { font-size: 11px; color: var(--text3); }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .panel + .panel { margin-top: 14px; }
+  .panel h3 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* KPI row */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .kpi-card .kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); margin-bottom: 8px; }
+  .kpi-card .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi-card .kpi-delta { font-size: 12px; font-weight: 500; margin-top: 6px; }
+  .kpi-card .kpi-delta.pos { color: var(--good); }
+  .kpi-card .kpi-delta.neg { color: var(--bad); }
+
+  /* Progress bar */
+  .progress-bar { height: 6px; background: var(--surface2); border-radius: 3px; margin-top: 10px; overflow: hidden; }
+  .progress-bar .fill { height: 100%; border-radius: 3px; background: var(--accent); transition: width .4s ease; }
+
+  /* Tables */
+  table.fin { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.fin th {
+    text-align: right; padding: 10px 10px; color: var(--text3);
+    font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  table.fin th:first-child, table.fin td:first-child { text-align: left; }
+  table.fin td { padding: 10px 10px; color: var(--text2); border-bottom: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; }
+  table.fin td.num { font-weight: 500; color: var(--text); }
+  table.fin tbody tr:last-child td { border-bottom: 0; }
+  table.fin tfoot td { font-weight: 700; color: var(--text); background: var(--surface2); border-top: 2px solid var(--border); }
+
+  /* Weekly table heatmap */
+  table.weekly { font-size: 12px; }
+  table.weekly td, table.weekly th { padding: 8px 8px; }
+  table.weekly th { font-size: 10px; padding: 8px 8px; }
+  table.weekly tr.current-week { outline: 2px solid var(--accent); outline-offset: -1px; border-radius: 4px; }
+  table.weekly td.heat { border-radius: 4px; font-weight: 500; color: var(--text); }
+
+  .pos { color: var(--good) !important; }
+  .neg { color: var(--bad) !important; }
+  .muted { color: var(--text3) !important; }
+
+  .chart-box { height: 320px; position: relative; }
+  .chart-box.short { height: 260px; }
+
+  .loading { color: var(--text3); font-size: 13px; text-align: center; padding: 28px; }
+  .error   { color: var(--bad);  font-size: 13px; text-align: center; padding: 28px; }
+
+  .toggle-btn {
+    appearance: none; background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text2); font-size: 12px; font-family: inherit; padding: 8px 20px;
+    border-radius: 10px; cursor: pointer; margin-top: 12px; transition: all .2s;
+  }
+  .toggle-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .sparkline-cell { display: flex; align-items: center; gap: 6px; justify-content: flex-end; }
+  .sparkline-cell canvas { display: block; }
+
+  footer {
+    text-align: center; padding: 24px 20px; font-size: 11px; color: var(--text3);
+    border-top: 1px solid var(--border);
+  }
+  footer em { color: var(--accent); font-style: normal; }
+
+  @media (max-width: 960px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    table.weekly { font-size: 11px; }
+    table.weekly td, table.weekly th { padding: 6px 5px; }
+  }
+  @media (max-width: 600px) {
+    h1.page-title { font-size: 22px; }
+    main { padding: 16px 12px 60px; }
+    .panel { padding: 18px 16px; }
+    .kpi-row { grid-template-columns: 1fr; }
+    .kpi-card .kpi-value { font-size: 22px; }
+    table.fin th, table.fin td { padding: 8px 6px; font-size: 11px; }
+    table.weekly { font-size: 10px; }
+    table.weekly td, table.weekly th { padding: 5px 3px; }
+    .chart-box { height: 240px; }
+    .chart-box.short { height: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="revenue.html" class="active">Выручка</a></li>
+  </ul>
+  <span class="nav-pill">Revenue Pulse</span>
+</nav>
+
+<main>
+  <h1 class="page-title">Revenue Pulse</h1>
+  <p class="page-sub">Еженедельный пульс выручки V7 Padel. Источник: v7padel_db &middot; transactions.</p>
+
+  <!-- KPI ROW -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Выручка текущей недели</div>
+      <div class="kpi-value" id="kpi-week-total">—</div>
+      <div class="kpi-delta" id="kpi-week-delta"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Средняя в день (тек. неделя)</div>
+      <div class="kpi-value" id="kpi-avg-day">—</div>
+      <div class="kpi-delta muted" id="kpi-avg-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Прогноз на месяц</div>
+      <div class="kpi-value" id="kpi-month-forecast">—</div>
+      <div class="kpi-delta muted" id="kpi-forecast-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">% от цели</div>
+      <div class="kpi-value" id="kpi-goal-pct">—</div>
+      <div class="progress-bar"><div class="fill" id="kpi-goal-bar" style="width:0%"></div></div>
+      <div class="kpi-delta muted" id="kpi-goal-hint"></div>
+    </div>
+  </div>
+
+  <!-- BLOCK 1 — Weekly revenue table -->
+  <section class="section">
+    <div class="section-head">
+      <h2>1 &middot; Выручка по неделям</h2>
+      <span class="hint">понедельник — воскресенье, последние 12 недель</span>
+    </div>
+    <div class="panel" style="overflow-x:auto">
+      <table class="fin weekly" id="weekly-table">
+        <thead>
+          <tr>
+            <th>#</th><th>Неделя</th>
+            <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
+            <th>Тотал</th><th>Ср/день</th><th>&Delta; к пред.</th><th>% цели</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="13" class="loading">Загрузка данных…</td></tr></tbody>
+      </table>
+      <button class="toggle-btn" id="toggle-weeks" style="display:none">Показать все</button>
+    </div>
+  </section>
+
+  <!-- BLOCK 2 — Average revenue by day of week -->
+  <section class="section">
+    <div class="section-head">
+      <h2>2 &middot; Средняя выручка по дням недели</h2>
+      <span class="hint">все данные</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box short"><canvas id="dow-chart"></canvas></div>
+    </div>
+  </section>
+
+  <!-- BLOCK 3 — Monthly summary -->
+  <section class="section">
+    <div class="section-head">
+      <h2>3 &middot; Месячная сводка</h2>
+      <span class="hint">последние 8 месяцев</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box"><canvas id="monthly-chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <table class="fin" id="monthly-table">
+        <thead>
+          <tr><th>Месяц</th><th>Итого</th><th>Ср/день</th><th>Лучшая неделя</th><th>Худшая неделя</th></tr>
+        </thead>
+        <tbody><tr><td colspan="5" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BLOCK 4 — Revenue by category -->
+  <section class="section">
+    <div class="section-head">
+      <h2>4 &middot; Выручка по категориям (текущий месяц)</h2>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="chart-box"><canvas id="cat-donut"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3>Таблица</h3>
+        <table class="fin" id="cat-table">
+          <thead><tr><th>Категория</th><th>Сумма</th><th>%</th></tr></thead>
+          <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLOCK 5 — Goods / additional sales -->
+  <section class="section">
+    <div class="section-head">
+      <h2>5 &middot; Доп. продажи (товары)</h2>
+      <span class="hint">топ-10 по subcategory</span>
+    </div>
+    <div class="panel">
+      <table class="fin" id="goods-table">
+        <thead>
+          <tr><th>Товар / подкатегория</th><th>Кол-во</th><th>Выручка</th><th style="min-width:100px">Тренд (8 нед.)</th></tr>
+        </thead>
+        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<footer>
+  V7 <em>Padel</em> &middot; v7padel_db &middot; transactions
+</footer>
+
+<script>
+/* =========================================================================
+ * revenue.html — Revenue Pulse — V7 Padel
+ * Еженедельный пульс выручки. Источник: transactions (v7padel_db).
+ * ========================================================================= */
+
+// --- Цель по выручке на месяц (₺). Измените это значение под актуальный план ---
+const MONTHLY_GOAL = 1800000;
+const WEEKLY_GOAL = Math.round(MONTHLY_GOAL / 4.33);
+
+const { loadSheet, num, fmt, fmtMoney, fmtInt, parseDate, ymKey, ymLabel, categorizeRevenue,
+        REV_CAT_ORDER, REV_CAT_COLORS, accent, cssVar, renderReloadNotice } = V7;
+
+const DOW_NAMES = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+const DOW_FULL  = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+
+/* ---- Date helpers ---- */
+function getMonday(d) {
+  const dt = new Date(d);
+  const day = dt.getDay(); // 0=Sun
+  const diff = (day === 0 ? -6 : 1) - day;
+  dt.setDate(dt.getDate() + diff);
+  dt.setHours(0,0,0,0);
+  return dt;
+}
+
+function getSunday(mon) {
+  const s = new Date(mon);
+  s.setDate(s.getDate() + 6);
+  return s;
+}
+
+function fmtDate(d) {
+  return String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0');
+}
+
+function fmtDateFull(d) {
+  return fmtDate(d) + '.' + d.getFullYear();
+}
+
+function weekKey(d) {
+  const mon = getMonday(d);
+  return mon.getFullYear() + '-' + String(mon.getMonth()+1).padStart(2,'0') + '-' + String(mon.getDate()).padStart(2,'0');
+}
+
+function daysInMonth(y, m) {
+  return new Date(y, m + 1, 0).getDate();
+}
+
+function isoWeekDow(d) {
+  // 0=Mon, 6=Sun
+  const day = d.getDay();
+  return day === 0 ? 6 : day - 1;
+}
+
+/* ---- Accent color helpers ---- */
+function getAccentRGB() {
+  const a = accent();
+  // Parse hex
+  const m = a.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
+  if (m) return [parseInt(m[1],16), parseInt(m[2],16), parseInt(m[3],16)];
+  return [10, 186, 181]; // fallback tiffany
+}
+
+function heatColor(value, maxVal) {
+  if (!maxVal || value <= 0) return 'transparent';
+  const intensity = Math.min(value / maxVal, 1);
+  const [r, g, b] = getAccentRGB();
+  return `rgba(${r},${g},${b},${(0.06 + intensity * 0.35).toFixed(2)})`;
+}
+
+/* ---- Chart.js defaults ---- */
+Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
+Chart.defaults.font.size = 12;
+
+function chartTextColor()  { return cssVar('--text2') || '#4a5967'; }
+function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
+
+/* =========================================================================
+ * MAIN
+ * ========================================================================= */
+(async function main() {
+  let rows;
+  try {
+    rows = await loadSheet('transactions');
+  } catch (err) {
+    document.querySelector('main').innerHTML =
+      '<div class="panel" style="margin-top:40px"><div class="error">Не удалось загрузить данные: ' +
+      (err.message || err) + '</div></div>';
+    return;
+  }
+
+  if (!rows || !rows.length) {
+    document.querySelector('main').innerHTML =
+      '<div class="panel" style="margin-top:40px"><div class="error">Нет данных в таблице transactions.</div></div>';
+    return;
+  }
+
+  /* ---- Parse all rows ---- */
+  const txns = [];
+  rows.forEach(r => {
+    const d = parseDate(r.date);
+    if (!d) return;
+    const total = num(r.total);
+    if (!total) return;
+    txns.push({
+      date: d,
+      total,
+      category: r.category || '',
+      subcategory: r.subcategory || '',
+      source: r.source || '',
+      month: r.month || ymKey(d)
+    });
+  });
+
+  txns.sort((a, b) => a.date - b.date);
+
+  /* ---- Build weekly data ---- */
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const currentMonday = getMonday(today);
+
+  // Group by week (key = Monday date string)
+  const weekMap = {}; // weekKey -> { mon: Date, days: [0..6] totals, total }
+  txns.forEach(t => {
+    const wk = weekKey(t.date);
+    if (!weekMap[wk]) {
+      const mon = getMonday(t.date);
+      weekMap[wk] = { mon, days: [0,0,0,0,0,0,0], total: 0 };
+    }
+    const dow = isoWeekDow(t.date);
+    weekMap[wk].days[dow] += t.total;
+    weekMap[wk].total += t.total;
+  });
+
+  // Sort weeks descending
+  const weekKeys = Object.keys(weekMap).sort().reverse();
+
+  /* ---- KPI ---- */
+  const curWeekKey = weekKey(today);
+  const curWeek = weekMap[curWeekKey] || { mon: currentMonday, days: [0,0,0,0,0,0,0], total: 0 };
+  const curWeekTotal = curWeek.total;
+
+  // Days elapsed this week (1 = Monday itself)
+  const daysElapsedWeek = isoWeekDow(today) + 1;
+
+  // Previous week
+  const prevMonday = new Date(currentMonday);
+  prevMonday.setDate(prevMonday.getDate() - 7);
+  const prevWeekKey = weekKey(prevMonday);
+  const prevWeek = weekMap[prevWeekKey];
+  const prevWeekTotal = prevWeek ? prevWeek.total : 0;
+
+  // KPI 1: Current week total + delta
+  document.getElementById('kpi-week-total').textContent = fmtMoney(curWeekTotal);
+  if (prevWeekTotal > 0) {
+    const delta = ((curWeekTotal - prevWeekTotal) / prevWeekTotal * 100);
+    const el = document.getElementById('kpi-week-delta');
+    el.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '% к прошлой неделе';
+    el.className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
+  }
+
+  // KPI 2: Avg per day this week
+  const avgDay = daysElapsedWeek > 0 ? curWeekTotal / daysElapsedWeek : 0;
+  document.getElementById('kpi-avg-day').textContent = fmtMoney(avgDay);
+  document.getElementById('kpi-avg-hint').textContent = 'за ' + daysElapsedWeek + ' дн. текущей недели';
+
+  // KPI 3: Monthly forecast
+  const curMonth = today.getMonth();
+  const curYear = today.getFullYear();
+  const dimCur = daysInMonth(curYear, curMonth);
+  const dayOfMonth = today.getDate();
+  let monthSoFar = 0;
+  txns.forEach(t => {
+    if (t.date.getMonth() === curMonth && t.date.getFullYear() === curYear) {
+      monthSoFar += t.total;
+    }
+  });
+  const forecast = dayOfMonth > 0 ? (monthSoFar / dayOfMonth) * dimCur : 0;
+  document.getElementById('kpi-month-forecast').textContent = fmtMoney(forecast);
+  document.getElementById('kpi-forecast-hint').textContent = 'факт ' + fmtMoney(monthSoFar) + ' за ' + dayOfMonth + ' дн.';
+
+  // KPI 4: % of goal
+  const goalPct = MONTHLY_GOAL > 0 ? (monthSoFar / MONTHLY_GOAL * 100) : 0;
+  document.getElementById('kpi-goal-pct').textContent = goalPct.toFixed(1) + '%';
+  document.getElementById('kpi-goal-bar').style.width = Math.min(goalPct, 100) + '%';
+  document.getElementById('kpi-goal-hint').textContent = 'цель: ' + fmtMoney(MONTHLY_GOAL);
+
+  /* =========================================================================
+   * BLOCK 1 — Weekly revenue table
+   * ========================================================================= */
+  const VISIBLE_WEEKS = 12;
+  let showAll = false;
+
+  // Compute column maxima for heatmap (day columns only)
+  function computeMaxes(keys) {
+    const maxDay = [0,0,0,0,0,0,0];
+    let maxTotal = 0;
+    keys.forEach(wk => {
+      const w = weekMap[wk];
+      for (let d = 0; d < 7; d++) maxDay[d] = Math.max(maxDay[d], w.days[d]);
+      maxTotal = Math.max(maxTotal, w.total);
+    });
+    return { maxDay, maxTotal };
+  }
+
+  function renderWeeklyTable() {
+    const keysToShow = showAll ? weekKeys : weekKeys.slice(0, VISIBLE_WEEKS);
+    const { maxDay, maxTotal } = computeMaxes(weekKeys);
+    const tbody = document.querySelector('#weekly-table tbody');
+    let html = '';
+
+    keysToShow.forEach((wk, i) => {
+      const w = weekMap[wk];
+      const sun = getSunday(w.mon);
+      const rangeStr = fmtDate(w.mon) + ' – ' + fmtDate(sun);
+      const isCurrent = wk === curWeekKey;
+      const avg = w.total / 7;
+      // Delta to previous week
+      const prevIdx = weekKeys.indexOf(wk) + 1;
+      const prevWk = prevIdx < weekKeys.length ? weekMap[weekKeys[prevIdx]] : null;
+      let deltaStr = '—';
+      let deltaCls = 'muted';
+      if (prevWk && prevWk.total > 0) {
+        const d = ((w.total - prevWk.total) / prevWk.total * 100);
+        deltaStr = (d >= 0 ? '+' : '') + d.toFixed(1) + '%';
+        deltaCls = d >= 0 ? 'pos' : 'neg';
+      }
+      const goalPctWeek = WEEKLY_GOAL > 0 ? (w.total / WEEKLY_GOAL * 100).toFixed(0) + '%' : '—';
+
+      html += '<tr' + (isCurrent ? ' class="current-week"' : '') + '>';
+      html += '<td class="muted">' + (weekKeys.length - weekKeys.indexOf(wk)) + '</td>';
+      html += '<td style="white-space:nowrap;font-weight:500">' + rangeStr + '</td>';
+      for (let d = 0; d < 7; d++) {
+        const val = w.days[d];
+        const bg = heatColor(val, maxDay[d]);
+        html += '<td class="heat num" style="background:' + bg + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">—</span>') + '</td>';
+      }
+      html += '<td class="num" style="font-weight:700;background:' + heatColor(w.total, maxTotal) + '">' + fmtInt(Math.round(w.total)) + '</td>';
+      html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
+      html += '<td class="' + deltaCls + '">' + deltaStr + '</td>';
+      html += '<td class="num">' + goalPctWeek + '</td>';
+      html += '</tr>';
+    });
+
+    tbody.innerHTML = html;
+
+    const btn = document.getElementById('toggle-weeks');
+    if (weekKeys.length > VISIBLE_WEEKS) {
+      btn.style.display = '';
+      btn.textContent = showAll ? 'Показать последние 12' : 'Показать все (' + weekKeys.length + ')';
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+
+  renderWeeklyTable();
+
+  document.getElementById('toggle-weeks').addEventListener('click', () => {
+    showAll = !showAll;
+    renderWeeklyTable();
+  });
+
+  /* =========================================================================
+   * BLOCK 2 — Average revenue by day of week
+   * ========================================================================= */
+  const dowTotals = [0,0,0,0,0,0,0];
+  const dowCounts = [0,0,0,0,0,0,0];
+  txns.forEach(t => {
+    const d = isoWeekDow(t.date);
+    dowTotals[d] += t.total;
+    dowCounts[d]++;
+  });
+  const dowAvg = dowTotals.map((tot, i) => dowCounts[i] > 0 ? tot / dowCounts[i] : 0);
+  const bestDow = dowAvg.indexOf(Math.max(...dowAvg));
+
+  const dowColors = dowAvg.map((_, i) => i === bestDow ? (accent() || '#0ABAB5') : (cssVar('--text3') || '#8a9ba8'));
+
+  new Chart(document.getElementById('dow-chart'), {
+    type: 'bar',
+    data: {
+      labels: DOW_NAMES,
+      datasets: [{
+        data: dowAvg,
+        backgroundColor: dowColors,
+        borderRadius: 6,
+        maxBarThickness: 64
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            title: (items) => DOW_FULL[items[0].dataIndex],
+            label: (item) => fmtInt(Math.round(item.raw)) + ' ₺ в среднем'
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: chartTextColor(), callback: v => fmt(v) + ' ₺' },
+          grid: { color: chartGridColor() }
+        },
+        x: {
+          ticks: { color: chartTextColor() },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  /* =========================================================================
+   * BLOCK 3 — Monthly summary
+   * ========================================================================= */
+  // Group by month
+  const monthMap = {}; // 'YYYY-MM' -> { total, days: Set, dayTotals: {} }
+  txns.forEach(t => {
+    const ym = ymKey(t.date);
+    if (!monthMap[ym]) monthMap[ym] = { total: 0, daySet: new Set(), dayTotals: {} };
+    monthMap[ym].total += t.total;
+    const dk = t.date.toDateString();
+    monthMap[ym].daySet.add(dk);
+    monthMap[ym].dayTotals[dk] = (monthMap[ym].dayTotals[dk] || 0) + t.total;
+  });
+
+  const monthKeys = Object.keys(monthMap).sort();
+  const last8 = monthKeys.slice(-8);
+
+  // Monthly chart
+  new Chart(document.getElementById('monthly-chart'), {
+    type: 'bar',
+    data: {
+      labels: last8.map(ymLabel),
+      datasets: [{
+        label: 'Выручка',
+        data: last8.map(ym => monthMap[ym].total),
+        backgroundColor: accent() || '#0ABAB5',
+        borderRadius: 8,
+        maxBarThickness: 72
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: item => fmtInt(Math.round(item.raw)) + ' ₺' } }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { color: chartTextColor(), callback: v => fmt(v) + ' ₺' },
+          grid: { color: chartGridColor() }
+        },
+        x: {
+          ticks: { color: chartTextColor() },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  // Monthly table: best/worst week per month
+  function bestWorstWeekForMonth(ym) {
+    // Find all week keys whose Monday falls in this month
+    const [y, m] = ym.split('-').map(Number);
+    let best = null, worst = null;
+    weekKeys.forEach(wk => {
+      const w = weekMap[wk];
+      const wym = ymKey(w.mon);
+      if (wym === ym) {
+        if (!best || w.total > best.total) best = w;
+        if (!worst || w.total < worst.total) worst = w;
+      }
+    });
+    return {
+      best: best ? fmtInt(Math.round(best.total)) : '—',
+      worst: worst ? fmtInt(Math.round(worst.total)) : '—'
+    };
+  }
+
+  {
+    const tbody = document.querySelector('#monthly-table tbody');
+    let html = '';
+    last8.forEach(ym => {
+      const m = monthMap[ym];
+      const ndays = m.daySet.size;
+      const avg = ndays > 0 ? m.total / ndays : 0;
+      const bw = bestWorstWeekForMonth(ym);
+      html += '<tr>';
+      html += '<td style="font-weight:500">' + ymLabel(ym) + '</td>';
+      html += '<td class="num">' + fmtInt(Math.round(m.total)) + ' ₺</td>';
+      html += '<td class="num">' + fmtInt(Math.round(avg)) + ' ₺</td>';
+      html += '<td class="num pos">' + bw.best + '</td>';
+      html += '<td class="num neg">' + bw.worst + '</td>';
+      html += '</tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  /* =========================================================================
+   * BLOCK 4 — Revenue by category (current month)
+   * ========================================================================= */
+  const curYM = ymKey(today);
+  const catMap = {}; // catName -> total
+  let catTotal = 0;
+  txns.forEach(t => {
+    if (ymKey(t.date) !== curYM) return;
+    const cat = categorizeRevenue(t.category);
+    if (!cat) return; // skip internal
+    catMap[cat] = (catMap[cat] || 0) + t.total;
+    catTotal += t.total;
+  });
+
+  const catOrder = REV_CAT_ORDER || ['Корты и инвентарь','Клубные карты','Тренировки','Турниры','Товары','Прочее'];
+  const catColors = REV_CAT_COLORS || ['#0ABAB5','#7C3AED','#13c296','#f39c12','#5ac8fa','#8a9ba8'];
+  const catLabels = [];
+  const catValues = [];
+  const catColorsUsed = [];
+  catOrder.forEach((c, i) => {
+    const v = catMap[c] || 0;
+    if (v > 0) {
+      catLabels.push(c);
+      catValues.push(v);
+      catColorsUsed.push(catColors[i] || '#8a9ba8');
+    }
+  });
+
+  if (catValues.length) {
+    new Chart(document.getElementById('cat-donut'), {
+      type: 'doughnut',
+      data: {
+        labels: catLabels,
+        datasets: [{
+          data: catValues,
+          backgroundColor: catColorsUsed,
+          borderWidth: 0,
+          hoverOffset: 6
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: '55%',
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { color: chartTextColor(), padding: 16, font: { size: 12 } }
+          },
+          tooltip: {
+            callbacks: {
+              label: item => item.label + ': ' + fmtInt(Math.round(item.raw)) + ' ₺ (' + (catTotal > 0 ? (item.raw / catTotal * 100).toFixed(1) : 0) + '%)'
+            }
+          }
+        }
+      }
+    });
+  } else {
+    document.getElementById('cat-donut').parentElement.innerHTML = '<div class="muted" style="text-align:center;padding:40px">Нет данных за текущий месяц</div>';
+  }
+
+  // Category table
+  {
+    const tbody = document.querySelector('#cat-table tbody');
+    let html = '';
+    catOrder.forEach((c, i) => {
+      const v = catMap[c] || 0;
+      if (v <= 0) return;
+      const pct = catTotal > 0 ? (v / catTotal * 100).toFixed(1) : '0';
+      html += '<tr>';
+      html += '<td style="font-weight:500"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + catColors[i] + ';margin-right:8px;vertical-align:middle"></span>' + c + '</td>';
+      html += '<td class="num">' + fmtInt(Math.round(v)) + ' ₺</td>';
+      html += '<td class="num">' + pct + '%</td>';
+      html += '</tr>';
+    });
+    if (!html) html = '<tr><td colspan="3" class="muted" style="text-align:center">Нет данных</td></tr>';
+    tbody.innerHTML = html;
+  }
+
+  /* =========================================================================
+   * BLOCK 5 — Additional sales (goods)
+   * ========================================================================= */
+  const goodsTxns = txns.filter(t => categorizeRevenue(t.category) === 'Товары');
+
+  // Group by subcategory
+  const goodsMap = {}; // subcategory -> { count, total, weeklyTotals: { weekKey: total } }
+  goodsTxns.forEach(t => {
+    const sub = t.subcategory || t.category || 'Без подкатегории';
+    if (!goodsMap[sub]) goodsMap[sub] = { count: 0, total: 0, weeklyTotals: {} };
+    goodsMap[sub].count++;
+    goodsMap[sub].total += t.total;
+    const wk = weekKey(t.date);
+    goodsMap[sub].weeklyTotals[wk] = (goodsMap[sub].weeklyTotals[wk] || 0) + t.total;
+  });
+
+  const goodsItems = Object.entries(goodsMap)
+    .map(([sub, data]) => ({ sub, ...data }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 10);
+
+  // Last 8 weeks keys for sparklines
+  const last8Weeks = weekKeys.slice(0, 8).reverse();
+
+  {
+    const tbody = document.querySelector('#goods-table tbody');
+    let html = '';
+    if (!goodsItems.length) {
+      html = '<tr><td colspan="4" class="muted" style="text-align:center">Нет товарных продаж</td></tr>';
+    } else {
+      goodsItems.forEach((item, idx) => {
+        const sparkId = 'spark-' + idx;
+        html += '<tr>';
+        html += '<td style="font-weight:500">' + item.sub + '</td>';
+        html += '<td class="num">' + item.count + '</td>';
+        html += '<td class="num">' + fmtInt(Math.round(item.total)) + ' ₺</td>';
+        html += '<td><div class="sparkline-cell"><canvas id="' + sparkId + '" width="100" height="28"></canvas></div></td>';
+        html += '</tr>';
+      });
+    }
+    tbody.innerHTML = html;
+
+    // Draw sparklines
+    goodsItems.forEach((item, idx) => {
+      const canvas = document.getElementById('spark-' + idx);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const values = last8Weeks.map(wk => item.weeklyTotals[wk] || 0);
+      const maxV = Math.max(...values, 1);
+      const w = canvas.width;
+      const h = canvas.height;
+      const padding = 2;
+      const step = (w - padding * 2) / Math.max(values.length - 1, 1);
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = accent() || '#0ABAB5';
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      values.forEach((v, i) => {
+        const x = padding + i * step;
+        const y = h - padding - (v / maxV) * (h - padding * 2);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+
+      // Fill under line
+      ctx.lineTo(padding + (values.length - 1) * step, h - padding);
+      ctx.lineTo(padding, h - padding);
+      ctx.closePath();
+      const [r, g, b] = getAccentRGB();
+      ctx.fillStyle = `rgba(${r},${g},${b},0.1)`;
+      ctx.fill();
+    });
+  }
+
+})();
+</script>
+</body>
+</html>
