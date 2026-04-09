@@ -291,33 +291,23 @@ async function renderCEOOverview() {
     loadSheet('transactions')
   ]);
 
-  // Revenue / OPEX / Op P&L from pnl_monthly (appriority)
+  // Revenue / OPEX / Op P&L from pnl_monthly via V7.pnlByMonth (authoritative)
   let revCur = 0, revPrev = 0, opexCur = 0, opexPrev = 0, pnlCur = 0, pnlPrev = 0;
   if (pnl && pnl.length) {
-    const keys = Object.keys(pnl[0]).map(k => k.toLowerCase());
-    const findKey = (...candidates) => Object.keys(pnl[0]).find(k => candidates.indexOf(k.toLowerCase()) >= 0) || null;
-    const kMonth = findKey('month','период','ym','date');
-    const kRev   = findKey('revenue','выручка','доход','income');
-    const kOpex  = findKey('opex','расходы','expenses');
-    const kPnl   = findKey('operating_pnl','op_pnl','pnl','прибыль','profit');
-    const matchYM = (mv, ym) => {
-      const d = parseDate(mv); if (d) return ymKey(d) === ym;
-      return String(mv).indexOf(ym) >= 0 || String(mv).indexOf(ym.replace('-','.')) >= 0;
-    };
-    pnl.forEach(r => {
-      const mv = r[kMonth];
-      if (matchYM(mv, CUR_YM))  { revCur  += num(r[kRev]); opexCur  += num(r[kOpex]); pnlCur  += num(r[kPnl]); }
-      if (matchYM(mv, PREV_YM)) { revPrev += num(r[kRev]); opexPrev += num(r[kOpex]); pnlPrev += num(r[kPnl]); }
-    });
+    const pnlAgg = V7.pnlByMonth(pnl);
+    const cur = pnlAgg[CUR_YM];
+    const prv = pnlAgg[PREV_YM];
+    if (cur) { revCur = cur.revenue; opexCur = cur.opex; pnlCur = cur.pnl; }
+    if (prv) { revPrev = prv.revenue; opexPrev = prv.opex; pnlPrev = prv.pnl; }
   }
 
-  // Court utilization today (bookings where date == today)
+  // Court utilization today (bookings with start_ts matching today, status=active)
   let todayBookings = 0;
   if (bookings && bookings.length) {
-    const kDate = Object.keys(bookings[0]).find(k => /date|дата/i.test(k));
     const todayStr = ymKey(TODAY) + '-' + String(TODAY.getDate()).padStart(2, '0');
     bookings.forEach(b => {
-      const d = parseDate(b[kDate]);
+      if ((b.status || '').toLowerCase() !== 'active') return;
+      const d = parseDate(b.start_ts);
       if (d && ymKey(d) + '-' + String(d.getDate()).padStart(2,'0') === todayStr) todayBookings++;
     });
   }
@@ -453,23 +443,17 @@ async function renderHeatmap() {
   const bookings = await loadSheet('bookings');
   const box = document.getElementById('heatmap');
   if (!bookings || !bookings.length) { box.innerHTML = '<div class="error" style="grid-column:1/-1">Нет данных bookings</div>'; return; }
-  const kDate = Object.keys(bookings[0]).find(k => /date|дата|start/i.test(k));
-  const kTime = Object.keys(bookings[0]).find(k => /time|hour|час|start/i.test(k));
+  // Real bookings columns: start_ts (YYYY-MM-DD HH:MM:SS), court_id, status
   const HOURS = []; for (let h = 7; h <= 23; h++) HOURS.push(h);
   const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
   const grid = {};
   DOW.forEach(d => { grid[d] = {}; HOURS.forEach(h => grid[d][h] = 0); });
   let maxVal = 0;
   bookings.forEach(b => {
-    const d = parseDate(b[kDate]); if (!d) return;
-    const jsDow = d.getDay();
-    const dow = DOW[(jsDow + 6) % 7];
-    let h = null;
-    if (kTime && b[kTime]) {
-      const tm = String(b[kTime]).match(/(\d{1,2})/);
-      if (tm) h = parseInt(tm[1], 10);
-    }
-    if (h == null) h = d.getHours();
+    if ((b.status || '').toLowerCase() !== 'active') return; // only active bookings
+    const d = parseDate(b.start_ts); if (!d) return;
+    const dow = DOW[(d.getDay() + 6) % 7];
+    const h = d.getHours();
     if (h >= 7 && h <= 23) { grid[dow][h]++; if (grid[dow][h] > maxVal) maxVal = grid[dow][h]; }
   });
   const acc = accentColor();
@@ -530,33 +514,25 @@ async function renderTournaments() {
 async function renderGoods() {
   const tx = await loadSheet('transactions');
   if (!tx || !tx.length) { document.getElementById('goods-top').innerHTML = '<li class="error">Нет данных transactions</li>'; return; }
-  const keys = Object.keys(tx[0]);
-  const kKind = keys.find(k => /kind|тип|type/i.test(k));
-  const kCat  = keys.find(k => /category|категория|position|товар/i.test(k));
-  const kDesc = keys.find(k => /description|описание|name|название/i.test(k));
-  const kAmt  = keys.find(k => /amount|сумма|price/i.test(k));
-  const kDate = keys.find(k => /date|дата/i.test(k));
-  const goods = tx.filter(r => {
-    const kv = (r[kKind] || '').toLowerCase();
-    return kv === 'goods' || kv.indexOf('товар') >= 0 || kv === 'sale_of_goods';
-  });
-  // Top positions
+  // Real transactions columns: date, month, category, subcategory, ..., total, ...
+  // Filter goods: V7.categorizeRevenue(category) === 'Товары'
+  const goods = tx.filter(r => V7.categorizeRevenue(r.category) === 'Товары');
+  // Top positions (by subcategory or category for detail)
   const byPos = {};
   goods.forEach(r => {
-    const name = (r[kCat] || r[kDesc] || 'Прочее').trim() || 'Прочее';
-    byPos[name] = (byPos[name] || 0) + num(r[kAmt]);
+    const name = (r.subcategory || r.category || 'Прочее').trim() || 'Прочее';
+    byPos[name] = (byPos[name] || 0) + num(r.total);
   });
   const top = Object.entries(byPos).sort((a,b) => b[1] - a[1]).slice(0, 8);
   document.getElementById('goods-top').innerHTML = top.length
     ? top.map(([n, v]) => '<li><span>' + n + '</span><strong>' + fmtMoney(v) + '</strong></li>').join('')
     : '<li class="error">Нет продаж</li>';
 
-  // Monthly trend (last 12 months)
+  // Monthly trend (last 12 months) — use month field directly
   const byMonth = {};
   goods.forEach(r => {
-    const d = parseDate(r[kDate]); if (!d) return;
-    const k = ymKey(d);
-    byMonth[k] = (byMonth[k] || 0) + num(r[kAmt]);
+    const k = r.month || '';
+    if (k) byMonth[k] = (byMonth[k] || 0) + num(r.total);
   });
   const months = Object.keys(byMonth).sort().slice(-12);
   const values = months.map(m => byMonth[m]);

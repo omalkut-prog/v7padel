@@ -295,56 +295,38 @@ const accent       = V7.accent;
 const categorize   = V7.categorizeRevenue;  // maps transactions.category → доходная категория
 const REV_CATS     = V7.REV_CAT_ORDER;
 const REV_COLORS   = V7.REV_CAT_COLORS;
-const REV_COLORS = ['#0ABAB5','#7C3AED','#13c296','#f39c12','#5ac8fa','#8a9ba8'];
 
 /* ========================================================================
  * BLOCK 1 — P&L monthly
  * ======================================================================== */
-let pnlByMonth = {};   // ym -> {rev, opex, pnl}
+let pnlData = {};   // ym -> {revenue, opex, pnl}  — from V7.pnlByMonth
 async function renderBlock1() {
   const pnl = await loadSheet('pnl_monthly');
   const tbody = document.querySelector('#pnl-table tbody');
   const tfoot = document.querySelector('#pnl-table tfoot');
   if (!pnl || !pnl.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">pnl_monthly пуст</td></tr>'; return; }
 
-  const kMonth = findKey(pnl[0], /^month$/i, /^period$/i, /период/i, /^ym$/i, /^date$/i);
-  const kRev   = findKey(pnl[0], /^revenue$/i, /выручка/i, /доход/i, /^income$/i);
-  const kOpex  = findKey(pnl[0], /^opex$/i, /расход/i, /^expenses$/i);
-  const kPnl   = findKey(pnl[0], /operating_?pnl/i, /op_?pnl/i, /^pnl$/i, /прибыль/i, /^profit$/i);
+  // V7.pnlByMonth — authoritative aggregation
+  // Reads article_name, branch, level, total fields directly.
+  pnlData = V7.pnlByMonth(pnl);
 
-  pnlByMonth = {};
-  pnl.forEach(r => {
-    const mv = r[kMonth];
-    const d = parseDate(mv);
-    const ym = d ? ymKey(d) : String(mv).replace(/[^\d\-.]/g, '').slice(0, 7);
-    if (!ym || ym.length < 6) return;
-    const normYm = ym.indexOf('-') >= 0 ? ym : (ym.slice(0,4) + '-' + ym.slice(4,6));
-    if (!/^\d{4}-\d{2}$/.test(normYm)) return;
-    pnlByMonth[normYm] = pnlByMonth[normYm] || { rev: 0, opex: 0, pnl: 0 };
-    pnlByMonth[normYm].rev  += num(r[kRev]);
-    pnlByMonth[normYm].opex += num(r[kOpex]);
-    pnlByMonth[normYm].pnl  += num(r[kPnl]);
-  });
-
-  const months = Object.keys(pnlByMonth).filter(m => m >= '2025-10').sort();
+  const months = Object.keys(pnlData).filter(m => m >= '2025-10').sort();
   if (!months.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
 
   let prevPnl = null;
   let sumRev = 0, sumOpex = 0, sumPnl = 0;
   tbody.innerHTML = months.map(m => {
-    const row = pnlByMonth[m];
-    // If pnl missing in source, derive from rev - opex
-    if (!row.pnl) row.pnl = row.rev - row.opex;
-    const delta = prevPnl == null ? null : row.pnl - prevPnl;
-    prevPnl = row.pnl;
-    sumRev += row.rev; sumOpex += row.opex; sumPnl += row.pnl;
-    const pnlCls = row.pnl >= 0 ? 'pos' : 'neg';
+    const rw = pnlData[m];
+    const delta = prevPnl == null ? null : rw.pnl - prevPnl;
+    prevPnl = rw.pnl;
+    sumRev += rw.revenue; sumOpex += rw.opex; sumPnl += rw.pnl;
+    const pnlCls = rw.pnl >= 0 ? 'pos' : 'neg';
     const dCls = delta == null ? 'muted' : delta >= 0 ? 'pos' : 'neg';
     return '<tr>' +
       '<td>' + ymLabel(m) + '</td>' +
-      '<td class="num">' + fmtMoney(row.rev) + '</td>' +
-      '<td class="num">' + fmtMoney(row.opex) + '</td>' +
-      '<td class="num ' + pnlCls + '">' + fmtMoney(row.pnl) + '</td>' +
+      '<td class="num">' + fmtMoney(rw.revenue) + '</td>' +
+      '<td class="num">' + fmtMoney(rw.opex) + '</td>' +
+      '<td class="num ' + pnlCls + '">' + fmtMoney(rw.pnl) + '</td>' +
       '<td class="num ' + dCls + '">' + (delta == null ? '—' : fmtSigned(delta)) + '</td>' +
     '</tr>';
   }).join('');
@@ -359,9 +341,9 @@ async function renderBlock1() {
 
   // Chart
   const labels = months.map(ymLabel);
-  const revs = months.map(m => pnlByMonth[m].rev);
-  const opexs = months.map(m => pnlByMonth[m].opex);
-  const pnls = months.map(m => pnlByMonth[m].pnl);
+  const revs = months.map(m => pnlData[m].revenue);
+  const opexs = months.map(m => pnlData[m].opex);
+  const pnls = months.map(m => pnlData[m].pnl);
   const acc = accent();
   const textCol = cssVar('--text3');
   const gridCol = cssVar('--border');
@@ -398,17 +380,13 @@ async function renderBlock2() {
     document.querySelector('#rev-table tbody').innerHTML = '<tr><td colspan="3" class="error">transactions пуст</td></tr>';
     return;
   }
-  const k = tx[0];
-  const kKind = findKey(k, /^kind$/i, /^type$/i);
-  const kCat  = findKey(k, /^category$/i, /категория/i);
-  const kAmt  = findKey(k, /^amount$/i, /сумма/i, /value/i);
-  const kDate = findKey(k, /^date$/i, /дата/i);
-
+  // Real transactions columns: date, month, category, ..., total, source, transaction_id
+  // categorize() = V7.categorizeRevenue(category) → доходная группа
   txRev = tx.map(r => {
-    const d = parseDate(r[kDate]);
-    const cat = kindToCat(r[kKind] || r[kCat]);
-    return { ym: d ? ymKey(d) : '', cat, amt: num(r[kAmt]) };
-  }).filter(x => x.amt > 0);
+    const cat = categorize(r.category);
+    if (!cat) return null;  // skip internal movements
+    return { ym: r.month || '', cat, amt: num(r.total) };
+  }).filter(x => x && x.amt > 0);
 
   const monthsSet = new Set(txRev.map(x => x.ym).filter(Boolean));
   txByMonth = Array.from(monthsSet).sort();
@@ -475,17 +453,15 @@ async function renderBlock3() {
     document.querySelector('#exp-table tbody').innerHTML = '<tr><td colspan="3" class="error">expenses пуст</td></tr>';
     return;
   }
-  const k = exp[0];
-  const kCat   = findKey(k, /^category$/i, /категория/i);
-  const kAmt   = findKey(k, /^amount$/i, /сумма/i);
-  const kDate  = findKey(k, /^date$/i, /дата/i);
-  const kCapex = findKey(k, /capex/i);
-
+  // Real expenses columns: date, month, category, item, comment, amount, currency,
+  //   method, payer, capex_flag, prepaid, amortize_months, source, amort_monthly_try, expense_id
+  // Note: capex_flag is empty for all current rows (no capex in expenses data as of 2026-04-09)
   const rows = exp.map(r => ({
-    cat: (r[kCat] || 'Прочее').trim() || 'Прочее',
-    amt: num(r[kAmt]),
-    date: parseDate(r[kDate]),
-    capex: kCapex ? (String(r[kCapex]).toLowerCase().match(/^(1|true|yes|да|y)$/) !== null) : false
+    cat: (r.category || 'Прочее').trim() || 'Прочее',
+    amt: num(r.amount),
+    date: parseDate(r.date),
+    ym: r.month || '',
+    capex: (/^(1|true|yes|да|y)$/i).test(String(r.capex_flag || '').trim())
   })).filter(r => r.amt > 0);
 
   // Split OPEX vs CAPEX
@@ -525,11 +501,11 @@ async function renderBlock3() {
     cpTfoot.innerHTML = '<tr><td>Итого CAPEX</td><td class="num">' + fmtMoney(capexTotal) + '</td></tr>';
   }
 
-  // --- OPEX monthly chart ---
+  // --- OPEX monthly chart (using r.ym from expenses.month, not parsing date) ---
   const byMonth = {};
   opex.forEach(r => {
-    if (!r.date) return;
-    const ym = ymKey(r.date); if (ym < '2025-10') return;
+    const ym = r.ym || (r.date ? ymKey(r.date) : '');
+    if (!ym || ym < '2025-10') return;
     byMonth[ym] = (byMonth[ym] || 0) + r.amt;
   });
   const months = Object.keys(byMonth).sort();
@@ -561,48 +537,37 @@ async function renderBlock4() {
     document.getElementById('cn-avg').textContent = '—';
     return;
   }
-  const k = bookings[0];
-  const kStatus = findKey(k, /status/i, /статус/i);
-  const kDate   = findKey(k, /^date$/i, /дата/i, /^start/i);
-  const kTime   = findKey(k, /^time$/i, /hour/i, /час/i);
-  const kPrice  = findKey(k, /price/i, /amount/i, /сумма|цена/i, /cost/i);
-
-  const isCancelled = (s) => {
-    if (!s) return false;
-    const sl = String(s).toLowerCase();
-    return sl.indexOf('cancel') >= 0 || sl.indexOf('отмен') >= 0 || sl === 'void';
-  };
+  // Real bookings columns: booking_id, customer_id, court_id, start_ts, end_ts, status, price
+  // status values: "active", "cancelled" (audit: 3541 active, 3727 cancelled)
+  const isCancelled = (s) => String(s || '').toLowerCase().indexOf('cancel') >= 0;
 
   const all = bookings.length;
-  const cancelled = bookings.filter(b => isCancelled(b[kStatus]));
-  if (!kStatus || !cancelled.length) {
-    document.getElementById('cn-total').textContent = '0';
+  const cancelled = bookings.filter(b => isCancelled(b.status));
+  if (!cancelled.length) {
+    document.getElementById('cn-total').textContent = '0 / ' + all;
     document.getElementById('cn-money').textContent = '0 ₺';
-    const avg = kPrice ? bookings.map(b => num(b[kPrice])).filter(x => x > 0) : [];
-    document.getElementById('cn-avg').textContent = avg.length ? fmt(avg.reduce((a,b)=>a+b,0)/avg.length) : '—';
-    document.querySelector('#cn-top-days tbody').innerHTML = '<tr><td colspan="2" class="empty">Нет данных об отменах</td></tr>';
+    const prices = bookings.map(b => num(b.price)).filter(x => x > 0);
+    document.getElementById('cn-avg').textContent = prices.length ? fmtMoney(prices.reduce((a,b)=>a+b,0)/prices.length) : '—';
+    document.querySelector('#cn-top-days tbody').innerHTML = '<tr><td colspan="2" class="empty">Нет отменённых бронирований</td></tr>';
     document.querySelector('#cn-top-hours tbody').innerHTML = '<tr><td colspan="2" class="empty">—</td></tr>';
     return;
   }
 
-  // Average check from NON-cancelled bookings
+  // Average check from NON-cancelled bookings (using real column: price)
   let avgCheck = 0;
-  if (kPrice) {
-    const prices = bookings.filter(b => !isCancelled(b[kStatus])).map(b => num(b[kPrice])).filter(x => x > 0);
-    if (prices.length) avgCheck = prices.reduce((a,b)=>a+b,0) / prices.length;
-  }
-  // Fallback: if no price column, assume 600 TRY avg (rough padel court rate)
-  if (!avgCheck) avgCheck = 600;
+  const activePrices = bookings.filter(b => !isCancelled(b.status)).map(b => num(b.price)).filter(x => x > 0);
+  if (activePrices.length) avgCheck = activePrices.reduce((a,b)=>a+b,0) / activePrices.length;
+  if (!avgCheck) avgCheck = 600; // fallback if all prices are 0
 
   const lostMoney = cancelled.length * avgCheck;
   document.getElementById('cn-total').textContent = cancelled.length + ' / ' + all;
   document.getElementById('cn-money').textContent = fmtMoney(lostMoney);
   document.getElementById('cn-avg').textContent = fmtMoney(avgCheck);
 
-  // Monthly chart
+  // Monthly chart (using start_ts for date)
   const byMonth = {};
   cancelled.forEach(b => {
-    const d = parseDate(b[kDate]); if (!d) return;
+    const d = parseDate(b.start_ts); if (!d) return;
     const ym = ymKey(d); if (ym < '2025-10') return;
     byMonth[ym] = (byMonth[ym] || 0) + 1;
   });
@@ -620,17 +585,13 @@ async function renderBlock4() {
     }
   });
 
-  // Top days-of-week and hours
+  // Top days-of-week and hours (using start_ts for both)
   const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
   const dowCnt = [0,0,0,0,0,0,0];
   const hourCnt = {};
   cancelled.forEach(b => {
-    const d = parseDate(b[kDate]);
-    if (d) dowCnt[(d.getDay() + 6) % 7]++;
-    let h = null;
-    if (kTime && b[kTime]) { const m = String(b[kTime]).match(/(\d{1,2})/); if (m) h = +m[1]; }
-    if (h == null && d) h = d.getHours();
-    if (h != null) hourCnt[h] = (hourCnt[h] || 0) + 1;
+    const d = parseDate(b.start_ts);
+    if (d) { dowCnt[(d.getDay() + 6) % 7]++; hourCnt[d.getHours()] = (hourCnt[d.getHours()] || 0) + 1; }
   });
   const dayRows = DOW.map((d, i) => [d, dowCnt[i]]).sort((a,b) => b[1] - a[1]).slice(0, 5);
   document.querySelector('#cn-top-days tbody').innerHTML = dayRows.map(r => '<tr><td>' + r[0] + '</td><td class="num">' + r[1] + '</td></tr>').join('');
@@ -650,16 +611,14 @@ async function renderBlock5() {
   let desc = 'Кредит учредителей — долгосрочное обязательство клуба перед основателями.';
   let status = 'outstanding';
 
+  // Real liabilities columns: liability_id, date, amount, currency, creditor, description, status
   if (liab && liab.length) {
-    const r = liab[0];
-    const kAmt = findKey(r, /amount/i, /сумма/i, /value/i);
-    const kDesc = findKey(r, /description/i, /описание/i, /name/i, /type/i);
-    const kStat = findKey(r, /status/i, /статус/i);
     let found = 0;
-    liab.forEach(row => { found += num(row[kAmt]); });
+    liab.forEach(row => { found += num(row.amount); });
     if (found > 0) amount = found;
-    if (r[kDesc]) desc = r[kDesc];
-    if (r[kStat]) status = r[kStat];
+    const r = liab[0];
+    if (r.description) desc = r.description;
+    if (r.status) status = r.status;
   }
 
   host.innerHTML =
