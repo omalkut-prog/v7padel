@@ -135,6 +135,10 @@ html[data-theme] button.primary, html[data-theme] .btn-primary {
   background: var(--accent) !important; color: #fff !important; border-color: var(--accent) !important;
 }
 
+/* ---- TEAM LINK: скрываем в тёме tiffany (CEO не видит внутреннюю кухню) ---- */
+html[data-theme="tiffany"] .team-link,
+html[data-theme="tiffany"] a.team-link { display: none !important; }
+
 /* ---- ПЕРЕКЛЮЧАТЕЛЬ ТЕМ ---- */
 .theme-switcher {
   position: fixed; top: 10px; right: 14px; z-index: 500;

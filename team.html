@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — Команда</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #0b1220;
+    --border: rgba(148,163,184,0.14);
+    --border-hover: rgba(148,163,184,0.3);
+    --text: #f1f5f9;
+    --text2: #cbd5e1;
+    --text3: #64748b;
+    --accent: #7C3AED;
+    --accent-soft: rgba(124,58,237,0.14);
+    --accent-border: rgba(124,58,237,0.3);
+    --good: #13c296;
+    --bad: #e74c3c;
+    --warn: #f39c12;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px;
+  }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links { display: flex; list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
+
+  main { max-width: 960px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  /* NORTH STAR HERO */
+  .north-star {
+    background: linear-gradient(140deg, var(--surface) 0%, rgba(124,58,237,0.06) 100%);
+    border: 1px solid var(--accent-border);
+    border-radius: 24px;
+    padding: 48px 40px;
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative; overflow: hidden;
+  }
+  .north-star::before {
+    content: ''; position: absolute; width: 420px; height: 420px; border-radius: 50%;
+    background: radial-gradient(circle, var(--accent-soft) 0%, transparent 65%);
+    top: -180px; right: -140px; pointer-events: none;
+  }
+  .north-star-eye {
+    font-size: 11px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 14px; position: relative;
+  }
+  .north-star-label { font-size: 13px; color: var(--text3); font-weight: 400; margin-bottom: 8px; position: relative; }
+  .north-star-value {
+    font-size: clamp(52px, 9vw, 96px); font-weight: 700; letter-spacing: -3px; line-height: 1.0;
+    color: var(--text); margin-bottom: 12px; position: relative;
+    font-variant-numeric: tabular-nums;
+  }
+  .north-star-value em { color: var(--accent); font-style: normal; }
+  .north-star-formula { font-size: 15px; color: var(--text2); font-weight: 400; position: relative; }
+  .north-star-formula em { color: var(--accent); font-style: normal; font-weight: 500; }
+
+  /* Markdown body */
+  .md {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px 44px;
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text2);
+  }
+  .md h1 { display: none; /* hide top title — already in north star */ }
+  .md blockquote {
+    border-left: 3px solid var(--accent);
+    padding: 6px 16px;
+    color: var(--text3);
+    font-size: 13px;
+    font-style: normal;
+    background: var(--surface2);
+    border-radius: 0 10px 10px 0;
+    margin: 0 0 24px;
+  }
+  .md blockquote p { margin: 0; }
+  .md hr { border: 0; border-top: 1px solid var(--border); margin: 32px 0; }
+  .md h2 {
+    font-size: 22px; font-weight: 600; color: var(--text);
+    margin-top: 36px; margin-bottom: 14px; letter-spacing: -0.5px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+  }
+  .md h2:first-child { margin-top: 0; }
+  .md h3 { font-size: 16px; font-weight: 600; color: var(--text); margin-top: 20px; margin-bottom: 8px; }
+  .md p { margin: 0 0 14px; }
+  .md strong { color: var(--text); font-weight: 600; }
+  .md em { color: var(--accent); font-style: normal; }
+  .md a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent-border); }
+  .md a:hover { border-bottom-style: solid; }
+  .md code {
+    background: var(--surface2); color: var(--accent);
+    padding: 2px 7px; border-radius: 5px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px;
+  }
+  .md ul, .md ol { margin: 0 0 16px 22px; }
+  .md ul { list-style: none; margin-left: 0; padding-left: 0; }
+  .md ul li { position: relative; padding-left: 22px; margin-bottom: 8px; }
+  .md ul li::before {
+    content: ''; position: absolute; left: 6px; top: 10px;
+    width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+  }
+  .md ol li { margin-bottom: 6px; }
+
+  /* Task list (checkboxes) */
+  .md ul li.task-list-item { padding-left: 32px; }
+  .md ul li.task-list-item::before { display: none; }
+  .md ul li.task-list-item input[type="checkbox"] {
+    position: absolute; left: 0; top: 5px;
+    appearance: none; -webkit-appearance: none;
+    width: 18px; height: 18px; border-radius: 5px;
+    border: 1.5px solid var(--border-hover); background: var(--surface2);
+    cursor: default; margin: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .md ul li.task-list-item input[type="checkbox"]:checked {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .md ul li.task-list-item input[type="checkbox"]:checked::after {
+    content: '✓'; color: #fff; font-size: 12px; font-weight: 700;
+  }
+  .md ul li.task-list-item input[type="checkbox"]:not(:checked)::after {
+    content: ''; width: 10px; height: 10px; border-radius: 2px;
+  }
+
+  /* Tables */
+  .md table {
+    width: 100%; border-collapse: collapse; margin: 12px 0 22px;
+    font-size: 13px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+  }
+  .md th {
+    text-align: left; padding: 12px 14px; color: var(--text3);
+    font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  .md td { padding: 12px 14px; color: var(--text2); border-bottom: 1px solid var(--border); }
+  .md tbody tr:last-child td { border-bottom: 0; }
+  .md tbody tr:hover td { background: var(--surface2); }
+
+  .loading { color: var(--text3); font-size: 13px; text-align: center; padding: 60px 20px; }
+  .error { color: var(--bad); font-size: 14px; text-align: center; padding: 40px 20px; }
+
+  @media (max-width: 720px) {
+    main { padding: 16px 12px 60px; }
+    .md { padding: 26px 20px; font-size: 14px; }
+    .north-star { padding: 36px 22px; }
+    .north-star-value { font-size: 52px; letter-spacing: -2px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="team.html" class="active">Команда</a></li>
+  </ul>
+  <span class="nav-pill">Team Brain</span>
+</nav>
+
+<main>
+  <!-- NORTH STAR HERO -->
+  <section class="north-star">
+    <div class="north-star-eye">★ North Star</div>
+    <div class="north-star-label">Единая метрика команды</div>
+    <div class="north-star-value">80<em>K</em> ₺</div>
+    <div class="north-star-formula">в день <em>=</em> 40 часов <em>×</em> 2 000 ₺/час</div>
+  </section>
+
+  <!-- MARKDOWN BODY -->
+  <article class="md" id="md-body"><div class="loading">Читаю V7_Padel_Brain.md…</div></article>
+</main>
+
+<script>
+(async function () {
+  const host = document.getElementById('md-body');
+  try {
+    const r = await fetch('V7_Padel_Brain.md?v=' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const md = await r.text();
+
+    // Configure marked for task lists + GFM tables
+    marked.setOptions({ gfm: true, breaks: false });
+
+    // Parse
+    let html = marked.parse(md);
+
+    // Add class to task list items so we can style them
+    html = html.replace(/<li>(\s*)<input([^>]*)disabled([^>]*)>/g, '<li class="task-list-item">$1<input$2 $3>');
+    html = html.replace(/<li>(\s*)<input type="checkbox"/g, '<li class="task-list-item">$1<input type="checkbox"');
+
+    host.innerHTML = html;
+
+    // Remove the top-most <h1> since the north-star card already shows the title,
+    // and cut the first blockquote if it's the "living doc" intro
+  } catch (e) {
+    host.innerHTML = '<div class="error">Не удалось загрузить V7_Padel_Brain.md: ' + (e.message || e) + '</div>';
+    console.error(e);
+  }
+})();
+</script>
+
+</body>
+</html>
