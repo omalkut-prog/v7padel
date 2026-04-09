@@ -250,21 +250,23 @@ async function loadPnL() {
   // KPI
   if (months.length) {
     const last = months[months.length - 1];
-    document.getElementById("kpi-rev").textContent = fmtK(byM[last].revenue) + " ₺";
-    document.getElementById("kpi-rev-mo").textContent = last;
-    document.getElementById("kpi-opex").textContent = fmtK(byM[last].opex) + " ₺";
-    document.getElementById("kpi-opex-mo").textContent = last;
+    const isLive = byM[last].source === 'live';
+    const liveTag = isLive ? ' ⚡' : '';
+    document.getElementById("kpi-rev").textContent = fmtK(byM[last].revenue) + " ₺" + liveTag;
+    document.getElementById("kpi-rev-mo").textContent = last + (isLive ? ' (живые данные)' : '');
+    document.getElementById("kpi-opex").textContent = fmtK(byM[last].opex) + " ₺" + liveTag;
+    document.getElementById("kpi-opex-mo").textContent = last + (isLive ? ' (живые данные)' : '');
     const p = byM[last].revenue - byM[last].opex;
     const el = document.getElementById("kpi-pnl");
     el.textContent = (p>=0?"+":"") + fmtK(p) + " ₺";
     el.classList.add(p >= 0 ? "good" : "bad");
-    document.getElementById("kpi-pnl-mo").textContent = last;
+    document.getElementById("kpi-pnl-mo").textContent = last + (isLive ? ' (живые данные)' : '');
   }
 
   new Chart(document.getElementById("chart-pnl"), {
     type: "bar",
     data: {
-      labels: months,
+      labels: months.map(m => byM[m].source === 'live' ? m + ' ⚡' : m),
       datasets: [
         { label: "Выручка", data: rev, backgroundColor: ACCENT, borderRadius: 4, order: 2 },
         { label: "OPEX",    data: opex, backgroundColor: "#f39c12", borderRadius: 4, order: 2 },

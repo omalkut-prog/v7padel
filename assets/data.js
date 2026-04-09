@@ -338,6 +338,56 @@
       out[mo.ym] = d;
     });
 
+    // --- Fill current month from transactions + expenses if PnL is missing ---
+    var now = new Date();
+    var curYM = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    if (!out[curYM]) {
+      try {
+        var txRows = await loadSheet('transactions');
+        var exRows = await loadSheet('expenses');
+
+        var rev = 0, details = {};
+        txRows.forEach(function(r) {
+          if (r.month !== curYM) return;
+          var t = num(r.total);
+          rev += t;
+          // Categorize revenue details
+          var cat = (r.category || '').toLowerCase();
+          if (cat.indexOf('tournament') >= 0) details.tournaments = (details.tournaments || 0) + t;
+          else if (cat.indexOf('club card') >= 0 || cat.indexOf('membership') >= 0) details.membership = (details.membership || 0) + t;
+          else if (cat.indexOf('training') >= 0 || cat.indexOf('individual') >= 0 || cat.indexOf('group') >= 0 || cat.indexOf('children') >= 0 || cat.indexOf('kids') >= 0) details.classes = (details.classes || 0) + t;
+          else if (cat.indexOf('sale of goods') >= 0 || cat.indexOf('inventory') >= 0) details.goods_gross = (details.goods_gross || 0) + t;
+          else if (cat.indexOf('rent from') >= 0 || cat.indexOf('equipment') >= 0 || cat.indexOf('booking') >= 0) details.bookings = (details.bookings || 0) + t;
+          else details.padel = (details.padel || 0) + t;
+        });
+
+        var opex = 0;
+        exRows.forEach(function(r) {
+          if (r.month !== curYM) return;
+          var a = num(r.amount);
+          // Exclude capex
+          if ((r.capex_flag || '').toLowerCase() === 'true' || (r.capex_flag || '') === '1') return;
+          opex += Math.abs(a);
+          // Categorize expenses
+          var item = (r.category || r.item || '').toLowerCase();
+          if (item.indexOf('market') >= 0 || item.indexOf('реклам') >= 0) details.marketing = (details.marketing || 0) + Math.abs(a);
+          else if (item.indexOf('salary') >= 0 || item.indexOf('payroll') >= 0 || item.indexOf('зарплат') >= 0) details.staff = (details.staff || 0) + Math.abs(a);
+          else if (item.indexOf('utility') >= 0 || item.indexOf('electric') >= 0 || item.indexOf('water') >= 0) details.utilities = (details.utilities || 0) + Math.abs(a);
+          else details.admin = (details.admin || 0) + Math.abs(a);
+        });
+
+        out[curYM] = {
+          revenue: rev,
+          opex: opex,
+          pnl: rev - opex,
+          details: details,
+          source: 'live'  // marker: this month is from transactions, not accountant PnL
+        };
+      } catch (e) {
+        console.warn('loadPnL: failed to fill current month from transactions:', e);
+      }
+    }
+
     return out;
   }
 

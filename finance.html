@@ -322,8 +322,9 @@ async function renderBlock1() {
     sumRev += rw.revenue; sumOpex += rw.opex; sumPnl += rw.pnl;
     const pnlCls = rw.pnl >= 0 ? 'pos' : 'neg';
     const dCls = delta == null ? 'muted' : delta >= 0 ? 'pos' : 'neg';
+    const liveTag = rw.source === 'live' ? ' <span style="color:var(--accent);font-size:11px" title="Живые данные из транзакций">⚡live</span>' : '';
     return '<tr>' +
-      '<td>' + ymLabel(m) + '</td>' +
+      '<td>' + ymLabel(m) + liveTag + '</td>' +
       '<td class="num">' + fmtMoney(rw.revenue) + '</td>' +
       '<td class="num">' + fmtMoney(rw.opex) + '</td>' +
       '<td class="num ' + pnlCls + '">' + fmtMoney(rw.pnl) + '</td>' +
@@ -340,7 +341,7 @@ async function renderBlock1() {
   '</tr>';
 
   // Chart
-  const labels = months.map(ymLabel);
+  const labels = months.map(m => pnlData[m].source === 'live' ? ymLabel(m) + ' ⚡' : ymLabel(m));
   const revs = months.map(m => pnlData[m].revenue);
   const opexs = months.map(m => pnlData[m].opex);
   const pnls = months.map(m => pnlData[m].pnl);

@@ -323,9 +323,11 @@ async function renderCEOOverview() {
     el.textContent = sign + ' ' + Math.abs(d).toFixed(1) + '% к прошлому';
     el.className = 'delta ' + cls;
   }
-  document.getElementById('kpi-rev').textContent  = fmtMoney(revCur);
-  document.getElementById('kpi-opex').textContent = fmtMoney(opexCur);
-  document.getElementById('kpi-pnl').textContent  = fmtMoney(pnlCur);
+  const isLive = pnlAgg && pnlAgg[CUR_YM] && pnlAgg[CUR_YM].source === 'live';
+  const liveTag = isLive ? ' ⚡' : '';
+  document.getElementById('kpi-rev').textContent  = fmtMoney(revCur) + liveTag;
+  document.getElementById('kpi-opex').textContent = fmtMoney(opexCur) + liveTag;
+  document.getElementById('kpi-pnl').textContent  = fmtMoney(pnlCur) + liveTag;
   document.getElementById('kpi-util').textContent = utilPct + '% · ' + todayBookings + ' брон.';
   setDelta('kpi-rev-d',  revCur,  revPrev);
   setDelta('kpi-opex-d', opexCur, opexPrev);
