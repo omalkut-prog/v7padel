@@ -1,0 +1,7323 @@
+booking_number,customer_code,customer_name,confidence,method
+8580,,,,event_block
+8581,,,,event_block
+8582,,,,event_block
+8583,,,,event_block
+8576,,,,event_block
+8577,,,,event_block
+8578,,,,event_block
+8579,,,,event_block
+8572,,,,event_block
+8573,,,,event_block
+8574,,,,event_block
+8575,,,,event_block
+8568,,,,event_block
+8569,,,,event_block
+8570,,,,event_block
+8571,,,,event_block
+7992,,,,staff
+8233,,,,event_block
+8238,,,,event_block
+8243,,,,event_block
+8248,,,,event_block
+8247,,,,event_block
+8242,,,,event_block
+8232,,,,event_block
+8237,,,,event_block
+7993,258,Olha test Test,medium,substring
+8236,,,,event_block
+8231,,,,event_block
+8241,,,,event_block
+8246,,,,event_block
+8240,,,,event_block
+8245,,,,event_block
+8230,,,,event_block
+8235,,,,event_block
+6319,,,,staff
+9324,,,,training
+9323,,,,training
+8234,,,,event_block
+8244,,,,event_block
+8239,,,,event_block
+8229,,,,event_block
+8225,,,,event_block
+8226,,,,event_block
+8227,,,,event_block
+8228,,,,event_block
+8214,,,,event_block
+8216,,,,event_block
+8221,,,,event_block
+8209,,,,event_block
+8321,,,,match_generic
+9302,,,,tournament_event
+9303,,,,tournament_event
+9304,,,,tournament_event
+9305,,,,tournament_event
+8319,,,,match_generic
+8208,,,,event_block
+8213,,,,event_block
+8215,,,,event_block
+8220,,,,event_block
+8224,,,,event_block
+8219,,,,event_block
+8212,,,,event_block
+8207,,,,event_block
+8643,,,,tournament_event
+8650,,,,tournament_event
+8656,,,,tournament_event
+8662,,,,tournament_event
+7757,,,,tournament_event
+7766,,,,tournament_event
+7774,,,,tournament_event
+7782,,,,tournament_event
+7791,,,,tournament_event
+7800,,,,tournament_event
+7738,,,,tournament_event
+7746,,,,tournament_event
+7702,,,,tournament_event
+7710,,,,tournament_event
+7722,,,,tournament_event
+7730,,,,tournament_event
+7686,,,,tournament_event
+7694,,,,tournament_event
+8624,,,,tournament_event
+8629,,,,tournament_event
+8635,,,,tournament_event
+8636,,,,tournament_event
+8637,,,,tournament_event
+8616,,,,tournament_event
+9029,,,,training
+9037,,,,booking_generic
+8206,,,,event_block
+8211,,,,event_block
+8218,,,,event_block
+8223,,,,event_block
+8310,,,,match_generic
+9322,,,,training
+8302,,,,match_generic
+8222,,,,event_block
+8217,,,,event_block
+8210,,,,event_block
+8205,,,,event_block
+7964,,,,tournament_event
+7972,,,,tournament_event
+7640,,,,tournament_event
+7649,,,,tournament_event
+7614,,,,tournament_event
+7623,,,,tournament_event
+7631,,,,tournament_event
+7658,,,,tournament_event
+7666,,,,tournament_event
+7674,,,,tournament_event
+8201,,,,event_block
+8202,,,,event_block
+8203,,,,event_block
+8204,,,,event_block
+8593,,,,tournament_event
+8598,,,,tournament_event
+9307,,,,tournament_event
+9310,,,,tournament_event
+7900,,,,tournament_event
+7910,,,,tournament_event
+7917,,,,tournament_event
+7924,,,,tournament_event
+7932,,,,tournament_event
+7942,,,,tournament_event
+7949,,,,tournament_event
+7956,,,,tournament_event
+8079,,,,event_block
+8080,,,,event_block
+8081,,,,event_block
+8082,,,,event_block
+8076,,,,training
+8077,,,,training
+8078,,,,training
+8304,,,,unmatched
+8398,,,,training
+8399,,,,training
+8400,,,,training
+8698,,,,tournament_event
+9011,,,,training
+7846,,,,tournament_event
+7854,,,,tournament_event
+7868,,,,tournament_event
+7876,,,,tournament_event
+7884,,,,event_block
+7892,,,,event_block
+9299,,,,tournament_event
+9300,,,,tournament_event
+9301,,,,tournament_event
+7832,,,,tournament_event
+7811,,,,tournament_event
+7818,,,,tournament_event
+7825,,,,tournament_event
+9028,,,,training
+8395,,,,training
+8396,,,,training
+8397,,,,training
+8316,,,,unmatched
+8073,,,,training
+8074,,,,training
+8075,,,,training
+8070,,,,training
+8071,,,,training
+8072,,,,training
+8306,,,,unmatched
+8392,,,,training
+8393,,,,training
+8394,,,,training
+8504,,,,event_block
+8505,,,,event_block
+8506,,,,event_block
+8507,,,,event_block
+7799,,,,tournament_event
+7790,,,,tournament_event
+7781,,,,tournament_event
+7773,,,,tournament_event
+7765,,,,tournament_event
+7756,,,,tournament_event
+7745,,,,tournament_event
+7737,,,,tournament_event
+7729,,,,tournament_event
+7721,,,,tournament_event
+7709,,,,tournament_event
+7701,,,,tournament_event
+7693,,,,tournament_event
+7685,,,,tournament_event
+8604,,,,tournament_event
+8610,,,,tournament_event
+8634,,,,tournament_event
+9027,,,,training
+9036,,,,booking_generic
+8389,,,,training
+8390,,,,training
+8391,,,,training
+8067,,,,training
+8068,,,,training
+8069,,,,training
+9321,,,,training
+8064,,,,training
+8065,,,,training
+8066,,,,training
+7971,,,,tournament_event
+7963,,,,tournament_event
+8386,,,,training
+8387,,,,training
+8388,,,,training
+8315,,,,unmatched
+7648,,,,tournament_event
+7639,,,,tournament_event
+7622,,,,tournament_event
+7613,,,,tournament_event
+7630,,,,tournament_event
+7657,,,,tournament_event
+7665,,,,tournament_event
+7673,,,,tournament_event
+8380,,,,training
+8381,,,,training
+8382,,,,training
+8383,,,,training
+8384,,,,training
+8385,,,,training
+7995,,,,staff
+8060,,,,training
+8061,,,,training
+8062,,,,training
+8063,,,,training
+9311,,,,tournament_event
+9309,,,,tournament_event
+9341,,,,training
+9342,,,,training
+7955,,,,tournament_event
+7948,,,,tournament_event
+7931,,,,tournament_event
+7941,,,,tournament_event
+7923,,,,tournament_event
+7916,,,,tournament_event
+7899,,,,tournament_event
+7909,,,,tournament_event
+8300,,,,unmatched
+8681,,,,tournament_event
+8685,,,,tournament_event
+8689,,,,tournament_event
+8693,,,,tournament_event
+8697,,,,tournament_event
+7845,,,,tournament_event
+7853,,,,tournament_event
+7891,,,,event_block
+7883,,,,event_block
+7875,,,,tournament_event
+7867,,,,tournament_event
+9315,,,,event_block
+9316,,,,event_block
+9317,,,,event_block
+9318,,,,event_block
+9295,,,,tournament_event
+9296,,,,tournament_event
+9297,,,,tournament_event
+9298,,,,tournament_event
+9223,,,,training
+7831,,,,tournament_event
+7810,,,,tournament_event
+7824,,,,tournament_event
+7817,,,,tournament_event
+8672,,,,tournament_event
+8667,,,,tournament_event
+9026,,,,training
+8308,,,,unmatched
+8318,,,,unmatched
+8655,,,,tournament_event
+8661,,,,tournament_event
+8642,,,,tournament_event
+8649,,,,tournament_event
+7798,,,,tournament_event
+7772,,,,tournament_event
+7780,,,,tournament_event
+7789,,,,tournament_event
+7755,,,,tournament_event
+7764,,,,tournament_event
+9290,,,,tournament_event
+9291,,,,tournament_event
+9278,,,,training
+9320,,,,training
+9313,,,,tournament_event
+9314,,,,tournament_event
+9222,,,,training
+7736,,,,tournament_event
+7744,,,,tournament_event
+7700,,,,tournament_event
+7708,,,,tournament_event
+7720,,,,tournament_event
+7728,,,,tournament_event
+7684,,,,tournament_event
+7692,,,,tournament_event
+8628,,,,tournament_event
+8633,,,,tournament_event
+8623,,,,tournament_event
+8609,,,,tournament_event
+8615,,,,tournament_event
+8603,,,,tournament_event
+9025,,,,training
+9035,,,,booking_generic
+7962,,,,tournament_event
+7970,,,,tournament_event
+7638,,,,tournament_event
+7647,,,,tournament_event
+7621,,,,tournament_event
+7612,,,,tournament_event
+9221,,,,training
+9312,,,,tournament_event
+9293,,,,tournament_event
+9178,,,,training
+9306,,,,tournament_event
+9308,,,,tournament_event
+9327,,,,match_generic
+9328,,,,match_generic
+9339,,,,match_generic
+9220,,,,training
+9276,,,,training
+9277,,,,training
+7629,,,,tournament_event
+7664,,,,tournament_event
+7656,,,,tournament_event
+7672,,,,tournament_event
+8314,,,,unmatched
+8592,,,,tournament_event
+8597,,,,tournament_event
+7908,,,,tournament_event
+7898,,,,tournament_event
+7922,,,,tournament_event
+7915,,,,tournament_event
+7940,,,,tournament_event
+7930,,,,tournament_event
+7954,,,,tournament_event
+7947,,,,tournament_event
+9274,,,,training
+9280,841,Ksenya Petulko,high,exact
+9281,,,,match_generic
+9219,,,,training
+9326,,,,match_generic
+9338,,,,match_generic
+9287,,,,tournament_event
+9288,,,,tournament_event
+9294,,,,tournament_event
+9292,,,,match_generic
+9335,,,,training
+9265,,,,booking_generic
+9244,293,Ibrahim Koken,high,exact
+9079,,,,tournament_event
+9080,,,,tournament_event
+9081,,,,tournament_event
+9082,,,,tournament_event
+8313,,,,unmatched
+8680,,,,tournament_event
+8696,,,,tournament_event
+8692,,,,tournament_event
+8688,,,,tournament_event
+8684,,,,tournament_event
+7844,,,,tournament_event
+7852,,,,tournament_event
+7866,,,,tournament_event
+7874,,,,tournament_event
+7882,,,,event_block
+7890,,,,event_block
+7830,,,,tournament_event
+7809,,,,tournament_event
+7816,,,,tournament_event
+7823,,,,tournament_event
+8671,,,,tournament_event
+8666,,,,tournament_event
+9024,,,,training
+8301,,,,unmatched
+7990,258,Olha test Test,medium,substring
+9199,,,,training
+9165,47,Sergey Kh,high,exact
+9245,,,,training
+9253,,,,match_generic
+9269,268,Nataliia Nataliia,high,exact
+9282,,,,match_generic
+9275,,,,training
+9218,,,,training
+9264,,,,training
+9289,,,,tournament_event
+9337,,,,maintenance
+9340,,,,maintenance
+9325,1227,Hüseyin Köprücü,medium,substring
+9330,1227,Hüseyin Köprücü,medium,substring
+9331,746,Murat Satir,high,exact
+9332,,,,match_generic
+9333,1237,Valeriya Vergunova,high,exact
+9334,1237,Valeriya Vergunova,high,exact
+9213,,,,tournament_event
+9215,,,,booking_generic
+9235,,,,training
+9238,,,,match_generic
+9283,,,,booking_generic
+9284,,,,match_generic
+9285,1223,Havva Gürdal,high,exact
+9271,,,,training
+9261,1227,Hüseyin Köprücü,medium,substring
+9250,230,Liubov Drobilko,high,exact
+9204,,,,training
+9193,900,ahmet naci özcan,high,exact
+9180,,,,match_generic
+9077,,,,tournament_event
+9078,,,,tournament_event
+9121,,,,training
+9122,,,,training
+9127,,,,training
+8312,,,,unmatched
+8660,,,,tournament_event
+8654,,,,tournament_event
+8648,,,,tournament_event
+8641,,,,tournament_event
+7797,,,,tournament_event
+7788,,,,tournament_event
+7779,,,,tournament_event
+7771,,,,tournament_event
+7763,,,,tournament_event
+7754,,,,tournament_event
+7743,,,,tournament_event
+7735,,,,tournament_event
+7727,,,,tournament_event
+7719,,,,tournament_event
+7707,,,,tournament_event
+7683,,,,tournament_event
+7699,,,,tournament_event
+7691,,,,tournament_event
+8622,,,,tournament_event
+8627,,,,tournament_event
+8632,,,,tournament_event
+8602,,,,tournament_event
+8614,,,,tournament_event
+8608,,,,tournament_event
+8488,,,,unmatched
+8489,,,,unmatched
+9023,,,,training
+9033,,,,booking_generic
+8466,,,,match_generic
+9123,,,,training
+9075,,,,tournament_event
+9076,,,,tournament_event
+9153,,,,training
+9134,,,,training
+9140,,,,training
+9251,473,Anna Kalashnikova,high,exact
+9252,473,Anna Kalashnikova,high,exact
+9247,,,,match_generic
+9248,,,,match_generic
+9242,70,Eduard Ivanov,high,exact
+9243,841,Ksenya Petulko,high,exact
+9259,1028,Ebru Yilmaz,high,exact
+9254,,,,booking_generic
+9272,,,,training
+9273,,,,match_generic
+9270,,,,match_generic
+9266,,,,match_generic
+9267,,,,match_generic
+9268,,,,booking_generic
+9286,,,,tournament_event
+9239,,,,match_generic
+9237,,,,match_generic
+9216,,,,tournament_event
+9198,,,,training
+9211,,,,tournament_event
+9212,,,,tournament_event
+9336,345,Ramazan Irmak,high,exact
+9329,,,,match_generic
+9279,,,,booking_generic
+9319,,,,match_generic
+9203,,,,match_generic
+9217,,,,training
+9210,,,,tournament_event
+9234,,,,match_generic
+9236,,,,match_generic
+9240,,,,match_generic
+9241,,,,match_generic
+9225,,,,match_generic
+9227,403,Evgeni Bb,high,exact
+9230,,,,match_generic
+9231,42,Kateryna Vasylenko,high,exact
+9232,,,,match_generic
+9255,,,,booking_generic
+9256,,,,booking_generic
+9257,255,Umur Akman,high,exact
+9258,,,,training
+9260,552,Gurkan Yasak,high,exact
+9262,,,,booking_generic
+9263,,,,booking_generic
+9246,401,Daria Celik,high,exact
+9249,,,,match_generic
+9126,,,,training
+9132,,,,training
+9147,,,,training
+9179,,,,training
+9176,,,,training
+9177,,,,training
+9192,,,,booking_generic
+9205,,,,match_generic
+9206,,,,match_generic
+9201,,,,training
+9073,,,,tournament_event
+9074,,,,tournament_event
+8467,,,,match_generic
+8303,,,,unmatched
+7969,,,,tournament_event
+7961,,,,tournament_event
+7646,,,,tournament_event
+7637,,,,tournament_event
+7620,,,,tournament_event
+7611,,,,tournament_event
+7628,,,,tournament_event
+7655,,,,tournament_event
+7663,,,,tournament_event
+7671,,,,tournament_event
+8459,,,,match_generic
+8596,,,,tournament_event
+8591,,,,tournament_event
+9071,,,,tournament_event
+9072,,,,tournament_event
+9124,,,,training
+9125,,,,training
+9202,1121,Ercan Ergen,high,exact
+9200,,,,booking_generic
+9207,,,,match_generic
+9208,,,,tournament_event
+9209,,,,tournament_event
+9190,926,Alisa Abdullina,high,exact
+9191,,,,match_generic
+9194,414,Nur Kiliç,high,exact
+9195,,,,booking_generic
+9196,,,,booking_generic
+9197,,,,match_generic
+9158,268,Nataliia Nataliia,high,exact
+9159,,,,match_generic
+9183,293,Ibrahim Koken,high,exact
+9184,,,,match_generic
+9155,,,,training
+9166,,,,booking_generic
+9167,,,,match_generic
+9135,,,,training
+9144,,,,training
+9141,,,,match_generic
+9233,293,Ibrahim Koken,high,exact
+9228,,,,booking_generic
+9229,,,,booking_generic
+9226,,,,booking_generic
+9224,202,ergün güzel,high,exact
+9214,,,,match_generic
+9145,998,Ahmet Naci,high,exact
+9143,,,,training
+9161,,,,booking_generic
+9162,,,,match_generic
+9163,,,,match_generic
+9164,,,,match_generic
+9150,,,,match_generic
+9185,,,,booking_generic
+9186,,,,match_generic
+9187,,,,match_generic
+9188,,,,booking_generic
+9189,,,,match_generic
+9181,,,,match_generic
+9182,,,,match_generic
+9171,,,,booking_generic
+9174,,,,training
+9175,,,,match_generic
+9157,,,,match_generic
+9119,,,,match_generic
+9096,,,,training
+9098,,,,training
+9006,,,,training
+8929,,,,tournament_event
+8930,,,,tournament_event
+8931,,,,tournament_event
+8932,,,,tournament_event
+8933,,,,tournament_event
+8934,,,,tournament_event
+8935,,,,tournament_event
+7946,,,,tournament_event
+7953,,,,tournament_event
+7939,,,,tournament_event
+7929,,,,tournament_event
+7914,,,,tournament_event
+7921,,,,tournament_event
+7907,,,,tournament_event
+7897,,,,tournament_event
+8320,,,,unmatched
+8963,293,Ibrahim Koken,high,exact
+8966,,,,training
+8967,,,,maintenance
+8968,,,,maintenance
+9048,1122,Valeria Plotnikova,high,exact
+9049,,,,match_generic
+9052,,,,match_generic
+8584,,,,event_block
+8585,,,,event_block
+8586,,,,event_block
+8587,,,,event_block
+8683,,,,tournament_event
+8679,,,,tournament_event
+8687,,,,tournament_event
+8691,,,,tournament_event
+8695,,,,tournament_event
+7843,,,,tournament_event
+7851,,,,tournament_event
+7889,,,,event_block
+7881,,,,event_block
+7873,,,,tournament_event
+7865,,,,tournament_event
+9094,,,,match_generic
+9095,1075,Ayla Jafarou,high,exact
+9100,,,,match_generic
+9113,1026,Igor Shutov,high,exact
+9114,,,,match_generic
+9117,,,,training
+9118,,,,match_generic
+9069,,,,training
+9172,1193,Anna Tilki,high,exact
+9173,1193,Anna Tilki,high,exact
+9160,,,,match_generic
+9151,650,Ganna Moroz,high,exact
+9152,650,Ganna Moroz,high,exact
+9148,145,Aysenur Zeybek,high,exact
+9149,363,Anastasiia Kirsanova,high,exact
+9156,,,,match_generic
+9154,255,Umur Akman,high,exact
+9168,1192,Erkan Ergün,high,exact
+9169,,,,booking_generic
+9170,1190,Kagan Çaliskan,high,exact
+9146,1184,Emre Yavuz,high,exact
+9138,,,,match_generic
+9139,1182,Dilsad Dilsad,high,exact
+9130,,,,booking_generic
+9131,,,,training
+9133,,,,booking_generic
+9136,1073,Svetlana Mihaleva,high,exact
+9137,,,,match_generic
+9142,,,,booking_generic
+9057,,,,training
+9086,,,,booking_generic
+9093,,,,match_generic
+9106,,,,match_generic
+9115,650,Ganna Moroz,high,exact
+9116,,,,match_generic
+9128,,,,match_generic
+9101,,,,training
+9099,,,,training
+9104,,,,match_generic
+9108,,,,match_generic
+7808,,,,tournament_event
+7822,,,,tournament_event
+7829,,,,tournament_event
+7815,,,,tournament_event
+8670,,,,tournament_event
+8665,,,,tournament_event
+9034,1153,Ramilya Selin Baspinar,high,exact
+9010,,,,training
+9018,,,,training
+8993,,,,training
+8972,,,,unmatched
+8922,,,,booking_generic
+8298,,,,unmatched
+8001,,,,staff
+8950,,,,training
+8992,,,,training
+8996,,,,training
+9016,,,,training
+9053,,,,training
+9043,,,,match_generic
+8659,,,,tournament_event
+8640,,,,tournament_event
+8647,,,,tournament_event
+8653,,,,tournament_event
+7770,,,,tournament_event
+7778,,,,tournament_event
+7787,,,,tournament_event
+7796,,,,tournament_event
+7753,,,,tournament_event
+7762,,,,tournament_event
+9109,,,,match_generic
+9110,,,,match_generic
+9111,,,,match_generic
+9112,,,,match_generic
+9105,,,,match_generic
+9102,,,,match_generic
+9103,,,,match_generic
+9129,,,,training
+9120,,,,booking_generic
+9107,,,,maintenance
+9085,,,,match_generic
+9091,293,Ibrahim Koken,high,exact
+9089,,,,match_generic
+9058,,,,training
+9041,,,,booking_generic
+9060,,,,training
+9068,,,,unmatched
+9047,293,Ibrahim Koken,high,exact
+9070,,,,match_generic
+9062,920,Ata Öz,high,exact
+9063,,,,match_generic
+9064,,,,match_generic
+9065,,,,match_generic
+9067,1163,Taha Öz,high,exact
+9059,,,,match_generic
+9090,141,Dilara Akbiyik,high,exact
+9087,141,Dilara Akbiyik,high,exact
+9088,,,,match_generic
+9092,,,,booking_generic
+9083,,,,booking_generic
+9084,,,,match_generic
+9097,,,,booking_generic
+7734,,,,tournament_event
+7742,,,,tournament_event
+7706,,,,tournament_event
+7718,,,,tournament_event
+7726,,,,tournament_event
+7682,,,,tournament_event
+7690,,,,tournament_event
+7698,,,,tournament_event
+8631,,,,tournament_event
+8626,,,,tournament_event
+8601,,,,tournament_event
+8607,,,,tournament_event
+8613,,,,tournament_event
+8621,,,,tournament_event
+9044,,,,training
+9045,,,,match_generic
+9040,,,,match_generic
+9054,,,,match_generic
+9015,,,,training
+9030,,,,training
+9031,,,,booking_generic
+9032,,,,training
+8995,,,,training
+8985,,,,training
+8986,,,,training
+8988,,,,training
+9019,,,,match_generic
+9009,,,,training
+8296,,,,unmatched
+7960,,,,tournament_event
+7968,,,,tournament_event
+9007,,,,match_generic
+9008,,,,match_generic
+9002,,,,match_generic
+9020,390,Semion Pavlov,high,exact
+9021,,,,training
+9022,,,,booking_generic
+9013,,,,match_generic
+9014,,,,training
+8965,,,,training
+9017,,,,match_generic
+9055,,,,booking_generic
+9056,636,Pars A. Hamitoglu,high,exact
+9050,,,,match_generic
+9051,,,,match_generic
+9038,,,,match_generic
+9039,,,,match_generic
+9046,,,,match_generic
+8953,,,,training
+8973,,,,unmatched
+8974,,,,booking_generic
+8975,1026,Igor Shutov,high,exact
+8976,1026,Igor Shutov,high,exact
+8915,,,,booking_generic
+7636,,,,tournament_event
+7645,,,,tournament_event
+7619,,,,tournament_event
+7610,,,,tournament_event
+9042,,,,match_generic
+7627,,,,tournament_event
+7662,,,,tournament_event
+7654,,,,tournament_event
+7670,,,,tournament_event
+8913,,,,match_generic
+8914,,,,booking_generic
+8921,47,Sergey Kh,high,exact
+8926,,,,training
+8969,,,,booking_generic
+8970,,,,match_generic
+8928,,,,training
+8962,,,,training
+8991,1141,Patrick Ager,high,exact
+8989,293,Ibrahim Koken,high,exact
+8987,,,,training
+8982,,,,match_generic
+8997,,,,training
+8999,,,,match_generic
+9012,,,,booking_generic
+9003,,,,training
+9004,,,,unmatched
+9005,,,,booking_generic
+8590,,,,tournament_event
+8595,,,,tournament_event
+7996,258,Olha test Test,medium,substring
+8297,,,,unmatched
+8259,,,,unmatched
+8270,,,,unmatched
+8455,,,,training
+7896,,,,tournament_event
+7906,,,,tournament_event
+7920,,,,tournament_event
+7913,,,,tournament_event
+7928,,,,tournament_event
+7938,,,,tournament_event
+7952,,,,tournament_event
+7945,,,,tournament_event
+9000,,,,maintenance
+9001,,,,maintenance
+8998,35,Yurii Shef,high,exact
+8994,,,,match_generic
+8983,,,,booking_generic
+8984,,,,booking_generic
+8990,,,,match_generic
+8971,1125,faruk mert kapar,high,exact
+8977,,,,match_generic
+8978,,,,match_generic
+8979,,,,match_generic
+8980,,,,training
+8981,,,,match_generic
+8954,,,,training
+8951,17,Vitalii Volchenko,high,exact
+8952,1047,Cem Karaca,high,exact
+8948,,,,match_generic
+8941,,,,training
+8849,,,,staff
+8850,,,,staff
+8851,,,,staff
+8890,,,,match_generic
+8891,,,,booking_generic
+8899,,,,maintenance
+8900,,,,match_generic
+8901,1117,abdullah erkal,high,exact
+8902,,,,event_block
+8903,,,,event_block
+8904,,,,event_block
+8895,,,,training
+8897,,,,match_generic
+8872,,,,match_generic
+8873,,,,staff
+8787,,,,unmatched
+8812,,,,match_generic
+8942,,,,staff
+8939,,,,booking_generic
+8940,,,,booking_generic
+8936,,,,staff
+8909,,,,maintenance
+8911,,,,match_generic
+8917,1121,Ercan Ergen,high,exact
+8944,,,,match_generic
+8946,,,,unmatched
+8947,,,,match_generic
+8955,,,,match_generic
+8956,1125,faruk mert kapar,high,exact
+8957,625,Sefa Oruk,high,exact
+8958,,,,match_generic
+8959,,,,match_generic
+8960,,,,maintenance
+8961,,,,booking_generic
+8964,615,Elvira Abdullina,high,exact
+8564,,,,unmatched
+8565,,,,unmatched
+8566,,,,unmatched
+8567,,,,unmatched
+8678,,,,tournament_event
+8682,,,,tournament_event
+8686,,,,tournament_event
+8694,,,,tournament_event
+8690,,,,tournament_event
+8018,,,,staff
+8261,,,,unmatched
+8250,,,,unmatched
+8290,,,,staff
+8291,,,,staff
+8292,,,,staff
+8311,,,,unmatched
+7864,,,,tournament_event
+7872,,,,tournament_event
+7880,,,,event_block
+7888,,,,event_block
+7850,,,,tournament_event
+7842,,,,tournament_event
+7814,,,,tournament_event
+7821,,,,tournament_event
+7828,,,,tournament_event
+7807,,,,tournament_event
+8299,,,,unmatched
+8256,,,,unmatched
+8273,,,,unmatched
+7999,258,Olha test Test,medium,substring
+8664,,,,tournament_event
+8669,,,,tournament_event
+8945,179,Rüzgar Deniz,high,exact
+8949,,,,booking_generic
+8919,,,,match_generic
+8920,,,,training
+8923,,,,match_generic
+8924,585,Ezgi Erkan,high,exact
+8925,,,,booking_generic
+8912,,,,match_generic
+8916,,,,booking_generic
+8937,,,,booking_generic
+8938,,,,booking_generic
+8943,,,,training
+8927,,,,training
+8894,,,,match_generic
+8810,,,,match_generic
+8783,,,,booking_generic
+8853,,,,training
+8907,,,,training
+8908,512,Kadir nursah Aras,high,exact
+8896,,,,training
+8892,,,,match_generic
+8870,,,,booking_generic
+8879,363,Anastasiia Kirsanova,high,exact
+8882,,,,booking_generic
+8883,,,,training
+8884,,,,match_generic
+8886,,,,match_generic
+8887,,,,booking_generic
+8881,,,,training
+8898,,,,match_generic
+8905,,,,match_generic
+8858,,,,staff
+8782,,,,booking_generic
+8809,,,,match_generic
+8795,,,,training
+8910,,,,unmatched
+8918,,,,match_generic
+8658,,,,tournament_event
+8652,,,,tournament_event
+8646,,,,tournament_event
+8639,,,,tournament_event
+8014,,,,staff
+8271,,,,unmatched
+8255,,,,unmatched
+7795,,,,tournament_event
+7786,,,,tournament_event
+7777,,,,tournament_event
+7769,,,,tournament_event
+7761,,,,tournament_event
+7752,,,,tournament_event
+7741,,,,tournament_event
+7733,,,,tournament_event
+7725,,,,tournament_event
+7717,,,,tournament_event
+7705,,,,tournament_event
+7681,,,,tournament_event
+7697,,,,tournament_event
+7689,,,,tournament_event
+6213,,,,booking_generic
+8275,,,,unmatched
+8258,,,,unmatched
+8309,,,,unmatched
+8630,,,,tournament_event
+8625,,,,tournament_event
+8600,,,,tournament_event
+8620,,,,tournament_event
+8612,,,,tournament_event
+8606,,,,tournament_event
+8808,,,,match_generic
+8869,,,,tournament_event
+8874,1116,Tej ~Tej,high,exact
+8875,1116,Tej ~Tej,high,exact
+8856,,,,match_generic
+8819,,,,match_generic
+8852,401,Daria Celik,high,exact
+8844,,,,training
+8845,,,,training
+8906,1,Guest -,medium,substring
+8878,293,Ibrahim Koken,high,exact
+8888,885,Burcu,high,exact
+8889,,,,match_generic
+8893,,,,match_generic
+8880,,,,training
+8885,,,,booking_generic
+8857,,,,staff
+8848,,,,match_generic
+8855,1113,Ariana Levckovych,high,exact
+8861,,,,match_generic
+8862,,,,match_generic
+8863,,,,match_generic
+8864,6,Volodymyr Rykov,high,exact
+8865,6,Volodymyr Rykov,high,exact
+8866,6,Volodymyr Rykov,high,exact
+8876,,,,booking_generic
+8877,,,,match_generic
+8868,667,Mert Davas,high,exact
+8807,,,,match_generic
+8804,,,,match_generic
+8755,,,,booking_generic
+8268,,,,unmatched
+8254,,,,unmatched
+7967,,,,tournament_event
+7959,,,,tournament_event
+7644,,,,tournament_event
+7635,,,,tournament_event
+7618,,,,tournament_event
+7609,,,,tournament_event
+7626,,,,tournament_event
+7653,,,,tournament_event
+7661,,,,tournament_event
+7669,,,,tournament_event
+7998,,,,staff
+8253,,,,unmatched
+8322,,,,unmatched
+8788,,,,staff
+8805,,,,match_generic
+8796,,,,match_generic
+8793,,,,match_generic
+8803,,,,match_generic
+8818,1097,Clinton Chisholm,high,exact
+8811,,,,match_generic
+8821,,,,match_generic
+8822,,,,match_generic
+8827,,,,match_generic
+8828,,,,training
+8829,,,,training
+8830,,,,booking_generic
+8831,,,,staff
+8859,,,,booking_generic
+8860,614,Turan Ersan,high,exact
+8867,,,,booking_generic
+8846,,,,match_generic
+8847,,,,booking_generic
+8838,,,,match_generic
+8839,293,Ibrahim Koken,high,exact
+8840,42,Kateryna Vasylenko,high,exact
+8841,,,,booking_generic
+8842,,,,match_generic
+8843,,,,match_generic
+8854,,,,maintenance
+8871,,,,booking_generic
+8594,,,,tournament_event
+8588,,,,tournament_event
+8589,,,,tournament_event
+8746,,,,training
+8758,,,,match_generic
+8759,,,,match_generic
+8556,,,,tournament_event
+8557,,,,tournament_event
+8558,,,,tournament_event
+8559,,,,tournament_event
+8560,,,,tournament_event
+8561,,,,tournament_event
+8562,,,,tournament_event
+8563,,,,tournament_event
+8520,,,,unmatched
+8521,,,,unmatched
+8522,,,,unmatched
+8832,,,,staff
+8833,,,,booking_generic
+8834,,,,booking_generic
+8835,,,,tournament_event
+8836,,,,unmatched
+8837,,,,unmatched
+8823,,,,match_generic
+8824,781,Tuba Aysal,high,exact
+8825,,,,match_generic
+8826,70,Eduard Ivanov,high,exact
+8797,,,,maintenance
+8806,,,,match_generic
+8789,363,Anastasiia Kirsanova,high,exact
+8786,,,,training
+8762,,,,match_generic
+8252,,,,unmatched
+8269,,,,unmatched
+8287,,,,staff
+8288,,,,staff
+8289,,,,staff
+7944,,,,tournament_event
+7951,,,,tournament_event
+7937,,,,tournament_event
+7927,,,,tournament_event
+7912,,,,tournament_event
+7919,,,,tournament_event
+7905,,,,tournament_event
+7895,,,,tournament_event
+8017,,,,staff
+8284,,,,staff
+8285,,,,staff
+8286,,,,staff
+8266,,,,unmatched
+8260,,,,unmatched
+8346,,,,event_block
+8347,,,,event_block
+8348,,,,event_block
+8349,,,,event_block
+8791,,,,match_generic
+8781,,,,booking_generic
+8778,,,,staff
+8779,,,,staff
+8813,,,,match_generic
+8814,323,Erhan Kara,high,exact
+8815,,,,match_generic
+8816,,,,booking_generic
+8817,,,,staff
+8798,,,,maintenance
+8802,27,Erdi Divarci,high,exact
+8820,,,,booking_generic
+8744,,,,match_generic
+8742,,,,match_generic
+8674,,,,tournament_event
+8675,,,,tournament_event
+8676,,,,tournament_event
+8677,,,,tournament_event
+7841,,,,tournament_event
+7849,,,,tournament_event
+7887,,,,event_block
+7879,,,,event_block
+7871,,,,tournament_event
+7863,,,,tournament_event
+7806,,,,tournament_event
+7813,,,,tournament_event
+7827,,,,tournament_event
+7820,,,,tournament_event
+8673,,,,tournament_event
+8668,,,,tournament_event
+8663,,,,tournament_event
+8743,,,,match_generic
+8740,,,,match_generic
+8749,,,,training
+8750,,,,booking_generic
+8501,,,,training
+8513,,,,tournament_event
+8514,,,,tournament_event
+8794,,,,match_generic
+8799,,,,maintenance
+8800,,,,booking_generic
+8801,,,,booking_generic
+8776,,,,maintenance
+8754,401,Daria Celik,high,exact
+8792,,,,booking_generic
+8790,,,,match_generic
+8768,,,,training
+8769,,,,training
+8772,,,,match_generic
+8264,,,,unmatched
+8265,,,,unmatched
+8000,,,,staff
+7991,,,,staff
+7976,,,,unmatched
+8013,,,,staff
+8276,,,,unmatched
+8262,,,,unmatched
+8295,,,,unmatched
+8445,,,,training
+8773,,,,match_generic
+8774,980,Melike Gümüs Turtay,high,exact
+8775,,,,booking_generic
+8770,,,,match_generic
+8771,,,,match_generic
+8763,980,Melike Gümüs Turtay,high,exact
+8756,,,,match_generic
+8766,179,Rüzgar Deniz,high,exact
+8767,,,,match_generic
+8784,,,,staff
+8785,,,,staff
+8777,,,,maintenance
+8780,,,,booking_generic
+8518,,,,tournament_event
+8519,,,,tournament_event
+8751,,,,training
+8752,,,,staff
+8741,,,,match_generic
+8737,,,,booking_generic
+8738,,,,training
+8702,,,,booking_generic
+8717,,,,staff
+8657,,,,tournament_event
+8638,,,,tournament_event
+8645,,,,tournament_event
+8651,,,,tournament_event
+7768,,,,tournament_event
+7776,,,,tournament_event
+7785,,,,tournament_event
+7794,,,,tournament_event
+7838,,,,unmatched
+7835,,,,unmatched
+7751,,,,tournament_event
+7760,,,,tournament_event
+7740,,,,tournament_event
+7704,,,,tournament_event
+7716,,,,tournament_event
+7724,,,,tournament_event
+7732,,,,tournament_event
+7680,,,,tournament_event
+7688,,,,tournament_event
+7696,,,,tournament_event
+6212,233,Maria Roslaya,high,exact
+8714,,,,match_generic
+8739,,,,training
+8735,,,,staff
+8736,70,Eduard Ivanov,high,exact
+8731,,,,staff
+8722,401,Daria Celik,high,exact
+8724,,,,staff
+8728,,,,training
+8729,,,,match_generic
+8747,,,,match_generic
+8748,,,,match_generic
+8753,,,,staff
+8760,,,,match_generic
+8761,272,Sercan Ayaz Bulut,high,exact
+8523,,,,booking_generic
+8546,,,,tournament_event
+8515,,,,tournament_event
+8516,,,,tournament_event
+8517,,,,tournament_event
+8483,,,,training
+8599,,,,tournament_event
+8605,,,,tournament_event
+8611,,,,tournament_event
+8617,,,,tournament_event
+8618,,,,tournament_event
+8619,,,,tournament_event
+8757,97,Mehmet Dursun,high,exact
+8764,,,,booking_generic
+8765,,,,booking_generic
+8317,,,,unmatched
+8251,,,,unmatched
+8267,,,,unmatched
+8272,,,,unmatched
+8257,,,,unmatched
+8307,,,,unmatched
+8460,,,,booking_generic
+8002,,,,unmatched
+7958,,,,tournament_event
+7966,,,,tournament_event
+8493,,,,staff
+8745,467,ali arda ozden,high,exact
+8730,,,,match_generic
+8721,,,,booking_generic
+8727,,,,match_generic
+8725,900,ahmet naci özcan,high,exact
+8723,,,,match_generic
+8732,,,,training
+8733,,,,staff
+8734,,,,booking_generic
+8715,,,,match_generic
+8712,512,Kadir nursah Aras,high,exact
+8713,,,,match_generic
+8706,293,Ibrahim Koken,high,exact
+8709,,,,match_generic
+8710,,,,match_generic
+8644,,,,booking_generic
+7634,,,,tournament_event
+7643,,,,tournament_event
+7857,,,,unmatched
+7860,,,,unmatched
+7608,,,,tournament_event
+7617,,,,tournament_event
+7625,,,,tournament_event
+7660,,,,tournament_event
+7652,,,,tournament_event
+7668,,,,tournament_event
+8711,,,,match_generic
+8701,,,,booking_generic
+8716,,,,staff
+8718,,,,match_generic
+8719,,,,booking_generic
+8720,,,,booking_generic
+8703,,,,booking_generic
+8704,,,,training
+8726,614,Turan Ersan,high,exact
+8499,928,Iryna Balan,high,exact
+8547,,,,booking_generic
+8555,,,,match_generic
+8525,,,,training
+8537,,,,staff
+7997,401,Daria Celik,medium,substring
+7994,401,Daria Celik,medium,substring
+8050,,,,staff
+8051,,,,staff
+8474,,,,staff
+8370,,,,training
+8371,,,,training
+8305,,,,unmatched
+8263,,,,unmatched
+8274,,,,unmatched
+8281,,,,staff
+8282,,,,staff
+8283,,,,staff
+8359,,,,maintenance
+8360,,,,maintenance
+8361,,,,maintenance
+8354,,,,tournament_event
+8355,,,,tournament_event
+8356,,,,tournament_event
+8458,,,,training
+8160,,,,training
+7982,,,,unmatched
+7894,,,,tournament_event
+7904,,,,tournament_event
+7911,,,,tournament_event
+7918,,,,tournament_event
+7926,,,,tournament_event
+7936,,,,tournament_event
+7943,,,,tournament_event
+7950,,,,tournament_event
+8538,141,Dilara Akbiyik,high,exact
+8539,,,,booking_generic
+8531,928,Iryna Balan,high,exact
+8532,,,,match_generic
+8526,,,,staff
+8527,,,,staff
+8534,35,Yurii Shef,high,exact
+8535,,,,booking_generic
+8542,,,,booking_generic
+8543,,,,match_generic
+8544,,,,match_generic
+8545,667,Mert Davas,high,exact
+8548,1057,Aydin Godjaev,high,exact
+8549,1057,Aydin Godjaev,high,exact
+8550,,,,booking_generic
+8551,293,Ibrahim Koken,high,exact
+8552,781,Tuba Aysal,high,exact
+8553,781,Tuba Aysal,high,exact
+8554,35,Yurii Shef,high,exact
+8491,,,,booking_generic
+8494,,,,training
+8495,40,Chingis First,high,exact
+8496,,,,match_generic
+8509,,,,tournament_event
+8510,,,,tournament_event
+8705,,,,booking_generic
+8708,667,Mert Davas,high,exact
+8699,,,,booking_generic
+8700,964,Suat Yigitoglu,high,exact
+8511,,,,staff
+8512,,,,booking_generic
+8498,,,,match_generic
+8503,,,,booking_generic
+8508,,,,match_generic
+8536,619,Jason Salih K.,high,exact
+8530,,,,match_generic
+8524,,,,training
+8533,998,Ahmet Naci,high,exact
+8540,667,Mert Davas,high,exact
+8541,,,,staff
+8016,,,,staff
+8422,,,,staff
+8351,,,,maintenance
+8352,,,,maintenance
+8353,,,,maintenance
+8345,,,,staff
+8278,,,,staff
+8279,,,,staff
+8280,,,,staff
+7848,,,,tournament_event
+7840,,,,tournament_event
+7862,,,,tournament_event
+7870,,,,tournament_event
+7878,,,,event_block
+7886,,,,event_block
+7819,,,,tournament_event
+7826,,,,tournament_event
+7812,,,,tournament_event
+7805,,,,tournament_event
+8372,,,,training
+8332,,,,maintenance
+8333,,,,maintenance
+8334,,,,maintenance
+8336,,,,training
+8475,414,Nur Kiliç,high,exact
+8476,,,,match_generic
+8528,614,Turan Ersan,high,exact
+8529,,,,booking_generic
+8502,,,,match_generic
+8497,,,,match_generic
+8492,,,,match_generic
+8500,,,,match_generic
+8480,,,,match_generic
+8485,,,,training
+8486,,,,match_generic
+8487,,,,booking_generic
+8490,,,,match_generic
+8481,,,,match_generic
+8482,,,,match_generic
+8484,,,,match_generic
+8707,,,,staff
+8477,,,,match_generic
+8478,,,,match_generic
+8479,,,,match_generic
+8471,,,,training
+8461,32,Vitalii Zakharov,high,exact
+8462,,,,match_generic
+8468,,,,booking_generic
+8452,,,,training
+8423,,,,training
+8428,,,,booking_generic
+8409,,,,training
+8329,,,,maintenance
+8330,,,,maintenance
+8331,,,,maintenance
+8012,,,,staff
+7793,,,,tournament_event
+7784,,,,tournament_event
+7775,,,,tournament_event
+7767,,,,tournament_event
+7834,,,,unmatched
+7837,,,,unmatched
+7759,,,,tournament_event
+7750,,,,tournament_event
+7739,,,,tournament_event
+7731,,,,tournament_event
+7723,,,,tournament_event
+7715,,,,tournament_event
+7703,,,,tournament_event
+7679,,,,tournament_event
+7695,,,,tournament_event
+7687,,,,tournament_event
+6211,233,Maria Roslaya,high,exact
+8326,,,,maintenance
+8327,,,,maintenance
+8328,,,,maintenance
+8338,,,,training
+8369,,,,training
+8365,,,,training
+8362,,,,tournament_event
+8363,,,,tournament_event
+8424,980,Melike Gümüs Turtay,high,exact
+8456,,,,match_generic
+8448,,,,match_generic
+8446,,,,staff
+8437,293,Ibrahim Koken,high,exact
+8438,,,,training
+8469,,,,match_generic
+8470,,,,training
+8463,,,,staff
+8464,293,Ibrahim Koken,high,exact
+8472,,,,match_generic
+8473,,,,match_generic
+8454,512,Kadir nursah Aras,high,exact
+8465,,,,tournament_event
+8439,403,Evgeni Bb,high,exact
+8447,,,,training
+8427,363,Anastasiia Kirsanova,high,exact
+8444,,,,match_generic
+8449,750,Liliya Akhmetova,high,exact
+8450,750,Liliya Akhmetova,high,exact
+8451,414,Nur Kiliç,high,exact
+8457,,,,unmatched
+8453,,,,match_generic
+8418,,,,maintenance
+8434,1028,Ebru Yilmaz,high,exact
+8435,,,,booking_generic
+8436,,,,training
+8430,,,,tournament_event
+8431,,,,unmatched
+8432,,,,unmatched
+8367,,,,match_generic
+8375,,,,staff
+7965,,,,tournament_event
+7957,,,,tournament_event
+8169,,,,staff
+8107,,,,unmatched
+8108,,,,unmatched
+8109,,,,unmatched
+8110,,,,maintenance
+8111,,,,maintenance
+8112,,,,maintenance
+7642,,,,tournament_event
+7650,,,,tournament_event
+7856,,,,unmatched
+7859,,,,unmatched
+7633,,,,tournament_event
+7616,,,,tournament_event
+7607,,,,tournament_event
+7624,,,,tournament_event
+7651,,,,tournament_event
+7659,,,,tournament_event
+7667,,,,tournament_event
+8094,,,,maintenance
+8095,,,,maintenance
+8096,,,,maintenance
+8366,,,,match_generic
+8325,,,,training
+8343,,,,training
+8344,,,,training
+8433,1028,Ebru Yilmaz,high,exact
+8429,236,Aleksandr Afanasev,high,exact
+8421,,,,training
+8425,,,,booking_generic
+8426,1028,Ebru Yilmaz,high,exact
+8415,512,Kadir nursah Aras,high,exact
+8416,236,Aleksandr Afanasev,high,exact
+8411,,,,match_generic
+8440,,,,booking_generic
+8441,,,,booking_generic
+8442,614,Turan Ersan,high,exact
+8443,,,,training
+8293,,,,staff
+8294,,,,staff
+8174,,,,staff
+8178,,,,match_generic
+8190,,,,event_block
+8191,,,,tournament_event
+8197,,,,unmatched
+8198,,,,unmatched
+8199,,,,unmatched
+8200,1017,Mehmet Sunay Yilmaz,high,exact
+8195,,,,booking_generic
+8412,,,,booking_generic
+8413,781,Tuba Aysal,high,exact
+8414,,,,booking_generic
+8417,293,Ibrahim Koken,high,exact
+8410,,,,booking_generic
+8401,,,,booking_generic
+8402,,,,match_generic
+8403,,,,tournament_event
+8404,,,,unmatched
+8405,,,,tournament_event
+8406,,,,match_generic
+8407,998,Ahmet Naci,high,exact
+8408,1018,Berkan Tokgoz,high,exact
+8379,466,gurkan gunaydin,high,exact
+8419,,,,training
+8420,590,Mustafa Kurt,high,exact
+8342,,,,staff
+8377,,,,booking_generic
+8091,,,,maintenance
+8092,,,,maintenance
+8093,,,,maintenance
+8038,,,,tournament_event
+8039,,,,tournament_event
+8040,,,,tournament_event
+8041,,,,tournament_event
+8125,,,,staff
+8133,,,,staff
+8134,,,,staff
+8170,861,Eda Kaya,high,exact
+8162,,,,training
+8180,615,Elvira Abdullina,high,exact
+8159,,,,staff
+8146,,,,staff
+7933,,,,tournament_event
+7934,,,,tournament_event
+7935,,,,tournament_event
+7925,,,,tournament_event
+7901,,,,tournament_event
+7902,,,,tournament_event
+7903,,,,tournament_event
+7893,,,,tournament_event
+7885,,,,event_block
+7877,,,,event_block
+7869,,,,tournament_event
+7861,,,,tournament_event
+7847,,,,tournament_event
+7839,,,,tournament_event
+7570,47,Sergey Kh,high,exact
+8015,,,,staff
+8122,,,,staff
+8123,,,,staff
+8124,,,,staff
+8142,,,,staff
+8036,,,,tournament_event
+8037,,,,tournament_event
+8088,,,,maintenance
+8089,,,,maintenance
+8090,,,,maintenance
+8097,,,,tournament_event
+8098,,,,tournament_event
+8099,,,,tournament_event
+8378,,,,booking_generic
+8376,,,,match_generic
+8368,324,Alexander S,high,exact
+8373,,,,match_generic
+8374,,,,staff
+8350,,,,unmatched
+8324,,,,training
+8188,,,,tournament_event
+8189,,,,tournament_event
+8277,403,Evgeni Bb,high,exact
+8249,293,Ibrahim Koken,high,exact
+8337,,,,tournament_event
+8335,,,,match_generic
+8357,,,,booking_generic
+8358,,,,booking_generic
+8339,,,,training
+8340,,,,match_generic
+8341,667,Mert Davas,high,exact
+8364,,,,match_generic
+8085,,,,maintenance
+8086,,,,maintenance
+8087,,,,maintenance
+8048,47,Sergey Kh,high,exact
+8032,,,,tournament_event
+8033,,,,tournament_event
+8034,,,,tournament_event
+8035,,,,tournament_event
+8136,,,,training
+8121,682,Anastasiia Borodaienko,high,exact
+8153,,,,training
+8156,,,,training
+8181,,,,training
+8182,,,,tournament_event
+8183,,,,tournament_event
+8184,,,,tournament_event
+8185,,,,tournament_event
+8186,,,,tournament_event
+8187,,,,tournament_event
+7801,,,,tournament_event
+7802,,,,tournament_event
+7803,,,,tournament_event
+7804,,,,tournament_event
+7783,,,,tournament_event
+7792,,,,tournament_event
+7836,,,,unmatched
+7833,,,,unmatched
+7747,,,,tournament_event
+7748,,,,tournament_event
+7749,,,,tournament_event
+7758,,,,tournament_event
+7569,47,Sergey Kh,high,exact
+8167,,,,training
+8150,,,,training
+8147,,,,training
+8138,,,,staff
+8139,,,,training
+8105,,,,tournament_event
+8106,,,,tournament_event
+8008,,,,staff
+8011,,,,staff
+8323,,,,booking_generic
+8172,,,,booking_generic
+8173,993,Yelena Volgusheva,high,exact
+8192,1000,Bertug Avsar,high,exact
+8193,,,,match_generic
+8194,,,,booking_generic
+8196,,,,booking_generic
+8177,,,,match_generic
+8175,998,Ahmet Naci,high,exact
+8176,,,,booking_generic
+8179,,,,booking_generic
+8042,,,,tournament_event
+8043,,,,tournament_event
+8140,,,,staff
+8143,,,,staff
+8135,,,,unmatched
+8118,,,,training
+8084,,,,tournament_event
+8120,,,,training
+8151,,,,training
+8154,,,,training
+8161,,,,booking_generic
+8171,,,,training
+8165,,,,match_generic
+8166,,,,training
+7711,,,,tournament_event
+7712,,,,tournament_event
+7713,,,,tournament_event
+7714,,,,tournament_event
+7675,,,,tournament_event
+7676,,,,tournament_event
+7677,,,,tournament_event
+7678,,,,tournament_event
+6210,233,Maria Roslaya,high,exact
+7641,,,,tournament_event
+7858,,,,unmatched
+7855,,,,unmatched
+7632,,,,tournament_event
+7606,,,,tournament_event
+7602,,,,tournament_event
+7603,,,,tournament_event
+7615,,,,tournament_event
+8163,,,,match_generic
+8164,614,Turan Ersan,high,exact
+8168,552,Gurkan Yasak,high,exact
+8155,,,,training
+8157,673,Emre Yan,high,exact
+8158,323,Erhan Kara,high,exact
+8152,,,,match_generic
+8148,,,,match_generic
+8149,,,,match_generic
+8144,293,Ibrahim Koken,high,exact
+8145,,,,match_generic
+8022,,,,staff
+8025,,,,training
+8026,,,,training
+8010,,,,staff
+8141,,,,booking_generic
+8119,,,,training
+8114,,,,match_generic
+8115,,,,match_generic
+8116,,,,training
+8117,,,,training
+8137,,,,booking_generic
+8024,,,,match_generic
+8047,47,Sergey Kh,high,exact
+8100,,,,staff
+7598,,,,tournament_event
+7599,,,,tournament_event
+7600,,,,tournament_event
+7601,,,,tournament_event
+7592,,,,staff
+6506,,,,tournament_event
+6507,,,,tournament_event
+6481,,,,tournament_event
+6482,,,,tournament_event
+6483,,,,tournament_event
+6484,,,,tournament_event
+6485,,,,tournament_event
+6486,,,,tournament_event
+6487,,,,tournament_event
+6488,,,,tournament_event
+6489,,,,tournament_event
+6490,,,,tournament_event
+6491,,,,tournament_event
+6492,,,,tournament_event
+6493,,,,tournament_event
+6494,,,,tournament_event
+6495,,,,tournament_event
+6496,,,,tournament_event
+8102,,,,training
+8103,,,,match_generic
+8104,982,Iryna Pavlova,high,exact
+8059,,,,booking_generic
+8056,957,Lena özmert,high,exact
+8049,975,Kadir Coskun,high,exact
+8113,,,,booking_generic
+8003,,,,staff
+8004,,,,staff
+8005,,,,staff
+8023,,,,staff
+8019,345,Ramazan Irmak,high,exact
+8020,,,,match_generic
+8006,,,,staff
+7975,,,,training
+8052,,,,match_generic
+8053,279,Sezen nur Turan,high,exact
+8054,,,,match_generic
+8055,141,Dilara Akbiyik,high,exact
+8058,,,,booking_generic
+8031,,,,match_generic
+8029,,,,training
+8044,,,,match_generic
+8045,,,,booking_generic
+8046,,,,match_generic
+8101,,,,booking_generic
+8083,,,,booking_generic
+6361,,,,training
+6508,,,,tournament_event
+6479,,,,tournament_event
+6480,,,,tournament_event
+6565,258,Olha test Test,medium,substring
+7588,,,,staff
+7589,,,,staff
+7590,,,,staff
+7591,,,,staff
+7568,47,Sergey Kh,high,exact
+7581,,,,staff
+5678,,,,tournament_event
+5681,,,,tournament_event
+5660,,,,tournament_event
+5663,,,,tournament_event
+5666,,,,tournament_event
+5669,,,,tournament_event
+5672,,,,unmatched
+5675,,,,unmatched
+7575,13,Regina Kvitkova,high,exact
+7576,13,Regina Kvitkova,high,exact
+7594,293,Ibrahim Koken,high,exact
+6509,,,,event_block
+6357,,,,training
+6358,,,,unmatched
+6497,,,,event_block
+6498,,,,event_block
+8030,,,,booking_generic
+8007,,,,match_generic
+8009,,,,training
+8021,,,,match_generic
+8027,,,,booking_generic
+8028,,,,booking_generic
+7983,,,,match_generic
+7978,,,,training
+7984,,,,match_generic
+7980,,,,match_generic
+7981,,,,training
+7986,,,,match_generic
+7987,,,,match_generic
+6436,47,Sergey Kh,high,exact
+6356,,,,unmatched
+6510,,,,unmatched
+6503,,,,tournament_event
+6504,,,,tournament_event
+6505,,,,tournament_event
+6477,,,,unmatched
+6478,,,,unmatched
+6546,,,,staff
+6547,,,,staff
+7595,,,,staff
+7596,,,,training
+7593,,,,training
+7579,933,Koray Alp,high,exact
+5645,,,,tournament_event
+5648,,,,tournament_event
+5651,682,Anastasiia Borodaienko,high,exact
+5655,682,Anastasiia Borodaienko,high,exact
+5657,,,,tournament_event
+5636,,,,tournament_event
+5639,,,,tournament_event
+5642,,,,tournament_event
+5627,,,,event_block
+5629,,,,event_block
+5631,,,,unmatched
+5633,,,,unmatched
+5623,,,,event_block
+5625,,,,event_block
+5569,,,,tournament_event
+5560,,,,unmatched
+5563,,,,unmatched
+5566,,,,tournament_event
+7584,,,,booking_generic
+7587,,,,training
+7604,512,Kadir nursah Aras,high,exact
+7605,,,,match_generic
+6566,,,,training
+6570,,,,booking_generic
+6511,,,,tournament_event
+6355,,,,training
+6418,,,,tournament_event
+6419,,,,tournament_event
+6420,,,,tournament_event
+6471,,,,tournament_event
+6472,,,,tournament_event
+6473,,,,tournament_event
+6474,,,,tournament_event
+6209,233,Maria Roslaya,high,exact
+7988,,,,booking_generic
+7989,,,,booking_generic
+7985,,,,match_generic
+7979,,,,unmatched
+7977,,,,training
+7973,,,,match_generic
+7974,,,,training
+6475,,,,unmatched
+6476,,,,unmatched
+6499,,,,tournament_event
+6500,,,,tournament_event
+6501,,,,tournament_event
+6437,47,Sergey Kh,high,exact
+6353,,,,training
+6354,,,,unmatched
+6512,,,,unmatched
+6469,934,Yaren Kurklu,high,exact
+6529,,,,training
+6533,,,,staff
+6569,,,,staff
+6567,,,,booking_generic
+6535,,,,staff
+6536,,,,match_generic
+6537,,,,training
+7574,,,,booking_generic
+7597,569,Can Gürdal,high,exact
+7585,,,,match_generic
+7586,,,,booking_generic
+7582,,,,match_generic
+7583,,,,match_generic
+7580,,,,match_generic
+7571,,,,unmatched
+7572,,,,match_generic
+5557,682,Anastasiia Borodaienko,high,exact
+5553,,,,tournament_event
+5545,,,,tournament_event
+5549,682,Anastasiia Borodaienko,high,exact
+5614,,,,tournament_event
+5616,,,,tournament_event
+5537,,,,tournament_event
+5539,,,,tournament_event
+5541,,,,tournament_event
+5524,,,,tournament_event
+5527,,,,tournament_event
+5530,,,,tournament_event
+5533,,,,tournament_event
+5535,,,,tournament_event
+7573,,,,booking_generic
+7577,,,,booking_generic
+7578,,,,booking_generic
+6539,,,,training
+6543,,,,training
+6549,,,,match_generic
+6550,,,,match_generic
+6568,27,Erdi Divarci,high,exact
+6555,,,,match_generic
+6557,,,,match_generic
+6558,,,,unmatched
+6559,,,,training
+6560,957,Lena özmert,high,exact
+6561,,,,match_generic
+6562,,,,match_generic
+6563,,,,match_generic
+6564,,,,match_generic
+6531,,,,staff
+6532,,,,match_generic
+6517,,,,staff
+6350,,,,training
+6351,,,,training
+6352,,,,training
+6447,,,,staff
+6416,667,Mert Davas,high,exact
+6466,,,,booking_generic
+6467,258,Olha test Test,high,exact
+6468,258,Olha test Test,high,exact
+8126,,,,tournament_event
+8127,,,,tournament_event
+6458,,,,staff
+6429,,,,staff
+6348,,,,training
+6349,,,,training
+6402,,,,tournament_event
+6403,,,,tournament_event
+6404,,,,tournament_event
+6523,153,Mustafa emre Sezer,high,exact
+6556,,,,match_generic
+6551,,,,match_generic
+6552,,,,staff
+6553,141,Dilara Akbiyik,high,exact
+6554,791,Kardelen Bekar,high,exact
+6548,197,Yagiz Kuru,high,exact
+6540,293,Ibrahim Koken,high,exact
+6541,,,,staff
+6542,,,,staff
+6538,141,Dilara Akbiyik,high,exact
+5705,,,,tournament_event
+5684,,,,tournament_event
+5687,,,,tournament_event
+5690,,,,tournament_event
+5693,,,,tournament_event
+5696,,,,tournament_event
+5699,,,,tournament_event
+5702,,,,tournament_event
+5680,,,,tournament_event
+5677,,,,tournament_event
+6360,,,,training
+6534,,,,match_generic
+6530,,,,match_generic
+6527,,,,booking_generic
+6528,,,,match_generic
+6470,,,,staff
+6513,,,,booking_generic
+6375,,,,tournament_event
+6376,,,,tournament_event
+6362,,,,training
+6431,,,,staff
+6432,,,,staff
+6433,,,,training
+6462,,,,booking_generic
+6463,141,Dilara Akbiyik,high,exact
+6464,141,Dilara Akbiyik,high,exact
+6465,141,Dilara Akbiyik,high,exact
+6444,,,,booking_generic
+6434,,,,training
+6448,,,,training
+6359,,,,unmatched
+6344,,,,training
+6408,,,,booking_generic
+6514,,,,booking_generic
+6515,,,,booking_generic
+6524,,,,match_generic
+6525,,,,match_generic
+6526,,,,booking_generic
+6520,619,Jason Salih K.,high,exact
+6521,619,Jason Salih K.,high,exact
+6522,,,,match_generic
+5674,,,,unmatched
+5659,,,,tournament_event
+5668,,,,tournament_event
+5671,,,,unmatched
+5662,,,,tournament_event
+5665,,,,tournament_event
+5654,682,Anastasiia Borodaienko,high,exact
+5656,,,,tournament_event
+5647,,,,tournament_event
+5650,682,Anastasiia Borodaienko,high,exact
+5641,,,,tournament_event
+5644,,,,tournament_event
+5635,,,,tournament_event
+5638,,,,tournament_event
+6518,,,,match_generic
+6519,293,Ibrahim Koken,high,exact
+6516,,,,match_generic
+6371,,,,tournament_event
+6372,,,,tournament_event
+6373,,,,unmatched
+6374,,,,unmatched
+6347,,,,unmatched
+6451,,,,booking_generic
+6452,31,Nikolas Kudryashov,high,exact
+6453,141,Dilara Akbiyik,high,exact
+6454,,,,match_generic
+6455,,,,staff
+6456,,,,staff
+6457,363,Anastasiia Kirsanova,high,exact
+6430,293,Ibrahim Koken,high,exact
+6442,,,,match_generic
+6443,,,,match_generic
+6435,,,,booking_generic
+6445,519,Rasina Tasueva,high,exact
+6446,,,,match_generic
+6459,,,,tournament_event
+6460,,,,unmatched
+6461,,,,unmatched
+6502,,,,booking_generic
+6438,,,,maintenance
+6439,,,,maintenance
+6440,,,,maintenance
+6441,,,,maintenance
+6449,,,,match_generic
+6450,,,,booking_generic
+6335,,,,training
+6367,,,,tournament_event
+6368,,,,tournament_event
+6369,,,,tournament_event
+6370,,,,tournament_event
+6208,233,Maria Roslaya,high,exact
+8128,,,,maintenance
+5632,,,,unmatched
+5630,,,,unmatched
+5628,,,,event_block
+5622,,,,event_block
+5626,,,,event_block
+5624,,,,event_block
+5565,,,,tournament_event
+5568,,,,tournament_event
+5559,,,,unmatched
+5562,,,,unmatched
+5556,682,Anastasiia Borodaienko,high,exact
+5544,,,,tournament_event
+5552,,,,tournament_event
+5548,682,Anastasiia Borodaienko,high,exact
+5613,,,,tournament_event
+5615,,,,tournament_event
+6336,,,,booking_generic
+6337,,,,booking_generic
+6343,,,,training
+6345,,,,unmatched
+6409,,,,training
+6412,,,,match_generic
+6417,,,,match_generic
+6414,,,,match_generic
+6421,882,Rahimov Rahimov,high,exact
+6422,882,Rahimov Rahimov,high,exact
+6423,,,,match_generic
+6424,176,Inna Stepanets,high,exact
+6425,,,,maintenance
+6426,,,,maintenance
+6427,,,,maintenance
+6428,,,,maintenance
+6415,,,,booking_generic
+6413,176,Inna Stepanets,high,exact
+6399,519,Rasina Tasueva,high,exact
+6400,268,Nataliia Nataliia,high,exact
+6401,,,,staff
+6410,,,,booking_generic
+6411,,,,match_generic
+6405,,,,unmatched
+6406,,,,booking_generic
+6407,,,,booking_generic
+6377,,,,unmatched
+6378,,,,unmatched
+6380,920,Ata Öz,high,exact
+6334,,,,training
+6342,,,,training
+6326,,,,training
+6363,,,,tournament_event
+6364,,,,tournament_event
+6365,,,,tournament_event
+6366,,,,tournament_event
+6302,,,,booking_generic
+5540,,,,tournament_event
+5538,,,,tournament_event
+5536,,,,tournament_event
+5534,,,,tournament_event
+5529,,,,tournament_event
+5532,,,,tournament_event
+5523,,,,tournament_event
+5526,,,,tournament_event
+5683,,,,tournament_event
+5686,,,,tournament_event
+5689,,,,tournament_event
+5698,,,,tournament_event
+5701,,,,tournament_event
+5692,,,,tournament_event
+5695,,,,tournament_event
+6320,,,,training
+6324,,,,training
+5704,,,,tournament_event
+6333,,,,training
+6381,,,,staff
+6382,,,,staff
+6389,,,,booking_generic
+6390,,,,booking_generic
+6391,293,Ibrahim Koken,high,exact
+6393,,,,booking_generic
+6394,,,,match_generic
+6395,,,,staff
+6396,,,,match_generic
+6397,925,gökay kumru,high,exact
+6398,293,Ibrahim Koken,high,exact
+6392,1,Guest -,medium,substring
+6383,,,,booking_generic
+6384,,,,match_generic
+6385,,,,booking_generic
+6386,,,,match_generic
+6387,293,Ibrahim Koken,high,exact
+6388,,,,match_generic
+6346,,,,unmatched
+6282,,,,tournament_event
+6283,,,,tournament_event
+5679,,,,tournament_event
+5676,,,,tournament_event
+5673,,,,unmatched
+5670,,,,unmatched
+5667,,,,tournament_event
+5664,,,,tournament_event
+5661,,,,tournament_event
+5658,,,,tournament_event
+6257,,,,staff
+6338,,,,maintenance
+6339,,,,maintenance
+6340,,,,maintenance
+6341,,,,maintenance
+6327,791,Kardelen Bekar,high,exact
+6322,,,,training
+6329,,,,maintenance
+6330,,,,maintenance
+6331,,,,maintenance
+6332,,,,maintenance
+5652,,,,tournament_event
+5653,682,Anastasiia Borodaienko,high,exact
+5646,,,,tournament_event
+5649,682,Anastasiia Borodaienko,high,exact
+5634,,,,tournament_event
+5637,,,,tournament_event
+5643,,,,tournament_event
+5640,,,,tournament_event
+5617,,,,event_block
+5618,,,,event_block
+5619,,,,event_block
+5620,,,,unmatched
+5621,,,,unmatched
+5571,,,,event_block
+5558,,,,unmatched
+5561,,,,unmatched
+5564,,,,tournament_event
+5567,,,,tournament_event
+6323,,,,booking_generic
+6325,,,,booking_generic
+6321,,,,booking_generic
+6271,,,,staff
+6277,,,,tournament_event
+6278,,,,tournament_event
+6279,,,,tournament_event
+6280,,,,tournament_event
+6308,,,,unmatched
+6309,,,,tournament_event
+6310,682,Anastasiia Borodaienko,high,exact
+6311,682,Anastasiia Borodaienko,high,exact
+6312,,,,tournament_event
+6313,,,,tournament_event
+6314,,,,tournament_event
+6315,,,,booking_generic
+6316,176,Inna Stepanets,high,exact
+6317,,,,training
+6318,,,,match_generic
+6241,,,,tournament_event
+6242,,,,tournament_event
+6243,,,,tournament_event
+6244,,,,tournament_event
+6207,,,,booking_generic
+6328,914,Ramazan Yuvali,high,exact
+6301,1,Guest -,medium,substring
+6248,781,Tuba Aysal,high,exact
+6249,781,Tuba Aysal,high,exact
+6250,781,Tuba Aysal,high,exact
+6251,781,Tuba Aysal,high,exact
+6239,,,,tournament_event
+6240,,,,tournament_event
+6303,,,,maintenance
+6304,,,,maintenance
+6305,,,,maintenance
+6306,,,,maintenance
+6307,,,,match_generic
+5555,682,Anastasiia Borodaienko,high,exact
+5543,,,,tournament_event
+5547,682,Anastasiia Borodaienko,high,exact
+5551,,,,tournament_event
+5611,,,,tournament_event
+5612,,,,tournament_event
+5528,,,,tournament_event
+5525,,,,tournament_event
+5522,,,,tournament_event
+5531,,,,tournament_event
+5334,,,,tournament_event
+5335,,,,tournament_event
+5336,,,,tournament_event
+5337,,,,tournament_event
+6281,,,,booking_generic
+6273,,,,match_generic
+6274,,,,booking_generic
+6275,,,,match_generic
+6276,,,,booking_generic
+6259,,,,tournament_event
+6260,,,,tournament_event
+6261,,,,tournament_event
+6262,,,,tournament_event
+6263,,,,tournament_event
+6264,,,,tournament_event
+6284,141,Dilara Akbiyik,high,exact
+6285,,,,tournament_event
+6286,,,,tournament_event
+6287,,,,unmatched
+6288,,,,match_generic
+6289,,,,unmatched
+6290,,,,unmatched
+6291,,,,tournament_event
+6292,,,,tournament_event
+6293,,,,tournament_event
+6294,,,,unmatched
+6295,,,,booking_generic
+6296,,,,tournament_event
+6297,1,Guest -,medium,substring
+6298,1,Guest -,medium,substring
+6299,,,,booking_generic
+6300,1,Guest -,medium,substring
+5920,,,,training
+6265,750,Liliya Akhmetova,high,exact
+6266,,,,booking_generic
+6267,,,,booking_generic
+6268,,,,match_generic
+6269,,,,match_generic
+6270,,,,booking_generic
+6258,898,Gamze Gemici,high,exact
+6272,,,,booking_generic
+6252,,,,booking_generic
+6253,,,,booking_generic
+6254,53,Olena LEV,high,exact
+6255,,,,match_generic
+6256,255,Umur Akman,high,exact
+6234,45,Zafer Kuscu,high,exact
+5682,,,,tournament_event
+5691,,,,tournament_event
+5688,,,,tournament_event
+5685,,,,tournament_event
+5694,,,,tournament_event
+5700,,,,tournament_event
+5697,,,,tournament_event
+5703,,,,tournament_event
+5591,,,,tournament_event
+5592,,,,tournament_event
+6229,,,,training
+6232,,,,training
+6233,,,,booking_generic
+6174,,,,tournament_event
+6175,,,,tournament_event
+6245,,,,match_generic
+6246,,,,booking_generic
+6247,,,,match_generic
+8129,,,,maintenance
+8130,,,,maintenance
+8131,,,,maintenance
+8132,,,,maintenance
+6235,,,,maintenance
+6236,,,,maintenance
+6237,,,,maintenance
+6238,,,,maintenance
+6159,,,,booking_generic
+5585,,,,tournament_event
+5586,,,,tournament_event
+5587,,,,tournament_event
+5588,,,,tournament_event
+5589,,,,unmatched
+5590,,,,unmatched
+5577,,,,tournament_event
+5578,,,,tournament_event
+5579,,,,tournament_event
+5580,,,,tournament_event
+5581,,,,tournament_event
+5582,682,Anastasiia Borodaienko,high,exact
+5583,,,,tournament_event
+5584,682,Anastasiia Borodaienko,high,exact
+6230,,,,match_generic
+6231,,,,training
+6170,,,,tournament_event
+6171,,,,tournament_event
+6172,,,,unmatched
+6173,,,,unmatched
+6158,,,,booking_generic
+6187,,,,training
+6188,,,,training
+6189,,,,match_generic
+6201,,,,tournament_event
+6202,,,,tournament_event
+6203,,,,tournament_event
+6204,,,,booking_generic
+6205,,,,tournament_event
+6206,,,,tournament_event
+6186,,,,match_generic
+6157,,,,booking_generic
+6180,,,,tournament_event
+6181,,,,staff
+6182,,,,training
+6183,,,,staff
+6218,,,,booking_generic
+6219,,,,unmatched
+6220,,,,unmatched
+6222,,,,match_generic
+6223,,,,match_generic
+6224,31,Nikolas Kudryashov,high,exact
+6225,152,Çerçiler Serhat,high,exact
+6226,,,,tournament_event
+6227,,,,booking_generic
+6228,,,,match_generic
+6164,,,,tournament_event
+6165,,,,tournament_event
+6166,,,,tournament_event
+6167,,,,tournament_event
+5917,,,,training
+6007,,,,tournament_event
+6008,,,,tournament_event
+6009,,,,tournament_event
+5572,,,,event_block
+5573,,,,event_block
+5574,,,,event_block
+5575,,,,unmatched
+5576,,,,unmatched
+5570,,,,event_block
+5392,,,,unmatched
+5393,,,,unmatched
+5399,,,,tournament_event
+5403,,,,tournament_event
+5606,,,,tournament_event
+5610,,,,tournament_event
+5550,,,,tournament_event
+5546,682,Anastasiia Borodaienko,high,exact
+5542,,,,tournament_event
+5554,682,Anastasiia Borodaienko,high,exact
+6168,,,,unmatched
+6169,,,,unmatched
+6076,,,,training
+6221,,,,booking_generic
+6184,,,,training
+6185,,,,staff
+6156,,,,booking_generic
+6198,,,,staff
+6199,,,,match_generic
+6200,569,Can Gürdal,high,exact
+6214,,,,maintenance
+6215,,,,maintenance
+6216,,,,maintenance
+6217,,,,maintenance
+5916,,,,training
+5362,,,,tournament_event
+5365,,,,tournament_event
+5330,,,,tournament_event
+5331,,,,tournament_event
+5332,,,,tournament_event
+5333,,,,tournament_event
+5351,,,,tournament_event
+5355,,,,tournament_event
+5356,,,,tournament_event
+5357,,,,tournament_event
+5593,,,,tournament_event
+5594,,,,tournament_event
+5595,,,,tournament_event
+5596,,,,tournament_event
+5597,,,,tournament_event
+5598,,,,tournament_event
+5599,,,,tournament_event
+5600,,,,tournament_event
+6194,,,,maintenance
+6195,,,,maintenance
+6196,,,,maintenance
+6197,,,,maintenance
+6104,,,,staff
+6105,,,,staff
+6106,,,,match_generic
+6125,,,,staff
+6126,,,,staff
+6103,,,,match_generic
+6095,,,,staff
+6096,,,,staff
+6097,,,,staff
+6098,,,,staff
+6005,,,,tournament_event
+6006,,,,tournament_event
+6190,,,,maintenance
+6191,,,,maintenance
+6192,,,,maintenance
+6193,,,,maintenance
+5886,,,,staff
+5488,,,,tournament_event
+5491,,,,tournament_event
+5469,,,,tournament_event
+5472,,,,tournament_event
+5475,,,,tournament_event
+5480,,,,unmatched
+5483,,,,unmatched
+5466,,,,tournament_event
+5518,,,,unmatched
+6176,,,,maintenance
+6177,,,,maintenance
+6178,,,,maintenance
+6179,,,,maintenance
+6094,,,,staff
+6102,,,,match_generic
+6160,,,,maintenance
+6161,,,,maintenance
+6162,,,,maintenance
+6163,,,,maintenance
+5885,,,,staff
+5459,682,Anastasiia Borodaienko,high,exact
+5453,682,Anastasiia Borodaienko,high,exact
+5456,,,,tournament_event
+5435,,,,tournament_event
+5440,,,,tournament_event
+5443,,,,tournament_event
+5450,,,,tournament_event
+5432,,,,tournament_event
+5424,,,,unmatched
+5427,,,,unmatched
+5416,,,,event_block
+5419,,,,event_block
+5398,,,,tournament_event
+5402,,,,tournament_event
+5410,,,,event_block
+5413,,,,event_block
+5391,,,,unmatched
+5388,,,,unmatched
+5521,294,Zukhra Khaidarova,high,exact
+5915,,,,training
+5992,,,,tournament_event
+5993,,,,tournament_event
+6152,,,,maintenance
+6153,,,,maintenance
+6154,,,,maintenance
+6155,,,,maintenance
+6101,,,,match_generic
+6127,,,,staff
+6100,,,,match_generic
+6092,,,,staff
+6093,,,,staff
+6148,,,,maintenance
+6149,,,,maintenance
+6150,,,,maintenance
+6151,,,,maintenance
+5605,,,,tournament_event
+5609,,,,tournament_event
+5380,,,,tournament_event
+5381,,,,tournament_event
+5382,682,Anastasiia Borodaienko,high,exact
+5383,682,Anastasiia Borodaienko,high,exact
+5361,,,,tournament_event
+5364,,,,tournament_event
+5350,,,,tournament_event
+5352,,,,tournament_event
+5353,,,,tournament_event
+5354,,,,tournament_event
+5326,,,,tournament_event
+5327,,,,tournament_event
+5328,,,,tournament_event
+5329,,,,tournament_event
+6144,,,,maintenance
+6145,,,,maintenance
+6146,,,,maintenance
+6147,,,,maintenance
+6099,,,,match_generic
+5914,,,,training
+6140,,,,maintenance
+6141,,,,maintenance
+6142,,,,maintenance
+6143,,,,maintenance
+5512,,,,tournament_event
+5514,,,,tournament_event
+5515,,,,tournament_event
+5503,,,,tournament_event
+5510,,,,tournament_event
+5497,,,,tournament_event
+5499,,,,tournament_event
+5501,,,,tournament_event
+5490,,,,tournament_event
+5487,,,,tournament_event
+6136,,,,maintenance
+6137,,,,maintenance
+6138,,,,maintenance
+6139,,,,maintenance
+6091,,,,match_generic
+6004,,,,tournament_event
+6028,,,,staff
+6029,,,,staff
+6030,,,,staff
+5990,,,,unmatched
+5991,,,,unmatched
+5943,,,,booking_generic
+5942,268,Nataliia Nataliia,high,exact
+6132,,,,maintenance
+6133,,,,maintenance
+6134,,,,maintenance
+6135,,,,maintenance
+5479,,,,unmatched
+5482,,,,unmatched
+5474,,,,tournament_event
+5468,,,,tournament_event
+5471,,,,tournament_event
+5465,,,,tournament_event
+5517,,,,unmatched
+5455,,,,tournament_event
+5458,682,Anastasiia Borodaienko,high,exact
+5449,,,,tournament_event
+5452,682,Anastasiia Borodaienko,high,exact
+5442,,,,tournament_event
+5439,,,,tournament_event
+5431,,,,tournament_event
+5434,,,,tournament_event
+6089,,,,match_generic
+6090,,,,training
+6128,,,,maintenance
+6129,,,,maintenance
+6130,,,,maintenance
+6131,,,,maintenance
+6026,,,,staff
+6027,,,,staff
+6051,,,,tournament_event
+6052,,,,tournament_event
+5941,,,,booking_generic
+5926,,,,match_generic
+5913,,,,training
+5987,,,,tournament_event
+5988,,,,tournament_event
+5989,,,,tournament_event
+5714,,,,event_block
+6055,,,,match_generic
+6061,,,,match_generic
+6062,,,,match_generic
+6077,268,Nataliia Nataliia,high,exact
+6078,,,,tournament_event
+6079,,,,tournament_event
+6080,,,,tournament_event
+6081,,,,tournament_event
+6082,,,,tournament_event
+6083,,,,tournament_event
+6084,,,,tournament_event
+6085,,,,tournament_event
+6086,,,,tournament_event
+6087,,,,tournament_event
+6088,,,,match_generic
+6065,,,,unmatched
+6066,,,,unmatched
+6044,,,,match_generic
+6122,,,,training
+6110,,,,tournament_event
+6111,,,,tournament_event
+6112,,,,tournament_event
+6113,,,,tournament_event
+6114,,,,unmatched
+6115,,,,match_generic
+6116,,,,tournament_event
+6117,,,,tournament_event
+6118,,,,tournament_event
+6119,,,,tournament_event
+6120,,,,unmatched
+6075,,,,booking_generic
+6107,,,,tournament_event
+6108,,,,tournament_event
+5520,294,Zukhra Khaidarova,high,exact
+5387,,,,unmatched
+5390,,,,unmatched
+5397,,,,tournament_event
+5409,,,,event_block
+5412,,,,event_block
+5401,,,,tournament_event
+5423,,,,unmatched
+5415,,,,event_block
+5418,,,,event_block
+5426,,,,unmatched
+5376,,,,tournament_event
+5377,,,,tournament_event
+5378,682,Anastasiia Borodaienko,high,exact
+5379,682,Anastasiia Borodaienko,high,exact
+5608,,,,tournament_event
+5604,,,,tournament_event
+6109,,,,booking_generic
+6121,,,,unmatched
+6043,,,,match_generic
+6024,,,,staff
+6025,,,,staff
+6068,,,,booking_generic
+6069,,,,training
+6071,871,Ilya Grishin,high,exact
+6072,,,,booking_generic
+6073,,,,booking_generic
+6074,,,,match_generic
+6063,,,,tournament_event
+6060,,,,staff
+6053,,,,tournament_event
+6056,,,,match_generic
+6057,,,,booking_generic
+6058,,,,match_generic
+6047,,,,match_generic
+6064,,,,match_generic
+6070,,,,match_generic
+6067,,,,match_generic
+5944,,,,staff
+5912,,,,training
+5848,,,,staff
+5363,,,,tournament_event
+5322,,,,tournament_event
+5323,,,,tournament_event
+5324,,,,tournament_event
+5325,,,,tournament_event
+5346,,,,tournament_event
+5347,,,,tournament_event
+5348,,,,tournament_event
+5349,,,,tournament_event
+5360,,,,tournament_event
+5513,,,,tournament_event
+5511,,,,tournament_event
+5508,,,,tournament_event
+5509,,,,tournament_event
+5496,,,,tournament_event
+5498,,,,tournament_event
+5502,,,,tournament_event
+5500,,,,tournament_event
+5892,,,,staff
+5982,,,,booking_generic
+5984,868,Yaren Dogan,high,exact
+5825,,,,staff
+5826,,,,staff
+5840,,,,tournament_event
+6050,,,,match_generic
+6059,,,,match_generic
+6054,,,,match_generic
+6017,,,,match_generic
+6042,,,,match_generic
+6045,414,Nur Kiliç,high,exact
+6046,,,,match_generic
+6036,293,Ibrahim Koken,high,exact
+6037,,,,staff
+6039,,,,training
+6032,,,,training
+6033,,,,booking_generic
+6034,,,,staff
+6035,141,Dilara Akbiyik,high,exact
+6031,,,,staff
+6040,,,,booking_generic
+6041,,,,match_generic
+6038,,,,booking_generic
+6018,,,,tournament_event
+6019,,,,match_generic
+6020,345,Ramazan Irmak,high,exact
+6013,512,Kadir nursah Aras,high,exact
+6014,,,,booking_generic
+6015,,,,booking_generic
+6016,,,,staff
+6023,,,,match_generic
+6048,466,gurkan gunaydin,high,exact
+6049,,,,booking_generic
+5822,,,,staff
+5823,,,,staff
+5824,,,,staff
+5938,,,,booking_generic
+6003,,,,tournament_event
+6000,186,Oleksandr Tiukin,high,exact
+6001,,,,match_generic
+6010,,,,match_generic
+6011,,,,match_generic
+5998,,,,booking_generic
+5930,,,,tournament_event
+5931,,,,tournament_event
+5852,323,Erhan Kara,high,exact
+5486,,,,tournament_event
+5489,,,,tournament_event
+4573,,,,staff
+5470,,,,tournament_event
+5473,,,,tournament_event
+5478,,,,unmatched
+5481,,,,unmatched
+5464,,,,tournament_event
+5467,,,,tournament_event
+5516,,,,unmatched
+5868,,,,training
+5921,698,Sudenaz Aydinli,high,exact
+5924,840,Lev Dy,high,exact
+5925,,,,match_generic
+5999,345,Ramazan Irmak,high,exact
+5996,,,,match_generic
+6012,852,Amani Mani,high,exact
+6002,,,,match_generic
+5937,,,,booking_generic
+6021,,,,training
+6022,,,,training
+5978,,,,match_generic
+5979,,,,match_generic
+5985,,,,booking_generic
+5986,569,Can Gürdal,high,exact
+5983,846,Aleksandr Fadeev,high,exact
+5997,272,Sercan Ayaz Bulut,high,exact
+5994,,,,tournament_event
+5995,,,,tournament_event
+5936,,,,booking_generic
+5897,,,,booking_generic
+5901,193,ÇAGRI Turgut,high,exact
+5905,,,,match_generic
+5908,,,,staff
+5884,,,,match_generic
+5890,,,,staff
+5821,,,,staff
+5454,,,,tournament_event
+5457,682,Anastasiia Borodaienko,high,exact
+5438,,,,tournament_event
+5441,,,,tournament_event
+5448,,,,tournament_event
+5451,,,,match_generic
+5430,,,,tournament_event
+5433,,,,tournament_event
+4565,,,,staff
+5425,,,,unmatched
+5417,,,,event_block
+5422,,,,unmatched
+5400,,,,tournament_event
+5414,,,,event_block
+5411,,,,event_block
+5408,,,,event_block
+5396,,,,tournament_event
+5386,,,,unmatched
+5389,,,,unmatched
+5519,294,Zukhra Khaidarova,high,exact
+5831,,,,tournament_event
+5832,,,,tournament_event
+5845,,,,event_block
+5846,,,,event_block
+5847,,,,unmatched
+5713,,,,event_block
+5891,,,,match_generic
+5893,,,,staff
+5883,,,,match_generic
+5866,,,,training
+5851,,,,staff
+5910,38,Oleksandra Ilina,high,exact
+5899,,,,match_generic
+5902,,,,tournament_event
+5903,,,,booking_generic
+5889,,,,staff
+5907,,,,match_generic
+5919,,,,training
+5932,,,,match_generic
+5933,,,,match_generic
+5934,,,,match_generic
+5935,,,,booking_generic
+5945,,,,booking_generic
+5980,,,,booking_generic
+5981,,,,training
+5939,,,,tournament_event
+5940,,,,booking_generic
+5922,,,,match_generic
+5923,,,,booking_generic
+5927,,,,tournament_event
+5928,,,,unmatched
+5929,,,,tournament_event
+5896,,,,booking_generic
+5904,,,,match_generic
+5911,,,,match_generic
+5909,,,,match_generic
+5849,,,,match_generic
+5882,,,,match_generic
+5810,,,,staff
+5811,,,,staff
+5603,,,,tournament_event
+5607,,,,tournament_event
+5372,,,,tournament_event
+5373,,,,tournament_event
+5374,,,,booking_generic
+5375,,,,booking_generic
+5359,,,,tournament_event
+5342,,,,tournament_event
+5343,,,,tournament_event
+5344,,,,tournament_event
+5345,,,,tournament_event
+5318,,,,tournament_event
+5319,,,,tournament_event
+5320,,,,tournament_event
+5321,,,,tournament_event
+5880,,,,staff
+5881,,,,match_generic
+5894,,,,match_generic
+5895,,,,booking_generic
+5867,,,,training
+5900,44,Anna Kravchenko,high,exact
+5906,,,,booking_generic
+5898,,,,match_generic
+5918,,,,booking_generic
+5875,,,,tournament_event
+5876,,,,tournament_event
+5877,,,,tournament_event
+5878,,,,tournament_event
+5887,,,,tournament_event
+5888,,,,match_generic
+5803,,,,tournament_event
+5805,,,,tournament_event
+5806,,,,tournament_event
+5779,,,,tournament_event
+5830,,,,staff
+5781,,,,tournament_event
+5782,,,,staff
+5783,,,,staff
+5784,,,,staff
+5785,,,,tournament_event
+5786,,,,tournament_event
+5787,,,,tournament_event
+5259,,,,training
+5504,,,,tournament_event
+5505,,,,tournament_event
+5506,,,,tournament_event
+5507,,,,tournament_event
+5492,,,,tournament_event
+5493,,,,tournament_event
+5494,,,,tournament_event
+5495,,,,tournament_event
+5484,,,,tournament_event
+5485,,,,tournament_event
+4572,,,,staff
+5743,,,,event_block
+5744,,,,event_block
+5745,,,,event_block
+5746,,,,event_block
+5855,,,,unmatched
+5856,,,,tournament_event
+5857,,,,unmatched
+5858,,,,unmatched
+5859,,,,tournament_event
+5860,,,,unmatched
+5861,,,,unmatched
+5862,,,,booking_generic
+5863,,,,event_block
+5778,,,,staff
+5780,,,,staff
+5808,,,,staff
+5879,,,,booking_generic
+5870,,,,match_generic
+5871,68,Anton Taranenko,high,exact
+5872,68,Anton Taranenko,high,exact
+5873,,,,match_generic
+5874,,,,booking_generic
+5853,,,,booking_generic
+5854,,,,booking_generic
+5850,323,Erhan Kara,high,exact
+5844,,,,match_generic
+5869,,,,match_generic
+5836,414,Nur Kiliç,high,exact
+5837,414,Nur Kiliç,high,exact
+5838,,,,match_generic
+5864,,,,booking_generic
+5865,241,Maxim Kovalev,high,exact
+5842,,,,unmatched
+5476,,,,unmatched
+5477,,,,unmatched
+5460,,,,tournament_event
+5461,,,,tournament_event
+5462,,,,tournament_event
+5463,,,,tournament_event
+5229,,,,training
+5428,,,,tournament_event
+5429,,,,tournament_event
+5444,,,,tournament_event
+5445,682,Anastasiia Borodaienko,high,exact
+5446,,,,tournament_event
+5447,682,Anastasiia Borodaienko,high,exact
+5436,,,,tournament_event
+5437,,,,tournament_event
+4564,,,,staff
+5843,,,,booking_generic
+5835,,,,booking_generic
+5841,,,,booking_generic
+5833,,,,training
+5807,,,,training
+5801,38,Oleksandra Ilina,high,exact
+5816,,,,tournament_event
+5817,,,,tournament_event
+5776,,,,training
+5777,,,,match_generic
+5797,,,,empty
+5798,,,,empty
+5775,,,,match_generic
+5818,,,,booking_generic
+5819,,,,booking_generic
+5820,,,,match_generic
+5802,,,,match_generic
+5804,,,,match_generic
+5834,,,,booking_generic
+5839,,,,booking_generic
+5827,,,,booking_generic
+5828,,,,booking_generic
+5829,,,,match_generic
+5741,,,,event_block
+5742,,,,event_block
+5715,,,,tournament_event
+5728,,,,staff
+5712,,,,event_block
+5765,,,,match_generic
+5420,,,,unmatched
+5421,,,,unmatched
+5404,,,,event_block
+5405,,,,event_block
+5406,,,,event_block
+5407,,,,event_block
+5384,,,,unmatched
+5385,,,,unmatched
+5394,,,,tournament_event
+5395,,,,tournament_event
+5222,,,,booking_generic
+5366,,,,tournament_event
+5367,,,,tournament_event
+5368,,,,tournament_event
+5369,,,,tournament_event
+5370,682,Anastasiia Borodaienko,high,exact
+5371,682,Anastasiia Borodaienko,high,exact
+5601,,,,tournament_event
+5602,,,,tournament_event
+5766,788,Kubilay Orhan,high,exact
+5767,,,,training
+5768,,,,staff
+5769,,,,booking_generic
+5770,,,,booking_generic
+5771,,,,match_generic
+5752,,,,staff
+5753,,,,training
+5758,,,,booking_generic
+5759,,,,training
+5760,,,,staff
+5788,,,,booking_generic
+5789,,,,tournament_event
+5790,,,,booking_generic
+5791,,,,booking_generic
+5792,799,Onur Seyrek,high,exact
+5793,,,,tournament_event
+5794,,,,tournament_event
+5795,,,,tournament_event
+5796,,,,tournament_event
+5809,,,,booking_generic
+5812,,,,tournament_event
+5813,,,,tournament_event
+5814,,,,tournament_event
+5815,,,,tournament_event
+5773,35,Yurii Shef,high,exact
+5774,,,,match_generic
+5762,258,Olha test Test,high,exact
+5763,,,,booking_generic
+5799,,,,booking_generic
+5800,645,Mustafa Ari,high,exact
+5764,,,,booking_generic
+5755,,,,booking_generic
+5756,,,,match_generic
+5757,,,,staff
+5761,,,,booking_generic
+5749,,,,match_generic
+5750,,,,training
+5772,,,,booking_generic
+5738,,,,match_generic
+5739,,,,training
+5740,,,,training
+5731,,,,match_generic
+5734,,,,match_generic
+5310,,,,tournament_event
+5311,,,,tournament_event
+5312,,,,tournament_event
+5313,,,,tournament_event
+5314,,,,tournament_event
+5315,,,,tournament_event
+5316,,,,tournament_event
+5317,,,,tournament_event
+5338,,,,tournament_event
+5339,,,,tournament_event
+5340,,,,tournament_event
+5341,,,,tournament_event
+5358,,,,tournament_event
+5250,,,,training
+5261,,,,tournament_event
+5262,,,,tournament_event
+5263,,,,tournament_event
+5264,,,,tournament_event
+5265,,,,tournament_event
+5266,,,,tournament_event
+5267,,,,tournament_event
+5268,,,,tournament_event
+5269,,,,tournament_event
+5270,,,,tournament_event
+5271,,,,tournament_event
+5735,,,,booking_generic
+5736,,,,match_generic
+5737,,,,booking_generic
+5730,,,,booking_generic
+5747,,,,match_generic
+5748,,,,match_generic
+5751,,,,staff
+5754,,,,booking_generic
+5733,,,,booking_generic
+5732,,,,booking_generic
+5717,,,,booking_generic
+5718,9,Artem Ilin,high,exact
+5719,,,,match_generic
+5720,414,Nur Kiliç,high,exact
+5729,602,Mustafa Efe Bülbüller,high,exact
+5722,,,,match_generic
+5723,,,,match_generic
+5724,,,,unmatched
+5725,,,,staff
+5726,,,,staff
+5299,,,,tournament_event
+5300,,,,tournament_event
+5301,,,,event_block
+5302,,,,event_block
+5303,,,,event_block
+5304,,,,event_block
+5305,,,,unmatched
+5306,,,,unmatched
+5307,,,,unmatched
+5308,,,,unmatched
+5309,,,,unmatched
+5707,,,,unmatched
+5708,,,,unmatched
+5709,,,,unmatched
+5710,,,,unmatched
+5711,,,,tournament_event
+4571,,,,staff
+5260,,,,match_generic
+5254,,,,booking_generic
+5255,,,,booking_generic
+5256,,,,booking_generic
+5257,,,,booking_generic
+5289,,,,booking_generic
+5290,737,Andrey Mikh,high,exact
+5291,,,,match_generic
+5292,,,,match_generic
+5293,,,,match_generic
+5294,,,,match_generic
+5295,,,,training
+5296,,,,tournament_event
+5297,,,,tournament_event
+5298,,,,tournament_event
+5244,,,,staff
+5245,,,,staff
+5178,,,,training
+5179,,,,staff
+5727,,,,booking_generic
+5716,,,,training
+5721,,,,match_generic
+5706,777,Mert Bilgiç,high,exact
+5139,,,,maintenance
+5140,,,,maintenance
+5141,,,,maintenance
+5142,,,,maintenance
+4595,,,,unmatched
+4597,,,,unmatched
+4563,,,,staff
+4593,,,,unmatched
+4591,,,,unmatched
+4995,,,,unmatched
+4996,,,,unmatched
+4997,,,,tournament_event
+4998,,,,tournament_event
+5123,,,,booking_generic
+5124,,,,booking_generic
+5135,,,,maintenance
+5136,,,,maintenance
+5137,,,,maintenance
+5138,,,,maintenance
+5169,,,,match_generic
+5247,,,,staff
+5236,,,,match_generic
+5282,,,,match_generic
+5273,,,,match_generic
+5285,,,,match_generic
+5286,,,,match_generic
+5287,35,Yurii Shef,high,exact
+5288,16,Philip Dzu,high,exact
+5946,,,,maintenance
+5947,,,,maintenance
+5948,,,,maintenance
+5949,,,,maintenance
+5274,,,,match_generic
+5275,667,Mert Davas,high,exact
+5276,,,,tournament_event
+5277,,,,match_generic
+5278,,,,booking_generic
+5279,,,,match_generic
+5280,,,,booking_generic
+5281,,,,booking_generic
+5272,,,,unmatched
+5283,233,Maria Roslaya,high,exact
+5284,,,,staff
+5251,57,Kateryna Poplavko,high,exact
+5252,,,,booking_generic
+5223,,,,unmatched
+5224,,,,unmatched
+5225,,,,unmatched
+5226,,,,unmatched
+5227,,,,tournament_event
+5228,,,,tournament_event
+5175,,,,training
+5176,,,,staff
+4993,,,,tournament_event
+4994,,,,tournament_event
+4589,,,,booking_generic
+4587,,,,booking_generic
+2192,,,,match_generic
+4584,,,,unmatched
+4585,,,,unmatched
+4722,,,,tournament_event
+4723,,,,tournament_event
+4724,,,,tournament_event
+4725,,,,tournament_event
+4991,,,,tournament_event
+4992,,,,tournament_event
+5253,,,,booking_generic
+5258,,,,match_generic
+5243,,,,training
+5239,,,,booking_generic
+5213,,,,unmatched
+5214,,,,unmatched
+5204,,,,unmatched
+5205,,,,unmatched
+5206,682,Anastasiia Borodaienko,high,exact
+5207,682,Anastasiia Borodaienko,high,exact
+5208,,,,unmatched
+5209,,,,unmatched
+5210,,,,unmatched
+5185,390,Semion Pavlov,high,exact
+4935,,,,unmatched
+4936,,,,unmatched
+4937,,,,unmatched
+4938,,,,unmatched
+4931,,,,unmatched
+4932,,,,unmatched
+4933,,,,unmatched
+4934,,,,unmatched
+4988,,,,tournament_event
+4989,,,,tournament_event
+5100,,,,unmatched
+5101,,,,booking_generic
+5059,,,,staff
+5060,,,,training
+5061,,,,training
+5064,,,,staff
+4570,,,,staff
+5172,,,,training
+5211,,,,tournament_event
+5212,,,,tournament_event
+5184,,,,booking_generic
+5202,,,,tournament_event
+5203,,,,tournament_event
+5217,,,,booking_generic
+5218,,,,booking_generic
+5230,47,Sergey Kh,high,exact
+5231,,,,match_generic
+5232,,,,staff
+5233,,,,staff
+5241,,,,booking_generic
+5242,,,,booking_generic
+5237,,,,match_generic
+5238,,,,training
+5220,750,Liliya Akhmetova,high,exact
+5235,,,,match_generic
+5248,,,,training
+5249,394,nadir arabaci,high,exact
+5246,,,,unmatched
+5221,293,Ibrahim Koken,high,exact
+5234,,,,match_generic
+5219,31,Nikolas Kudryashov,high,exact
+5198,,,,training
+5180,,,,tournament_event
+5181,,,,tournament_event
+5182,,,,tournament_event
+5183,750,Liliya Akhmetova,high,exact
+5186,,,,booking_generic
+5187,,,,tournament_event
+5188,,,,tournament_event
+5189,,,,unmatched
+5190,,,,booking_generic
+5191,,,,booking_generic
+5192,,,,booking_generic
+5193,,,,booking_generic
+5194,,,,booking_generic
+5195,,,,booking_generic
+4581,294,Zukhra Khaidarova,high,exact
+5056,,,,staff
+5058,,,,training
+5106,31,Nikolas Kudryashov,high,exact
+5113,193,ÇAGRI Turgut,high,exact
+4982,,,,tournament_event
+4983,,,,tournament_event
+4984,,,,tournament_event
+4985,,,,tournament_event
+4986,,,,unmatched
+4987,,,,unmatched
+4979,,,,tournament_event
+4980,,,,tournament_event
+4981,,,,tournament_event
+5050,,,,training
+5055,,,,staff
+4974,,,,tournament_event
+4594,,,,unmatched
+4596,,,,unmatched
+4562,,,,staff
+5199,,,,tournament_event
+5200,,,,booking_generic
+5201,,,,booking_generic
+5171,323,Erhan Kara,high,exact
+5215,,,,match_generic
+5216,323,Erhan Kara,high,exact
+5197,,,,match_generic
+2798,193,ÇAGRI Turgut,high,exact
+5146,,,,tournament_event
+4590,,,,unmatched
+4592,,,,unmatched
+4580,294,Zukhra Khaidarova,high,exact
+4968,,,,tournament_event
+4969,,,,tournament_event
+4970,,,,unmatched
+4971,,,,unmatched
+4972,,,,unmatched
+4973,,,,unmatched
+4977,,,,unmatched
+4978,,,,unmatched
+5954,,,,maintenance
+5955,,,,maintenance
+5956,,,,maintenance
+5957,,,,maintenance
+5950,,,,maintenance
+5951,,,,maintenance
+5952,,,,maintenance
+5953,,,,maintenance
+5048,,,,training
+4966,,,,tournament_event
+4967,,,,tournament_event
+4586,,,,unmatched
+4588,,,,unmatched
+5173,,,,tournament_event
+5174,,,,tournament_event
+2191,,,,match_generic
+5177,,,,tournament_event
+5105,31,Nikolas Kudryashov,high,exact
+4582,,,,unmatched
+4583,,,,unmatched
+4718,,,,tournament_event
+4719,,,,tournament_event
+4720,,,,tournament_event
+4721,,,,tournament_event
+4964,,,,tournament_event
+4965,,,,tournament_event
+5041,,,,staff
+5958,,,,maintenance
+5959,,,,maintenance
+5960,,,,maintenance
+5961,,,,maintenance
+5962,,,,maintenance
+5963,,,,maintenance
+5964,,,,maintenance
+5965,,,,maintenance
+4824,,,,tournament_event
+4825,,,,tournament_event
+4826,,,,tournament_event
+4827,,,,tournament_event
+4828,,,,tournament_event
+4829,,,,tournament_event
+4830,,,,tournament_event
+4831,,,,tournament_event
+5170,,,,booking_generic
+5145,,,,match_generic
+5153,,,,match_generic
+5155,,,,booking_generic
+5156,,,,match_generic
+5157,,,,match_generic
+5159,652,Ahmet Cetinkaya,high,exact
+5160,652,Ahmet Cetinkaya,high,exact
+5161,94,Mehmet Göksu,high,exact
+5162,,,,match_generic
+5163,,,,match_generic
+5164,712,Ildar Abdullin,high,exact
+5165,,,,booking_generic
+5166,445,Caner Karakaya,high,exact
+5167,,,,booking_generic
+5168,,,,match_generic
+5147,308,Salih Arkin,high,exact
+5132,,,,tournament_event
+4822,,,,tournament_event
+4823,,,,tournament_event
+5051,,,,staff
+5052,,,,staff
+5053,,,,staff
+5054,,,,staff
+5049,,,,training
+5062,,,,match_generic
+5063,,,,match_generic
+5125,,,,booking_generic
+5126,,,,event_block
+5127,,,,tournament_event
+5128,,,,tournament_event
+5129,,,,tournament_event
+4569,,,,staff
+4579,,,,match_generic
+4814,,,,tournament_event
+4815,,,,tournament_event
+4816,,,,tournament_event
+4817,,,,tournament_event
+4818,,,,tournament_event
+4819,,,,tournament_event
+4820,,,,tournament_event
+4821,,,,tournament_event
+5130,,,,staff
+5131,,,,booking_generic
+5114,,,,training
+5115,,,,booking_generic
+5116,,,,tournament_event
+5117,,,,tournament_event
+5118,,,,tournament_event
+5119,,,,tournament_event
+5107,,,,match_generic
+5087,650,Ganna Moroz,high,exact
+5078,,,,booking_generic
+5085,,,,match_generic
+5012,,,,training
+4846,,,,staff
+4847,,,,training
+4942,258,Olha test Test,high,exact
+4943,258,Olha test Test,high,exact
+5133,,,,tournament_event
+5134,,,,match_generic
+5121,,,,booking_generic
+5148,,,,booking_generic
+5149,,,,tournament_event
+5150,,,,training
+5151,,,,booking_generic
+5152,,,,match_generic
+5158,,,,booking_generic
+5154,,,,booking_generic
+5143,141,Dilara Akbiyik,high,exact
+5144,323,Erhan Kara,high,exact
+5122,,,,booking_generic
+4945,,,,tournament_event
+4946,,,,tournament_event
+4848,,,,staff
+4849,,,,training
+4812,,,,tournament_event
+4813,,,,tournament_event
+5039,323,Erhan Kara,high,exact
+5079,,,,booking_generic
+5057,,,,unmatched
+5084,,,,match_generic
+5099,,,,training
+5094,,,,unmatched
+5095,,,,match_generic
+5108,694,Dmytro Kabanenko,high,exact
+5109,,,,booking_generic
+5110,,,,match_generic
+5111,,,,match_generic
+5112,323,Erhan Kara,high,exact
+5103,,,,match_generic
+5104,,,,match_generic
+5120,,,,match_generic
+4561,,,,staff
+4383,,,,booking_generic
+4384,,,,unmatched
+2797,193,ÇAGRI Turgut,high,exact
+4381,,,,booking_generic
+4382,,,,unmatched
+3676,,,,training
+4578,294,Zukhra Khaidarova,high,exact
+5102,323,Erhan Kara,high,exact
+5097,,,,booking_generic
+5098,,,,unmatched
+5088,,,,booking_generic
+5065,,,,staff
+5066,,,,booking_generic
+5080,,,,match_generic
+5081,455,fatma yaprakdal,high,exact
+5082,,,,unmatched
+5083,455,fatma yaprakdal,high,exact
+5073,,,,match_generic
+5074,,,,match_generic
+5086,,,,tournament_event
+5076,,,,booking_generic
+5077,293,Ibrahim Koken,high,exact
+5090,,,,unmatched
+5091,,,,match_generic
+5092,,,,booking_generic
+5093,509,Gurcan Pazarli,high,exact
+5029,,,,booking_generic
+5014,323,Erhan Kara,high,exact
+4844,,,,training
+4845,,,,training
+4947,,,,unmatched
+4948,,,,unmatched
+4949,,,,tournament_event
+4950,,,,tournament_event
+4940,,,,booking_generic
+4941,,,,booking_generic
+4975,,,,unmatched
+4976,,,,unmatched
+4842,,,,staff
+4843,,,,training
+5036,193,ÇAGRI Turgut,high,exact
+5043,,,,training
+5038,,,,match_generic
+5047,,,,match_generic
+5075,709,Mikhail Mironov,high,exact
+5067,,,,booking_generic
+5068,455,fatma yaprakdal,high,exact
+5069,,,,booking_generic
+5070,,,,match_generic
+5071,,,,match_generic
+5072,,,,booking_generic
+5089,,,,training
+4802,,,,tournament_event
+4803,,,,tournament_event
+4379,,,,booking_generic
+4380,,,,booking_generic
+2190,,,,match_generic
+4377,,,,unmatched
+4378,,,,unmatched
+4714,,,,tournament_event
+4715,,,,tournament_event
+4716,,,,tournament_event
+4717,,,,tournament_event
+5042,,,,match_generic
+5044,,,,booking_generic
+5045,,,,booking_generic
+5046,,,,booking_generic
+5037,,,,match_generic
+5040,,,,match_generic
+5033,,,,match_generic
+5034,,,,match_generic
+4840,,,,training
+4841,,,,training
+4951,,,,tournament_event
+4952,,,,tournament_event
+4959,323,Erhan Kara,high,exact
+5035,736,Ege Sarak,high,exact
+5030,636,Pars A. Hamitoglu,high,exact
+5031,,,,training
+5032,735,Baris Guzelbayir,high,exact
+5021,,,,training
+5025,712,Ildar Abdullin,high,exact
+5026,,,,match_generic
+5027,,,,match_generic
+4742,,,,tournament_event
+4743,,,,tournament_event
+4744,,,,tournament_event
+4745,,,,tournament_event
+4746,,,,tournament_event
+4747,,,,tournament_event
+4748,,,,tournament_event
+4749,,,,tournament_event
+4750,,,,unmatched
+4751,,,,unmatched
+4752,,,,unmatched
+4753,,,,unmatched
+4740,,,,tournament_event
+4741,,,,tournament_event
+4568,,,,staff
+5028,733,Danylo Rachek,high,exact
+5022,,,,match_generic
+5023,,,,booking_generic
+5024,,,,booking_generic
+5017,284,Nejat Dolanay,high,exact
+5018,,,,match_generic
+5019,,,,match_generic
+5020,,,,match_generic
+5001,323,Erhan Kara,high,exact
+5006,258,Olha test Test,high,exact
+5007,,,,booking_generic
+4925,480,Debora Chiafala,high,exact
+4919,,,,booking_generic
+4920,,,,booking_generic
+4838,,,,staff
+4839,,,,staff
+4863,,,,staff
+4864,,,,training
+4865,,,,event_block
+4866,,,,event_block
+4867,,,,event_block
+4868,,,,event_block
+4874,,,,unmatched
+4875,,,,training
+4872,,,,event_block
+4871,,,,unmatched
+4888,,,,match_generic
+4889,,,,staff
+4858,,,,training
+4859,,,,unmatched
+4860,,,,unmatched
+4861,,,,unmatched
+4862,,,,unmatched
+4869,,,,staff
+4835,,,,training
+4918,,,,match_generic
+4910,,,,match_generic
+4912,,,,match_generic
+4958,,,,booking_generic
+4939,345,Ramazan Irmak,high,exact
+5008,323,Erhan Kara,high,exact
+5009,,,,match_generic
+5010,,,,booking_generic
+5011,393,enes kilic,high,exact
+5002,667,Mert Davas,high,exact
+5003,,,,match_generic
+5004,,,,match_generic
+5005,,,,match_generic
+5013,,,,booking_generic
+4990,,,,training
+4999,,,,booking_generic
+5015,625,Sefa Oruk,high,exact
+5016,293,Ibrahim Koken,high,exact
+4577,,,,booking_generic
+4679,480,Debora Chiafala,high,exact
+4736,,,,tournament_event
+4737,,,,tournament_event
+4738,,,,tournament_event
+4739,,,,tournament_event
+4351,,,,match_generic
+4375,,,,booking_generic
+4376,,,,booking_generic
+4734,,,,tournament_event
+4735,,,,tournament_event
+4764,480,Debora Chiafala,high,exact
+4560,,,,staff
+5000,,,,booking_generic
+4953,,,,training
+4954,,,,training
+4955,,,,unmatched
+4956,293,Ibrahim Koken,high,exact
+4957,,,,match_generic
+4924,,,,match_generic
+4960,,,,match_generic
+4961,,,,booking_generic
+4962,,,,match_generic
+4963,569,Can Gürdal,high,exact
+4909,,,,match_generic
+4897,,,,match_generic
+4904,141,Dilara Akbiyik,high,exact
+4922,,,,match_generic
+4928,,,,match_generic
+4929,,,,booking_generic
+4833,,,,staff
+4834,,,,training
+4885,,,,booking_generic
+2796,,,,booking_generic
+4884,,,,booking_generic
+4879,109,edanur kavas,high,exact
+4870,,,,unmatched
+4836,,,,training
+4837,,,,training
+4930,,,,match_generic
+4926,,,,booking_generic
+4927,,,,match_generic
+4923,,,,match_generic
+4917,,,,booking_generic
+4915,345,Ramazan Irmak,high,exact
+4894,141,Dilara Akbiyik,high,exact
+4896,,,,match_generic
+4907,,,,match_generic
+4908,,,,match_generic
+4911,,,,match_generic
+4944,308,Salih Arkin,high,exact
+4576,,,,booking_generic
+4808,,,,unmatched
+4811,,,,unmatched
+4373,,,,booking_generic
+4374,,,,booking_generic
+4350,,,,match_generic
+3675,,,,training
+4349,,,,match_generic
+4371,,,,booking_generic
+4372,,,,booking_generic
+4809,,,,unmatched
+4810,,,,unmatched
+4806,,,,training
+4769,,,,staff
+4730,,,,tournament_event
+4731,,,,tournament_event
+4732,,,,event_block
+4733,,,,event_block
+4913,,,,booking_generic
+4914,,,,booking_generic
+4895,,,,booking_generic
+4905,,,,match_generic
+4906,,,,match_generic
+4898,193,ÇAGRI Turgut,high,exact
+4899,,,,match_generic
+4900,,,,tournament_event
+4901,,,,tournament_event
+4902,,,,tournament_event
+4903,,,,training
+4916,323,Erhan Kara,high,exact
+4921,707,User Test,high,exact
+4850,,,,tournament_event
+4851,,,,tournament_event
+4852,,,,tournament_event
+4853,,,,tournament_event
+4854,,,,tournament_event
+4855,,,,tournament_event
+4856,,,,tournament_event
+4857,,,,tournament_event
+4883,,,,booking_generic
+4893,,,,match_generic
+2189,,,,match_generic
+4886,,,,booking_generic
+4887,,,,staff
+4890,,,,match_generic
+4891,,,,booking_generic
+4892,,,,booking_generic
+4873,,,,booking_generic
+4880,,,,booking_generic
+4881,,,,match_generic
+4882,,,,booking_generic
+4876,,,,match_generic
+4877,,,,training
+4878,,,,match_generic
+4807,,,,match_generic
+4800,,,,match_generic
+4804,,,,training
+4805,,,,training
+4794,,,,match_generic
+5196,,,,tournament_event
+4365,,,,unmatched
+4366,,,,unmatched
+4224,,,,unmatched
+4225,,,,event_block
+4226,,,,event_block
+4227,,,,event_block
+3866,,,,tournament_event
+3867,,,,tournament_event
+3868,,,,tournament_event
+3869,,,,tournament_event
+3978,,,,tournament_event
+3979,,,,unmatched
+3980,,,,unmatched
+3981,,,,unmatched
+3994,,,,tournament_event
+3995,,,,unmatched
+3996,,,,unmatched
+3997,,,,unmatched
+4367,,,,unmatched
+4368,,,,unmatched
+4369,,,,unmatched
+4370,,,,unmatched
+4797,,,,booking_generic
+4832,109,edanur kavas,high,exact
+5966,,,,maintenance
+5967,,,,maintenance
+5968,,,,maintenance
+5969,,,,maintenance
+5970,,,,maintenance
+5971,,,,maintenance
+5972,,,,maintenance
+5973,,,,maintenance
+4758,,,,training
+4765,,,,match_generic
+4754,,,,training
+4755,,,,training
+4756,,,,training
+4711,,,,tournament_event
+4712,,,,tournament_event
+4684,,,,training
+4567,,,,staff
+4651,,,,training
+4652,,,,training
+3961,,,,empty
+3962,,,,unmatched
+3963,,,,unmatched
+3964,,,,unmatched
+3945,,,,tournament_event
+3946,,,,tournament_event
+3947,,,,tournament_event
+3948,,,,tournament_event
+4348,,,,match_generic
+3925,,,,tournament_event
+3926,,,,tournament_event
+3927,,,,tournament_event
+3928,,,,tournament_event
+4650,,,,training
+4575,294,Zukhra Khaidarova,high,exact
+4728,,,,match_generic
+4798,,,,unmatched
+4799,,,,match_generic
+4801,,,,training
+5974,,,,maintenance
+5975,,,,maintenance
+5976,,,,maintenance
+5977,,,,maintenance
+4768,,,,staff
+4795,,,,booking_generic
+4796,,,,training
+4785,,,,empty
+4786,,,,match_generic
+4787,,,,tournament_event
+4788,,,,tournament_event
+4789,,,,unmatched
+4790,,,,match_generic
+4791,308,Salih Arkin,high,exact
+4792,,,,match_generic
+4793,,,,match_generic
+4771,,,,match_generic
+4772,,,,unmatched
+4773,401,Daria Celik,high,exact
+4775,,,,match_generic
+4776,,,,match_generic
+4777,,,,match_generic
+4781,323,Erhan Kara,high,exact
+4782,,,,match_generic
+4783,,,,booking_generic
+4727,,,,match_generic
+4757,,,,staff
+4682,667,Mert Davas,high,exact
+4687,,,,empty
+4688,,,,empty
+4559,,,,staff
+4643,,,,training
+4644,,,,training
+4363,,,,booking_generic
+4364,,,,unmatched
+2795,193,ÇAGRI Turgut,high,exact
+4361,,,,booking_generic
+4362,,,,booking_generic
+4347,,,,match_generic
+3898,,,,unmatched
+3899,,,,unmatched
+3674,,,,training
+4676,401,Daria Celik,high,exact
+4677,401,Daria Celik,high,exact
+4681,,,,match_generic
+4671,106,Anna Tsiren,high,exact
+4672,106,Anna Tsiren,high,exact
+4648,,,,staff
+4649,,,,staff
+4574,,,,booking_generic
+4695,,,,booking_generic
+4690,,,,match_generic
+4713,,,,staff
+4699,,,,match_generic
+4710,109,edanur kavas,high,exact
+4729,,,,match_generic
+4726,,,,match_generic
+4784,,,,booking_generic
+4778,673,Emre Yan,high,exact
+4779,,,,booking_generic
+4780,272,Sercan Ayaz Bulut,high,exact
+4774,,,,match_generic
+4770,31,Nikolas Kudryashov,high,exact
+4766,,,,match_generic
+4760,,,,match_generic
+4761,,,,booking_generic
+4762,,,,match_generic
+4763,,,,match_generic
+4767,,,,staff
+4759,,,,booking_generic
+4703,57,Kateryna Poplavko,high,exact
+4704,,,,match_generic
+4706,,,,match_generic
+4708,,,,match_generic
+4709,,,,match_generic
+4691,,,,match_generic
+4697,,,,booking_generic
+4698,,,,match_generic
+4689,,,,match_generic
+4694,,,,booking_generic
+4661,,,,match_generic
+4678,,,,match_generic
+4647,,,,staff
+4645,,,,training
+3882,,,,tournament_event
+3883,,,,tournament_event
+4345,47,Sergey Kh,high,exact
+4346,,,,match_generic
+4359,,,,booking_generic
+4360,,,,booking_generic
+2188,,,,match_generic
+4357,,,,unmatched
+4358,,,,unmatched
+3862,,,,tournament_event
+3863,,,,tournament_event
+3864,,,,tournament_event
+3865,,,,tournament_event
+4660,,,,match_generic
+4641,,,,training
+4642,,,,staff
+4686,,,,match_generic
+4696,,,,booking_generic
+4692,,,,booking_generic
+4693,,,,booking_generic
+4707,,,,booking_generic
+4705,,,,booking_generic
+4700,,,,booking_generic
+4701,,,,training
+4702,293,Ibrahim Koken,high,exact
+4683,667,Mert Davas,high,exact
+4685,,,,training
+4680,,,,match_generic
+4640,,,,training
+4624,,,,training
+3974,,,,tournament_event
+3975,,,,unmatched
+3976,,,,unmatched
+3977,,,,unmatched
+4005,,,,unmatched
+4006,,,,unmatched
+3990,,,,tournament_event
+3991,,,,unmatched
+3992,,,,unmatched
+3993,,,,unmatched
+4220,,,,unmatched
+4221,,,,event_block
+4222,,,,event_block
+4223,,,,event_block
+3957,,,,unmatched
+3958,,,,unmatched
+3959,,,,unmatched
+3960,,,,unmatched
+4313,,,,tournament_event
+4314,,,,tournament_event
+4315,,,,unmatched
+4442,,,,training
+4610,,,,staff
+4611,,,,staff
+4612,,,,staff
+4613,,,,staff
+4618,,,,training
+4673,,,,match_generic
+4674,,,,match_generic
+4675,,,,match_generic
+4665,153,Mustafa emre Sezer,high,exact
+4666,,,,booking_generic
+4667,,,,match_generic
+4668,,,,booking_generic
+4669,35,Yurii Shef,high,exact
+4653,323,Erhan Kara,high,exact
+4598,,,,staff
+4553,,,,staff
+4566,,,,staff
+4551,,,,match_generic
+3306,,,,unmatched
+3307,,,,unmatched
+3308,,,,unmatched
+3309,,,,unmatched
+3298,,,,tournament_event
+3299,,,,tournament_event
+3300,,,,tournament_event
+3301,,,,tournament_event
+3302,,,,tournament_event
+3303,,,,tournament_event
+3304,,,,tournament_event
+3305,,,,tournament_event
+4550,294,Zukhra Khaidarova,high,exact
+4540,,,,training
+4662,,,,match_generic
+4663,293,Ibrahim Koken,high,exact
+4664,,,,match_generic
+4655,,,,booking_generic
+4656,,,,booking_generic
+4657,,,,match_generic
+4658,,,,match_generic
+4659,,,,match_generic
+4670,205,Arda Salman,high,exact
+4615,,,,staff
+4609,,,,training
+4617,,,,training
+4638,47,Sergey Kh,high,exact
+4646,,,,match_generic
+4441,,,,training
+4523,,,,match_generic
+4344,,,,match_generic
+4312,,,,training
+4025,,,,training
+3921,,,,tournament_event
+3922,,,,tournament_event
+3923,,,,tournament_event
+3924,,,,tournament_event
+3941,,,,tournament_event
+3942,,,,unmatched
+3943,,,,tournament_event
+3944,,,,tournament_event
+3908,,,,tournament_event
+3909,,,,tournament_event
+3910,,,,booking_generic
+3911,,,,booking_generic
+4024,,,,unmatched
+4048,,,,unmatched
+4330,,,,staff
+4517,,,,unmatched
+4518,,,,match_generic
+4519,,,,match_generic
+4470,,,,tournament_event
+4440,,,,training
+4639,308,Salih Arkin,high,exact
+4625,293,Ibrahim Koken,high,exact
+4626,,,,match_generic
+4627,293,Ibrahim Koken,high,exact
+4628,,,,booking_generic
+4629,,,,match_generic
+4630,,,,match_generic
+4631,,,,match_generic
+4632,,,,booking_generic
+4633,,,,training
+4634,,,,unmatched
+4635,,,,unmatched
+4636,,,,unmatched
+4637,,,,booking_generic
+4608,,,,training
+4616,,,,training
+4654,,,,booking_generic
+4603,675,Aurika Miro,high,exact
+3294,,,,unmatched
+3295,,,,unmatched
+3296,,,,unmatched
+3297,,,,unmatched
+2794,,,,booking_generic
+1958,,,,staff
+2119,47,Sergey Kh,high,exact
+3292,,,,tournament_event
+3293,,,,tournament_event
+4549,294,Zukhra Khaidarova,high,exact
+4544,,,,tournament_event
+4545,,,,unmatched
+4546,,,,unmatched
+4547,,,,unmatched
+4620,208,Dave,high,exact
+4621,208,Dave,high,exact
+4622,,,,match_generic
+4607,,,,training
+4614,,,,training
+4480,109,edanur kavas,high,exact
+4343,,,,match_generic
+3894,,,,unmatched
+3895,,,,unmatched
+3896,,,,unmatched
+3897,,,,unmatched
+3673,,,,training
+3880,,,,tournament_event
+3881,,,,tournament_event
+3888,,,,booking_generic
+3889,,,,booking_generic
+4342,,,,match_generic
+4329,,,,staff
+4311,,,,training
+4488,,,,event_block
+4489,,,,event_block
+4490,,,,event_block
+4047,,,,unmatched
+4022,,,,unmatched
+4023,,,,unmatched
+4623,645,Mustafa Ari,high,exact
+4619,47,Sergey Kh,high,exact
+4552,,,,tournament_event
+4539,,,,match_generic
+4543,,,,event_block
+4535,109,edanur kavas,high,exact
+4554,,,,booking_generic
+4555,,,,training
+4556,,,,booking_generic
+4558,109,edanur kavas,high,exact
+4604,,,,booking_generic
+4605,,,,match_generic
+4606,,,,training
+4600,,,,match_generic
+3288,,,,unmatched
+3289,,,,unmatched
+3290,,,,unmatched
+3291,,,,unmatched
+2186,,,,match_generic
+3284,,,,unmatched
+3285,,,,unmatched
+3286,,,,unmatched
+3287,,,,unmatched
+4601,552,Gurkan Yasak,high,exact
+4602,614,Turan Ersan,high,exact
+4599,674,Mert Kirman,high,exact
+4557,367,Fehmi Koç,high,exact
+4537,,,,match_generic
+4541,,,,unmatched
+4542,193,ÇAGRI Turgut,high,exact
+4548,393,enes kilic,high,exact
+4021,,,,unmatched
+4492,,,,booking_generic
+4484,,,,unmatched
+4485,,,,unmatched
+4486,,,,unmatched
+4487,,,,unmatched
+4520,,,,unmatched
+4521,109,edanur kavas,high,exact
+4522,,,,match_generic
+4527,109,edanur kavas,high,exact
+4509,,,,booking_generic
+4510,,,,booking_generic
+4511,,,,booking_generic
+4512,,,,booking_generic
+4437,,,,training
+4438,,,,training
+4390,,,,match_generic
+4307,,,,training
+4308,,,,training
+4309,,,,training
+4310,,,,training
+3874,,,,booking_generic
+3875,,,,unmatched
+3858,,,,tournament_event
+3859,,,,tournament_event
+3860,,,,tournament_event
+3861,,,,tournament_event
+4327,,,,training
+4419,,,,training
+4420,,,,training
+4421,,,,training
+4422,,,,training
+4423,,,,training
+4424,,,,training
+4425,,,,training
+4426,,,,training
+4513,,,,training
+4514,,,,training
+4504,631,Rustem Abdullin,high,exact
+4494,,,,training
+4499,,,,unmatched
+4528,,,,training
+4516,,,,booking_generic
+4531,,,,booking_generic
+4533,,,,training
+4534,,,,training
+4524,,,,training
+4525,,,,training
+4526,,,,match_generic
+3970,,,,tournament_event
+3971,,,,unmatched
+3972,,,,unmatched
+3973,,,,unmatched
+3986,,,,tournament_event
+3987,,,,unmatched
+3988,,,,unmatched
+3989,,,,unmatched
+4003,,,,unmatched
+4004,,,,unmatched
+4215,,,,unmatched
+4216,,,,event_block
+4217,,,,event_block
+4218,,,,event_block
+4538,667,Mert Davas,high,exact
+4536,,,,booking_generic
+4125,,,,training
+3953,,,,unmatched
+3954,,,,unmatched
+3955,,,,unmatched
+3956,,,,unmatched
+4532,323,Erhan Kara,high,exact
+4479,,,,match_generic
+4529,,,,booking_generic
+4500,,,,unmatched
+4501,,,,unmatched
+4502,487,Yusuf Evren,high,exact
+4503,,,,match_generic
+4495,,,,training
+4496,,,,staff
+4505,,,,training
+4506,323,Erhan Kara,high,exact
+4507,141,Dilara Akbiyik,high,exact
+4508,,,,match_generic
+4515,,,,booking_generic
+4473,323,Erhan Kara,high,exact
+4493,,,,match_generic
+4482,35,Yurii Shef,high,exact
+4491,569,Can Gürdal,high,exact
+4475,,,,training
+4462,,,,training
+4463,,,,training
+4464,,,,training
+4466,,,,booking_generic
+4388,,,,training
+4389,,,,match_generic
+4396,633,Baris Sivas,high,exact
+4402,,,,training
+4449,633,Baris Sivas,high,exact
+4450,633,Baris Sivas,high,exact
+4456,,,,training
+4458,,,,training
+4354,,,,training
+4295,,,,training
+4286,,,,staff
+4298,,,,tournament_event
+4299,,,,tournament_event
+4300,,,,unmatched
+4301,,,,unmatched
+4302,,,,unmatched
+4303,,,,unmatched
+4304,,,,unmatched
+4305,,,,training
+4306,,,,training
+3280,,,,unmatched
+3281,,,,unmatched
+3282,,,,unmatched
+3283,,,,unmatched
+1971,,,,training
+3272,,,,tournament_event
+3273,,,,tournament_event
+3274,,,,tournament_event
+3275,,,,tournament_event
+3276,,,,tournament_event
+3277,,,,tournament_event
+3278,,,,tournament_event
+3279,,,,tournament_event
+4297,,,,training
+4275,,,,training
+4326,,,,training
+4454,,,,training
+4455,,,,training
+4436,,,,training
+4416,,,,match_generic
+4417,,,,match_generic
+4467,,,,tournament_event
+4468,,,,tournament_event
+4469,,,,tournament_event
+4476,645,Mustafa Ari,high,exact
+4477,,,,tournament_event
+4478,109,edanur kavas,high,exact
+4472,227,Alaz Tas,high,exact
+4483,,,,booking_generic
+4474,,,,training
+4481,617,Murat Tunclar,high,exact
+4497,,,,training
+4498,552,Gurkan Yasak,high,exact
+4020,,,,training
+4124,,,,match_generic
+3937,,,,tournament_event
+3938,,,,unmatched
+3939,,,,tournament_event
+3940,,,,tournament_event
+3917,,,,tournament_event
+3918,,,,tournament_event
+3919,,,,tournament_event
+3920,,,,tournament_event
+3904,,,,tournament_event
+3905,,,,tournament_event
+3906,,,,unmatched
+3907,,,,unmatched
+4019,,,,unmatched
+4046,,,,training
+4471,552,Gurkan Yasak,high,exact
+4465,,,,match_generic
+4439,,,,match_generic
+4435,,,,training
+4446,,,,training
+4447,293,Ibrahim Koken,high,exact
+4448,293,Ibrahim Koken,high,exact
+4451,552,Gurkan Yasak,high,exact
+4452,,,,booking_generic
+4453,,,,unmatched
+4457,652,Ahmet Cetinkaya,high,exact
+4459,92,Dmitriy Hozha,high,exact
+4460,,,,training
+4461,,,,staff
+4401,,,,training
+4399,308,Salih Arkin,high,exact
+4387,,,,match_generic
+4392,,,,match_generic
+4393,,,,match_generic
+4404,,,,training
+4407,,,,training
+4410,152,Çerçiler Serhat,high,exact
+4341,,,,training
+4352,,,,training
+4353,,,,training
+4296,,,,training
+4294,,,,training
+3268,,,,unmatched
+3269,,,,unmatched
+3270,,,,unmatched
+3271,,,,unmatched
+2793,193,ÇAGRI Turgut,high,exact
+1957,,,,training
+2118,47,Sergey Kh,high,exact
+3266,,,,tournament_event
+3267,,,,tournament_event
+4276,,,,booking_generic
+4270,,,,training
+4333,,,,training
+4412,,,,training
+4408,19,Ivanna Rykova,high,exact
+4409,,,,match_generic
+4405,,,,match_generic
+4391,,,,match_generic
+4397,,,,training
+4415,,,,match_generic
+4443,345,Ramazan Irmak,high,exact
+4444,272,Sercan Ayaz Bulut,high,exact
+4445,,,,booking_generic
+4418,109,edanur kavas,high,exact
+4428,,,,match_generic
+4430,,,,match_generic
+4431,,,,training
+4432,193,ÇAGRI Turgut,high,exact
+4433,,,,booking_generic
+4434,573,VIKTORIYA BUGAYOVA,high,exact
+4123,,,,match_generic
+3892,,,,unmatched
+3893,,,,unmatched
+3672,,,,training
+3646,,,,booking_generic
+3647,,,,booking_generic
+3886,,,,booking_generic
+3887,,,,booking_generic
+3878,,,,tournament_event
+3879,,,,tournament_event
+4101,,,,training
+4232,,,,match_generic
+4197,,,,training
+4045,,,,training
+4017,,,,unmatched
+4018,,,,unmatched
+4429,193,ÇAGRI Turgut,high,exact
+4398,308,Salih Arkin,high,exact
+4400,,,,training
+4395,,,,booking_generic
+4356,109,edanur kavas,high,exact
+4406,,,,training
+4413,109,edanur kavas,high,exact
+4414,,,,booking_generic
+4411,152,Çerçiler Serhat,high,exact
+4427,,,,match_generic
+4339,,,,match_generic
+4340,,,,match_generic
+4335,,,,training
+4337,155,Valerii P,medium,substring
+4385,,,,match_generic
+4386,,,,match_generic
+4291,,,,training
+4292,,,,training
+4293,,,,match_generic
+3262,,,,unmatched
+3263,,,,unmatched
+3264,,,,unmatched
+3265,,,,unmatched
+2185,,,,match_generic
+3258,,,,unmatched
+3259,,,,unmatched
+3260,,,,unmatched
+3261,,,,unmatched
+4280,617,Murat Tunclar,high,exact
+4281,552,Gurkan Yasak,high,exact
+4282,,,,booking_generic
+4283,442,ali avci,high,exact
+4260,,,,training
+4261,,,,training
+4338,,,,match_generic
+4336,155,Valerii P,medium,substring
+4334,,,,booking_generic
+4323,109,edanur kavas,high,exact
+4318,,,,training
+4320,109,edanur kavas,high,exact
+4394,,,,unmatched
+4403,,,,booking_generic
+4016,,,,unmatched
+4193,,,,training
+3854,,,,tournament_event
+3855,,,,tournament_event
+3856,,,,tournament_event
+3857,,,,tournament_event
+3872,,,,booking_generic
+3873,,,,booking_generic
+4192,,,,training
+4212,,,,unmatched
+4135,,,,unmatched
+4073,,,,unmatched
+4074,,,,event_block
+4075,,,,event_block
+4076,,,,event_block
+3966,,,,unmatched
+3967,,,,unmatched
+3968,,,,unmatched
+3969,,,,unmatched
+4001,,,,unmatched
+4002,,,,unmatched
+3982,,,,unmatched
+3983,,,,unmatched
+3984,,,,unmatched
+3985,,,,unmatched
+4324,109,edanur kavas,high,exact
+4325,,,,booking_generic
+4322,268,Nataliia Nataliia,high,exact
+4331,152,Çerçiler Serhat,high,exact
+4332,,,,match_generic
+4328,615,Elvira Abdullina,high,exact
+4355,552,Gurkan Yasak,high,exact
+4271,,,,booking_generic
+4244,,,,match_generic
+4245,,,,match_generic
+4287,,,,unmatched
+4288,,,,event_block
+4289,,,,event_block
+4290,,,,event_block
+4284,,,,match_generic
+4285,569,Can Gürdal,high,exact
+4279,,,,training
+4316,,,,training
+4317,,,,unmatched
+4247,,,,match_generic
+4248,,,,match_generic
+4251,,,,training
+4255,,,,booking_generic
+4256,,,,match_generic
+4272,573,VIKTORIYA BUGAYOVA,high,exact
+4273,413,Baris kolotilin,high,exact
+4262,,,,unmatched
+4263,,,,unmatched
+4264,,,,unmatched
+4265,,,,unmatched
+4267,,,,training
+4269,,,,unmatched
+4321,523,Ibrahim Uzun,high,exact
+4319,,,,booking_generic
+3949,,,,unmatched
+3950,,,,unmatched
+3951,,,,unmatched
+3952,,,,unmatched
+4133,323,Erhan Kara,high,exact
+4153,,,,training
+4112,,,,training
+4113,,,,training
+4233,,,,training
+4234,,,,booking_generic
+4174,,,,tournament_event
+4175,,,,unmatched
+4181,,,,unmatched
+4182,,,,unmatched
+4183,,,,unmatched
+4184,,,,unmatched
+4185,,,,unmatched
+3353,,,,training
+3254,,,,unmatched
+3255,,,,unmatched
+3256,,,,unmatched
+3257,,,,unmatched
+1970,,,,unmatched
+3246,,,,tournament_event
+3247,,,,tournament_event
+3248,,,,tournament_event
+3249,,,,tournament_event
+3250,,,,tournament_event
+3251,,,,tournament_event
+3252,,,,tournament_event
+3253,,,,tournament_event
+3378,,,,match_generic
+3913,,,,tournament_event
+3914,,,,tournament_event
+3915,,,,tournament_event
+3916,,,,tournament_event
+3933,,,,unmatched
+3934,,,,unmatched
+3935,,,,tournament_event
+3936,,,,tournament_event
+4214,,,,unmatched
+4150,,,,training
+4012,,,,training
+4243,,,,match_generic
+4268,,,,training
+4266,573,VIKTORIYA BUGAYOVA,high,exact
+4274,141,Dilara Akbiyik,high,exact
+4277,624,Ibrahim Yuksek,high,exact
+4257,,,,booking_generic
+4258,,,,match_generic
+4259,,,,training
+4253,,,,match_generic
+4254,,,,match_generic
+4249,,,,training
+4241,,,,match_generic
+4242,,,,training
+4246,367,Fehmi Koç,high,exact
+4250,,,,match_generic
+4252,625,Sefa Oruk,high,exact
+4011,,,,unmatched
+4044,,,,unmatched
+4151,,,,training
+4211,,,,match_generic
+4229,,,,match_generic
+4230,,,,match_generic
+4231,308,Salih Arkin,high,exact
+4236,,,,training
+4237,,,,match_generic
+4238,,,,booking_generic
+4239,617,Murat Tunclar,high,exact
+4240,,,,training
+4207,,,,training
+4190,109,edanur kavas,high,exact
+4199,,,,unmatched
+4202,,,,match_generic
+3900,,,,unmatched
+3901,,,,unmatched
+3902,,,,booking_generic
+3903,,,,booking_generic
+3352,,,,training
+3242,,,,unmatched
+3243,,,,unmatched
+3244,,,,unmatched
+3245,,,,unmatched
+2792,193,ÇAGRI Turgut,high,exact
+1956,,,,unmatched
+2117,47,Sergey Kh,high,exact
+3240,,,,tournament_event
+3241,,,,tournament_event
+3377,,,,match_generic
+3890,,,,unmatched
+3891,,,,unmatched
+3644,,,,booking_generic
+3645,,,,booking_generic
+3671,,,,training
+4203,,,,booking_generic
+4204,,,,booking_generic
+4205,124,Konstantin Shpuniuk,high,exact
+4206,,,,match_generic
+4191,,,,training
+4173,,,,training
+4194,,,,match_generic
+4195,,,,training
+4196,,,,training
+4170,,,,match_generic
+4187,,,,training
+4208,,,,match_generic
+4209,315,Zafer Koç,high,exact
+4210,,,,booking_generic
+4213,,,,match_generic
+4201,,,,match_generic
+4219,35,Yurii Shef,high,exact
+4235,552,Gurkan Yasak,high,exact
+4228,614,Turan Ersan,high,exact
+4154,,,,booking_generic
+4155,,,,booking_generic
+4149,,,,training
+4015,,,,training
+4040,,,,unmatched
+4009,,,,unmatched
+4010,,,,unmatched
+4163,,,,match_generic
+4164,,,,training
+4130,,,,training
+4118,,,,training
+4100,,,,training
+4094,573,VIKTORIYA BUGAYOVA,high,exact
+4186,,,,match_generic
+4176,,,,unmatched
+4177,284,Nejat Dolanay,high,exact
+4178,,,,training
+4179,308,Salih Arkin,high,exact
+4180,,,,match_generic
+4161,,,,training
+4168,208,Dave,high,exact
+4169,,,,match_generic
+4189,592,Steingrímur Daði Kristjáonsson,high,exact
+4200,,,,booking_generic
+4198,197,Yagiz Kuru,high,exact
+3884,,,,booking_generic
+3885,,,,booking_generic
+3876,,,,tournament_event
+3877,,,,tournament_event
+3376,,,,match_generic
+3236,,,,unmatched
+3237,,,,unmatched
+3238,,,,unmatched
+3239,,,,unmatched
+2184,,,,match_generic
+3232,,,,unmatched
+3233,,,,unmatched
+3234,,,,unmatched
+3235,,,,unmatched
+3375,,,,match_generic
+3870,,,,booking_generic
+3871,,,,booking_generic
+3850,,,,tournament_event
+3851,,,,tournament_event
+3852,,,,tournament_event
+3853,,,,tournament_event
+4162,,,,unmatched
+4171,,,,match_generic
+4172,,,,training
+4091,,,,match_generic
+4106,,,,training
+4165,,,,match_generic
+4166,268,Nataliia Nataliia,high,exact
+4167,35,Yurii Shef,high,exact
+4158,596,Turan Can Beyazdag,high,exact
+4159,323,Erhan Kara,high,exact
+4160,,,,match_generic
+4008,,,,unmatched
+4014,,,,training
+4027,,,,unmatched
+4028,,,,unmatched
+4029,543,Anna Liubetska,high,exact
+4278,617,Murat Tunclar,high,exact
+4067,,,,tournament_event
+4068,,,,event_block
+4069,,,,event_block
+4070,,,,event_block
+4078,,,,unmatched
+4079,,,,event_block
+4152,590,Mustafa Kurt,high,exact
+4129,361,Ulunay Polat,high,exact
+4156,,,,training
+4157,,,,training
+4136,,,,unmatched
+4139,,,,booking_generic
+4140,,,,unmatched
+4141,,,,unmatched
+4142,,,,booking_generic
+4143,284,Nejat Dolanay,high,exact
+4144,392,El Mahdi Benmada,high,exact
+4145,,,,booking_generic
+4146,,,,match_generic
+4147,,,,match_generic
+4148,,,,booking_generic
+4089,570,Viktoriia Kovzal,high,exact
+4119,,,,booking_generic
+4121,509,Gurcan Pazarli,high,exact
+3839,,,,training
+3840,,,,unmatched
+3841,,,,tournament_event
+3842,,,,tournament_event
+3843,,,,tournament_event
+3798,514,Katerina Batarueva,high,exact
+3799,514,Katerina Batarueva,high,exact
+3800,514,Katerina Batarueva,high,exact
+3801,514,Katerina Batarueva,high,exact
+3638,,,,unmatched
+3639,,,,unmatched
+3640,,,,unmatched
+3641,,,,empty
+3642,,,,unmatched
+3599,,,,unmatched
+3600,,,,unmatched
+3601,,,,unmatched
+3602,,,,unmatched
+3351,,,,training
+3803,,,,training
+3784,,,,training
+3813,323,Erhan Kara,high,exact
+4122,,,,match_generic
+4120,,,,match_generic
+4126,,,,booking_generic
+4127,574,Ivan Shipilov,high,exact
+4128,308,Salih Arkin,high,exact
+4114,,,,training
+4115,,,,training
+4116,,,,unmatched
+4117,,,,training
+4108,,,,tournament_event
+4109,,,,tournament_event
+4110,,,,tournament_event
+4095,,,,match_generic
+4137,558,Roman Roman,high,exact
+4138,558,Roman Roman,high,exact
+4131,585,Ezgi Erkan,high,exact
+4132,,,,match_generic
+4134,,,,booking_generic
+4063,,,,training
+4033,,,,booking_generic
+3228,,,,unmatched
+3229,,,,unmatched
+3230,,,,unmatched
+3231,,,,unmatched
+1969,,,,unmatched
+3220,,,,tournament_event
+3221,,,,tournament_event
+3222,,,,tournament_event
+3223,,,,tournament_event
+3224,,,,tournament_event
+3225,,,,tournament_event
+3226,,,,tournament_event
+3227,,,,tournament_event
+4038,,,,training
+4082,,,,training
+4083,,,,unmatched
+3998,,,,training
+4097,,,,training
+4098,558,Roman Roman,high,exact
+4099,558,Roman Roman,high,exact
+4107,,,,tournament_event
+4102,,,,training
+4103,,,,training
+4104,576,Ayça Simsek,high,exact
+4105,,,,match_generic
+4111,,,,training
+3819,,,,training
+3844,,,,tournament_event
+3845,,,,tournament_event
+3846,,,,tournament_event
+3932,,,,tournament_event
+3790,,,,training
+3677,,,,training
+3678,,,,match_generic
+3374,,,,match_generic
+3605,,,,unmatched
+3606,,,,unmatched
+3607,,,,unmatched
+3608,,,,tournament_event
+3609,,,,tournament_event
+3610,,,,tournament_event
+3611,,,,tournament_event
+3603,,,,tournament_event
+3604,,,,tournament_event
+3499,,,,training
+3350,,,,training
+3789,,,,unmatched
+3802,294,Zukhra Khaidarova,high,exact
+3722,,,,training
+3768,,,,match_generic
+3930,,,,match_generic
+3827,176,Inna Stepanets,high,exact
+3830,176,Inna Stepanets,high,exact
+3816,,,,training
+3834,,,,booking_generic
+3835,,,,booking_generic
+3848,,,,training
+4081,,,,match_generic
+4096,227,Alaz Tas,high,exact
+4090,,,,training
+4092,,,,unmatched
+4093,,,,unmatched
+4188,,,,unmatched
+4084,,,,match_generic
+4085,92,Dmitriy Hozha,high,exact
+4087,89,Angelina Malchugina,high,exact
+4057,,,,unmatched
+4049,,,,unmatched
+4055,,,,match_generic
+4051,,,,booking_generic
+4052,,,,booking_generic
+4053,,,,booking_generic
+4039,,,,training
+4043,,,,unmatched
+3216,,,,unmatched
+3217,,,,unmatched
+3218,,,,unmatched
+3219,,,,unmatched
+2791,193,ÇAGRI Turgut,high,exact
+2928,,,,training
+1955,,,,unmatched
+2116,47,Sergey Kh,high,exact
+3212,,,,tournament_event
+3213,,,,tournament_event
+4042,484,Eugene M,high,exact
+4032,,,,unmatched
+4034,,,,match_generic
+4054,,,,match_generic
+4056,141,Dilara Akbiyik,high,exact
+4050,549,Anastasiia Khanova,high,exact
+4064,,,,unmatched
+4065,,,,unmatched
+4066,,,,match_generic
+4059,,,,match_generic
+4060,293,Ibrahim Koken,high,exact
+4061,293,Ibrahim Koken,high,exact
+4062,,,,training
+4080,20,Mikle Marchenko,high,exact
+4071,,,,match_generic
+4072,,,,match_generic
+4077,,,,match_generic
+4013,,,,training
+3836,,,,booking_generic
+3837,,,,booking_generic
+3806,92,Dmitriy Hozha,high,exact
+3818,,,,training
+3847,,,,training
+3781,511,Merve Nur Akman,high,exact
+3670,,,,training
+3720,,,,training
+3613,,,,tournament_event
+3614,,,,unmatched
+3615,,,,unmatched
+3618,,,,unmatched
+3619,,,,unmatched
+3636,,,,unmatched
+3637,,,,unmatched
+3597,,,,tournament_event
+3598,,,,tournament_event
+3373,,,,match_generic
+3719,,,,training
+3783,,,,training
+3796,,,,booking_generic
+3797,,,,booking_generic
+3787,,,,unmatched
+3788,,,,unmatched
+3748,92,Dmitriy Hozha,high,exact
+3811,,,,match_generic
+3820,,,,training
+3822,,,,training
+3823,,,,training
+3838,,,,training
+3849,,,,match_generic
+3931,389,yelyzaveta pashkova,high,exact
+3826,,,,booking_generic
+3929,,,,match_generic
+3999,413,Baris kolotilin,high,exact
+4000,,,,training
+3965,,,,match_generic
+4058,,,,unmatched
+4035,,,,unmatched
+4036,,,,unmatched
+4037,,,,booking_generic
+4041,360,Bahadir Ozturk,high,exact
+4030,20,Mikle Marchenko,high,exact
+4031,,,,unmatched
+4026,,,,booking_generic
+3207,,,,unmatched
+3208,,,,unmatched
+3209,,,,unmatched
+3210,,,,unmatched
+2187,,,,match_generic
+3202,,,,unmatched
+3203,,,,unmatched
+3204,,,,unmatched
+3205,,,,unmatched
+3912,,,,booking_generic
+3821,,,,unmatched
+3817,,,,booking_generic
+3805,92,Dmitriy Hozha,high,exact
+3815,,,,booking_generic
+3812,,,,training
+3825,,,,match_generic
+3828,,,,training
+3829,155,Valerii P,medium,substring
+3831,,,,match_generic
+3832,83,Igor Ishutin,high,exact
+3833,83,Igor Ishutin,high,exact
+3786,,,,unmatched
+3776,,,,match_generic
+3718,,,,training
+3699,,,,booking_generic
+3593,,,,tournament_event
+3594,,,,tournament_event
+3595,,,,tournament_event
+3596,,,,tournament_event
+3570,,,,training
+3630,,,,unmatched
+3631,,,,unmatched
+3632,,,,unmatched
+3633,,,,unmatched
+3535,,,,training
+3469,,,,unmatched
+3729,,,,unmatched
+3730,,,,unmatched
+3731,,,,unmatched
+3732,,,,unmatched
+3774,,,,training
+3775,,,,training
+3780,,,,booking_generic
+3793,,,,training
+3794,,,,unmatched
+3742,,,,training
+3743,,,,training
+3735,,,,unmatched
+3736,,,,unmatched
+3737,,,,unmatched
+3738,,,,unmatched
+3739,,,,training
+3757,,,,tournament_event
+3814,197,Yagiz Kuru,high,exact
+3807,518,Mehmet Altun,high,exact
+3808,390,Semion Pavlov,high,exact
+3809,519,Rasina Tasueva,high,exact
+3810,,,,match_generic
+3824,59,Dmitry Dmitry,high,exact
+3754,427,Kateryna Chereshnyuk,high,exact
+3747,92,Dmitriy Hozha,high,exact
+3769,,,,booking_generic
+3762,,,,training
+3745,,,,booking_generic
+3795,515,Alex betim,high,exact
+3791,,,,match_generic
+3792,,,,training
+3804,484,Eugene M,high,exact
+3785,,,,training
+3782,,,,training
+3778,,,,training
+3779,,,,booking_generic
+3772,,,,training
+3773,,,,training
+3349,,,,training
+3534,,,,training
+3626,,,,unmatched
+3627,,,,unmatched
+3628,,,,unmatched
+3629,,,,unmatched
+3198,,,,unmatched
+3199,,,,unmatched
+3200,,,,unmatched
+3201,,,,unmatched
+2294,47,Sergey Kh,high,exact
+1968,,,,unmatched
+2333,,,,unmatched
+2334,,,,unmatched
+2348,,,,unmatched
+2355,,,,unmatched
+3191,,,,tournament_event
+3192,,,,tournament_event
+3193,,,,tournament_event
+3194,,,,tournament_event
+3195,,,,tournament_event
+3196,,,,tournament_event
+3197,,,,tournament_event
+3623,,,,unmatched
+3624,,,,unmatched
+3625,,,,unmatched
+3531,,,,training
+3497,,,,training
+3473,,,,maintenance
+3474,,,,maintenance
+3475,,,,maintenance
+3476,,,,maintenance
+3459,,,,training
+3766,,,,unmatched
+3777,427,Kateryna Chereshnyuk,high,exact
+3750,92,Dmitriy Hozha,high,exact
+3752,,,,training
+3761,,,,training
+3755,,,,training
+3758,,,,training
+3759,92,Dmitriy Hozha,high,exact
+3716,,,,training
+3656,,,,tournament_event
+3657,,,,tournament_event
+3658,,,,tournament_event
+3659,,,,tournament_event
+3691,,,,tournament_event
+3715,,,,match_generic
+3733,,,,match_generic
+3724,,,,training
+3725,,,,match_generic
+3726,,,,training
+3727,166,Marcos Diaz Bajo,high,exact
+3700,341,Margarita Byshkova,high,exact
+3694,,,,training
+3695,,,,training
+3696,,,,unmatched
+3697,,,,booking_generic
+3698,413,Baris kolotilin,high,exact
+3703,,,,tournament_event
+3704,,,,training
+3760,484,Eugene M,high,exact
+3756,,,,training
+3763,,,,training
+3764,,,,booking_generic
+3765,,,,booking_generic
+3770,,,,training
+3771,,,,booking_generic
+3753,,,,match_generic
+3751,,,,booking_generic
+3746,,,,match_generic
+3749,,,,booking_generic
+3740,413,Baris kolotilin,high,exact
+3767,,,,match_generic
+3348,,,,training
+3400,,,,unmatched
+3496,,,,training
+3648,,,,training
+3621,,,,tournament_event
+3622,,,,tournament_event
+3572,,,,training
+3186,,,,unmatched
+3187,,,,unmatched
+3188,,,,unmatched
+3189,,,,unmatched
+3190,,,,unmatched
+2790,193,ÇAGRI Turgut,high,exact
+2363,,,,training
+2378,,,,training
+2424,,,,unmatched
+2425,,,,unmatched
+2426,,,,booking_generic
+2427,,,,booking_generic
+1954,,,,unmatched
+2115,47,Sergey Kh,high,exact
+1648,,,,training
+2420,,,,booking_generic
+2421,,,,booking_generic
+2422,,,,unmatched
+2423,,,,unmatched
+3214,,,,tournament_event
+3215,,,,tournament_event
+3567,,,,booking_generic
+3579,,,,booking_generic
+3580,,,,booking_generic
+3581,,,,training
+3588,,,,booking_generic
+3589,284,Nejat Dolanay,high,exact
+3616,,,,unmatched
+3617,,,,unmatched
+3643,,,,tournament_event
+3634,,,,tournament_event
+3635,,,,event_block
+3495,,,,training
+3542,,,,training
+3399,,,,unmatched
+3741,,,,match_generic
+3744,,,,booking_generic
+3723,210,Yevhenii Shynkar,high,exact
+3710,,,,match_generic
+3711,,,,maintenance
+3712,,,,maintenance
+3713,,,,maintenance
+3714,,,,maintenance
+3701,,,,training
+3702,,,,training
+3728,,,,match_generic
+3734,,,,match_generic
+3693,,,,match_generic
+3717,70,Eduard Ivanov,high,exact
+3721,,,,match_generic
+3688,,,,tournament_event
+3689,,,,unmatched
+3683,,,,tournament_event
+3679,,,,training
+3680,40,Chingis First,high,exact
+3681,,,,tournament_event
+3682,,,,tournament_event
+3684,,,,tournament_event
+3685,45,Zafer Kuscu,high,exact
+3686,,,,tournament_event
+3687,10,Alex Kozynskyi,high,exact
+3690,,,,match_generic
+3692,,,,unmatched
+3660,,,,match_generic
+3661,,,,match_generic
+3662,,,,tournament_event
+3663,,,,training
+3664,,,,booking_generic
+3665,,,,unmatched
+3666,,,,unmatched
+3667,413,Baris kolotilin,high,exact
+3668,,,,match_generic
+3669,341,Margarita Byshkova,high,exact
+3653,,,,training
+3654,413,Baris kolotilin,high,exact
+3655,413,Baris kolotilin,high,exact
+3650,,,,training
+3705,139,Gizemnur Kerim,high,exact
+3706,,,,training
+3707,,,,training
+3708,,,,training
+3709,109,edanur kavas,high,exact
+3398,,,,unmatched
+3387,,,,match_generic
+3372,,,,match_generic
+3452,,,,training
+3533,,,,match_generic
+3564,,,,training
+3560,,,,training
+3620,,,,tournament_event
+3585,,,,tournament_event
+3586,,,,tournament_event
+3573,,,,match_generic
+3574,255,Umur Akman,high,exact
+3575,,,,booking_generic
+3576,,,,booking_generic
+3591,,,,match_generic
+3183,,,,tournament_event
+3184,,,,tournament_event
+3185,,,,tournament_event
+2418,,,,unmatched
+2419,,,,unmatched
+2384,,,,unmatched
+2354,,,,unmatched
+2347,,,,unmatched
+2183,,,,match_generic
+1647,,,,training
+2293,47,Sergey Kh,high,exact
+2362,,,,training
+2377,,,,training
+3181,,,,unmatched
+3182,,,,unmatched
+3106,,,,unmatched
+3104,,,,unmatched
+3592,,,,match_generic
+3612,315,Zafer Koç,high,exact
+3577,,,,booking_generic
+3578,,,,training
+3568,,,,booking_generic
+3569,70,Eduard Ivanov,high,exact
+3571,,,,match_generic
+3587,,,,match_generic
+3590,,,,booking_generic
+3582,,,,match_generic
+3583,,,,match_generic
+3584,172,Yaroslav Maibenko,high,exact
+3649,227,Alaz Tas,high,exact
+3566,78,Gio G,high,exact
+3556,,,,match_generic
+3558,,,,training
+3532,227,Alaz Tas,high,exact
+3543,,,,training
+3540,,,,unmatched
+3545,,,,match_generic
+3506,,,,booking_generic
+3510,,,,training
+3511,,,,training
+3492,,,,match_generic
+3347,,,,training
+3385,,,,match_generic
+3386,,,,match_generic
+3651,308,Salih Arkin,high,exact
+3652,,,,booking_generic
+3484,,,,tournament_event
+3485,,,,tournament_event
+3486,,,,tournament_event
+3487,,,,tournament_event
+3470,,,,booking_generic
+3450,,,,training
+3430,43,Anastasiia Ivanov,high,exact
+3517,,,,unmatched
+3518,,,,unmatched
+3519,,,,unmatched
+3520,,,,training
+3521,,,,training
+3504,,,,tournament_event
+3515,141,Dilara Akbiyik,high,exact
+3541,,,,match_generic
+3538,,,,booking_generic
+3559,227,Alaz Tas,high,exact
+3557,,,,match_generic
+3552,392,El Mahdi Benmada,high,exact
+3553,469,Kubilay Yilmaz,high,exact
+3554,,,,match_generic
+3555,,,,booking_generic
+3565,78,Gio G,high,exact
+3561,,,,tournament_event
+3562,,,,event_block
+3563,,,,event_block
+3139,,,,training
+3137,,,,training
+3163,227,Alaz Tas,high,exact
+3177,,,,unmatched
+3178,,,,unmatched
+3179,,,,unmatched
+3180,,,,unmatched
+3314,,,,booking_generic
+3344,,,,training
+2292,47,Sergey Kh,high,exact
+1967,,,,unmatched
+3539,,,,match_generic
+3536,,,,booking_generic
+3537,171,Albert Li,high,exact
+3514,,,,booking_generic
+3544,,,,booking_generic
+3546,,,,booking_generic
+3547,,,,booking_generic
+3548,139,Gizemnur Kerim,high,exact
+3549,,,,booking_generic
+3550,139,Gizemnur Kerim,high,exact
+3551,139,Gizemnur Kerim,high,exact
+3516,,,,booking_generic
+3505,141,Dilara Akbiyik,high,exact
+3528,,,,match_generic
+3529,,,,unmatched
+3530,,,,match_generic
+3522,,,,match_generic
+3507,,,,booking_generic
+3508,,,,booking_generic
+3509,,,,training
+3500,,,,unmatched
+3501,,,,unmatched
+3502,,,,unmatched
+3503,,,,unmatched
+3453,,,,training
+3438,,,,training
+3493,,,,training
+3494,,,,match_generic
+3479,437,Francesco Gammarota,high,exact
+3480,,,,match_generic
+3393,94,Mehmet Göksu,high,exact
+3394,94,Mehmet Göksu,high,exact
+3358,,,,training
+3371,,,,match_generic
+3481,,,,tournament_event
+3482,,,,tournament_event
+3483,179,Rüzgar Deniz,high,exact
+3468,,,,training
+3488,,,,tournament_event
+3489,,,,tournament_event
+3490,,,,tournament_event
+3491,,,,tournament_event
+3471,177,Baur,high,exact
+3472,177,Baur,high,exact
+3442,227,Alaz Tas,high,exact
+3445,,,,unmatched
+3446,,,,booking_generic
+3455,166,Marcos Diaz Bajo,high,exact
+3456,,,,match_generic
+3431,,,,unmatched
+3428,,,,training
+3435,,,,unmatched
+3436,,,,unmatched
+3437,,,,unmatched
+3424,,,,training
+3425,,,,training
+3426,,,,training
+3498,,,,match_generic
+3512,,,,booking_generic
+3513,,,,booking_generic
+2353,,,,unmatched
+2346,,,,unmatched
+3174,,,,tournament_event
+3175,,,,tournament_event
+3176,,,,tournament_event
+3156,,,,tournament_event
+3157,,,,tournament_event
+3158,,,,tournament_event
+3159,,,,tournament_event
+3138,,,,training
+3169,,,,unmatched
+3170,,,,unmatched
+3171,,,,unmatched
+3172,,,,unmatched
+3173,,,,unmatched
+3346,,,,unmatched
+2789,322,Ercan Kolay,high,exact
+2987,,,,match_generic
+2360,,,,training
+2376,,,,training
+2414,,,,unmatched
+2415,,,,unmatched
+2416,,,,unmatched
+2417,,,,unmatched
+2291,,,,training
+1953,,,,unmatched
+2114,47,Sergey Kh,high,exact
+360,,,,match_generic
+3526,,,,unmatched
+3527,,,,tournament_event
+3420,403,Evgeni Bb,high,exact
+3457,,,,unmatched
+3458,,,,booking_generic
+3454,,,,training
+3451,40,Chingis First,high,exact
+3447,,,,booking_generic
+3448,38,Oleksandra Ilina,high,exact
+3449,,,,booking_generic
+3443,,,,booking_generic
+3444,,,,match_generic
+3460,,,,booking_generic
+3441,,,,booking_generic
+3465,,,,booking_generic
+3466,,,,booking_generic
+3467,,,,training
+3389,,,,booking_generic
+3390,,,,booking_generic
+3416,,,,match_generic
+3418,,,,tournament_event
+3419,,,,tournament_event
+3412,,,,unmatched
+3413,,,,match_generic
+3401,,,,training
+3403,,,,tournament_event
+3404,,,,tournament_event
+3406,,,,match_generic
+3407,,,,unmatched
+3408,,,,unmatched
+3409,,,,unmatched
+3410,,,,unmatched
+3391,,,,training
+3384,,,,training
+3397,403,Evgeni Bb,high,exact
+3370,,,,match_generic
+3382,,,,training
+3439,424,Dzmitry Lisouski,high,exact
+3440,,,,match_generic
+3421,,,,unmatched
+3422,,,,booking_generic
+3423,,,,booking_generic
+3427,427,Kateryna Chereshnyuk,high,exact
+3429,,,,booking_generic
+3432,,,,training
+3433,,,,match_generic
+3434,350,Oleksandr Sydorenko,high,exact
+2410,,,,booking_generic
+2411,,,,booking_generic
+2412,,,,unmatched
+2413,,,,unmatched
+2561,,,,unmatched
+3343,,,,unmatched
+3144,,,,training
+3167,,,,tournament_event
+3168,,,,tournament_event
+3099,,,,training
+3097,,,,training
+3149,,,,booking_generic
+3164,,,,tournament_event
+3165,,,,tournament_event
+3166,,,,unmatched
+3345,,,,unmatched
+3315,,,,tournament_event
+3342,,,,unmatched
+2960,,,,booking_generic
+2961,,,,booking_generic
+2824,,,,training
+2825,,,,unmatched
+2826,,,,booking_generic
+2576,,,,unmatched
+2408,,,,unmatched
+2409,,,,unmatched
+2383,,,,unmatched
+2345,,,,unmatched
+2352,,,,unmatched
+2285,,,,training
+2182,,,,match_generic
+3381,,,,match_generic
+3357,,,,training
+3363,,,,booking_generic
+3354,,,,unmatched
+3395,406,Anton Safrostin,high,exact
+3411,,,,booking_generic
+3405,410,Efe Özbayrak,high,exact
+3402,141,Dilara Akbiyik,high,exact
+3414,,,,booking_generic
+3415,,,,training
+3417,415,Malik Azarsanov,high,exact
+3523,,,,unmatched
+3524,,,,tournament_event
+3525,,,,tournament_event
+3396,,,,booking_generic
+3392,141,Dilara Akbiyik,high,exact
+3388,,,,match_generic
+3364,,,,training
+3365,,,,training
+3366,,,,match_generic
+3367,,,,match_generic
+3368,,,,training
+3383,,,,booking_generic
+3379,,,,match_generic
+3380,,,,match_generic
+3461,,,,unmatched
+2284,,,,training
+2290,,,,training
+2375,,,,training
+2357,,,,training
+2933,,,,training
+3336,,,,match_generic
+3337,,,,match_generic
+3338,43,Anastasiia Ivanov,high,exact
+3103,,,,unmatched
+3105,,,,unmatched
+3082,,,,match_generic
+3086,293,Ibrahim Koken,high,exact
+3070,,,,training
+3061,,,,tournament_event
+3127,,,,booking_generic
+3128,,,,booking_generic
+3100,,,,unmatched
+3119,,,,unmatched
+3147,,,,training
+3140,70,Eduard Ivanov,high,exact
+3160,,,,training
+3151,,,,match_generic
+3206,,,,training
+3211,,,,training
+3339,,,,booking_generic
+3340,,,,tournament_event
+3341,70,Eduard Ivanov,high,exact
+3329,,,,booking_generic
+3330,,,,match_generic
+3331,,,,tournament_event
+3332,,,,match_generic
+3333,227,Alaz Tas,high,exact
+3334,,,,booking_generic
+3335,20,Mikle Marchenko,high,exact
+3310,,,,match_generic
+3311,,,,tournament_event
+3312,,,,tournament_event
+3313,,,,tournament_event
+3317,,,,training
+3318,,,,training
+3319,,,,booking_generic
+3320,,,,match_generic
+3321,139,Gizemnur Kerim,high,exact
+3322,,,,tournament_event
+3323,,,,empty
+3324,,,,empty
+3003,,,,training
+3045,,,,training
+2283,,,,training
+3369,,,,booking_generic
+3359,,,,tournament_event
+3360,141,Dilara Akbiyik,high,exact
+3361,,,,booking_generic
+3362,322,Ercan Kolay,high,exact
+3355,,,,tournament_event
+3356,,,,tournament_event
+2289,,,,training
+2315,,,,unmatched
+2282,,,,training
+3033,,,,unmatched
+3035,,,,training
+3036,,,,match_generic
+3016,,,,unmatched
+3017,,,,unmatched
+3018,,,,unmatched
+3019,,,,unmatched
+3020,,,,unmatched
+2970,,,,training
+3325,83,Igor Ishutin,high,exact
+3326,227,Alaz Tas,high,exact
+3327,74,Salih sedat Soysal,high,exact
+3328,227,Alaz Tas,high,exact
+3155,139,Gizemnur Kerim,high,exact
+3316,,,,training
+3152,45,Zafer Kuscu,high,exact
+3153,,,,booking_generic
+3150,,,,match_generic
+3133,25,Volodymyr Tsiren,high,exact
+3134,,,,match_generic
+3145,,,,training
+3143,99,Yaroslava Skoryk,high,exact
+3130,,,,training
+3125,,,,booking_generic
+3094,,,,unmatched
+3107,,,,unmatched
+3108,,,,unmatched
+3109,,,,unmatched
+3067,,,,training
+3063,,,,match_generic
+3050,,,,unmatched
+3051,,,,unmatched
+3052,,,,unmatched
+3053,,,,unmatched
+3054,,,,match_generic
+3055,,,,match_generic
+3084,,,,booking_generic
+1966,,,,unmatched
+3085,,,,empty
+3056,,,,tournament_event
+3064,,,,tournament_event
+3062,,,,match_generic
+3110,,,,tournament_event
+3111,,,,tournament_event
+3112,,,,tournament_event
+3113,,,,tournament_event
+3114,,,,tournament_event
+3115,,,,tournament_event
+3116,,,,tournament_event
+3117,,,,tournament_event
+3095,,,,match_generic
+3096,,,,match_generic
+3098,,,,unmatched
+3091,,,,tournament_event
+3092,,,,booking_generic
+3131,13,Regina Kvitkova,high,exact
+3132,,,,booking_generic
+3101,,,,unmatched
+3102,,,,unmatched
+3146,255,Umur Akman,high,exact
+3148,,,,booking_generic
+3135,,,,match_generic
+3136,281,Trond Stadheim,high,exact
+3141,,,,booking_generic
+3154,,,,booking_generic
+3161,227,Alaz Tas,high,exact
+3162,,,,booking_generic
+3021,,,,unmatched
+3022,,,,unmatched
+3023,,,,unmatched
+3024,,,,unmatched
+3025,,,,unmatched
+3026,,,,unmatched
+3027,,,,unmatched
+3028,,,,tournament_event
+3048,98,Demid Hrytsun,high,exact
+3049,98,Demid Hrytsun,high,exact
+3043,,,,tournament_event
+3011,,,,unmatched
+2884,,,,training
+2281,,,,training
+2351,,,,unmatched
+2344,,,,unmatched
+2441,,,,unmatched
+2651,,,,unmatched
+2652,,,,booking_generic
+3477,,,,tournament_event
+3478,,,,tournament_event
+2404,,,,booking_generic
+2405,,,,booking_generic
+2406,,,,booking_generic
+2407,,,,booking_generic
+2359,,,,training
+2374,,,,training
+2279,,,,training
+2280,,,,training
+2314,,,,training
+2883,,,,training
+2892,,,,match_generic
+2867,,,,training
+2868,,,,training
+2788,,,,booking_generic
+3006,,,,booking_generic
+2999,,,,training
+3001,,,,training
+2990,,,,training
+3040,,,,unmatched
+3029,,,,unmatched
+3030,,,,unmatched
+3120,,,,match_generic
+3121,,,,booking_generic
+3122,,,,match_generic
+3123,,,,tournament_event
+3124,,,,training
+3129,195,Lisna Tetiana,high,exact
+3126,,,,match_generic
+3093,,,,match_generic
+3090,,,,booking_generic
+3118,10,Alex Kozynskyi,high,exact
+3068,,,,booking_generic
+3069,297,Anastasiya Kukchanka,high,exact
+3065,70,Eduard Ivanov,high,exact
+3066,,,,training
+3083,43,Anastasiia Ivanov,high,exact
+3088,,,,training
+3079,10,Alex Kozynskyi,high,exact
+3072,,,,training
+3073,,,,unmatched
+1952,,,,unmatched
+2113,47,Sergey Kh,high,exact
+1646,,,,training
+3074,,,,training
+3075,,,,training
+3076,290,Ahmet Ciyer,high,exact
+3077,,,,booking_generic
+3078,,,,training
+3080,141,Dilara Akbiyik,high,exact
+3081,,,,match_generic
+3071,301,Ramzi Safuri,high,exact
+3089,,,,training
+3087,,,,booking_generic
+3057,,,,match_generic
+3058,,,,booking_generic
+3060,,,,booking_generic
+3041,,,,match_generic
+3042,,,,match_generic
+3046,,,,booking_generic
+3047,,,,match_generic
+3038,,,,tournament_event
+3039,,,,match_generic
+3034,,,,training
+2978,,,,match_generic
+2974,49,Oleksandr Hrebeniuk,high,exact
+2943,,,,tournament_event
+2944,,,,tournament_event
+2945,,,,training
+2946,,,,training
+2924,,,,training
+2925,,,,training
+2916,139,Gizemnur Kerim,high,exact
+2769,,,,unmatched
+2882,,,,training
+2401,,,,unmatched
+2402,,,,unmatched
+2403,,,,unmatched
+2560,,,,unmatched
+2481,,,,training
+2575,,,,unmatched
+2399,,,,unmatched
+2400,,,,unmatched
+2439,,,,unmatched
+2440,,,,training
+2382,,,,unmatched
+2343,,,,unmatched
+2350,,,,unmatched
+2278,,,,training
+2181,,,,match_generic
+2780,,,,training
+2816,,,,training
+2922,,,,unmatched
+2923,,,,training
+2931,,,,training
+2936,,,,booking_generic
+2937,,,,booking_generic
+2938,,,,unmatched
+2939,,,,unmatched
+2940,,,,unmatched
+2941,,,,unmatched
+2942,,,,unmatched
+2976,,,,match_generic
+2982,,,,match_generic
+2983,,,,unmatched
+2985,,,,training
+2991,,,,training
+2989,,,,training
+3002,,,,training
+3000,,,,unmatched
+2994,158,Aleksandr Grishin,high,exact
+2995,,,,match_generic
+3008,,,,booking_generic
+3009,,,,booking_generic
+3010,,,,match_generic
+3012,,,,booking_generic
+3013,141,Dilara Akbiyik,high,exact
+3014,,,,booking_generic
+3015,280,Franziska Schmitz,high,exact
+3037,204,Kemal Demir,high,exact
+3044,139,Gizemnur Kerim,high,exact
+3031,,,,match_generic
+3032,,,,match_generic
+1645,,,,training
+4007,,,,training
+3004,,,,match_generic
+3005,,,,match_generic
+2996,,,,training
+2997,,,,match_generic
+2998,,,,training
+2988,,,,booking_generic
+2992,,,,booking_generic
+2993,,,,match_generic
+2986,,,,booking_generic
+2984,,,,training
+2979,,,,training
+2980,,,,match_generic
+2981,,,,match_generic
+2977,,,,match_generic
+2975,,,,training
+2972,139,Gizemnur Kerim,high,exact
+2973,,,,match_generic
+2947,,,,training
+2957,,,,match_generic
+2949,40,Chingis First,high,exact
+2926,,,,training
+2806,,,,training
+2855,,,,training
+2277,,,,training
+2313,,,,training
+2288,,,,training
+2373,,,,training
+2358,,,,training
+2480,,,,training
+2671,,,,unmatched
+2720,,,,unmatched
+2586,,,,training
+2548,,,,training
+2276,,,,training
+2858,,,,booking_generic
+2860,,,,booking_generic
+2847,,,,booking_generic
+2848,,,,booking_generic
+2849,258,Olha test Test,high,exact
+2850,,,,booking_generic
+2851,,,,booking_generic
+2852,,,,booking_generic
+2853,,,,booking_generic
+2888,258,Olha test Test,high,exact
+2862,258,Olha test Test,high,exact
+2863,,,,booking_generic
+2865,255,Umur Akman,high,exact
+2866,255,Umur Akman,high,exact
+2872,,,,match_generic
+2754,,,,unmatched
+2755,,,,unmatched
+2756,,,,unmatched
+2757,,,,unmatched
+2927,167,BURAK ÖNER,high,exact
+2918,,,,match_generic
+2919,,,,training
+2913,,,,training
+2914,,,,match_generic
+2915,,,,match_generic
+2908,,,,booking_generic
+2909,68,Anton Taranenko,high,exact
+2910,,,,match_generic
+2911,139,Gizemnur Kerim,high,exact
+2903,47,Sergey Kh,high,exact
+2905,47,Sergey Kh,high,exact
+2950,,,,training
+2951,,,,tournament_event
+2952,,,,tournament_event
+2953,,,,tournament_event
+2954,,,,match_generic
+2955,,,,unmatched
+2956,,,,unmatched
+2958,,,,maintenance
+2959,,,,maintenance
+2934,,,,training
+2935,,,,match_generic
+2948,,,,booking_generic
+2971,139,Gizemnur Kerim,high,exact
+2962,128,Diana Ishutina,high,exact
+2963,,,,unmatched
+2964,,,,training
+2965,273,Evgeniya Khoroshevskaya,high,exact
+2966,,,,unmatched
+2967,,,,training
+2968,,,,training
+2969,139,Gizemnur Kerim,high,exact
+2921,,,,booking_generic
+2906,,,,booking_generic
+2907,,,,match_generic
+2904,,,,booking_generic
+2898,,,,match_generic
+2899,,,,match_generic
+2900,,,,training
+2901,,,,tournament_event
+2902,,,,match_generic
+2912,139,Gizemnur Kerim,high,exact
+2917,,,,match_generic
+2920,206,Serhan Esen,high,exact
+2932,,,,training
+2929,,,,training
+2930,,,,match_generic
+2752,,,,tournament_event
+2753,,,,tournament_event
+2818,,,,training
+2779,,,,training
+2864,,,,training
+2894,269,Ricardo Alvarez,high,exact
+2896,,,,training
+2846,48,Olha Malkut,high,exact
+2881,,,,training
+2861,,,,training
+2859,,,,match_generic
+2834,,,,training
+2839,32,Vitalii Zakharov,high,exact
+3059,,,,unmatched
+2275,,,,training
+2287,,,,training
+2312,,,,unmatched
+2719,,,,unmatched
+2686,,,,unmatched
+2687,,,,unmatched
+2670,,,,unmatched
+2660,,,,unmatched
+2661,,,,unmatched
+2662,,,,unmatched
+2663,,,,unmatched
+1965,,,,unmatched
+2648,,,,unmatched
+2649,,,,booking_generic
+2681,,,,tournament_event
+2682,,,,tournament_event
+2559,,,,unmatched
+2526,,,,training
+2479,,,,training
+2274,,,,training
+2349,,,,unmatched
+2342,,,,unmatched
+2332,,,,training
+2833,,,,training
+2821,,,,match_generic
+2822,,,,booking_generic
+2831,,,,match_generic
+2856,,,,unmatched
+2837,,,,training
+2854,,,,match_generic
+2885,,,,training
+2886,9,Artem Ilin,high,exact
+2887,,,,match_generic
+2897,267,Hilal Bulut,high,exact
+2895,141,Dilara Akbiyik,high,exact
+2889,258,Olha test Test,high,exact
+2890,258,Olha test Test,high,exact
+2891,258,Olha test Test,high,exact
+2875,,,,training
+2877,,,,booking_generic
+2878,,,,training
+2879,,,,match_generic
+2880,,,,unmatched
+2876,,,,booking_generic
+2873,,,,training
+2874,,,,maintenance
+2869,255,Umur Akman,high,exact
+2870,,,,maintenance
+2871,,,,booking_generic
+2838,,,,training
+2857,141,Dilara Akbiyik,high,exact
+2835,,,,match_generic
+2836,,,,match_generic
+2840,,,,match_generic
+2841,255,Umur Akman,high,exact
+2842,255,Umur Akman,high,exact
+2843,,,,booking_generic
+2844,,,,booking_generic
+2845,,,,booking_generic
+2783,193,ÇAGRI Turgut,high,exact
+2814,,,,unmatched
+2808,,,,unmatched
+2809,,,,booking_generic
+2810,,,,unmatched
+2811,,,,match_generic
+2767,193,ÇAGRI Turgut,high,exact
+2781,204,Kemal Demir,high,exact
+2751,,,,unmatched
+2778,,,,training
+2361,,,,training
+2372,,,,training
+2395,,,,booking_generic
+2396,,,,booking_generic
+2397,,,,booking_generic
+2398,,,,booking_generic
+2269,,,,training
+2270,,,,training
+2271,,,,training
+2272,,,,training
+2311,,,,training
+2688,,,,unmatched
+2718,,,,training
+2714,,,,training
+2721,,,,training
+1951,,,,unmatched
+2112,47,Sergey Kh,high,exact
+2710,,,,unmatched
+2678,,,,tournament_event
+2675,,,,tournament_event
+2676,,,,tournament_event
+2646,,,,unmatched
+2647,,,,unmatched
+2478,,,,training
+2536,,,,unmatched
+2585,,,,training
+2392,,,,booking_generic
+2393,,,,booking_generic
+2394,,,,unmatched
+2331,,,,training
+2776,,,,training
+2777,,,,training
+2737,,,,training
+2750,,,,tournament_event
+2812,,,,match_generic
+2813,,,,match_generic
+2803,,,,booking_generic
+2815,,,,match_generic
+2819,,,,training
+2820,,,,training
+2817,,,,training
+2785,,,,training
+2786,,,,training
+2787,,,,unmatched
+2832,,,,match_generic
+2823,58,Ilia Isakov,high,exact
+2827,250,Asma Almohaimeed,high,exact
+2828,,,,match_generic
+2829,21,Mike Kozak,high,exact
+2830,,,,match_generic
+2784,,,,training
+2799,,,,training
+2807,171,Albert Li,high,exact
+2804,,,,match_generic
+2805,202,ergün güzel,high,exact
+2801,,,,training
+2782,,,,training
+2771,,,,match_generic
+2772,227,Alaz Tas,high,exact
+2773,227,Alaz Tas,high,exact
+2774,70,Eduard Ivanov,high,exact
+2775,,,,training
+2341,,,,unmatched
+2381,,,,unmatched
+2390,,,,unmatched
+2391,,,,unmatched
+2268,,,,training
+2180,,,,match_generic
+2574,,,,unmatched
+2514,,,,training
+2642,,,,unmatched
+2683,,,,unmatched
+2684,,,,unmatched
+2679,,,,unmatched
+2680,,,,unmatched
+2717,,,,training
+2726,,,,training
+2736,,,,training
+2746,,,,tournament_event
+2747,,,,tournament_event
+2748,,,,tournament_event
+2749,,,,tournament_event
+1819,,,,unmatched
+2078,,,,tournament_event
+2079,,,,tournament_event
+2735,,,,training
+2724,,,,unmatched
+2713,,,,training
+2691,,,,training
+2692,,,,match_generic
+2673,,,,unmatched
+2674,,,,unmatched
+2709,,,,training
+2705,,,,match_generic
+2706,,,,training
+2654,,,,training
+2618,,,,training
+2532,,,,unmatched
+2535,,,,unmatched
+2267,,,,training
+2310,,,,training
+2286,,,,training
+2371,,,,training
+2356,,,,training
+2330,,,,training
+2322,,,,training
+2768,,,,unmatched
+2770,,,,match_generic
+2745,,,,match_generic
+2759,239,Valentin Litvinchuk,high,exact
+2802,139,Gizemnur Kerim,high,exact
+2800,,,,match_generic
+2760,,,,tournament_event
+2761,83,Igor Ishutin,high,exact
+2762,193,ÇAGRI Turgut,high,exact
+2763,,,,match_generic
+2764,,,,match_generic
+2765,139,Gizemnur Kerim,high,exact
+2766,141,Dilara Akbiyik,high,exact
+2758,,,,match_generic
+2321,,,,unmatched
+2266,,,,training
+2525,,,,training
+2596,,,,unmatched
+2512,,,,training
+2513,,,,training
+2694,,,,tournament_event
+2725,,,,match_generic
+2730,,,,unmatched
+2731,,,,unmatched
+2732,,,,unmatched
+2733,237,Thomas Greeting,high,exact
+2734,237,Thomas Greeting,high,exact
+2740,,,,match_generic
+2741,,,,match_generic
+2742,,,,match_generic
+2743,20,Mikle Marchenko,high,exact
+2744,,,,match_generic
+2032,,,,unmatched
+2033,,,,unmatched
+2034,,,,unmatched
+1886,,,,unmatched
+1887,,,,maintenance
+1888,,,,maintenance
+1889,,,,maintenance
+1756,,,,unmatched
+1757,,,,unmatched
+1758,,,,unmatched
+1759,,,,unmatched
+1752,,,,unmatched
+1753,,,,unmatched
+1754,,,,unmatched
+1755,,,,unmatched
+1743,,,,unmatched
+1869,,,,unmatched
+1870,,,,maintenance
+1871,,,,maintenance
+1872,,,,maintenance
+1818,,,,unmatched
+2027,,,,tournament_event
+2028,,,,unmatched
+2029,,,,unmatched
+2030,,,,unmatched
+2031,,,,unmatched
+1964,,,,unmatched
+1943,,,,unmatched
+1944,,,,maintenance
+2124,47,Sergey Kh,high,exact
+2711,,,,training
+2712,,,,training
+2715,,,,booking_generic
+2716,,,,match_generic
+2727,,,,unmatched
+2728,,,,training
+2729,,,,training
+2722,,,,booking_generic
+2723,,,,match_generic
+2707,,,,unmatched
+2708,,,,match_generic
+2696,,,,tournament_event
+2697,,,,tournament_event
+2698,,,,unmatched
+2700,,,,match_generic
+2701,,,,training
+2702,,,,training
+2693,,,,tournament_event
+2689,,,,unmatched
+2617,,,,unmatched
+2511,,,,training
+2524,,,,training
+2485,,,,training
+2486,,,,training
+2566,,,,training
+2531,,,,unmatched
+2264,,,,training
+2265,,,,training
+2309,,,,unmatched
+2213,,,,unmatched
+2214,,,,maintenance
+2215,,,,maintenance
+2438,,,,unmatched
+2739,89,Angelina Malchugina,high,exact
+3142,,,,unmatched
+2388,,,,tournament_event
+2389,,,,tournament_event
+2320,,,,training
+2329,,,,training
+2307,,,,tournament_event
+2308,,,,training
+2263,,,,training
+2540,,,,unmatched
+2579,92,Dmitriy Hozha,high,exact
+2489,,,,unmatched
+2490,,,,unmatched
+2491,,,,unmatched
+2492,,,,unmatched
+2615,,,,training
+2672,,,,training
+2658,,,,training
+2665,,,,training
+2666,,,,tournament_event
+2667,,,,unmatched
+2668,227,Alaz Tas,high,exact
+2669,,,,training
+2690,,,,match_generic
+2677,,,,match_generic
+2685,,,,training
+2703,139,Gizemnur Kerim,high,exact
+2704,139,Gizemnur Kerim,high,exact
+2699,139,Gizemnur Kerim,high,exact
+2695,,,,tournament_event
+2084,,,,tournament_event
+2085,,,,tournament_event
+2076,,,,unmatched
+2077,,,,unmatched
+2026,,,,unmatched
+2062,,,,booking_generic
+2063,,,,booking_generic
+2111,47,Sergey Kh,high,exact
+1950,,,,unmatched
+1935,,,,unmatched
+1936,,,,maintenance
+1751,,,,training
+1644,,,,training
+185,,,,booking_generic
+186,,,,booking_generic
+187,,,,unmatched
+188,,,,unmatched
+2659,401,Daria Celik,high,exact
+2655,,,,training
+2656,,,,training
+2657,,,,booking_generic
+2664,197,Yagiz Kuru,high,exact
+2643,139,Gizemnur Kerim,high,exact
+2638,,,,booking_generic
+2639,139,Gizemnur Kerim,high,exact
+2641,,,,training
+2650,,,,training
+2653,139,Gizemnur Kerim,high,exact
+2612,,,,training
+2601,,,,training
+2622,,,,training
+2626,,,,booking_generic
+2627,139,Gizemnur Kerim,high,exact
+2633,,,,booking_generic
+2634,,,,match_generic
+2509,,,,training
+2510,,,,training
+2565,,,,training
+2581,92,Dmitriy Hozha,high,exact
+2541,,,,unmatched
+2261,,,,training
+2262,,,,training
+2306,,,,training
+2324,,,,unmatched
+2366,,,,unmatched
+2370,,,,training
+2385,,,,unmatched
+2386,,,,unmatched
+2387,,,,unmatched
+2328,,,,training
+2434,,,,tournament_event
+2435,,,,tournament_event
+2436,,,,training
+2437,,,,training
+2534,,,,unmatched
+2578,92,Dmitriy Hozha,high,exact
+2587,193,ÇAGRI Turgut,high,exact
+2501,,,,training
+2521,204,Kemal Demir,high,exact
+2635,401,Daria Celik,high,exact
+2636,6,Volodymyr Rykov,high,exact
+2637,,,,match_generic
+2628,,,,match_generic
+2600,99,Yaroslava Skoryk,high,exact
+2619,,,,match_generic
+2595,,,,unmatched
+2613,,,,tournament_event
+2614,,,,tournament_event
+2609,,,,unmatched
+2632,,,,training
+2640,,,,training
+2624,139,Gizemnur Kerim,high,exact
+2625,139,Gizemnur Kerim,high,exact
+2644,70,Eduard Ivanov,high,exact
+2645,141,Dilara Akbiyik,high,exact
+159,,,,unmatched
+145,,,,unmatched
+1913,,,,tournament_event
+1914,,,,maintenance
+2132,,,,unmatched
+2133,,,,unmatched
+2060,,,,unmatched
+2061,,,,unmatched
+2025,,,,tournament_event
+2044,,,,booking_generic
+2045,,,,booking_generic
+1907,,,,tournament_event
+1908,,,,maintenance
+2024,,,,tournament_event
+1643,,,,training
+1742,,,,unmatched
+1817,,,,unmatched
+132,,,,unmatched
+119,,,,unmatched
+1417,,,,booking_generic
+1418,,,,booking_generic
+1493,,,,tournament_event
+1547,,,,tournament_event
+2603,,,,booking_generic
+2616,221,Anna Saltanova,high,exact
+2605,,,,match_generic
+2620,,,,match_generic
+2621,,,,match_generic
+2623,,,,unmatched
+2629,,,,training
+2630,,,,training
+2631,141,Dilara Akbiyik,high,exact
+2523,,,,training
+2515,202,ergün güzel,high,exact
+2504,,,,training
+2507,,,,training
+2508,,,,training
+2484,,,,unmatched
+2500,,,,training
+2588,,,,unmatched
+2573,45,Zafer Kuscu,high,exact
+2577,92,Dmitriy Hozha,high,exact
+2564,,,,training
+2571,,,,training
+2380,,,,unmatched
+2260,,,,training
+2179,,,,match_generic
+2258,,,,training
+2259,,,,training
+2301,,,,training
+2369,,,,training
+2364,,,,tournament_event
+2365,,,,tournament_event
+2327,,,,unmatched
+2580,92,Dmitriy Hozha,high,exact
+2597,,,,match_generic
+2533,161,gülsah aktürk,high,exact
+2529,,,,training
+2530,,,,unmatched
+2538,,,,unmatched
+2549,,,,training
+2562,,,,training
+2553,,,,training
+2499,,,,training
+2493,,,,training
+2476,,,,training
+2471,,,,unmatched
+2606,,,,booking_generic
+2607,,,,booking_generic
+2608,2,TPC app,high,exact
+2599,26,Bohdan Levchuk,high,exact
+2602,,,,match_generic
+2604,,,,training
+2610,,,,training
+2611,,,,match_generic
+1750,,,,training
+2022,,,,unmatched
+2023,,,,tournament_event
+1895,,,,tournament_event
+1896,,,,maintenance
+1921,,,,unmatched
+1922,,,,maintenance
+1923,,,,unmatched
+1924,,,,maintenance
+2074,,,,unmatched
+2075,,,,unmatched
+2121,47,Sergey Kh,high,exact
+2159,,,,training
+2158,,,,training
+2019,,,,unmatched
+2020,,,,unmatched
+2021,,,,unmatched
+1882,,,,unmatched
+1883,,,,maintenance
+1884,,,,maintenance
+1885,,,,maintenance
+1725,,,,unmatched
+1726,,,,unmatched
+1727,,,,unmatched
+1728,,,,unmatched
+2470,,,,unmatched
+2459,,,,training
+2498,,,,training
+2506,,,,training
+2522,,,,training
+2558,70,Eduard Ivanov,high,exact
+2598,,,,match_generic
+2582,,,,training
+2583,56,Alex Shumilov,high,exact
+2584,,,,unmatched
+2589,,,,unmatched
+2590,35,Yurii Shef,high,exact
+2591,,,,match_generic
+2592,,,,unmatched
+2593,141,Dilara Akbiyik,high,exact
+2594,171,Albert Li,high,exact
+2572,,,,unmatched
+2367,,,,training
+2305,,,,unmatched
+2257,,,,training
+2255,,,,training
+2256,,,,training
+2433,,,,unmatched
+2567,,,,training
+2568,,,,match_generic
+2569,,,,match_generic
+2570,35,Yurii Shef,high,exact
+2563,,,,training
+2554,,,,tournament_event
+2556,,,,match_generic
+2557,,,,unmatched
+2550,172,Yaroslav Maibenko,high,exact
+2547,160,Roman Ivanchenko,high,exact
+2552,,,,match_generic
+2543,,,,training
+2497,,,,training
+2495,,,,training
+2505,,,,training
+2458,,,,training
+2469,,,,unmatched
+1721,,,,unmatched
+1722,,,,unmatched
+1723,,,,unmatched
+1724,,,,unmatched
+1865,,,,unmatched
+1866,,,,maintenance
+1867,,,,maintenance
+1868,,,,maintenance
+2015,,,,unmatched
+2016,,,,unmatched
+2017,,,,unmatched
+2018,,,,unmatched
+1963,,,,unmatched
+1941,,,,unmatched
+1942,,,,maintenance
+2157,,,,training
+2123,47,Sergey Kh,high,exact
+2156,,,,training
+2082,,,,tournament_event
+2083,,,,tournament_event
+1901,,,,tournament_event
+1902,,,,maintenance
+2014,,,,tournament_event
+1816,,,,unmatched
+1741,,,,unmatched
+2457,,,,training
+2462,92,Dmitriy Hozha,high,exact
+2477,,,,training
+2473,,,,match_generic
+2494,,,,training
+2544,,,,match_generic
+2545,,,,match_generic
+2546,,,,match_generic
+2539,,,,unmatched
+2542,,,,match_generic
+2555,2,TPC app,high,exact
+2431,,,,maintenance
+2325,,,,tournament_event
+2326,,,,training
+2318,,,,training
+2319,,,,training
+2253,,,,training
+2303,,,,tournament_event
+2304,,,,training
+2204,,,,booking_generic
+2219,,,,maintenance
+2220,,,,maintenance
+2221,,,,maintenance
+2222,,,,maintenance
+2236,,,,maintenance
+2237,,,,maintenance
+2238,,,,maintenance
+2239,,,,maintenance
+2230,,,,unmatched
+2302,,,,training
+2254,,,,training
+2251,,,,training
+2252,,,,training
+2323,,,,training
+2339,193,ÇAGRI Turgut,high,exact
+2379,,,,unmatched
+2537,,,,match_generic
+2482,,,,training
+2468,,,,unmatched
+2502,,,,training
+2518,,,,unmatched
+2519,,,,booking_generic
+2520,,,,match_generic
+2527,284,Nejat Dolanay,high,exact
+2528,83,Igor Ishutin,high,exact
+1749,,,,training
+2013,,,,unmatched
+1933,,,,unmatched
+1934,,,,maintenance
+1949,,,,unmatched
+2072,,,,unmatched
+2073,,,,unmatched
+2058,,,,booking_generic
+2059,,,,booking_generic
+2155,,,,training
+2128,,,,booking_generic
+2129,,,,booking_generic
+2110,47,Sergey Kh,high,exact
+118,,,,unmatched
+131,,,,unmatched
+144,,,,unmatched
+158,,,,unmatched
+157,,,,unmatched
+143,,,,unmatched
+2130,,,,unmatched
+2131,,,,booking_generic
+2154,,,,training
+2056,,,,unmatched
+2057,,,,unmatched
+1911,,,,tournament_event
+1912,,,,maintenance
+2012,,,,tournament_event
+2516,22,Makim Razvarov,high,exact
+2517,,,,match_generic
+2503,,,,match_generic
+2496,201,Bilal Çiçek,high,exact
+2461,92,Dmitriy Hozha,high,exact
+2466,,,,match_generic
+2467,,,,unmatched
+2472,,,,training
+2463,81,Yevhenii Bilousov,high,exact
+2483,,,,training
+2474,,,,match_generic
+2428,,,,unmatched
+2451,,,,booking_generic
+2235,,,,match_generic
+2295,,,,tournament_event
+2296,,,,training
+2297,,,,training
+2232,,,,tournament_event
+2233,,,,tournament_event
+2249,,,,training
+2250,,,,training
+2226,,,,tournament_event
+2227,,,,tournament_event
+2200,,,,unmatched
+2228,,,,tournament_event
+2229,,,,tournament_event
+2234,,,,match_generic
+2212,,,,unmatched
+2176,,,,training
+2177,,,,match_generic
+2449,,,,training
+2475,,,,booking_generic
+2487,158,Aleksandr Grishin,high,exact
+2488,,,,unmatched
+2464,,,,booking_generic
+2465,,,,training
+2460,92,Dmitriy Hozha,high,exact
+2011,,,,tournament_event
+1905,,,,tournament_event
+1906,,,,maintenance
+2054,,,,booking_generic
+2055,,,,booking_generic
+1815,,,,unmatched
+1740,,,,unmatched
+130,,,,unmatched
+117,,,,unmatched
+1730,,,,training
+1675,,,,training
+1748,,,,training
+1893,,,,tournament_event
+1894,,,,maintenance
+2070,,,,unmatched
+2071,,,,unmatched
+2165,,,,match_generic
+2120,47,Sergey Kh,high,exact
+1925,,,,unmatched
+1926,,,,maintenance
+1919,,,,unmatched
+1920,,,,maintenance
+2009,,,,unmatched
+2010,,,,tournament_event
+2450,2,TPC app,high,exact
+2452,83,Igor Ishutin,high,exact
+2453,,,,tournament_event
+2454,197,Yagiz Kuru,high,exact
+2456,198,Canan Akyüz,high,exact
+2442,57,Kateryna Poplavko,high,exact
+2443,,,,match_generic
+2445,130,Kristina Lubenets,high,exact
+2446,,,,training
+2447,,,,training
+2448,,,,match_generic
+2430,,,,booking_generic
+2432,,,,match_generic
+2368,,,,training
+2193,,,,unmatched
+2316,,,,match_generic
+2298,,,,booking_generic
+2205,,,,training
+2240,,,,maintenance
+2241,,,,maintenance
+2242,,,,maintenance
+2243,,,,maintenance
+2340,35,Yurii Shef,high,exact
+2336,,,,match_generic
+2337,,,,match_generic
+2338,,,,training
+2429,,,,match_generic
+2444,,,,unmatched
+2551,,,,tournament_event
+2006,,,,unmatched
+2007,,,,unmatched
+2008,,,,unmatched
+1877,,,,tournament_event
+1878,,,,unmatched
+1879,,,,maintenance
+1880,,,,maintenance
+1881,,,,maintenance
+1717,,,,unmatched
+1718,,,,unmatched
+1719,,,,unmatched
+1720,,,,unmatched
+1713,,,,unmatched
+1714,,,,unmatched
+1715,,,,unmatched
+1716,,,,unmatched
+1861,,,,unmatched
+1862,,,,maintenance
+1863,,,,maintenance
+1864,,,,maintenance
+2002,,,,unmatched
+2003,,,,unmatched
+2004,,,,unmatched
+2005,,,,unmatched
+1962,,,,unmatched
+1939,,,,unmatched
+1940,,,,maintenance
+1948,,,,training
+2122,47,Sergey Kh,high,exact
+2166,,,,match_generic
+2153,,,,unmatched
+2335,,,,match_generic
+2244,,,,maintenance
+2245,,,,maintenance
+2246,,,,maintenance
+2247,,,,maintenance
+2248,,,,maintenance
+2225,,,,booking_generic
+2300,,,,unmatched
+2317,,,,match_generic
+2299,45,Zafer Kuscu,high,exact
+2273,188,Yulia Butenko,high,exact
+2231,,,,match_generic
+2223,,,,match_generic
+2224,,,,training
+2216,130,Kristina Lubenets,high,exact
+2217,187,Carmine Castaldi,high,exact
+2145,,,,unmatched
+2140,81,Yevhenii Bilousov,high,exact
+2148,,,,training
+2162,,,,booking_generic
+2136,,,,training
+2080,,,,tournament_event
+2081,,,,tournament_event
+1899,,,,unmatched
+1900,,,,maintenance
+2001,,,,unmatched
+1814,,,,unmatched
+1739,,,,unmatched
+1747,,,,training
+1843,,,,unmatched
+1999,,,,unmatched
+2000,,,,unmatched
+1976,,,,training
+1947,,,,training
+1931,,,,unmatched
+1932,,,,maintenance
+2069,,,,unmatched
+2089,,,,training
+2105,6,Volodymyr Rykov,high,exact
+2106,,,,match_generic
+2050,,,,booking_generic
+2051,,,,booking_generic
+2052,,,,booking_generic
+2053,,,,booking_generic
+2173,,,,training
+116,,,,unmatched
+129,,,,unmatched
+142,,,,unmatched
+156,,,,unmatched
+2218,,,,unmatched
+2201,,,,match_generic
+2202,,,,training
+2203,130,Kristina Lubenets,high,exact
+2206,,,,unmatched
+2207,,,,unmatched
+2208,,,,unmatched
+2209,,,,match_generic
+2210,,,,booking_generic
+2211,22,Makim Razvarov,high,exact
+2196,,,,match_generic
+2197,,,,training
+2198,,,,match_generic
+2178,92,Dmitriy Hozha,high,exact
+2175,,,,unmatched
+2199,22,Makim Razvarov,high,exact
+2194,58,Ilia Isakov,high,exact
+2195,,,,unmatched
+141,,,,unmatched
+155,,,,unmatched
+1415,,,,booking_generic
+2171,,,,match_generic
+2164,,,,match_generic
+2169,,,,unmatched
+2160,174,MYKHAILO MELNIKOV,high,exact
+2161,,,,match_generic
+2167,,,,unmatched
+2048,,,,unmatched
+2049,,,,booking_generic
+2095,,,,booking_generic
+2096,,,,booking_generic
+2097,70,Eduard Ivanov,high,exact
+2098,11,Nik Ivanov,high,exact
+1909,,,,tournament_event
+1910,,,,maintenance
+1996,,,,tournament_event
+1997,,,,unmatched
+1998,,,,unmatched
+1993,,,,tournament_event
+1994,,,,unmatched
+1995,,,,unmatched
+1903,,,,tournament_event
+1904,,,,maintenance
+1929,,,,unmatched
+1930,,,,maintenance
+1946,,,,training
+2088,,,,unmatched
+2046,,,,booking_generic
+2047,,,,booking_generic
+2043,45,Zafer Kuscu,high,exact
+2168,,,,unmatched
+2163,22,Makim Razvarov,high,exact
+2170,,,,match_generic
+2172,,,,unmatched
+2149,,,,unmatched
+2150,179,Rüzgar Deniz,high,exact
+2151,,,,match_generic
+2152,,,,training
+2147,,,,match_generic
+2134,,,,match_generic
+2135,,,,unmatched
+2104,49,Oleksandr Hrebeniuk,high,exact
+2108,,,,match_generic
+1852,,,,match_generic
+1850,,,,training
+1813,,,,unmatched
+1738,,,,unmatched
+1548,,,,tournament_event
+1549,,,,empty
+128,,,,unmatched
+115,,,,unmatched
+1731,,,,unmatched
+1635,48,Olha Malkut,high,exact
+1746,,,,training
+1890,,,,tournament_event
+1891,,,,tournament_event
+1892,,,,maintenance
+1823,,,,unmatched
+1832,,,,unmatched
+2109,,,,booking_generic
+2137,,,,training
+2138,128,Diana Ishutina,high,exact
+2139,,,,match_generic
+2127,116,Roald D.,high,exact
+2146,17,Vitalii Volchenko,high,exact
+2141,,,,tournament_event
+2142,,,,tournament_event
+2143,,,,unmatched
+2144,,,,match_generic
+2174,22,Makim Razvarov,high,exact
+2067,,,,unmatched
+2068,,,,unmatched
+2064,,,,match_generic
+2092,45,Zafer Kuscu,high,exact
+2093,,,,unmatched
+2094,,,,match_generic
+2086,70,Eduard Ivanov,high,exact
+1945,,,,training
+1927,,,,unmatched
+1928,,,,maintenance
+1917,,,,unmatched
+1918,,,,maintenance
+1991,,,,unmatched
+1992,,,,tournament_event
+3464,,,,unmatched
+1988,,,,unmatched
+1989,,,,unmatched
+1990,,,,unmatched
+2107,11,Nik Ivanov,high,exact
+2101,,,,match_generic
+2102,83,Igor Ishutin,high,exact
+2103,83,Igor Ishutin,high,exact
+2065,45,Zafer Kuscu,high,exact
+2125,,,,match_generic
+2126,,,,match_generic
+1837,,,,unmatched
+1838,,,,unmatched
+1839,,,,unmatched
+1840,,,,unmatched
+1873,,,,unmatched
+1874,,,,maintenance
+1875,,,,maintenance
+1876,,,,maintenance
+1737,,,,unmatched
+1709,,,,unmatched
+1710,,,,unmatched
+1711,,,,unmatched
+1712,,,,unmatched
+1705,,,,unmatched
+1706,,,,unmatched
+1707,,,,match_generic
+1708,,,,unmatched
+1636,,,,booking_generic
+1857,,,,unmatched
+1858,,,,maintenance
+1859,,,,maintenance
+1860,,,,maintenance
+1835,,,,unmatched
+1836,,,,unmatched
+1820,,,,unmatched
+2042,,,,booking_generic
+2099,,,,tournament_event
+2100,,,,tournament_event
+2090,,,,unmatched
+2091,,,,unmatched
+2087,,,,match_generic
+1984,,,,unmatched
+1985,,,,unmatched
+1986,,,,unmatched
+1987,,,,unmatched
+1937,,,,unmatched
+1938,,,,maintenance
+1897,,,,tournament_event
+1898,,,,maintenance
+1983,,,,tournament_event
+1974,,,,booking_generic
+2035,81,Yevhenii Bilousov,high,exact
+2037,75,Dmitrii Fetisov,high,exact
+2038,,,,match_generic
+2039,,,,booking_generic
+2040,,,,unmatched
+2041,,,,match_generic
+2066,,,,booking_generic
+1824,,,,training
+1833,,,,unmatched
+1834,,,,unmatched
+1829,90,Hrebeniuk Olga,high,exact
+1830,,,,match_generic
+1812,,,,unmatched
+1786,83,Igor Ishutin,high,exact
+1787,83,Igor Ishutin,high,exact
+1798,,,,unmatched
+1736,,,,training
+1799,,,,unmatched
+1804,,,,unmatched
+1745,,,,training
+1776,,,,match_generic
+1822,,,,unmatched
+1853,70,Eduard Ivanov,high,exact
+1854,,,,booking_generic
+1841,,,,unmatched
+1851,,,,match_generic
+2036,,,,unmatched
+1975,128,Diana Ishutina,high,exact
+1977,,,,match_generic
+1978,,,,booking_generic
+1979,,,,booking_generic
+1980,,,,booking_generic
+1981,,,,booking_generic
+1982,,,,match_generic
+1972,,,,unmatched
+1973,,,,booking_generic
+1960,,,,unmatched
+1961,,,,match_generic
+1915,,,,match_generic
+114,,,,unmatched
+127,,,,unmatched
+154,,,,unmatched
+140,,,,unmatched
+153,,,,unmatched
+139,,,,unmatched
+1494,,,,tournament_event
+1496,,,,empty
+1389,48,Olha Malkut,high,exact
+1916,45,Zafer Kuscu,high,exact
+1959,164,Semih Uysal,high,exact
+1842,,,,booking_generic
+1844,,,,tournament_event
+1845,,,,unmatched
+1846,,,,unmatched
+1847,,,,unmatched
+1848,,,,unmatched
+1849,,,,maintenance
+1855,,,,booking_generic
+1856,,,,booking_generic
+1828,,,,booking_generic
+1831,,,,match_generic
+1821,,,,booking_generic
+1775,,,,training
+1761,,,,training
+1762,,,,training
+1763,,,,training
+1764,,,,training
+1795,,,,training
+1806,81,Yevhenii Bilousov,high,exact
+1784,83,Igor Ishutin,high,exact
+1785,83,Igor Ishutin,high,exact
+1735,99,Yaroslava Skoryk,high,exact
+1734,,,,unmatched
+1677,,,,unmatched
+1687,,,,match_generic
+1781,83,Igor Ishutin,high,exact
+1800,,,,unmatched
+1801,,,,match_generic
+1802,,,,unmatched
+1803,,,,unmatched
+1783,83,Igor Ishutin,high,exact
+1796,,,,unmatched
+1808,,,,match_generic
+1809,,,,match_generic
+1810,,,,booking_generic
+1811,,,,booking_generic
+1768,,,,match_generic
+1777,,,,training
+1825,136,Berkay Kökafsar,high,exact
+1826,34,Ilya Zotov,high,exact
+1827,,,,match_generic
+126,,,,unmatched
+113,,,,unmatched
+355,,,,training
+356,,,,training
+1778,,,,match_generic
+1779,83,Igor Ishutin,high,exact
+1780,83,Igor Ishutin,high,exact
+1773,,,,match_generic
+1774,,,,training
+1769,,,,match_generic
+1770,,,,match_generic
+1765,,,,match_generic
+1744,,,,training
+1797,136,Berkay Kökafsar,high,exact
+1805,,,,unmatched
+1807,22,Makim Razvarov,high,exact
+1790,70,Eduard Ivanov,high,exact
+1792,69,Hanna Fedorenko,high,exact
+1793,69,Hanna Fedorenko,high,exact
+1794,,,,match_generic
+1782,83,Igor Ishutin,high,exact
+1697,,,,training
+1698,,,,unmatched
+3463,,,,unmatched
+1699,,,,unmatched
+1700,,,,unmatched
+1701,,,,unmatched
+1702,,,,unmatched
+1682,83,Igor Ishutin,high,exact
+1683,83,Igor Ishutin,high,exact
+1788,,,,event_block
+1789,,,,tournament_event
+1791,,,,unmatched
+1766,44,Anna Kravchenko,high,exact
+1767,,,,training
+1771,128,Diana Ishutina,high,exact
+1772,70,Eduard Ivanov,high,exact
+1760,128,Diana Ishutina,high,exact
+1680,83,Igor Ishutin,high,exact
+1681,83,Igor Ishutin,high,exact
+1689,,,,unmatched
+1690,,,,unmatched
+1691,,,,unmatched
+1692,,,,unmatched
+1704,,,,match_generic
+1729,,,,match_generic
+1639,,,,match_generic
+1634,,,,training
+1638,,,,match_generic
+1649,,,,empty
+1650,,,,empty
+1651,,,,unmatched
+1659,,,,match_generic
+1696,99,Yaroslava Skoryk,high,exact
+1732,22,Makim Razvarov,high,exact
+1733,22,Makim Razvarov,high,exact
+1693,,,,match_generic
+1694,,,,match_generic
+1703,128,Diana Ishutina,high,exact
+1688,,,,match_generic
+1678,83,Igor Ishutin,high,exact
+1679,83,Igor Ishutin,high,exact
+1676,,,,match_generic
+1668,,,,training
+1671,131,Monish Rajer,high,exact
+1684,83,Igor Ishutin,high,exact
+1685,,,,match_generic
+1686,,,,training
+1695,,,,training
+1670,22,Makim Razvarov,high,exact
+1660,,,,booking_generic
+1661,,,,booking_generic
+1662,,,,booking_generic
+1663,,,,booking_generic
+1664,,,,booking_generic
+1665,9,Artem Ilin,high,exact
+1666,,,,match_generic
+1667,,,,match_generic
+1655,,,,unmatched
+112,,,,unmatched
+125,,,,unmatched
+138,,,,unmatched
+152,,,,unmatched
+151,,,,unmatched
+137,,,,unmatched
+1446,,,,training
+1556,48,Olha Malkut,high,exact
+1557,,,,booking_generic
+1657,,,,booking_generic
+1658,,,,booking_generic
+1653,,,,booking_generic
+1633,,,,match_generic
+1631,,,,booking_generic
+1673,89,Angelina Malchugina,high,exact
+1674,22,Makim Razvarov,high,exact
+1669,,,,match_generic
+1630,,,,match_generic
+1623,,,,training
+1637,,,,match_generic
+1640,,,,booking_generic
+1641,,,,booking_generic
+1642,,,,match_generic
+1652,,,,unmatched
+1654,,,,match_generic
+1656,22,Makim Razvarov,high,exact
+1587,,,,match_generic
+1588,,,,match_generic
+124,,,,unmatched
+111,,,,unmatched
+30,3,demo tpc,high,exact
+1577,,,,unmatched
+1584,,,,match_generic
+1585,,,,match_generic
+1586,,,,match_generic
+1552,,,,training
+1448,,,,booking_generic
+1449,,,,booking_generic
+1450,,,,booking_generic
+1451,,,,booking_generic
+1416,48,Olha Malkut,high,exact
+1391,48,Olha Malkut,high,exact
+1392,48,Olha Malkut,high,exact
+337,,,,tournament_event
+1624,,,,match_generic
+1625,70,Eduard Ivanov,high,exact
+1618,,,,training
+1632,,,,match_generic
+1620,,,,training
+1627,,,,match_generic
+1628,110,Adam Moussa,high,exact
+1607,,,,training
+3462,,,,unmatched
+1608,,,,match_generic
+1600,,,,training
+1601,,,,training
+1606,,,,training
+1629,22,Makim Razvarov,high,exact
+1617,,,,training
+1626,94,Mehmet Göksu,high,exact
+1403,105,Anastasiia Novikova,high,exact
+1424,,,,unmatched
+1425,,,,booking_generic
+1439,107,Yuliia Kuzmenko,high,exact
+1440,94,Mehmet Göksu,high,exact
+1427,,,,unmatched
+1428,,,,unmatched
+1429,,,,tournament_event
+1435,106,Anna Tsiren,high,exact
+1473,81,Yevhenii Bilousov,high,exact
+1495,,,,booking_generic
+1501,,,,match_generic
+1502,,,,match_generic
+1503,,,,match_generic
+1551,106,Anna Tsiren,high,exact
+1580,,,,training
+1560,,,,training
+1555,,,,match_generic
+1581,,,,training
+1578,,,,training
+1579,,,,unmatched
+1472,22,Makim Razvarov,high,exact
+1500,,,,match_generic
+1469,71,Muammer Tayli,high,exact
+1430,,,,unmatched
+1438,107,Yuliia Kuzmenko,high,exact
+1421,,,,booking_generic
+1422,,,,booking_generic
+1423,,,,booking_generic
+1399,20,Mikle Marchenko,high,exact
+1400,20,Mikle Marchenko,high,exact
+1619,,,,match_generic
+1621,,,,match_generic
+1622,22,Makim Razvarov,high,exact
+1605,,,,training
+1602,,,,match_generic
+1603,109,edanur kavas,high,exact
+1604,22,Makim Razvarov,high,exact
+1401,,,,match_generic
+1402,105,Anastasiia Novikova,high,exact
+1390,48,Olha Malkut,high,exact
+1412,10,Alex Kozynskyi,high,exact
+1437,107,Yuliia Kuzmenko,high,exact
+1432,,,,unmatched
+1433,,,,unmatched
+1434,,,,booking_generic
+1467,,,,training
+1499,,,,match_generic
+1492,,,,empty
+1474,99,Yaroslava Skoryk,high,exact
+1475,,,,match_generic
+1559,,,,training
+1546,,,,match_generic
+1553,,,,match_generic
+1554,,,,match_generic
+1558,,,,match_generic
+1550,,,,tournament_event
+1569,,,,match_generic
+1582,20,Mikle Marchenko,high,exact
+1583,20,Mikle Marchenko,high,exact
+1476,,,,unmatched
+1477,,,,training
+1478,,,,unmatched
+1497,,,,match_generic
+1498,70,Eduard Ivanov,high,exact
+1471,,,,match_generic
+1490,35,Yurii Shef,high,exact
+1491,,,,match_generic
+1436,107,Yuliia Kuzmenko,high,exact
+1407,,,,unmatched
+1410,,,,booking_generic
+1411,,,,booking_generic
+1397,20,Mikle Marchenko,high,exact
+1398,20,Mikle Marchenko,high,exact
+335,48,Olha Malkut,high,exact
+348,22,Makim Razvarov,high,exact
+110,,,,unmatched
+123,,,,unmatched
+136,,,,unmatched
+150,,,,unmatched
+149,,,,unmatched
+135,,,,unmatched
+235,,,,unmatched
+237,,,,unmatched
+245,,,,unmatched
+267,,,,unmatched
+301,,,,unmatched
+306,,,,unmatched
+375,,,,unmatched
+372,,,,unmatched
+373,99,Yaroslava Skoryk,high,exact
+379,,,,unmatched
+383,,,,training
+384,,,,training
+387,,,,training
+1408,,,,unmatched
+1409,,,,unmatched
+1413,,,,training
+1414,69,Hanna Fedorenko,high,exact
+1426,,,,match_generic
+1441,,,,booking_generic
+1442,,,,booking_generic
+1443,,,,booking_generic
+1444,,,,match_generic
+1445,6,Volodymyr Rykov,high,exact
+1466,,,,match_generic
+1574,,,,training
+1575,,,,unmatched
+1576,,,,unmatched
+1545,,,,training
+1615,,,,booking_generic
+1616,,,,booking_generic
+1613,,,,booking_generic
+1614,,,,booking_generic
+1544,,,,unmatched
+1570,,,,training
+1571,,,,unmatched
+1572,,,,training
+1561,,,,training
+1562,,,,training
+1563,,,,training
+1564,,,,unmatched
+1565,,,,training
+1566,,,,unmatched
+1567,,,,training
+1568,,,,training
+1431,22,Makim Razvarov,high,exact
+1419,20,Mikle Marchenko,high,exact
+1420,,,,match_generic
+1386,,,,unmatched
+382,,,,match_generic
+1394,,,,unmatched
+1405,,,,unmatched
+1406,,,,unmatched
+305,,,,unmatched
+315,,,,unmatched
+324,,,,unmatched
+350,,,,unmatched
+351,,,,match_generic
+344,,,,unmatched
+370,,,,unmatched
+362,,,,match_generic
+363,,,,booking_generic
+270,,,,unmatched
+266,,,,unmatched
+273,,,,unmatched
+279,,,,unmatched
+285,,,,unmatched
+292,,,,unmatched
+297,,,,unmatched
+300,,,,unmatched
+244,,,,unmatched
+234,,,,unmatched
+249,,,,unmatched
+253,,,,unmatched
+122,,,,unmatched
+109,,,,unmatched
+252,,,,unmatched
+248,,,,unmatched
+263,,,,unmatched
+232,,,,unmatched
+233,,,,unmatched
+241,,,,unmatched
+299,,,,unmatched
+290,,,,unmatched
+276,,,,unmatched
+268,,,,unmatched
+204,,,,unmatched
+205,,,,unmatched
+224,,,,unmatched
+228,,,,unmatched
+336,,,,tournament_event
+338,,,,empty
+339,,,,empty
+346,22,Makim Razvarov,high,exact
+347,22,Makim Razvarov,high,exact
+323,,,,unmatched
+327,,,,match_generic
+333,,,,unmatched
+304,,,,unmatched
+1404,6,Volodymyr Rykov,high,exact
+1395,,,,unmatched
+1396,6,Volodymyr Rykov,high,exact
+1393,,,,booking_generic
+359,,,,unmatched
+1388,89,Angelina Malchugina,high,exact
+385,,,,match_generic
+386,6,Volodymyr Rykov,high,exact
+380,,,,booking_generic
+381,,,,unmatched
+374,38,Oleksandra Ilina,high,exact
+376,6,Volodymyr Rykov,high,exact
+377,6,Volodymyr Rykov,high,exact
+378,,,,unmatched
+1573,,,,training
+1532,,,,training
+1533,,,,training
+1534,,,,training
+1535,,,,training
+1536,,,,training
+1537,,,,unmatched
+1538,,,,unmatched
+1539,,,,unmatched
+1540,,,,training
+1541,,,,training
+1542,,,,unmatched
+1543,,,,training
+1527,,,,unmatched
+1528,,,,unmatched
+1529,,,,training
+1530,,,,training
+1531,,,,unmatched
+303,,,,unmatched
+317,,,,unmatched
+331,22,Makim Razvarov,high,exact
+349,,,,unmatched
+177,6,Volodymyr Rykov,high,exact
+178,6,Volodymyr Rykov,high,exact
+179,6,Volodymyr Rykov,high,exact
+180,6,Volodymyr Rykov,high,exact
+274,,,,unmatched
+275,,,,unmatched
+287,,,,unmatched
+298,,,,unmatched
+296,,,,unmatched
+295,,,,unmatched
+272,,,,unmatched
+282,,,,unmatched
+236,,,,unmatched
+262,,,,unmatched
+265,,,,unmatched
+258,,,,unmatched
+254,,,,unmatched
+206,,,,unmatched
+101,,,,match_generic
+86,,,,unmatched
+87,,,,unmatched
+88,,,,unmatched
+364,35,Yurii Shef,high,exact
+365,,,,match_generic
+366,,,,booking_generic
+367,11,Nik Ivanov,high,exact
+368,94,Mehmet Göksu,high,exact
+369,22,Makim Razvarov,high,exact
+371,,,,unmatched
+334,,,,unmatched
+302,,,,unmatched
+1517,,,,training
+1518,,,,training
+1519,,,,training
+1520,,,,training
+1521,,,,training
+1522,,,,training
+1523,,,,training
+1524,,,,training
+1525,,,,unmatched
+1526,,,,unmatched
+1504,,,,training
+1505,,,,training
+1506,,,,unmatched
+1507,,,,training
+1508,,,,unmatched
+1509,,,,unmatched
+1510,,,,unmatched
+1511,,,,unmatched
+1512,,,,training
+1513,,,,unmatched
+1514,,,,unmatched
+1515,,,,unmatched
+1516,,,,training
+316,,,,unmatched
+332,,,,match_generic
+326,10,Alex Kozynskyi,high,exact
+322,,,,unmatched
+357,,,,match_generic
+358,35,Yurii Shef,high,exact
+352,,,,unmatched
+354,89,Angelina Malchugina,high,exact
+340,6,Volodymyr Rykov,high,exact
+341,,,,match_generic
+345,,,,booking_generic
+202,,,,unmatched
+203,,,,unmatched
+212,,,,unmatched
+227,,,,unmatched
+216,,,,unmatched
+220,,,,unmatched
+223,,,,unmatched
+251,,,,unmatched
+257,,,,unmatched
+264,,,,unmatched
+240,,,,unmatched
+243,,,,unmatched
+247,,,,unmatched
+278,,,,unmatched
+293,,,,unmatched
+294,,,,unmatched
+284,,,,unmatched
+289,,,,unmatched
+281,,,,unmatched
+246,,,,unmatched
+242,,,,unmatched
+239,,,,unmatched
+261,,,,unmatched
+259,,,,unmatched
+250,,,,unmatched
+219,,,,unmatched
+207,,,,unmatched
+201,,,,unmatched
+108,,,,unmatched
+121,,,,unmatched
+134,,,,unmatched
+148,,,,unmatched
+342,,,,unmatched
+343,59,Dmitry Dmitry,high,exact
+361,,,,unmatched
+319,,,,booking_generic
+320,,,,match_generic
+321,,,,unmatched
+328,22,Makim Razvarov,high,exact
+312,,,,unmatched
+1479,,,,training
+1480,,,,unmatched
+1481,,,,training
+1482,,,,training
+1483,,,,unmatched
+1484,,,,unmatched
+1485,,,,training
+1486,,,,training
+1487,,,,training
+1488,,,,unmatched
+1489,,,,unmatched
+1611,,,,booking_generic
+1612,,,,booking_generic
+1609,,,,booking_generic
+1610,,,,booking_generic
+1598,,,,unmatched
+1456,,,,training
+1457,,,,training
+1458,,,,unmatched
+1459,,,,unmatched
+1460,,,,unmatched
+1461,,,,training
+1462,,,,unmatched
+1463,,,,unmatched
+1464,,,,unmatched
+1465,,,,unmatched
+1470,,,,unmatched
+309,,,,unmatched
+310,,,,unmatched
+318,20,Mikle Marchenko,high,exact
+329,22,Makim Razvarov,high,exact
+330,80,Yusuf Khan,high,exact
+314,,,,unmatched
+325,62,FeeL F,medium,substring
+147,,,,unmatched
+133,,,,unmatched
+200,,,,unmatched
+215,,,,unmatched
+211,,,,unmatched
+218,,,,unmatched
+222,,,,unmatched
+226,,,,unmatched
+190,,,,unmatched
+168,,,,match_generic
+169,,,,match_generic
+256,,,,unmatched
+260,,,,unmatched
+238,,,,unmatched
+277,,,,unmatched
+269,,,,unmatched
+291,,,,unmatched
+288,,,,unmatched
+286,,,,unmatched
+271,,,,unmatched
+255,,,,unmatched
+192,,,,unmatched
+230,,,,unmatched
+231,,,,unmatched
+217,,,,unmatched
+210,,,,unmatched
+214,,,,unmatched
+199,,,,unmatched
+208,,,,unmatched
+120,,,,unmatched
+107,,,,unmatched
+313,23,Bengisu Çetin,high,exact
+308,,,,match_generic
+1447,,,,training
+1468,,,,unmatched
+1452,,,,training
+1453,,,,training
+1454,,,,training
+1455,,,,unmatched
+1595,,,,booking_generic
+1596,,,,booking_generic
+1597,,,,unmatched
+307,23,Bengisu Çetin,high,exact
+311,58,Ilia Isakov,high,exact
+209,,,,unmatched
+213,,,,unmatched
+221,,,,unmatched
+229,,,,unmatched
+225,,,,unmatched
+196,42,Kateryna Vasylenko,high,exact
+197,,,,unmatched
+198,,,,unmatched
+189,,,,unmatched
+170,,,,match_generic
+280,38,Oleksandra Ilina,high,exact
+1599,,,,unmatched
+283,,,,match_generic
+161,23,Bengisu Çetin,high,exact
+174,,,,unmatched
+175,,,,unmatched
+176,,,,unmatched
+184,71,Muammer Tayli,high,exact
+195,,,,match_generic
+191,22,Makim Razvarov,high,exact
+193,,,,unmatched
+194,23,Bengisu Çetin,high,exact
+181,70,Eduard Ivanov,high,exact
+182,23,Bengisu Çetin,high,exact
+171,,,,booking_generic
+172,,,,booking_generic
+173,,,,booking_generic
+105,40,Chingis First,high,exact
+106,,,,match_generic
+103,,,,match_generic
+100,11,Nik Ivanov,high,exact
+164,,,,match_generic
+165,,,,match_generic
+166,10,Alex Kozynskyi,high,exact
+167,48,Olha Malkut,high,exact
+183,45,Zafer Kuscu,high,exact
+160,,,,booking_generic
+162,20,Mikle Marchenko,high,exact
+163,,,,unmatched
+82,,,,booking_generic
+83,,,,unmatched
+78,,,,booking_generic
+79,,,,booking_generic
+45,,,,match_generic
+104,,,,match_generic
+102,48,Olha Malkut,high,exact
+99,,,,match_generic
+146,59,Dmitry Dmitry,high,exact
+95,48,Olha Malkut,high,exact
+80,,,,booking_generic
+81,,,,booking_generic
+76,,,,booking_generic
+77,,,,booking_generic
+96,48,Olha Malkut,high,exact
+97,8,Maks Dychuk,high,exact
+98,,,,match_generic
+93,48,Olha Malkut,medium,substring
+85,,,,unmatched
+92,48,Olha Malkut,medium,substring
+62,11,Nik Ivanov,high,exact
+63,11,Nik Ivanov,high,exact
+64,11,Nik Ivanov,high,exact
+65,11,Nik Ivanov,high,exact
+66,11,Nik Ivanov,high,exact
+67,11,Nik Ivanov,high,exact
+68,11,Nik Ivanov,high,exact
+69,11,Nik Ivanov,high,exact
+70,11,Nik Ivanov,high,exact
+71,11,Nik Ivanov,high,exact
+72,11,Nik Ivanov,high,exact
+73,11,Nik Ivanov,high,exact
+74,11,Nik Ivanov,high,exact
+75,11,Nik Ivanov,high,exact
+50,,,,unmatched
+51,,,,unmatched
+48,,,,unmatched
+55,48,Olha Malkut,high,exact
+84,22,Makim Razvarov,high,exact
+89,,,,match_generic
+90,,,,match_generic
+91,48,Olha Malkut,medium,substring
+58,22,Makim Razvarov,high,exact
+61,22,Makim Razvarov,high,exact
+46,,,,unmatched
+27,3,demo tpc,high,exact
+28,3,demo tpc,high,exact
+29,3,demo tpc,high,exact
+59,48,Olha Malkut,high,exact
+60,23,Bengisu Çetin,high,exact
+56,48,Olha Malkut,high,exact
+57,,,,unmatched
+53,48,Olha Malkut,high,exact
+54,11,Nik Ivanov,high,exact
+49,48,Olha Malkut,high,exact
+25,3,demo tpc,high,exact
+47,48,Olha Malkut,high,exact
+33,6,Volodymyr Rykov,high,exact
+34,,,,match_generic
+35,,,,match_generic
+36,48,Olha Malkut,high,exact
+38,48,Olha Malkut,high,exact
+39,11,Nik Ivanov,high,exact
+40,11,Nik Ivanov,high,exact
+41,11,Nik Ivanov,high,exact
+42,11,Nik Ivanov,high,exact
+44,48,Olha Malkut,high,exact
+1589,,,,booking_generic
+1590,,,,booking_generic
+1593,,,,booking_generic
+1594,,,,booking_generic
+31,,,,unmatched
+1591,,,,booking_generic
+1592,,,,booking_generic
+26,,,,unmatched
+19,,,,unmatched
+20,3,demo tpc,high,exact
+21,3,demo tpc,high,exact
+22,3,demo tpc,high,exact
+23,3,demo tpc,high,exact
+24,3,demo tpc,high,exact
+18,,,,unmatched
+8,3,demo tpc,high,exact
+15,3,demo tpc,high,exact
+16,,,,match_generic
+17,3,demo tpc,high,exact
+7,,,,booking_generic
+9,,,,training
+10,,,,empty
+11,,,,empty
+12,,,,empty
+13,,,,empty
+14,,,,maintenance
+5,3,demo tpc,high,exact
+6,,,,match_generic
+3,3,demo tpc,high,exact
+4,3,demo tpc,high,exact
+2,1,Guest -,medium,substring
+ ,,,,empty
