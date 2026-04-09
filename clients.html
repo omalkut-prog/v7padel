@@ -332,17 +332,23 @@ async function loadSheet(name) {
 }
 
 /* ---------- helpers ---------- */
+// parseDate: приоритет DD/MM/YYYY (или DD.MM или DD-MM) над native Date() —
+// потому что JS native `new Date("08/04/2026")` на Chrome интерпретируется как
+// US-формат MM/DD и даёт не ту дату. Далее fallback на ISO / Date native parser.
 function parseDate(s) {
   if (!s) return null;
   s = String(s).trim();
-  let d = new Date(s);
-  if (!isNaN(d)) return d;
-  const m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+  // Explicit DD/MM/YYYY (с опциональным временем)
+  const m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/);
   if (m) {
-    let [_, dd, mm, yy] = m; yy = yy.length === 2 ? '20' + yy : yy;
-    d = new Date(+yy, +mm - 1, +dd);
-    if (!isNaN(d)) return d;
+    let [, dd, mm, yy, hh, mi, ss] = m;
+    yy = yy.length === 2 ? '20' + yy : yy;
+    const dt = new Date(+yy, +mm - 1, +dd, +(hh || 0), +(mi || 0), +(ss || 0));
+    if (!isNaN(dt)) return dt;
   }
+  // Fallback: YYYY-MM-DD[ HH:MM:SS] / ISO / прочие форматы парсятся нативно
+  const d = new Date(s);
+  if (!isNaN(d)) return d;
   return null;
 }
 function fmtDate(d) {
@@ -380,94 +386,103 @@ const state = {
     return;
   }
 
-  // Keys
-  const ckFirst = customers[0];
-  const kCustId    = findKey(ckFirst, /^customer_?id$/i, /client_?id/i, /^id$/i);
-  const kName      = findKey(ckFirst, /^full_?name$/i, /^name$/i, /имя/i, /client_?name/i);
-  const kPhone     = findKey(ckFirst, /phone/i, /телефон/i, /mobile/i);
-  const kEmail     = findKey(ckFirst, /email/i, /почта/i);
-  const kSource    = findKey(ckFirst, /^source$/i, /источник/i, /channel/i);
-  const kCreated   = findKey(ckFirst, /created/i, /registered/i, /регистр/i, /signup/i);
+  // ---- Real v7padel_db schema (verified via gviz audit 2026-04-09) ----
+  //  customers:   customer_id, name, phone, email, gender, age, subs_date, level, nationality
+  //  bookings:    booking_id, customer_id (⚠ EMPTY everywhere), court_id, start_ts,
+  //               end_ts, status, price
+  //  memberships: membership_id, holder, card_type, rate, payment, subs_date, paid_until,
+  //               next_fee, status, first_fee, fee
+  //
+  //  ⚠ KNOWN DATA ISSUE: bookings.customer_id is empty in 100% of rows.
+  //     Impact: cannot link a booking to a specific customer.
+  //     Funnel stages "first visit / 2-3 games / regular 4+" fall back to "—".
+  //     Active/sleeping segments fall back to membership status:
+  //       active   = has membership with status='Active'
+  //       sleeping = N/A (cannot be computed without booking linkage)
+  //       never    = no active membership
+  //     Must be fixed in ETL: backfill customer_id in bookings by matching
+  //     Matchpoint client name against customers.name.
 
-  // Bookings index
-  const bkByCust = {};   // id -> array of {date, court, time, hour}
-  if (bookings && bookings.length) {
-    const b0 = bookings[0];
-    const kBCust  = findKey(b0, /^customer_?id$/i, /client_?id/i);
-    const kBDate  = findKey(b0, /^date$/i, /дата/i, /^start/i, /booking_?date/i);
-    const kBCourt = findKey(b0, /court/i, /корт/i);
-    const kBTime  = findKey(b0, /^time$/i, /hour/i, /час/i, /^start_?time/i);
-    bookings.forEach(b => {
-      const id = b[kBCust]; if (!id) return;
-      const d = parseDate(b[kBDate]);
-      let h = null;
-      if (kBTime && b[kBTime]) { const m = String(b[kBTime]).match(/(\d{1,2})/); if (m) h = parseInt(m[1], 10); }
-      if (h == null && d) h = d.getHours();
-      if (!bkByCust[id]) bkByCust[id] = [];
-      bkByCust[id].push({ date: d, dateRaw: b[kBDate], court: b[kBCourt] || '—', time: b[kBTime] || '—', hour: h });
-    });
-    // sort each customer's bookings desc by date
-    Object.values(bkByCust).forEach(list => list.sort((a,b) => (b.date ? b.date.getTime() : 0) - (a.date ? a.date.getTime() : 0)));
-  }
+  const nameKey = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
-  // Memberships index
-  const mbByCust = {};
+  // --- Memberships index by NORMALIZED HOLDER NAME ---
+  //   card_type "Club Membership" → 'Club', "V7 VIP" → 'VIP', else 'Other'
+  //   prefer an 'Active' row over any non-active row for the same holder
+  const mbByName = {};
   if (memberships && memberships.length) {
-    const m0 = memberships[0];
-    const kMCust   = findKey(m0, /^customer_?id$/i, /client_?id/i);
-    const kMType   = findKey(m0, /^type$/i, /тип/i, /plan/i);
-    const kMStatus = findKey(m0, /status/i, /статус/i);
     memberships.forEach(m => {
-      const id = m[kMCust]; if (!id) return;
-      mbByCust[id] = { type: m[kMType] || '', status: m[kMStatus] || '' };
+      const h = nameKey(m.holder); if (!h) return;
+      const ct = (m.card_type || '').toLowerCase();
+      let card = 'Other';
+      if (ct.indexOf('vip') >= 0) card = 'VIP';
+      else if (ct.indexOf('club') >= 0) card = 'Club';
+      const isActive = String(m.status || '').toLowerCase() === 'active';
+      const rec = {
+        card, isActive,
+        cardType: m.card_type || '',
+        status: m.status || '',
+        subsDate: m.subs_date || '',
+        paidUntil: m.paid_until || '',
+        fee: m.fee || m.first_fee || '',
+        rate: m.rate || '',
+        payment: m.payment || ''
+      };
+      const ex = mbByName[h];
+      if (!ex || (!ex.isActive && isActive)) mbByName[h] = rec;
     });
   }
 
-  // Enrich each customer
+  // --- Bookings: customer_id is empty → no per-customer linkage possible ---
+  let totalBookings = 0, bookingsLinkable = false;
+  if (bookings && bookings.length) {
+    totalBookings = bookings.length;
+    bookingsLinkable = bookings.some(b => b.customer_id && String(b.customer_id).trim());
+  }
+  state.bookingsLinkable = bookingsLinkable;
+  state.totalBookings = totalBookings;
+
+  // --- Enrich customers ---
   const now = new Date();
   const cutoff30 = new Date(now); cutoff30.setDate(cutoff30.getDate() - 30);
   state.customers = customers.map(c => {
-    const id = c[kCustId];
-    const bk = bkByCust[id] || [];
-    const lastBk = bk.length ? bk[0] : null;
-    const bkCount = bk.length;
-    const regDate = parseDate(c[kCreated]);
-    const hasRecent = bk.some(b => b.date && b.date >= cutoff30);
+    const id = c.customer_id;
+    const name = c.name || '—';
+    const nKey = nameKey(name);
+    const regDate = parseDate(c.subs_date);
     const isNew = regDate && regDate >= cutoff30;
 
-    let segment;
-    if (bkCount === 0) segment = 'never';
-    else if (hasRecent) segment = 'active';
-    else segment = 'sleeping';
-    // "new" is an additional overlay — we still put it into the "new" bucket for summary,
-    // but in the table segment column we prefer behavioral segment (active/sleeping/never).
-    // For the filter chip "new" — we match by isNew flag.
-
-    const memb = mbByCust[id];
+    // Membership lookup by normalized name (bookings has no usable customer linkage)
+    const memb = mbByName[nKey] || null;
     let card = '—';
-    if (memb) {
-      const t = (memb.type || '').toLowerCase();
-      if (t.indexOf('vip') >= 0)  card = 'VIP';
-      else if (t.indexOf('club') >= 0) card = 'Club';
-      else if (memb.type) card = memb.type;
+    if (memb && memb.isActive) {
+      card = memb.card === 'Other' && memb.cardType ? memb.cardType : memb.card;
     }
+
+    // Segment (data-aware fallback):
+    //   active  = has active membership
+    //   never   = no active membership
+    //   sleeping = unavailable (no per-customer booking history)
+    const segment = (memb && memb.isActive) ? 'active' : 'never';
 
     return {
       id,
-      name: c[kName] || '—',
-      phone: c[kPhone] || '—',
-      email: c[kEmail] || '—',
-      source: c[kSource] || '—',
-      createdRaw: c[kCreated] || '—',
+      name,
+      phone: c.phone || '—',
+      email: c.email || '—',
+      source: c.nationality || '—', // no 'source' column — use nationality as origin proxy
+      level: c.level || '',
+      gender: c.gender || '',
+      age: c.age || '',
+      createdRaw: c.subs_date || '—',
       regDate,
-      lastBk,
-      bkCount,
-      bk,
+      lastBk: null,        // N/A — bookings.customer_id empty
+      bkCount: null,       // N/A
+      bk: [],              // N/A
       isNew,
-      hasRecent,
+      hasRecent: false,
       segment,
       card,
-      memb: memb || null
+      memb
     };
   });
 
@@ -494,36 +509,59 @@ function renderSummary() {
 function renderFunnel() {
   const cs = state.customers;
   const total = cs.length;
-  const firstVisit = cs.filter(c => c.bkCount >= 1).length;
-  const twoThree = cs.filter(c => c.bkCount >= 2 && c.bkCount <= 3).length;
-  // "Regular 4+" = 4+ bookings in last 30 days
-  const now = new Date();
-  const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 30);
-  const regular = cs.filter(c => c.bk.filter(b => b.date && b.date >= cutoff).length >= 4).length;
   const club = cs.filter(c => c.card === 'Club').length;
-  const vip = cs.filter(c => c.card === 'VIP').length;
+  const vip  = cs.filter(c => c.card === 'VIP').length;
 
+  // Booking-based stages require bookings.customer_id → currently empty.
+  // When linkable, compute real numbers; otherwise mark as N/A.
+  let firstVisit = null, twoThree = null, regular = null;
+  if (state.bookingsLinkable) {
+    firstVisit = cs.filter(c => c.bkCount >= 1).length;
+    twoThree   = cs.filter(c => c.bkCount >= 2 && c.bkCount <= 3).length;
+    const now = new Date();
+    const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 30);
+    regular = cs.filter(c => c.bk.filter(b => b.date && b.date >= cutoff).length >= 4).length;
+  }
+
+  const na = '<span style="color:var(--text3);font-style:italic">н/д</span>';
+  const naHint = '⚠ bookings.customer_id пуст';
   const stages = [
-    { name: 'Зарегистрирован', sub: 'в customers', n: total },
-    { name: 'Первый визит', sub: '≥1 брон.', n: firstVisit },
-    { name: '2–3 игры', sub: '2–3 брон. всего', n: twoThree },
-    { name: 'Регулярный 4+', sub: '≥4 брон. за 30 дней', n: regular },
-    { name: 'Club карта', sub: 'memberships', n: club },
-    { name: 'VIP карта', sub: 'memberships', n: vip }
+    { name: 'Зарегистрирован', sub: 'в customers',             n: total,      available: true },
+    { name: 'Первый визит',    sub: '≥1 бронирование',         n: firstVisit, available: firstVisit != null, hint: naHint },
+    { name: '2–3 игры',        sub: '2–3 брон. всего',         n: twoThree,   available: twoThree   != null, hint: naHint },
+    { name: 'Регулярный 4+',   sub: '≥4 брон. за 30 дней',     n: regular,    available: regular    != null, hint: naHint },
+    { name: 'Club карта',      sub: 'memberships.card_type=Club', n: club,    available: true },
+    { name: 'VIP карта',       sub: 'memberships.card_type=VIP',  n: vip,     available: true }
   ];
-  const maxN = Math.max.apply(null, stages.map(s => s.n).concat(1));
+  // maxN for bar scaling uses only available stages; fallback to total
+  const maxN = Math.max.apply(null, stages.filter(s => s.available).map(s => s.n).concat(1));
   const html = stages.map((s, i) => {
-    const prev = i > 0 ? stages[i-1].n : s.n;
-    const conv = prev > 0 ? Math.round((s.n / prev) * 100) : 0;
+    if (!s.available) {
+      return '<div class="funnel-row">' +
+        '<div class="stage">' + s.name + '<small>' + s.sub + '</small></div>' +
+        '<div class="funnel-bar-bg" title="' + s.hint + '"><div class="funnel-bar" style="width:2%;background:var(--surface2)"></div></div>' +
+        '<div class="count">' + na + '</div>' +
+        '<div class="conv">' + na + '</div>' +
+      '</div>';
+    }
+    // conv: use last available previous stage
+    let prev = null;
+    for (let j = i - 1; j >= 0; j--) { if (stages[j].available) { prev = stages[j].n; break; } }
+    const conv = prev && prev > 0 ? Math.round((s.n / prev) * 100) : null;
     const w = Math.max(2, Math.round((s.n / maxN) * 100));
     return '<div class="funnel-row">' +
       '<div class="stage">' + s.name + '<small>' + s.sub + '</small></div>' +
       '<div class="funnel-bar-bg"><div class="funnel-bar" style="width:' + w + '%">' + (s.n > 0 ? s.n : '') + '</div></div>' +
       '<div class="count">' + s.n + '</div>' +
-      '<div class="conv">' + (i > 0 ? conv + '%' : '—') + '</div>' +
+      '<div class="conv">' + (conv != null ? conv + '%' : (i === 0 ? '—' : '')) + '</div>' +
     '</div>';
   }).join('');
-  document.getElementById('funnel').innerHTML = html;
+
+  const notice = state.bookingsLinkable ? '' :
+    '<div style="margin-bottom:14px;padding:10px 14px;background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.25);border-radius:10px;font-size:12px;color:var(--warn)">' +
+    '⚠ <b>Частичная воронка.</b> В vкладке <code>bookings</code> поле <code>customer_id</code> пустое для всех строк — нельзя связать игры с клиентами. Стадии «Первый визит / 2–3 игры / Регулярный 4+» помечены н/д до исправления данных в ETL.' +
+    '</div>';
+  document.getElementById('funnel').innerHTML = notice + html;
 }
 
 /* ---------- Filters / pagination ---------- */
@@ -558,6 +596,7 @@ function renderTable() {
     tbody.innerHTML = slice.map(i => {
       const c = customers[i];
       const lastStr = c.lastBk ? fmtDate(c.lastBk.date) : '—';
+      const bkStr = c.bkCount == null ? '—' : c.bkCount;
       const badgeClass =
         c.segment === 'active' ? 'seg-active' :
         c.segment === 'sleeping' ? 'seg-sleeping' :
@@ -573,7 +612,7 @@ function renderTable() {
         '<td>' + (c.createdRaw || '—') + '</td>' +
         '<td>' + lastStr + '</td>' +
         '<td>' + c.card + '</td>' +
-        '<td>' + c.bkCount + '</td>' +
+        '<td>' + bkStr + '</td>' +
         '<td><span class="seg-badge ' + badgeClass + '">' + badgeText + '</span>' + newMark + '</td>' +
       '</tr>';
     }).join('');
@@ -631,7 +670,7 @@ function openCard(c) {
   const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
   const dowCnt = [0,0,0,0,0,0,0];
   const tod = { morn: 0, day: 0, eve: 0 };
-  c.bk.forEach(b => {
+  (c.bk || []).forEach(b => {
     if (b.date) dowCnt[(b.date.getDay() + 6) % 7]++;
     const h = b.hour;
     if (h != null) {
@@ -640,14 +679,19 @@ function openCard(c) {
       else tod.eve++;
     }
   });
-  const lastTen = c.bk.slice(0, 10);
+  const lastTen = (c.bk || []).slice(0, 10);
+  const bookingsAvailable = state.bookingsLinkable;
+
   const membStatus = c.memb ? (c.memb.status || '—') : '—';
+  const membFee = c.memb && c.memb.fee ? c.memb.fee + ' ₺' : '—';
+  const membPaidUntil = c.memb && c.memb.paidUntil ? c.memb.paidUntil : '—';
 
   const segLabel =
     c.segment === 'active' ? '<span class="seg-badge seg-active">active</span>' :
     c.segment === 'sleeping' ? '<span class="seg-badge seg-sleeping">sleeping</span>' :
     c.segment === 'never' ? '<span class="seg-badge seg-never">never</span>' : '—';
   const newLabel = c.isNew ? ' <span class="seg-badge seg-new">new</span>' : '';
+  const bkCountStr = c.bkCount == null ? '<span style="color:var(--text3);font-style:italic">н/д</span>' : c.bkCount;
 
   const body = document.getElementById('modal-body');
   body.innerHTML =
@@ -657,27 +701,32 @@ function openCard(c) {
     '<div class="fields">' +
       '<div class="f"><span>Телефон</span><b>' + c.phone + '</b></div>' +
       '<div class="f"><span>Email</span><b>' + c.email + '</b></div>' +
-      '<div class="f"><span>Источник</span><b>' + c.source + '</b></div>' +
+      '<div class="f"><span>Уровень</span><b>' + (c.level || '—') + '</b></div>' +
+      '<div class="f"><span>Национальность</span><b>' + c.source + '</b></div>' +
       '<div class="f"><span>Регистрация</span><b>' + c.createdRaw + '</b></div>' +
       '<div class="f"><span>Карта</span><b>' + c.card + ' · ' + membStatus + '</b></div>' +
-      '<div class="f"><span>Всего бронирований</span><b>' + c.bkCount + '</b></div>' +
+      (c.memb ? '<div class="f"><span>Оплачено до</span><b>' + membPaidUntil + '</b></div>' : '') +
+      (c.memb ? '<div class="f"><span>Стоимость</span><b>' + membFee + '</b></div>' : '') +
+      '<div class="f"><span>Всего бронирований</span><b>' + bkCountStr + '</b></div>' +
     '</div>' +
-    '<h4>Паттерн игры · время суток</h4>' +
-    '<div class="pattern-bars tod">' +
-      '<div class="pb"><b>' + tod.morn + '</b><span>Утро &lt;12</span></div>' +
-      '<div class="pb"><b>' + tod.day + '</b><span>День 12–17</span></div>' +
-      '<div class="pb"><b>' + tod.eve + '</b><span>Вечер 17+</span></div>' +
-    '</div>' +
-    '<h4>Дни недели</h4>' +
-    '<div class="pattern-bars">' +
-      DOW.map((d, i) => '<div class="pb"><b>' + dowCnt[i] + '</b><span>' + d + '</span></div>').join('') +
-    '</div>' +
-    '<h4>Последние 10 бронирований</h4>' +
-    (lastTen.length
-      ? '<table><thead><tr><th>Дата</th><th>Корт</th><th>Время</th></tr></thead><tbody>' +
-          lastTen.map(b => '<tr><td>' + (b.date ? fmtDate(b.date) : (b.dateRaw || '—')) + '</td><td>' + b.court + '</td><td>' + b.time + '</td></tr>').join('') +
-        '</tbody></table>'
-      : '<div class="loading">Нет истории бронирований</div>');
+    (bookingsAvailable
+      ? ('<h4>Паттерн игры · время суток</h4>' +
+         '<div class="pattern-bars tod">' +
+           '<div class="pb"><b>' + tod.morn + '</b><span>Утро &lt;12</span></div>' +
+           '<div class="pb"><b>' + tod.day + '</b><span>День 12–17</span></div>' +
+           '<div class="pb"><b>' + tod.eve + '</b><span>Вечер 17+</span></div>' +
+         '</div>' +
+         '<h4>Дни недели</h4>' +
+         '<div class="pattern-bars">' +
+           DOW.map((d, i) => '<div class="pb"><b>' + dowCnt[i] + '</b><span>' + d + '</span></div>').join('') +
+         '</div>' +
+         '<h4>Последние 10 бронирований</h4>' +
+         (lastTen.length
+           ? '<table><thead><tr><th>Дата</th><th>Корт</th><th>Время</th></tr></thead><tbody>' +
+               lastTen.map(b => '<tr><td>' + (b.date ? fmtDate(b.date) : (b.dateRaw || '—')) + '</td><td>' + b.court + '</td><td>' + b.time + '</td></tr>').join('') +
+             '</tbody></table>'
+           : '<div class="loading">Нет истории бронирований</div>'))
+      : '<h4>История игр</h4><div style="padding:14px 16px;background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.25);border-radius:10px;font-size:12px;color:var(--warn);line-height:1.5">⚠ В таблице <code>bookings</code> поле <code>customer_id</code> не заполнено — историю игр конкретного клиента показать нельзя. После доработки ETL (привязка brooking к клиенту по имени) здесь появятся последние 10 игр и паттерн игры по дням и времени суток.</div>');
 
   document.getElementById('modal-backdrop').classList.add('active');
 }
