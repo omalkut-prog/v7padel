@@ -43,7 +43,8 @@
   }
   .nav-logo { font-size: 17px; font-weight: 600; letter-spacing: -0.3px; color: var(--text); text-decoration: none; margin-right: auto; }
   .nav-logo em { color: var(--accent); font-style: normal; }
-  .nav-links { display: flex; gap: 0; list-style: none; }
+  ul.nav-links { display: flex !important; list-style: none !important; margin: 0; padding: 0; gap: 0; }
+  .nav-links li { list-style: none; }
   .nav-links a { display: block; padding: 0 16px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 52px; transition: color 0.2s; }
   .nav-links a:hover { color: var(--text); }
   .nav-pill { background: rgba(212,240,58,0.1); border: 1px solid rgba(212,240,58,0.2); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: 0.3px; }

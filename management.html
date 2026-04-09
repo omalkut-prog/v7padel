@@ -46,7 +46,8 @@
   }
   .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
   .nav-logo em { color: var(--accent); font-style: normal; }
-  .nav-links { display: flex; gap: 0; list-style: none; }
+  ul.nav-links { display: flex !important; list-style: none !important; margin: 0; padding: 0; gap: 0; }
+  .nav-links li { list-style: none; }
   .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
   .nav-links a:hover { color: var(--text); }
   .nav-links a.active { color: var(--accent); }
@@ -197,11 +198,11 @@
 
 <main>
   <h1 class="page-title">Управленческий дашборд</h1>
-  <p class="page-sub">CEO overview, воронка, загрузка кортов и аномалии · обновляется из v7padel_db</p>
+  <p class="page-sub">Обзор для CEO, воронка, загрузка кортов и аномалии · обновляется из v7padel_db</p>
 
   <!-- BLOCK 1: CEO Overview -->
   <section class="section">
-    <div class="section-head"><h2>1 · CEO Overview</h2><span class="hint">источник: PnL бухгалтера · bookings · transactions</span></div>
+    <div class="section-head"><h2>1 · Обзор для CEO</h2><span class="hint">источник: PnL бухгалтера · bookings · transactions</span></div>
     <div class="kpi-grid">
       <div class="kpi"><div class="label">Выручка тек. месяц</div><div class="value" id="kpi-rev">—</div><div class="delta" id="kpi-rev-d">—</div></div>
       <div class="kpi"><div class="label">Загрузка кортов сегодня</div><div class="value" id="kpi-util">—</div><div class="delta" id="kpi-util-d">—</div></div>
@@ -318,13 +319,19 @@ async function renderCEOOverview() {
   const maxSlotsPerDay = 17 * 4;
   const utilPct = maxSlotsPerDay ? Math.round((todayBookings / maxSlotsPerDay) * 100) : 0;
 
+  // Compare daily run-rate so partial months aren't misleading
+  const dayOfMonth = TODAY.getDate();
+  const daysInPrevMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 0).getDate();
   function setDelta(id, cur, prev) {
     const el = document.getElementById(id);
     if (!prev) { el.textContent = '—'; el.className = 'delta flat'; return; }
-    const d = ((cur - prev) / prev) * 100;
+    const dailyCur  = dayOfMonth > 0 ? cur / dayOfMonth : 0;
+    const dailyPrev = daysInPrevMonth > 0 ? prev / daysInPrevMonth : 0;
+    if (!dailyPrev) { el.textContent = '—'; el.className = 'delta flat'; return; }
+    const d = ((dailyCur - dailyPrev) / dailyPrev) * 100;
     const sign = d > 0 ? '▲' : d < 0 ? '▼' : '●';
     const cls = d > 0.5 ? 'up' : d < -0.5 ? 'down' : 'flat';
-    el.textContent = sign + ' ' + Math.abs(d).toFixed(1) + '% к прошлому';
+    el.textContent = sign + ' ' + Math.abs(d).toFixed(1) + '% (ср/день)';
     el.className = 'delta ' + cls;
   }
   const isLive = pnlAgg && pnlAgg[CUR_YM] && pnlAgg[CUR_YM].source === 'live';
@@ -339,21 +346,24 @@ async function renderCEOOverview() {
   document.getElementById('kpi-util-d').textContent = 'из ' + maxSlotsPerDay + ' слотов';
   document.getElementById('kpi-util-d').className = 'delta flat';
 
-  // Anomalies: 3 heuristics
+  // Anomalies: use same daily run-rate normalization
   const anom = [];
-  if (prev => true) {
-    if (revPrev > 0) {
-      const d = ((revCur - revPrev) / revPrev) * 100;
-      if (d < -15) anom.push({sev:'high', text:'Выручка упала на ' + Math.abs(d).toFixed(1) + '% к прошлому месяцу (' + fmtMoney(revCur) + ' vs ' + fmtMoney(revPrev) + ')'});
-    }
-    if (opexPrev > 0) {
-      const d = ((opexCur - opexPrev) / opexPrev) * 100;
-      if (d > 20) anom.push({sev:'high', text:'OPEX вырос на ' + d.toFixed(1) + '% к прошлому месяцу (' + fmtMoney(opexCur) + ' vs ' + fmtMoney(opexPrev) + ')'});
-    }
-    if (pnlCur < 0 && pnlPrev >= 0) anom.push({sev:'high', text:'Операционный P&L ушёл в минус: ' + fmtMoney(pnlCur)});
-    if (utilPct < 30) anom.push({sev:'mid', text:'Низкая загрузка кортов сегодня: ' + utilPct + '%'});
-    if (utilPct > 85) anom.push({sev:'low', text:'Пик загрузки сегодня: ' + utilPct + '% — нужно увеличить цены?'});
+  const revDailyNow  = dayOfMonth > 0 ? revCur / dayOfMonth : 0;
+  const revDailyPrev = daysInPrevMonth > 0 ? revPrev / daysInPrevMonth : 0;
+  if (revDailyPrev > 0) {
+    const d = ((revDailyNow - revDailyPrev) / revDailyPrev) * 100;
+    if (d < -15) anom.push({sev:'high', text:'Ср. дневная выручка упала на ' + Math.abs(d).toFixed(1) + '% к прошлому месяцу (' + fmtMoney(revDailyNow) + '/день vs ' + fmtMoney(revDailyPrev) + '/день)'});
+    if (d > 30) anom.push({sev:'low', text:'Ср. дневная выручка выросла на ' + d.toFixed(1) + '% к прошлому (' + fmtMoney(revDailyNow) + '/день)'});
   }
+  const opexDailyNow  = dayOfMonth > 0 ? opexCur / dayOfMonth : 0;
+  const opexDailyPrev = daysInPrevMonth > 0 ? opexPrev / daysInPrevMonth : 0;
+  if (opexDailyPrev > 0) {
+    const d = ((opexDailyNow - opexDailyPrev) / opexDailyPrev) * 100;
+    if (d > 30) anom.push({sev:'high', text:'Ср. дневные расходы выросли на ' + d.toFixed(1) + '% к прошлому месяцу'});
+  }
+  if (pnlCur < 0 && pnlPrev >= 0) anom.push({sev:'high', text:'Операционный P&L ушёл в минус: ' + fmtMoney(pnlCur)});
+  if (utilPct < 30) anom.push({sev:'mid', text:'Низкая загрузка кортов сегодня: ' + utilPct + '%'});
+  if (utilPct > 85) anom.push({sev:'low', text:'Пик загрузки сегодня: ' + utilPct + '% — нужно увеличить цены?'});
   const list = document.getElementById('anomalies-list');
   list.innerHTML = '';
   if (!anom.length) {
@@ -497,12 +507,18 @@ async function renderTournaments() {
   tours = tours.filter(t => t.status === 'instance');
   tours.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
+  const todayStr = TODAY.toISOString().slice(0, 10);
   box.innerHTML = tours.slice(0, 12).map(t => {
     const reg = num(t.participants_count);
     const max = num(t.slots) || 16;
-    const pct = Math.min(100, Math.round((reg / max) * 100));
     const dateStr = t.date ? t.date.slice(0, 10) : '—';
+    const isFuture = dateStr > todayStr;
     const gpState = (t.gameplan_state || '').toLowerCase();
+    // For future events with signup state — fill may be unreliable (template data)
+    const showFill = !isFuture || gpState === 'playing';
+    const pct = showFill ? Math.min(100, Math.round((reg / max) * 100)) : 0;
+    const fillLabel = showFill ? (reg + ' / ' + max + ' · ' + pct + '%') : 'ожидается';
+    const barWidth = showFill ? pct : 0;
     const badge = gpState === 'ended' ? '#8a9ba8' :
                   gpState === 'signup' ? '#13c296' :
                   gpState === 'playing' ? '#f39c12' : '#13c296';
@@ -511,7 +527,7 @@ async function renderTournaments() {
                         gpState === 'playing' ? 'идёт' : gpState || 'open';
     return '<div class="tour-row">' +
       '<div class="name">' + (t.title || '—') + '<small>' + dateStr + '</small></div>' +
-      '<div><div class="tour-bar-bg"><div class="tour-bar" style="width:' + pct + '%"></div></div><div class="fill-label">' + reg + ' / ' + max + ' · ' + pct + '%</div></div>' +
+      '<div><div class="tour-bar-bg"><div class="tour-bar" style="width:' + barWidth + '%"></div></div><div class="fill-label">' + fillLabel + '</div></div>' +
       '<div class="rev">—</div>' +
       '<div><span class="status" style="color:' + badge + ';border-color:' + badge + '">' + statusLabel + '</span></div>' +
     '</div>';

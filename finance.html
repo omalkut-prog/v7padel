@@ -45,7 +45,8 @@
   }
   .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
   .nav-logo em { color: var(--accent); font-style: normal; }
-  .nav-links { display: flex; list-style: none; }
+  ul.nav-links { display: flex !important; list-style: none !important; margin: 0; padding: 0; gap: 0; }
+  .nav-links li { list-style: none; }
   .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
   .nav-links a:hover { color: var(--text); }
   .nav-links a.active { color: var(--accent); }
@@ -459,8 +460,10 @@ async function renderBlock3() {
   // Real expenses columns: date, month, category, item, comment, amount, currency,
   //   method, payer, capex_flag, prepaid, amortize_months, source, amort_monthly_try, expense_id
   // Note: capex_flag is empty for all current rows (no capex in expenses data as of 2026-04-09)
+  const expCatRu = {'Payroll':'ФОТ','petty_cash':'Касса','Rent':'Аренда','Utilities':'Коммунальные','Marketing':'Маркетинг','Maintenance':'Обслуживание','Equipment':'Оборудование','Insurance':'Страхование','Other':'Прочее','Admin':'Админ расходы'};
+  const trCat = c => expCatRu[c] || c;
   const rows = exp.map(r => ({
-    cat: (r.category || 'Прочее').trim() || 'Прочее',
+    cat: trCat((r.category || 'Прочее').trim()) || 'Прочее',
     amt: num(r.amount),
     date: parseDate(r.date),
     ym: r.month || '',
@@ -504,16 +507,13 @@ async function renderBlock3() {
     cpTfoot.innerHTML = '<tr><td>Итого CAPEX</td><td class="num">' + fmtMoney(capexTotal) + '</td></tr>';
   }
 
-  // --- OPEX monthly chart (using r.ym from expenses.month, not parsing date) ---
-  const byMonth = {};
-  opex.forEach(r => {
-    const ym = r.ym || (r.date ? ymKey(r.date) : '');
-    if (!ym || ym < '2025-10') return;
-    byMonth[ym] = (byMonth[ym] || 0) + r.amt;
-  });
-  const months = Object.keys(byMonth).sort();
+  // --- OPEX monthly chart — use authoritative PnL data, not raw expenses ---
+  let pnlData = {};
+  try { pnlData = await V7.loadPnL(); } catch (e) { console.warn('PnL load for OPEX chart failed:', e); }
+  const pnlMonths = Object.keys(pnlData).sort().filter(m => m >= '2025-10');
+  const months = pnlMonths;
   const labels = months.map(ymLabel);
-  const values = months.map(m => byMonth[m]);
+  const values = months.map(m => pnlData[m] ? pnlData[m].opex : 0);
   const textCol = cssVar('--text3'); const gridCol = cssVar('--border');
   new Chart(document.getElementById('exp-chart').getContext('2d'), {
     type: 'line',
