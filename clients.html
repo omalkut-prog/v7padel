@@ -342,6 +342,9 @@ const state = {
 
   const nameKey = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 
+  // Staff exclusions — former employees whose bookings are work records, not client activity
+  const STAFF_NAMES = new Set(['gulcan yanar']);
+
   // --- Memberships index by NORMALIZED HOLDER NAME ---
   //   card_type "Club Membership" → 'Club', "V7 VIP" → 'VIP', else 'Other'
   //   prefer an 'Active' row over any non-active row for the same holder
@@ -381,7 +384,9 @@ const state = {
   // --- Enrich customers ---
   const now = new Date();
   const cutoff30 = new Date(now); cutoff30.setDate(cutoff30.getDate() - 30);
-  state.customers = customers.map(c => {
+  state.customers = customers
+    .filter(c => !STAFF_NAMES.has(nameKey(c.name)))
+    .map(c => {
     const id = c.customer_id;
     const name = c.name || '—';
     const nKey = nameKey(name);
