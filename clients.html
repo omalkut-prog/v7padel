@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <style>
   :root {
@@ -291,79 +292,15 @@
  *   never    = 0 bookings за весь период данных
  * ======================================================================== */
 
-const SHEET_ID = '1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY';
-const GVIZ = (name) =>
-  'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-  '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(name);
+// Constants and shared helpers are provided by assets/data.js as window.V7
 const PAGE_SIZE = 50;
+const loadSheet = V7.loadSheet;
+const parseDate = V7.parseDate;
+const nameKey   = V7.nameKey;
 
-/* ---------- CSV parser (RFC 4180 minimal) ---------- */
-function parseCSV(text) {
-  const rows = []; let i = 0, field = '', row = [], inQ = false;
-  while (i < text.length) {
-    const c = text[i];
-    if (inQ) {
-      if (c === '"' && text[i+1] === '"') { field += '"'; i += 2; continue; }
-      if (c === '"') { inQ = false; i++; continue; }
-      field += c; i++; continue;
-    }
-    if (c === '"') { inQ = true; i++; continue; }
-    if (c === ',') { row.push(field); field = ''; i++; continue; }
-    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
-    if (c === '\r') { i++; continue; }
-    field += c; i++;
-  }
-  if (field.length || row.length) { row.push(field); rows.push(row); }
-  if (!rows.length) return [];
-  const headers = rows[0].map(h => (h || '').trim());
-  return rows.slice(1).filter(r => r.some(v => v && v.trim())).map(r => {
-    const o = {}; headers.forEach((h, idx) => o[h] = (r[idx] || '').trim()); return o;
-  });
-}
-async function loadSheet(name) {
-  try {
-    const r = await fetch(GVIZ(name));
-    if (!r.ok) throw new Error(r.status);
-    return parseCSV(await r.text());
-  } catch (e) {
-    console.warn('[gviz]', name, 'failed:', e);
-    return null;
-  }
-}
-
-/* ---------- helpers ---------- */
-// parseDate: приоритет DD/MM/YYYY (или DD.MM или DD-MM) над native Date() —
-// потому что JS native `new Date("08/04/2026")` на Chrome интерпретируется как
-// US-формат MM/DD и даёт не ту дату. Далее fallback на ISO / Date native parser.
-function parseDate(s) {
-  if (!s) return null;
-  s = String(s).trim();
-  // Explicit DD/MM/YYYY (с опциональным временем)
-  const m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})(?:[ T](\d{1,2}):(\d{1,2})(?::(\d{1,2}))?)?$/);
-  if (m) {
-    let [, dd, mm, yy, hh, mi, ss] = m;
-    yy = yy.length === 2 ? '20' + yy : yy;
-    const dt = new Date(+yy, +mm - 1, +dd, +(hh || 0), +(mi || 0), +(ss || 0));
-    if (!isNaN(dt)) return dt;
-  }
-  // Fallback: YYYY-MM-DD[ HH:MM:SS] / ISO / прочие форматы парсятся нативно
-  const d = new Date(s);
-  if (!isNaN(d)) return d;
-  return null;
-}
 function fmtDate(d) {
   if (!d) return '—';
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
-
-/* ---------- Key detection ---------- */
-function findKey(obj, ...regexes) {
-  const keys = Object.keys(obj);
-  for (const re of regexes) {
-    const k = keys.find(x => re.test(x));
-    if (k) return k;
-  }
-  return null;
 }
 
 /* ---------- State ---------- */

@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <style>
   :root {
@@ -199,7 +200,7 @@
 // ============================================================
 // V7 PADEL DATA BROWSER
 // ============================================================
-const DB_ID = "1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY";
+const DB_ID = V7.SHEET_ID; // from assets/data.js — single source of truth
 
 // Tabs to expose; schemas pre-declared for column order / rendering
 const TABS = [
@@ -221,16 +222,12 @@ const PAGE_SIZE = 200;
 let sortCol = null;
 let sortDir = 1;
 
-const fmt = v => (Math.round(v)).toLocaleString("ru-RU");
+const fmt = V7.fmtInt;   // from data.js
+const toNum = V7.num;    // from data.js
 const isNumeric = v => {
   if (v === null || v === undefined || v === "") return false;
   const s = String(v).replace(/\s|\u00a0/g,"").replace(",",".");
   return /^-?\d+(\.\d+)?$/.test(s);
-};
-const toNum = v => {
-  const s = String(v || "").replace(/\s|\u00a0/g,"").replace(",",".");
-  const n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
 };
 
 // CSV parser

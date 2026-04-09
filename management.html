@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <style>
   :root {
@@ -266,88 +267,19 @@
  *   4. Если расхождение — показываем значение из P&L и помечаем расхождение
  * ========================================================================= */
 
-const SHEET_ID = '1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY';
-const GVIZ = (name) =>
-  'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-  '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(name);
+// --- Shared helpers from assets/data.js ---
+const loadSheet  = V7.loadSheet;
+const num        = V7.num;
+const fmt        = V7.fmt;
+const fmtMoney   = V7.fmtMoney;
+const parseDate  = V7.parseDate;
+const ymKey      = V7.ymKey;
+const accentColor = V7.accent;
 
-/* ---------- CSV parser (RFC 4180 minimal) ---------- */
-function parseCSV(text) {
-  const rows = []; let i = 0, field = '', row = [], inQ = false;
-  while (i < text.length) {
-    const c = text[i];
-    if (inQ) {
-      if (c === '"' && text[i+1] === '"') { field += '"'; i += 2; continue; }
-      if (c === '"') { inQ = false; i++; continue; }
-      field += c; i++; continue;
-    }
-    if (c === '"') { inQ = true; i++; continue; }
-    if (c === ',') { row.push(field); field = ''; i++; continue; }
-    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
-    if (c === '\r') { i++; continue; }
-    field += c; i++;
-  }
-  if (field.length || row.length) { row.push(field); rows.push(row); }
-  if (!rows.length) return [];
-  const headers = rows[0].map(h => (h || '').trim());
-  return rows.slice(1).filter(r => r.some(v => v && v.trim())).map(r => {
-    const o = {}; headers.forEach((h, idx) => o[h] = (r[idx] || '').trim()); return o;
-  });
-}
-async function loadSheet(name) {
-  try {
-    const r = await fetch(GVIZ(name));
-    if (!r.ok) throw new Error(r.status);
-    return parseCSV(await r.text());
-  } catch (e) {
-    console.warn('[gviz]', name, 'failed:', e);
-    return null;
-  }
-}
-
-/* ---------- helpers ---------- */
-function num(x) {
-  if (x == null) return 0;
-  const s = String(x).replace(/[^\d\-.,]/g, '').replace(/\s/g, '').replace(/,(\d{1,2})$/, '.$1').replace(/,/g, '');
-  const n = parseFloat(s);
-  return isNaN(n) ? 0 : n;
-}
-function fmt(n) {
-  if (!isFinite(n)) return '—';
-  const abs = Math.abs(n);
-  if (abs >= 1e6) return (n/1e6).toFixed(2).replace(/\.?0+$/,'') + 'M';
-  if (abs >= 1e3) return (n/1e3).toFixed(0) + 'K';
-  return n.toFixed(0);
-}
-function fmtMoney(n) { return fmt(n) + ' ₺'; }
-function parseDate(s) {
-  if (!s) return null;
-  s = String(s).trim();
-  // try ISO first
-  let d = new Date(s);
-  if (!isNaN(d)) return d;
-  // DD.MM.YYYY or DD/MM/YYYY
-  const m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
-  if (m) {
-    let [_, dd, mm, yy] = m; yy = yy.length === 2 ? '20' + yy : yy;
-    d = new Date(+yy, +mm - 1, +dd);
-    if (!isNaN(d)) return d;
-  }
-  return null;
-}
-function ymKey(d) {
-  if (!d) return '';
-  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
-}
-const TODAY = new Date();
-const CUR_YM = ymKey(TODAY);
-const PREV = new Date(TODAY.getFullYear(), TODAY.getMonth() - 1, 1);
+const TODAY   = new Date();
+const CUR_YM  = ymKey(TODAY);
+const PREV    = new Date(TODAY.getFullYear(), TODAY.getMonth() - 1, 1);
 const PREV_YM = ymKey(PREV);
-
-/* Accent color (reads from CSS var for current theme) */
-function accentColor() {
-  return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0ABAB5';
-}
 
 /* =============================================================
  * BLOCK 1 — CEO Overview (KPI + anomalies)

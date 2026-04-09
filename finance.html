@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <style>
   :root {
@@ -279,121 +280,21 @@
  *   5. Если расхождение — показываем значение из P&L и помечаем расхождение
  * ========================================================================= */
 
-const SHEET_ID = '1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY';
-const GVIZ = (name) =>
-  'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
-  '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(name);
-
-/* ---------- CSV parser ---------- */
-function parseCSV(text) {
-  const rows = []; let i = 0, field = '', row = [], inQ = false;
-  while (i < text.length) {
-    const c = text[i];
-    if (inQ) {
-      if (c === '"' && text[i+1] === '"') { field += '"'; i += 2; continue; }
-      if (c === '"') { inQ = false; i++; continue; }
-      field += c; i++; continue;
-    }
-    if (c === '"') { inQ = true; i++; continue; }
-    if (c === ',') { row.push(field); field = ''; i++; continue; }
-    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
-    if (c === '\r') { i++; continue; }
-    field += c; i++;
-  }
-  if (field.length || row.length) { row.push(field); rows.push(row); }
-  if (!rows.length) return [];
-  const headers = rows[0].map(h => (h || '').trim());
-  return rows.slice(1).filter(r => r.some(v => v && v.trim())).map(r => {
-    const o = {}; headers.forEach((h, idx) => o[h] = (r[idx] || '').trim()); return o;
-  });
-}
-async function loadSheet(name) {
-  try {
-    const r = await fetch(GVIZ(name));
-    if (!r.ok) throw new Error(r.status);
-    return parseCSV(await r.text());
-  } catch (e) {
-    console.warn('[gviz]', name, 'failed:', e);
-    return null;
-  }
-}
-
-/* ---------- helpers ---------- */
-function num(x) {
-  if (x == null) return 0;
-  const s = String(x).replace(/[^\d\-.,]/g, '').replace(/\s/g, '').replace(/,(\d{1,2})$/, '.$1').replace(/,/g, '');
-  const n = parseFloat(s); return isNaN(n) ? 0 : n;
-}
-function fmt(n) {
-  if (!isFinite(n) || n == null) return '—';
-  const abs = Math.abs(n);
-  if (abs >= 1e6) return (n/1e6).toFixed(2).replace(/\.?0+$/,'') + 'M';
-  if (abs >= 1e3) return (n/1e3).toFixed(0) + 'K';
-  return n.toFixed(0);
-}
-function fmtMoney(n) { return fmt(n) + ' ₺'; }
-function fmtPct(n) { return (isFinite(n) ? n.toFixed(1) : '0') + '%'; }
-function fmtSigned(n) {
-  if (!isFinite(n) || n == null) return '—';
-  const s = n > 0 ? '+' : '';
-  return s + fmt(n) + ' ₺';
-}
-function parseDate(s) {
-  if (!s) return null;
-  s = String(s).trim();
-  let d = new Date(s);
-  if (!isNaN(d)) return d;
-  const m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
-  if (m) {
-    let [_, dd, mm, yy] = m; yy = yy.length === 2 ? '20' + yy : yy;
-    d = new Date(+yy, +mm - 1, +dd);
-    if (!isNaN(d)) return d;
-  }
-  return null;
-}
-function ymKey(d) { if (!d) return ''; return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'); }
-function ymLabel(ym) {
-  const [y, m] = ym.split('-');
-  const MONTH = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-  return (MONTH[+m - 1] || m) + ' ' + y;
-}
-function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-function accent() { return cssVar('--accent') || '#0ABAB5'; }
-function findKey(obj, ...regexes) {
-  if (!obj) return null;
-  const keys = Object.keys(obj);
-  for (const re of regexes) { const k = keys.find(x => re.test(x)); if (k) return k; }
-  return null;
-}
-
-/* ---------- Category mapping for transactions ---------- */
-const KIND_TO_CAT = {
-  booking:    'Аренда кортов',
-  court:      'Аренда кортов',
-  membership: 'Карты',
-  card:       'Карты',
-  training:   'Тренировки',
-  coaching:   'Тренировки',
-  tournament: 'Турниры',
-  event:      'Турниры',
-  goods:      'Товары',
-  sale_of_goods: 'Товары',
-  merchandise:   'Товары'
-};
-function kindToCat(k) {
-  if (!k) return 'Прочее';
-  const kl = String(k).toLowerCase().trim();
-  for (const key of Object.keys(KIND_TO_CAT)) {
-    if (kl.indexOf(key) >= 0) return KIND_TO_CAT[key];
-  }
-  if (kl.indexOf('турнир') >= 0) return 'Турниры';
-  if (kl.indexOf('трен')   >= 0) return 'Тренировки';
-  if (kl.indexOf('корт')   >= 0) return 'Аренда кортов';
-  if (kl.indexOf('карт')   >= 0) return 'Карты';
-  if (kl.indexOf('товар')  >= 0) return 'Товары';
-  return 'Прочее';
-}
-const REV_CATS = ['Аренда кортов','Карты','Тренировки','Турниры','Товары','Прочее'];
+// --- Shared helpers from assets/data.js ---
+const loadSheet    = V7.loadSheet;
+const num          = V7.num;
+const fmt          = V7.fmt;
+const fmtMoney     = V7.fmtMoney;
+const fmtPct       = V7.fmtPct;
+const fmtSigned    = V7.fmtSigned;
+const parseDate    = V7.parseDate;
+const ymKey        = V7.ymKey;
+const ymLabel      = V7.ymLabel;
+const cssVar       = V7.cssVar;
+const accent       = V7.accent;
+const categorize   = V7.categorizeRevenue;  // maps transactions.category → доходная категория
+const REV_CATS     = V7.REV_CAT_ORDER;
+const REV_COLORS   = V7.REV_CAT_COLORS;
 const REV_COLORS = ['#0ABAB5','#7C3AED','#13c296','#f39c12','#5ac8fa','#8a9ba8'];
 
 /* ========================================================================
