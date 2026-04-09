@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — Brain · Правила и спецификация</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --surface2: #0b1220;
+    --border: rgba(148,163,184,0.14); --border-hover: rgba(148,163,184,0.3);
+    --text: #f1f5f9; --text2: #cbd5e1; --text3: #64748b;
+    --accent: #7C3AED; --accent-soft: rgba(124,58,237,0.14); --accent-border: rgba(124,58,237,0.3);
+    --good: #13c296; --bad: #e74c3c; --warn: #f39c12; --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  nav { position: sticky; top: 0; z-index: 100; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links { display: flex; list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
+
+  main { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 32px; }
+
+  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 30px; margin-bottom: 20px; }
+  .section h2 { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section h3 { font-size: 14px; font-weight: 600; color: var(--text); margin: 18px 0 8px; }
+  .section p, .section li { font-size: 14px; color: var(--text2); line-height: 1.65; }
+  .section ul, .section ol { padding-left: 22px; margin-bottom: 14px; }
+  .section li { margin-bottom: 6px; }
+  .section code { background: var(--surface2); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+
+  table.schema { width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0 16px; }
+  table.schema th { text-align: left; padding: 8px 10px; background: var(--surface2); color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; border-bottom: 1px solid var(--border); }
+  table.schema td { padding: 8px 10px; color: var(--text2); border-bottom: 1px solid var(--border); font-family: monospace; font-size: 11px; }
+  table.schema tr:last-child td { border-bottom: 0; }
+
+  .rule { display: flex; gap: 14px; margin-bottom: 12px; padding: 12px 14px; background: var(--surface2); border-radius: 10px; }
+  .rule .num { font-size: 12px; font-weight: 700; color: var(--accent); min-width: 22px; padding-top: 1px; }
+  .rule .text { font-size: 13px; color: var(--text2); line-height: 1.55; }
+  .rule .text strong { color: var(--text); }
+
+  .tag { display: inline-block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 6px; }
+  .tag-ok   { background: rgba(19,194,150,0.12); color: var(--good); }
+  .tag-warn { background: rgba(243,156,18,0.12); color: var(--warn); }
+  .tag-block{ background: rgba(231,76,60,0.12); color: var(--bad); }
+  .tag-info { background: var(--accent-soft); color: var(--accent); }
+
+  @media (max-width: 720px) { main { padding: 16px 12px 60px; } .section { padding: 20px 18px; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li class="team-link"><a href="team.html">Команда</a></li>
+    <li class="team-link"><a href="brain.html" class="active">Brain</a></li>
+  </ul>
+  <span class="nav-pill">Constitution</span>
+</nav>
+
+<main>
+  <h1 class="page-title">V7 Padel Brain</h1>
+  <p class="page-sub">8 разделов правил + реальная спецификация колонок v7padel_db · обновлено 2026-04-09</p>
+
+  <!-- 1. ЯЗЫКИ -->
+  <div class="section">
+    <h2>1 · Языки</h2>
+    <ul>
+      <li>Сайт (CEO/Оля): <strong>русский</strong> — основной</li>
+      <li>Персонал (турки): <strong>турецкий + английский</strong></li>
+      <li>Турецкий — строгая орфография: <code>İ Ş Ğ Ü Ö Ç</code> обязательно</li>
+      <li>Если не уверен в турецком — пометка <span class="tag tag-warn">нужна проверка носителем</span></li>
+      <li>Никакого транслита</li>
+    </ul>
+  </div>
+
+  <!-- 2. ДАННЫЕ И ИСТОЧНИКИ -->
+  <div class="section">
+    <h2>2 · Данные и источники</h2>
+    <ul>
+      <li>P&amp;L — <strong>только из pnl_monthly</strong>. Никогда из transactions или expenses</li>
+      <li>Названия колонок — <strong>точные</strong>, не угадывать</li>
+      <li>Fallback без пометки в UI — <span class="tag tag-block">запрещён</span></li>
+      <li>Нет данных для блока = сообщи что добавить в ETL, не строй на заглушках</li>
+      <li>Нет данных в UI = явное сообщение с причиной, никогда пустой блок или вечный спиннер</li>
+    </ul>
+
+    <h3>Реальная спецификация колонок v7padel_db</h3>
+    <p>Проверено через gviz CSV аудит 2026-04-09.</p>
+
+    <table class="schema">
+      <thead><tr><th>Вкладка</th><th>Колонки</th><th>Статус</th></tr></thead>
+      <tbody>
+        <tr><td>customers</td><td>customer_id, name, phone, email, gender, age, subs_date, level, nationality</td><td><span class="tag tag-ok">ok</span></td></tr>
+        <tr><td>bookings</td><td>booking_id, customer_id, court_id, start_ts, end_ts, status, price</td><td><span class="tag tag-block">customer_id пуст 100%</span></td></tr>
+        <tr><td>memberships</td><td>membership_id, holder, card_type, rate, payment, subs_date, paid_until, next_fee, status, first_fee, fee</td><td><span class="tag tag-ok">ok</span></td></tr>
+        <tr><td>transactions</td><td>date, month, category, subcategory, status, players, price, amount1, method1, currency1, amount2, method2, currency2, coach, comment, admin, total, source, transaction_id</td><td><span class="tag tag-ok">ok</span></td></tr>
+        <tr><td>expenses</td><td>date, month, category, item, comment, amount, currency, method, payer, capex_flag, prepaid, amortize_months, source, amort_monthly_try, expense_id</td><td><span class="tag tag-ok">ok</span></td></tr>
+        <tr><td>pnl_monthly</td><td>period_month, code, parent_code, level, article_name, branch, cashless, cash, total, source, pnl_row_id</td><td><span class="tag tag-ok">ok</span></td></tr>
+        <tr><td>liabilities</td><td>liability_id, date, amount, currency, creditor, description, status</td><td><span class="tag tag-ok">ok</span></td></tr>
+        <tr><td>tournaments</td><td colspan="2"><span class="tag tag-warn">пустая — ждёт Racket.ID</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Агрегация P&amp;L из pnl_monthly</h3>
+    <ul>
+      <li><strong>Revenue</strong> = строки где <code>level=0</code>, <code>branch=revenue</code>, <code>article_name</code> содержит «Доход от деятельности»</li>
+      <li><strong>OPEX</strong> = строки где <code>branch=expense</code>, <code>article_name</code> содержит «Условно-постоянные расходы»</li>
+      <li><strong>Op. P&amp;L</strong> = Revenue − OPEX</li>
+    </ul>
+
+    <h3>Маппинг категорий выручки (transactions.category)</h3>
+    <table class="schema">
+      <thead><tr><th>Текст в category</th><th>Группа</th></tr></thead>
+      <tbody>
+        <tr><td>Rent from 07..., Rent from 11..., Equipment rental</td><td>Корты и инвентарь</td></tr>
+        <tr><td>Club cards</td><td>Клубные карты</td></tr>
+        <tr><td>*training*, Individual*, Group*, Children*, Kids*, Adult*</td><td>Тренировки</td></tr>
+        <tr><td>Tournaments</td><td>Турниры</td></tr>
+        <tr><td>Sale of goods, *inventory*, Giftboxes, *accessor*</td><td>Товары</td></tr>
+        <tr><td>Internal movements, Depositing money...</td><td><em>пропускается</em></td></tr>
+        <tr><td>Всё остальное</td><td>Прочее</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Связь клиент ← → членство</h3>
+    <ul>
+      <li>В memberships нет <code>customer_id</code> — связь через <code>holder</code> (имя) ← → <code>customers.name</code></li>
+      <li>Нормализация: <code>trim().toLowerCase().replace(/\s+/g, ' ')</code></li>
+      <li>39 из 39 holders совпадают с customers.name (100% linkage)</li>
+    </ul>
+  </div>
+
+  <!-- 3. КОД -->
+  <div class="section">
+    <h2>3 · Код</h2>
+    <div class="rule"><span class="num">3.1</span><div class="text"><strong>Перед написанием — проверь есть ли уже в codebase.</strong> Не дублируй.</div></div>
+    <div class="rule"><span class="num">3.2</span><div class="text">Общий код (gviz парсер, утилиты) — <strong>только в assets/data.js</strong>.</div></div>
+    <div class="rule"><span class="num">3.3</span><div class="text">Все константы и ID таблиц — только в шапке файла (<code>V7.SHEET_ID</code> в data.js).</div></div>
+    <div class="rule"><span class="num">3.4</span><div class="text"><strong>Максимум 3 gviz запроса на страницу.</strong> Если нужно больше — объединяй в ETL (pre-aggregated sheets).</div></div>
+    <div class="rule"><span class="num">3.5</span><div class="text">Не добавляй новые библиотеки без разрешения. Разрешённые: <code>Chart.js</code>, <code>marked.js</code>, <code>Inter</code> (шрифт).</div></div>
+    <div class="rule"><span class="num">3.6</span><div class="text">Если решение больше 50 строк — остановись, скорее всего есть проще.</div></div>
+    <div class="rule"><span class="num">3.7</span><div class="text">Не трогай файлы вне задачи без явного разрешения.</div></div>
+    <h3>Технический долг</h3>
+    <ul>
+      <li><span class="tag tag-warn">management.html: 6 gviz запросов</span> — нужен pre-aggregated лист в ETL</li>
+      <li><span class="tag tag-warn">finance.html: 5 gviz запросов</span> — аналогично</li>
+      <li><span class="tag tag-block">bookings.customer_id пуст</span> — блокер для воронки по играм, heatmap per client. Нужен ETL backfill.</li>
+    </ul>
+  </div>
+
+  <!-- 4. ETL -->
+  <div class="section">
+    <h2>4 · ETL</h2>
+    <div class="rule"><span class="num">4.1</span><div class="text">При изменении логики ETL — <strong>dry-run обязателен</strong> перед реальным запуском.</div></div>
+    <div class="rule"><span class="num">4.2</span><div class="text">При обычном ежедневном прогоне — dry-run не нужен.</div></div>
+    <div class="rule"><span class="num">4.3</span><div class="text">Не ломай базу — перед любым rebuild проверь что схема не изменилась.</div></div>
+  </div>
+
+  <!-- 5. КАЧЕСТВО -->
+  <div class="section">
+    <h2>5 · Качество — перед каждым пушем</h2>
+    <div class="rule"><span class="num">5.1</span><div class="text">Все блоки показывают <strong>реальные данные</strong> — не нули, не спиннер.</div></div>
+    <div class="rule"><span class="num">5.2</span><div class="text">Мобилка: таблицы скроллятся горизонтально, кнопки <strong>минимум 44px</strong>, текст читаем без зума.</div></div>
+    <div class="rule"><span class="num">5.3</span><div class="text">Существующие страницы не сломаны после изменений общих файлов.</div></div>
+    <div class="rule"><span class="num">5.4</span><div class="text"><strong>Один коммит = одна задача</strong> с описанием что и зачем изменено.</div></div>
+    <div class="rule"><span class="num">5.5</span><div class="text">Если блок показывает нули — это баг, не норма. Разберись до пуша.</div></div>
+  </div>
+
+  <!-- 6. UI -->
+  <div class="section">
+    <h2>6 · UI</h2>
+    <ul>
+      <li>Все тексты на <strong>русском</strong> (CEO/Оля интерфейс)</li>
+      <li>Персонал видит <strong>турецкий + английский</strong></li>
+      <li>Если gviz не ответил за 10 секунд — <strong>кнопка «Обновить»</strong>, не вечный спиннер</li>
+      <li>Нет данных = сообщение с причиной на нужном языке</li>
+    </ul>
+  </div>
+
+  <!-- 7. ПОРЯДОК РАБОТЫ -->
+  <div class="section">
+    <h2>7 · Порядок работы</h2>
+    <div class="rule"><span class="num">7.1</span><div class="text">Задачи выполняются строго в том порядке в котором написаны.</div></div>
+    <div class="rule"><span class="num">7.2</span><div class="text">Если встретил блокер без тебя — принимаешь решение сам, фиксируешь в сообщении, продолжаешь.</div></div>
+    <div class="rule"><span class="num">7.3</span><div class="text">Перед сдачей — <strong>самоаудит</strong>: code review + проверка данных + тест мобилки + отчёт.</div></div>
+  </div>
+
+  <!-- 8. АРХИТЕКТУРНЫЕ ПРИНЦИПЫ -->
+  <div class="section">
+    <h2>8 · Архитектурные принципы</h2>
+    <div class="rule"><span class="num">1</span><div class="text"><strong>Не автоматизируй плохой процесс — убери его.</strong></div></div>
+    <div class="rule"><span class="num">2</span><div class="text"><strong>Один источник правды</strong> для каждой цифры.</div></div>
+    <div class="rule"><span class="num">3</span><div class="text">Данные вводятся один раз.</div></div>
+    <div class="rule"><span class="num">4</span><div class="text">Не оптимизируй то чего не должно существовать.</div></div>
+    <div class="rule"><span class="num">5</span><div class="text"><strong>Простота важнее полноты</strong> — если можно проще, делай проще.</div></div>
+    <div class="rule"><span class="num">6</span><div class="text">Каждое решение проверяется: <strong>работает ли это в сети из 10 клубов?</strong></div></div>
+    <div class="rule"><span class="num">7</span><div class="text">Всё измеряется. Если метрику нельзя посчитать — фича не считается готовой.</div></div>
+  </div>
+</main>
+
+</body>
+</html>

@@ -137,7 +137,8 @@ html[data-theme] button.primary, html[data-theme] .btn-primary {
 
 /* ---- TEAM LINK: скрываем в тёме tiffany (CEO не видит внутреннюю кухню) ---- */
 html[data-theme="tiffany"] .team-link,
-html[data-theme="tiffany"] a.team-link { display: none !important; }
+html[data-theme="tiffany"] a.team-link,
+html[data-theme="tiffany"] .brain-link { display: none !important; }
 
 /* ---- ПЕРЕКЛЮЧАТЕЛЬ ТЕМ ---- */
 .theme-switcher {
