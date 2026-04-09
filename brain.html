@@ -92,7 +92,7 @@
   <div class="section">
     <h2>2 · Данные и источники</h2>
     <ul>
-      <li>P&amp;L — <strong>только из pnl_monthly</strong>. Никогда из transactions или expenses</li>
+      <li>P&amp;L — <strong>только из PnL бухгалтера</strong> (новый файл). Старый pnl_monthly в v7padel_db — deprecated</li>
       <li>Названия колонок — <strong>точные</strong>, не угадывать</li>
       <li>Fallback без пометки в UI — <span class="tag tag-block">запрещён</span></li>
       <li>Нет данных для блока = сообщи что добавить в ETL, не строй на заглушках</li>
@@ -116,11 +116,23 @@
       </tbody>
     </table>
 
-    <h3>Агрегация P&amp;L из pnl_monthly</h3>
+    <h3>Агрегация P&amp;L (НОВЫЙ формат — PnL бухгалтера)</h3>
+    <p>Источник: <code>1wLvhEUAsS08K6LvxSKAx5-soh5NxayMpU3brvd4rQ54</code>, GID <code>1844112584</code></p>
     <ul>
-      <li><strong>Revenue</strong> = строки где <code>level=0</code>, <code>branch=revenue</code>, <code>article_name</code> содержит «Доход от деятельности»</li>
-      <li><strong>OPEX</strong> = строки где <code>branch=expense</code>, <code>article_name</code> содержит «Условно-постоянные расходы»</li>
-      <li><strong>Op. P&amp;L</strong> = Revenue − OPEX</li>
+      <li>Месяцы — <strong>колонки</strong> (не строки). Каждый месяц = 4 колонки: Cashless, Cash, итого, Уд.вес</li>
+      <li><strong>Revenue</strong> = строка «Доход от деятельности» → колонка «итого»</li>
+      <li><strong>OPEX</strong> = строка «Условно-постоянные расходы» → |итого| (abs)</li>
+      <li><strong>PnL</strong> = строка «Прибыль» → итого</li>
+      <li>Детализация: Падел, Bookings, Membership, Classes, Tournaments, Goods (revenue); Admin, Bank, Utilities, Marketing, Staff, Taxes (opex)</li>
+    </ul>
+
+    <h3>Fuzzy matching: bookings ↔ customers</h3>
+    <ul>
+      <li>Скрипт: <code>scripts/fuzzy_match.py</code>, результаты: <code>data/booking_matches.csv</code></li>
+      <li>Покрытие: <strong>1,027 бронирований (14.0%)</strong> привязаны к <strong>267 уникальным клиентам</strong></li>
+      <li>Методы: exact name (1,003 high), substring (24 medium)</li>
+      <li>Staff exclusion: Gulcan Yanar (бывший тренер, 255 бронирований = work records)</li>
+      <li>Не матчатся: турниры (team VS team), generic bookings, match records — нужен Racket.ID</li>
     </ul>
 
     <h3>Маппинг категорий выручки (transactions.category)</h3>
@@ -159,7 +171,7 @@
     <ul>
       <li><span class="tag tag-warn">management.html: 6 gviz запросов</span> — нужен pre-aggregated лист в ETL</li>
       <li><span class="tag tag-warn">finance.html: 5 gviz запросов</span> — аналогично</li>
-      <li><span class="tag tag-block">bookings.customer_id пуст</span> — блокер для воронки по играм, heatmap per client. Нужен ETL backfill.</li>
+      <li><span class="tag tag-warn">bookings.customer_id пуст, но fuzzy match дал 14%</span> — 1,027 из 7,322 бронирований привязаны. Для полного покрытия нужен Racket.ID (турниры) + Matchpoint API/scraping (generic bookings).</li>
     </ul>
   </div>
 
