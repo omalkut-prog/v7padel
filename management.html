@@ -683,12 +683,19 @@ document.getElementById('modal-backdrop').addEventListener('click', e => { if (e
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
 /* ---- RUN ALL ---- */
-renderCEOOverview().catch(e => console.error(e));
-renderFunnel().catch(e => console.error(e));
-renderHeatmap().catch(e => console.error(e));
-renderTournaments().catch(e => console.error(e));
-renderGoods().catch(e => console.error(e));
-renderClients().catch(e => console.error(e));
+function showErr(name, e) {
+  console.error(name + ':', e);
+  const d = document.createElement('div');
+  d.style.cssText = 'background:#fee;color:#c00;padding:8px 14px;border:1px solid #fcc;border-radius:8px;margin:8px 24px;font-size:13px;font-family:monospace;';
+  d.textContent = '⚠ ' + name + ': ' + (e.message || e);
+  document.querySelector('.container').prepend(d);
+}
+renderCEOOverview().catch(e => showErr('CEO Overview', e));
+renderFunnel().catch(e => showErr('Funnel', e));
+renderHeatmap().catch(e => showErr('Heatmap', e));
+renderTournaments().catch(e => showErr('Tournaments', e));
+renderGoods().catch(e => showErr('Goods', e));
+renderClients().catch(e => showErr('Clients', e));
 </script>
 
 </body>
