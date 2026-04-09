@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — Управленческий дашборд</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  :root {
+    --bg: #f5f7f9;
+    --surface: #ffffff;
+    --surface2: #f1f5f9;
+    --border: #e5ecef;
+    --border-hover: rgba(15,23,42,0.18);
+    --text: #0b1620;
+    --text2: #4a5967;
+    --text3: #8a9ba8;
+    --accent: #0ABAB5;
+    --accent-soft: rgba(10,186,181,0.12);
+    --accent-border: rgba(10,186,181,0.25);
+    --good: #13c296;
+    --bad: #e74c3c;
+    --warn: #f39c12;
+    --radius: 16px;
+    --shadow: 0 1px 3px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px; gap: 0;
+  }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links { display: flex; gap: 0; list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: .3px; margin-right: 12px; }
+
+  /* MAIN */
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+  .section-head .hint { font-size: 11px; color: var(--text3); }
+
+  /* KPI GRID (Block 1) */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 22px; box-shadow: var(--shadow);
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .kpi .label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); }
+  .kpi .value { font-size: 28px; font-weight: 700; letter-spacing: -0.8px; color: var(--text); line-height: 1.1; }
+  .kpi .delta { font-size: 12px; font-weight: 500; }
+  .kpi .delta.up { color: var(--good); }
+  .kpi .delta.down { color: var(--bad); }
+  .kpi .delta.flat { color: var(--text3); }
+
+  /* Anomalies */
+  .anomalies { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
+  .anomalies h3 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; }
+  .anomalies ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+  .anomalies li { display: flex; align-items: flex-start; gap: 12px; font-size: 13px; color: var(--text2); padding: 10px 0; border-top: 1px solid var(--border); }
+  .anomalies li:first-child { border-top: 0; padding-top: 0; }
+  .anomalies .ico { font-size: 14px; flex-shrink: 0; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+  .anomalies .sev-high { background: rgba(231,76,60,0.1); color: var(--bad); }
+  .anomalies .sev-mid  { background: rgba(243,156,18,0.1); color: var(--warn); }
+  .anomalies .sev-low  { background: rgba(19,194,150,0.1); color: var(--good); }
+
+  /* Funnel (Block 2) */
+  .funnel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+  .funnel-row { display: grid; grid-template-columns: 180px 1fr 120px 90px; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--border); }
+  .funnel-row:first-child { border-top: 0; }
+  .funnel-row .stage { font-size: 13px; font-weight: 500; color: var(--text); }
+  .funnel-row .stage small { display: block; color: var(--text3); font-size: 11px; margin-top: 2px; font-weight: 400; }
+  .funnel-bar-bg { background: var(--surface2); height: 28px; border-radius: 8px; overflow: hidden; position: relative; }
+  .funnel-bar { background: var(--accent); height: 100%; border-radius: 8px; transition: width .8s ease; display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: 600; }
+  .funnel-row .count { font-size: 18px; font-weight: 700; text-align: right; color: var(--text); }
+  .funnel-row .conv { font-size: 12px; color: var(--text3); text-align: right; }
+
+  /* Heatmap (Block 4) */
+  .heatmap-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); overflow-x: auto; }
+  .heatmap { display: grid; grid-template-columns: 60px repeat(17, 1fr); gap: 3px; min-width: 820px; }
+  .heatmap .cell { aspect-ratio: 1 / 1; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text); cursor: pointer; }
+  .heatmap .cell.h { font-weight: 600; color: var(--text3); background: transparent; cursor: default; }
+  .heatmap .cell.dow { font-size: 11px; font-weight: 600; color: var(--text2); background: transparent; cursor: default; justify-content: flex-end; padding-right: 6px; }
+
+  /* Tournaments (Block 5) */
+  .tours { display: flex; flex-direction: column; gap: 10px; }
+  .tour-row { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow); display: grid; grid-template-columns: 1fr 1.2fr 110px 110px; gap: 16px; align-items: center; }
+  .tour-row .name { font-size: 14px; font-weight: 600; color: var(--text); }
+  .tour-row .name small { display: block; color: var(--text3); font-size: 11px; font-weight: 400; margin-top: 2px; }
+  .tour-bar-bg { background: var(--surface2); height: 10px; border-radius: 6px; overflow: hidden; }
+  .tour-bar { background: var(--accent); height: 100%; border-radius: 6px; }
+  .tour-row .fill-label { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .tour-row .rev { text-align: right; font-size: 14px; font-weight: 600; }
+  .tour-row .status { text-align: right; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 20px; border: 1px solid var(--border); display: inline-block; }
+  .tour-empty { text-align: center; color: var(--text3); font-size: 13px; padding: 24px; }
+
+  /* Goods (Block 6) */
+  .goods-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .goods-panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px 22px; box-shadow: var(--shadow); }
+  .goods-panel h3 { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 14px; }
+  .goods-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+  .goods-list li { display: flex; justify-content: space-between; font-size: 13px; padding: 8px 0; border-top: 1px solid var(--border); color: var(--text2); }
+  .goods-list li:first-child { border-top: 0; padding-top: 0; }
+  .goods-list li strong { color: var(--text); font-weight: 600; }
+  .goods-chart-wrap { height: 220px; }
+
+  /* Client card modal */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); z-index: 600; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop.active { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+    max-width: 720px; width: 100%; max-height: 88vh; overflow: auto;
+    padding: 28px 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .modal-close { float: right; background: transparent; border: 0; font-size: 24px; color: var(--text3); cursor: pointer; line-height: 1; }
+  .modal h3 { font-size: 22px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
+  .modal .sub { font-size: 12px; color: var(--text3); margin-bottom: 20px; }
+  .modal .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 20px; margin-bottom: 20px; font-size: 13px; }
+  .modal .fields .f { display: flex; flex-direction: column; gap: 2px; }
+  .modal .fields .f b { color: var(--text); font-weight: 600; }
+  .modal .fields .f span { color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .modal h4 { font-size: 13px; font-weight: 600; margin: 18px 0 10px; color: var(--text); text-transform: uppercase; letter-spacing: 0.8px; }
+  .modal table { width: 100%; font-size: 12px; border-collapse: collapse; }
+  .modal th, .modal td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text2); }
+  .modal th { color: var(--text3); font-weight: 500; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; }
+  .modal .pattern-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 6px; }
+  .modal .pattern-bars .pb { background: var(--surface2); border-radius: 6px; padding: 6px 0; text-align: center; }
+  .modal .pattern-bars .pb b { display: block; font-size: 14px; color: var(--text); }
+  .modal .pattern-bars .pb span { font-size: 10px; color: var(--text3); }
+
+  /* Client list for drill-down */
+  .clients-list { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; box-shadow: var(--shadow); max-height: 320px; overflow: auto; }
+  .clients-list table { width: 100%; font-size: 13px; border-collapse: collapse; }
+  .clients-list th { text-align: left; padding: 8px 10px; color: var(--text3); font-weight: 500; font-size: 11px; text-transform: uppercase; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: var(--surface); }
+  .clients-list td { padding: 9px 10px; color: var(--text2); border-bottom: 1px solid var(--border); }
+  .clients-list tr { cursor: pointer; }
+  .clients-list tr:hover td { background: var(--surface2); }
+
+  .loading { color: var(--text3); font-size: 13px; text-align: center; padding: 20px; }
+  .error   { color: var(--bad);  font-size: 13px; text-align: center; padding: 20px; }
+
+  @media (max-width: 960px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .goods-grid { grid-template-columns: 1fr; }
+    .funnel-row { grid-template-columns: 140px 1fr 90px; }
+    .funnel-row .conv { display: none; }
+    .tour-row { grid-template-columns: 1fr 1fr; }
+    .tour-row .rev, .tour-row .status { display: none; }
+  }
+  @media (max-width: 600px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .nav-links a { padding: 0 10px; font-size: 12px; }
+    h1.page-title { font-size: 22px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="management.html" class="active">Управление</a></li>
+    <li><a href="data.html">Данные</a></li>
+  </ul>
+  <span class="nav-pill">Management</span>
+</nav>
+
+<main>
+  <h1 class="page-title">Управленческий дашборд</h1>
+  <p class="page-sub">CEO overview, воронка, загрузка кортов и аномалии · обновляется из v7padel_db</p>
+
+  <!-- BLOCK 1: CEO Overview -->
+  <section class="section">
+    <div class="section-head"><h2>1 · CEO Overview</h2><span class="hint">источник: pnl_monthly · bookings · transactions</span></div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Выручка тек. месяц</div><div class="value" id="kpi-rev">—</div><div class="delta" id="kpi-rev-d">—</div></div>
+      <div class="kpi"><div class="label">Загрузка кортов сегодня</div><div class="value" id="kpi-util">—</div><div class="delta" id="kpi-util-d">—</div></div>
+      <div class="kpi"><div class="label">Операционный P&amp;L</div><div class="value" id="kpi-pnl">—</div><div class="delta" id="kpi-pnl-d">—</div></div>
+      <div class="kpi"><div class="label">OPEX тек. месяц</div><div class="value" id="kpi-opex">—</div><div class="delta" id="kpi-opex-d">—</div></div>
+    </div>
+    <div class="anomalies" style="margin-top:14px">
+      <h3>Топ 3 аномалии · требуют внимания</h3>
+      <ul id="anomalies-list"><li class="loading">Считаю…</li></ul>
+    </div>
+  </section>
+
+  <!-- BLOCK 2: Funnel -->
+  <section class="section">
+    <div class="section-head"><h2>2 · Воронка клиентов</h2><span class="hint">customers → bookings → memberships</span></div>
+    <div class="funnel" id="funnel"><div class="loading">Считаю воронку…</div></div>
+  </section>
+
+  <!-- BLOCK 4: Heatmap -->
+  <section class="section">
+    <div class="section-head"><h2>4 · Тепловая карта кортов</h2><span class="hint">часы × дни недели · % от общего кол-ва бронирований</span></div>
+    <div class="heatmap-wrap"><div class="heatmap" id="heatmap"><div class="loading" style="grid-column:1/-1">Считаю…</div></div></div>
+  </section>
+
+  <!-- BLOCK 5: Tournaments -->
+  <section class="section">
+    <div class="section-head"><h2>5 · Турниры</h2><span class="hint">вкладка tournaments · Racket.ID интеграция отложена</span></div>
+    <div class="tours" id="tours"><div class="loading">Читаю вкладку tournaments…</div></div>
+  </section>
+
+  <!-- BLOCK 6: Goods -->
+  <section class="section">
+    <div class="section-head"><h2>6 · Товары</h2><span class="hint">transactions · kind=goods</span></div>
+    <div class="goods-grid">
+      <div class="goods-panel">
+        <h3>Топ позиции по выручке</h3>
+        <ul class="goods-list" id="goods-top"><li class="loading">Считаю…</li></ul>
+      </div>
+      <div class="goods-panel">
+        <h3>Динамика продаж по месяцам</h3>
+        <div class="goods-chart-wrap"><canvas id="goods-chart"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLOCK 3: Clients list + card (drill-down) -->
+  <section class="section">
+    <div class="section-head"><h2>3 · Клиенты · клик для карточки</h2><span class="hint">customers · bookings · memberships</span></div>
+    <div class="clients-list"><table>
+      <thead><tr><th>Имя</th><th>Телефон</th><th>Бронирований</th><th>Карта</th><th>Регистрация</th></tr></thead>
+      <tbody id="clients-tbody"><tr><td colspan="5" class="loading">Загружаю…</td></tr></tbody>
+    </table></div>
+  </section>
+</main>
+
+<!-- CLIENT CARD MODAL -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal" id="modal-body"></div>
+</div>
+
+<script>
+/* =========================================================================
+ * ПРАВИЛО ПРИОРИТЕТОВ ИСТОЧНИКОВ (зафиксировано по договорённости):
+ *   1. P&L итоговые цифры       → pnl_monthly (source=accountant_pnl)  — ВСЕГДА приоритет
+ *   2. Транзакции (детализация) → transactions
+ *   3. Расходы (детализация)    → expenses
+ *   4. Если расхождение — показываем значение из P&L и помечаем расхождение
+ * ========================================================================= */
+
+const SHEET_ID = '1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY';
+const GVIZ = (name) =>
+  'https://docs.google.com/spreadsheets/d/' + SHEET_ID +
+  '/gviz/tq?tqx=out:csv&sheet=' + encodeURIComponent(name);
+
+/* ---------- CSV parser (RFC 4180 minimal) ---------- */
+function parseCSV(text) {
+  const rows = []; let i = 0, field = '', row = [], inQ = false;
+  while (i < text.length) {
+    const c = text[i];
+    if (inQ) {
+      if (c === '"' && text[i+1] === '"') { field += '"'; i += 2; continue; }
+      if (c === '"') { inQ = false; i++; continue; }
+      field += c; i++; continue;
+    }
+    if (c === '"') { inQ = true; i++; continue; }
+    if (c === ',') { row.push(field); field = ''; i++; continue; }
+    if (c === '\n') { row.push(field); rows.push(row); row = []; field = ''; i++; continue; }
+    if (c === '\r') { i++; continue; }
+    field += c; i++;
+  }
+  if (field.length || row.length) { row.push(field); rows.push(row); }
+  if (!rows.length) return [];
+  const headers = rows[0].map(h => (h || '').trim());
+  return rows.slice(1).filter(r => r.some(v => v && v.trim())).map(r => {
+    const o = {}; headers.forEach((h, idx) => o[h] = (r[idx] || '').trim()); return o;
+  });
+}
+async function loadSheet(name) {
+  try {
+    const r = await fetch(GVIZ(name));
+    if (!r.ok) throw new Error(r.status);
+    return parseCSV(await r.text());
+  } catch (e) {
+    console.warn('[gviz]', name, 'failed:', e);
+    return null;
+  }
+}
+
+/* ---------- helpers ---------- */
+function num(x) {
+  if (x == null) return 0;
+  const s = String(x).replace(/[^\d\-.,]/g, '').replace(/\s/g, '').replace(/,(\d{1,2})$/, '.$1').replace(/,/g, '');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+function fmt(n) {
+  if (!isFinite(n)) return '—';
+  const abs = Math.abs(n);
+  if (abs >= 1e6) return (n/1e6).toFixed(2).replace(/\.?0+$/,'') + 'M';
+  if (abs >= 1e3) return (n/1e3).toFixed(0) + 'K';
+  return n.toFixed(0);
+}
+function fmtMoney(n) { return fmt(n) + ' ₺'; }
+function parseDate(s) {
+  if (!s) return null;
+  s = String(s).trim();
+  // try ISO first
+  let d = new Date(s);
+  if (!isNaN(d)) return d;
+  // DD.MM.YYYY or DD/MM/YYYY
+  const m = s.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+  if (m) {
+    let [_, dd, mm, yy] = m; yy = yy.length === 2 ? '20' + yy : yy;
+    d = new Date(+yy, +mm - 1, +dd);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+function ymKey(d) {
+  if (!d) return '';
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+const TODAY = new Date();
+const CUR_YM = ymKey(TODAY);
+const PREV = new Date(TODAY.getFullYear(), TODAY.getMonth() - 1, 1);
+const PREV_YM = ymKey(PREV);
+
+/* Accent color (reads from CSS var for current theme) */
+function accentColor() {
+  return getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#0ABAB5';
+}
+
+/* =============================================================
+ * BLOCK 1 — CEO Overview (KPI + anomalies)
+ * ============================================================= */
+async function renderCEOOverview() {
+  const [pnl, bookings, transactions] = await Promise.all([
+    loadSheet('pnl_monthly'),
+    loadSheet('bookings'),
+    loadSheet('transactions')
+  ]);
+
+  // Revenue / OPEX / Op P&L from pnl_monthly (appriority)
+  let revCur = 0, revPrev = 0, opexCur = 0, opexPrev = 0, pnlCur = 0, pnlPrev = 0;
+  if (pnl && pnl.length) {
+    const keys = Object.keys(pnl[0]).map(k => k.toLowerCase());
+    const findKey = (...candidates) => Object.keys(pnl[0]).find(k => candidates.indexOf(k.toLowerCase()) >= 0) || null;
+    const kMonth = findKey('month','период','ym','date');
+    const kRev   = findKey('revenue','выручка','доход','income');
+    const kOpex  = findKey('opex','расходы','expenses');
+    const kPnl   = findKey('operating_pnl','op_pnl','pnl','прибыль','profit');
+    const matchYM = (mv, ym) => {
+      const d = parseDate(mv); if (d) return ymKey(d) === ym;
+      return String(mv).indexOf(ym) >= 0 || String(mv).indexOf(ym.replace('-','.')) >= 0;
+    };
+    pnl.forEach(r => {
+      const mv = r[kMonth];
+      if (matchYM(mv, CUR_YM))  { revCur  += num(r[kRev]); opexCur  += num(r[kOpex]); pnlCur  += num(r[kPnl]); }
+      if (matchYM(mv, PREV_YM)) { revPrev += num(r[kRev]); opexPrev += num(r[kOpex]); pnlPrev += num(r[kPnl]); }
+    });
+  }
+
+  // Court utilization today (bookings where date == today)
+  let todayBookings = 0;
+  if (bookings && bookings.length) {
+    const kDate = Object.keys(bookings[0]).find(k => /date|дата/i.test(k));
+    const todayStr = ymKey(TODAY) + '-' + String(TODAY.getDate()).padStart(2, '0');
+    bookings.forEach(b => {
+      const d = parseDate(b[kDate]);
+      if (d && ymKey(d) + '-' + String(d.getDate()).padStart(2,'0') === todayStr) todayBookings++;
+    });
+  }
+  // Assume 17 hours * 4 courts = 68 slots/day
+  const maxSlotsPerDay = 17 * 4;
+  const utilPct = maxSlotsPerDay ? Math.round((todayBookings / maxSlotsPerDay) * 100) : 0;
+
+  function setDelta(id, cur, prev) {
+    const el = document.getElementById(id);
+    if (!prev) { el.textContent = '—'; el.className = 'delta flat'; return; }
+    const d = ((cur - prev) / prev) * 100;
+    const sign = d > 0 ? '▲' : d < 0 ? '▼' : '●';
+    const cls = d > 0.5 ? 'up' : d < -0.5 ? 'down' : 'flat';
+    el.textContent = sign + ' ' + Math.abs(d).toFixed(1) + '% к прошлому';
+    el.className = 'delta ' + cls;
+  }
+  document.getElementById('kpi-rev').textContent  = fmtMoney(revCur);
+  document.getElementById('kpi-opex').textContent = fmtMoney(opexCur);
+  document.getElementById('kpi-pnl').textContent  = fmtMoney(pnlCur);
+  document.getElementById('kpi-util').textContent = utilPct + '% · ' + todayBookings + ' брон.';
+  setDelta('kpi-rev-d',  revCur,  revPrev);
+  setDelta('kpi-opex-d', opexCur, opexPrev);
+  setDelta('kpi-pnl-d',  pnlCur,  pnlPrev);
+  document.getElementById('kpi-util-d').textContent = 'из ' + maxSlotsPerDay + ' слотов';
+  document.getElementById('kpi-util-d').className = 'delta flat';
+
+  // Anomalies: 3 heuristics
+  const anom = [];
+  if (prev => true) {
+    if (revPrev > 0) {
+      const d = ((revCur - revPrev) / revPrev) * 100;
+      if (d < -15) anom.push({sev:'high', text:'Выручка упала на ' + Math.abs(d).toFixed(1) + '% к прошлому месяцу (' + fmtMoney(revCur) + ' vs ' + fmtMoney(revPrev) + ')'});
+    }
+    if (opexPrev > 0) {
+      const d = ((opexCur - opexPrev) / opexPrev) * 100;
+      if (d > 20) anom.push({sev:'high', text:'OPEX вырос на ' + d.toFixed(1) + '% к прошлому месяцу (' + fmtMoney(opexCur) + ' vs ' + fmtMoney(opexPrev) + ')'});
+    }
+    if (pnlCur < 0 && pnlPrev >= 0) anom.push({sev:'high', text:'Операционный P&L ушёл в минус: ' + fmtMoney(pnlCur)});
+    if (utilPct < 30) anom.push({sev:'mid', text:'Низкая загрузка кортов сегодня: ' + utilPct + '%'});
+    if (utilPct > 85) anom.push({sev:'low', text:'Пик загрузки сегодня: ' + utilPct + '% — нужно увеличить цены?'});
+  }
+  const list = document.getElementById('anomalies-list');
+  list.innerHTML = '';
+  if (!anom.length) {
+    list.innerHTML = '<li><span class="ico sev-low">✓</span>Аномалий не найдено — все метрики в пределах нормы.</li>';
+  } else {
+    anom.slice(0, 3).forEach(a => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span class="ico sev-' + a.sev + '">' + (a.sev === 'high' ? '!' : a.sev === 'mid' ? '⚠' : 'ℹ') + '</span><div>' + a.text + '</div>';
+      list.appendChild(li);
+    });
+  }
+}
+
+/* =============================================================
+ * BLOCK 2 — Customer Funnel
+ * Маппинг (договорённость):
+ *   Registered    = все customers
+ *   First visit   = у кого >= 1 booking
+ *   2-3 games     = у кого 2-3 bookings (всего)
+ *   Regular 4+    = у кого >= 4 bookings за последние 30 дней
+ *   Club card     = memberships.type=club & status=active
+ *   VIP card      = memberships.type=vip & status=active
+ * ============================================================= */
+async function renderFunnel() {
+  const [customers, bookings, memberships] = await Promise.all([
+    loadSheet('customers'), loadSheet('bookings'), loadSheet('memberships')
+  ]);
+  const box = document.getElementById('funnel');
+  if (!customers || !bookings) {
+    box.innerHTML = '<div class="error">Нет данных customers/bookings</div>';
+    return;
+  }
+  const kCustId = Object.keys(customers[0] || {}).find(k => /customer_?id|client_?id|^id$/i.test(k));
+  const kBCust  = Object.keys(bookings[0] || {}).find(k => /customer_?id|client_?id/i.test(k));
+  const kBDate  = Object.keys(bookings[0] || {}).find(k => /date|дата|start/i.test(k));
+
+  const counts = {};
+  bookings.forEach(b => { const id = b[kBCust]; if (!id) return; counts[id] = (counts[id] || 0) + 1; });
+
+  const cutoff = new Date(TODAY); cutoff.setDate(cutoff.getDate() - 30);
+  const recentCounts = {};
+  bookings.forEach(b => {
+    const id = b[kBCust]; if (!id) return;
+    const d = parseDate(b[kBDate]); if (!d || d < cutoff) return;
+    recentCounts[id] = (recentCounts[id] || 0) + 1;
+  });
+
+  const total = customers.length;
+  const firstVisit = Object.keys(counts).length;
+  const twoThree = Object.values(counts).filter(c => c >= 2 && c <= 3).length;
+  const regular = Object.values(recentCounts).filter(c => c >= 4).length;
+
+  let club = 0, vip = 0;
+  if (memberships && memberships.length) {
+    const kType = Object.keys(memberships[0]).find(k => /type|тип|plan/i.test(k));
+    const kStatus = Object.keys(memberships[0]).find(k => /status|статус/i.test(k));
+    memberships.forEach(m => {
+      const st = (m[kStatus] || '').toLowerCase();
+      const tp = (m[kType] || '').toLowerCase();
+      if (st !== 'active' && st !== 'активный' && st !== '') return;
+      if (tp.indexOf('vip') >= 0) vip++;
+      else if (tp.indexOf('club') >= 0) club++;
+    });
+  }
+
+  const stages = [
+    { name:'Зарегистрирован', sub:'в customers', n:total },
+    { name:'Первый визит', sub:'≥1 брон.', n:firstVisit },
+    { name:'2–3 игры', sub:'2–3 брон. всего', n:twoThree },
+    { name:'Регулярный', sub:'≥4 брон. за 30 дней', n:regular },
+    { name:'Club карта', sub:'memberships.active', n:club },
+    { name:'VIP карта', sub:'memberships.active', n:vip }
+  ];
+  const maxN = Math.max.apply(null, stages.map(s => s.n).concat(1));
+  box.innerHTML = stages.map((s, i) => {
+    const prev = i > 0 ? stages[i-1].n : s.n;
+    const conv = prev > 0 ? Math.round((s.n / prev) * 100) : 0;
+    const w = Math.max(2, Math.round((s.n / maxN) * 100));
+    return '<div class="funnel-row">' +
+      '<div class="stage">' + s.name + '<small>' + s.sub + '</small></div>' +
+      '<div class="funnel-bar-bg"><div class="funnel-bar" style="width:' + w + '%">' + (s.n > 0 ? fmt(s.n) : '') + '</div></div>' +
+      '<div class="count">' + s.n + '</div>' +
+      '<div class="conv">' + (i > 0 ? conv + '%' : '—') + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+/* =============================================================
+ * BLOCK 4 — Heatmap (hour × weekday)
+ * ============================================================= */
+async function renderHeatmap() {
+  const bookings = await loadSheet('bookings');
+  const box = document.getElementById('heatmap');
+  if (!bookings || !bookings.length) { box.innerHTML = '<div class="error" style="grid-column:1/-1">Нет данных bookings</div>'; return; }
+  const kDate = Object.keys(bookings[0]).find(k => /date|дата|start/i.test(k));
+  const kTime = Object.keys(bookings[0]).find(k => /time|hour|час|start/i.test(k));
+  const HOURS = []; for (let h = 7; h <= 23; h++) HOURS.push(h);
+  const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const grid = {};
+  DOW.forEach(d => { grid[d] = {}; HOURS.forEach(h => grid[d][h] = 0); });
+  let maxVal = 0;
+  bookings.forEach(b => {
+    const d = parseDate(b[kDate]); if (!d) return;
+    const jsDow = d.getDay();
+    const dow = DOW[(jsDow + 6) % 7];
+    let h = null;
+    if (kTime && b[kTime]) {
+      const tm = String(b[kTime]).match(/(\d{1,2})/);
+      if (tm) h = parseInt(tm[1], 10);
+    }
+    if (h == null) h = d.getHours();
+    if (h >= 7 && h <= 23) { grid[dow][h]++; if (grid[dow][h] > maxVal) maxVal = grid[dow][h]; }
+  });
+  const acc = accentColor();
+  // Build HTML: header row + 7 rows
+  let html = '<div class="cell h"></div>';
+  HOURS.forEach(h => html += '<div class="cell h">' + h + '</div>');
+  DOW.forEach(d => {
+    html += '<div class="cell dow">' + d + '</div>';
+    HOURS.forEach(h => {
+      const v = grid[d][h];
+      const intensity = maxVal ? (v / maxVal) : 0;
+      const bg = 'rgba(10,186,181,' + (0.05 + intensity * 0.9).toFixed(2) + ')';
+      const txt = v > 0 ? v : '';
+      html += '<div class="cell" style="background:' + bg + '" title="' + d + ' ' + h + ':00 → ' + v + ' брон.">' + txt + '</div>';
+    });
+  });
+  box.innerHTML = html;
+}
+
+/* =============================================================
+ * BLOCK 5 — Tournaments
+ * ============================================================= */
+async function renderTournaments() {
+  const tours = await loadSheet('tournaments');
+  const box = document.getElementById('tours');
+  if (!tours || !tours.length) {
+    box.innerHTML = '<div class="tour-empty">Вкладка <code>tournaments</code> пустая или отсутствует.<br>Интеграция с Racket.ID отложена — данные появятся позже.</div>';
+    return;
+  }
+  const keys = Object.keys(tours[0]);
+  const k = (re) => keys.find(x => re.test(x));
+  const kName = k(/name|название|title/i);
+  const kDate = k(/date|дата/i);
+  const kReg  = k(/reg|записан|participants/i);
+  const kMax  = k(/max|cap|потолок|limit/i);
+  const kStat = k(/status|статус/i);
+  const kRev  = k(/revenue|выручка|доход/i);
+  box.innerHTML = tours.slice(0, 12).map(t => {
+    const reg = num(t[kReg]), max = num(t[kMax]) || 16;
+    const pct = Math.min(100, Math.round((reg / max) * 100));
+    const dateStr = t[kDate] || '—';
+    const status = (t[kStat] || '').toLowerCase();
+    const badge = status.indexOf('закр') >= 0 || status === 'closed' ? '#e74c3c' :
+                  status.indexOf('прош') >= 0 || status === 'past' ? '#8a9ba8' :
+                  '#13c296';
+    return '<div class="tour-row">' +
+      '<div class="name">' + (t[kName] || '—') + '<small>' + dateStr + '</small></div>' +
+      '<div><div class="tour-bar-bg"><div class="tour-bar" style="width:' + pct + '%"></div></div><div class="fill-label">' + reg + ' / ' + max + ' · ' + pct + '%</div></div>' +
+      '<div class="rev">' + (t[kRev] ? fmtMoney(num(t[kRev])) : '—') + '</div>' +
+      '<div><span class="status" style="color:' + badge + ';border-color:' + badge + '">' + (t[kStat] || 'open') + '</span></div>' +
+    '</div>';
+  }).join('');
+}
+
+/* =============================================================
+ * BLOCK 6 — Goods
+ * ============================================================= */
+async function renderGoods() {
+  const tx = await loadSheet('transactions');
+  if (!tx || !tx.length) { document.getElementById('goods-top').innerHTML = '<li class="error">Нет данных transactions</li>'; return; }
+  const keys = Object.keys(tx[0]);
+  const kKind = keys.find(k => /kind|тип|type/i.test(k));
+  const kCat  = keys.find(k => /category|категория|position|товар/i.test(k));
+  const kDesc = keys.find(k => /description|описание|name|название/i.test(k));
+  const kAmt  = keys.find(k => /amount|сумма|price/i.test(k));
+  const kDate = keys.find(k => /date|дата/i.test(k));
+  const goods = tx.filter(r => {
+    const kv = (r[kKind] || '').toLowerCase();
+    return kv === 'goods' || kv.indexOf('товар') >= 0 || kv === 'sale_of_goods';
+  });
+  // Top positions
+  const byPos = {};
+  goods.forEach(r => {
+    const name = (r[kCat] || r[kDesc] || 'Прочее').trim() || 'Прочее';
+    byPos[name] = (byPos[name] || 0) + num(r[kAmt]);
+  });
+  const top = Object.entries(byPos).sort((a,b) => b[1] - a[1]).slice(0, 8);
+  document.getElementById('goods-top').innerHTML = top.length
+    ? top.map(([n, v]) => '<li><span>' + n + '</span><strong>' + fmtMoney(v) + '</strong></li>').join('')
+    : '<li class="error">Нет продаж</li>';
+
+  // Monthly trend (last 12 months)
+  const byMonth = {};
+  goods.forEach(r => {
+    const d = parseDate(r[kDate]); if (!d) return;
+    const k = ymKey(d);
+    byMonth[k] = (byMonth[k] || 0) + num(r[kAmt]);
+  });
+  const months = Object.keys(byMonth).sort().slice(-12);
+  const values = months.map(m => byMonth[m]);
+  const ctx = document.getElementById('goods-chart').getContext('2d');
+  const acc = accentColor();
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels: months, datasets: [{ label: 'Товары', data: values, backgroundColor: acc, borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text3') }, grid: { display: false } },
+        y: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text3'), callback: v => fmt(v) }, grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border') } }
+      }
+    }
+  });
+}
+
+/* =============================================================
+ * BLOCK 3 — Clients drill-down
+ * ============================================================= */
+let _cust = null, _book = null, _memb = null;
+async function renderClients() {
+  const [customers, bookings, memberships] = await Promise.all([
+    loadSheet('customers'), loadSheet('bookings'), loadSheet('memberships')
+  ]);
+  _cust = customers; _book = bookings; _memb = memberships;
+  const tbody = document.getElementById('clients-tbody');
+  if (!customers || !customers.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет customers</td></tr>'; return; }
+  const keys = Object.keys(customers[0]);
+  const kId = keys.find(k => /customer_?id|client_?id|^id$/i.test(k));
+  const kName = keys.find(k => /name|имя|full/i.test(k));
+  const kPhone = keys.find(k => /phone|телефон/i.test(k));
+  const kCreated = keys.find(k => /created|registered|регистр/i.test(k));
+
+  // Bookings count map
+  const bkMap = {};
+  if (bookings && bookings.length) {
+    const kBCust = Object.keys(bookings[0]).find(k => /customer_?id|client_?id/i.test(k));
+    bookings.forEach(b => { const id = b[kBCust]; if (id) bkMap[id] = (bkMap[id] || 0) + 1; });
+  }
+  // Membership map
+  const mbMap = {};
+  if (memberships && memberships.length) {
+    const kM = Object.keys(memberships[0]);
+    const kMCust = kM.find(k => /customer_?id|client_?id/i.test(k));
+    const kMType = kM.find(k => /type|тип|plan/i.test(k));
+    memberships.forEach(m => { if (m[kMCust]) mbMap[m[kMCust]] = m[kMType] || ''; });
+  }
+
+  const sorted = customers.slice().sort((a, b) => (bkMap[b[kId]] || 0) - (bkMap[a[kId]] || 0)).slice(0, 100);
+  tbody.innerHTML = sorted.map((c, idx) => {
+    const id = c[kId];
+    return '<tr data-idx="' + idx + '">' +
+      '<td>' + (c[kName] || '—') + '</td>' +
+      '<td>' + (c[kPhone] || '—') + '</td>' +
+      '<td>' + (bkMap[id] || 0) + '</td>' +
+      '<td>' + (mbMap[id] || '—') + '</td>' +
+      '<td>' + (c[kCreated] || '—') + '</td>' +
+    '</tr>';
+  }).join('');
+  tbody.querySelectorAll('tr').forEach(tr => {
+    tr.addEventListener('click', () => openClientCard(sorted[+tr.dataset.idx]));
+  });
+}
+
+function openClientCard(c) {
+  if (!c || !_book) return;
+  const keys = Object.keys(c);
+  const kId = keys.find(k => /customer_?id|client_?id|^id$/i.test(k));
+  const kName = keys.find(k => /name|имя|full/i.test(k));
+  const kPhone = keys.find(k => /phone|телефон/i.test(k));
+  const kEmail = keys.find(k => /email|почта/i.test(k));
+  const kSrc = keys.find(k => /source|источник|channel/i.test(k));
+  const kCreated = keys.find(k => /created|registered|регистр/i.test(k));
+  const id = c[kId];
+
+  // Bookings history
+  const kBCust = Object.keys(_book[0]).find(k => /customer_?id|client_?id/i.test(k));
+  const kBDate = Object.keys(_book[0]).find(k => /date|дата|start/i.test(k));
+  const kBCourt = Object.keys(_book[0]).find(k => /court|корт/i.test(k));
+  const kBTime = Object.keys(_book[0]).find(k => /time|hour|час|start/i.test(k));
+  const history = _book.filter(b => b[kBCust] === id).slice(0, 30);
+
+  // Pattern
+  const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  const dowCnt = [0,0,0,0,0,0,0];
+  const tod = { morn:0, day:0, eve:0 };
+  history.forEach(b => {
+    const d = parseDate(b[kBDate]); if (!d) return;
+    dowCnt[(d.getDay() + 6) % 7]++;
+    let h = null;
+    if (kBTime && b[kBTime]) { const m = String(b[kBTime]).match(/(\d{1,2})/); if (m) h = +m[1]; }
+    if (h == null) h = d.getHours();
+    if (h < 12) tod.morn++; else if (h < 17) tod.day++; else tod.eve++;
+  });
+
+  // Membership
+  let card = '—';
+  if (_memb && _memb.length) {
+    const kMCust = Object.keys(_memb[0]).find(k => /customer_?id|client_?id/i.test(k));
+    const kMType = Object.keys(_memb[0]).find(k => /type|тип|plan/i.test(k));
+    const kMStatus = Object.keys(_memb[0]).find(k => /status|статус/i.test(k));
+    const m = _memb.find(x => x[kMCust] === id);
+    if (m) card = (m[kMType] || '—') + ' · ' + (m[kMStatus] || '');
+  }
+
+  const body = document.getElementById('modal-body');
+  body.innerHTML =
+    '<button class="modal-close" aria-label="Закрыть" onclick="closeModal()">×</button>' +
+    '<h3>' + (c[kName] || '—') + '</h3>' +
+    '<div class="sub">ID: ' + (id || '—') + '</div>' +
+    '<div class="fields">' +
+      '<div class="f"><span>Телефон</span><b>' + (c[kPhone] || '—') + '</b></div>' +
+      '<div class="f"><span>Email</span><b>' + (c[kEmail] || '—') + '</b></div>' +
+      '<div class="f"><span>Источник</span><b>' + (c[kSrc] || '—') + '</b></div>' +
+      '<div class="f"><span>Регистрация</span><b>' + (c[kCreated] || '—') + '</b></div>' +
+      '<div class="f"><span>Карта</span><b>' + card + '</b></div>' +
+      '<div class="f"><span>Всего бронирований</span><b>' + history.length + '</b></div>' +
+    '</div>' +
+    '<h4>Паттерн игры · утро / день / вечер</h4>' +
+    '<div class="pattern-bars">' +
+      '<div class="pb" style="grid-column:span 2"><b>' + tod.morn + '</b><span>Утро &lt;12</span></div>' +
+      '<div class="pb" style="grid-column:span 2"><b>' + tod.day + '</b><span>День 12–17</span></div>' +
+      '<div class="pb" style="grid-column:span 3"><b>' + tod.eve + '</b><span>Вечер 17+</span></div>' +
+    '</div>' +
+    '<h4>Дни недели</h4>' +
+    '<div class="pattern-bars">' +
+      DOW.map((d, i) => '<div class="pb"><b>' + dowCnt[i] + '</b><span>' + d + '</span></div>').join('') +
+    '</div>' +
+    '<h4>История бронирований</h4>' +
+    (history.length ? '<table><thead><tr><th>Дата</th><th>Корт</th><th>Время</th></tr></thead><tbody>' +
+      history.slice(0, 20).map(b => '<tr><td>' + (b[kBDate] || '—') + '</td><td>' + (b[kBCourt] || '—') + '</td><td>' + (b[kBTime] || '—') + '</td></tr>').join('') +
+      '</tbody></table>'
+      : '<div class="loading">Нет истории бронирований</div>');
+
+  document.getElementById('modal-backdrop').classList.add('active');
+}
+function closeModal() { document.getElementById('modal-backdrop').classList.remove('active'); }
+window.closeModal = closeModal;
+document.getElementById('modal-backdrop').addEventListener('click', e => { if (e.target.id === 'modal-backdrop') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ---- RUN ALL ---- */
+renderCEOOverview().catch(e => console.error(e));
+renderFunnel().catch(e => console.error(e));
+renderHeatmap().catch(e => console.error(e));
+renderTournaments().catch(e => console.error(e));
+renderGoods().catch(e => console.error(e));
+renderClients().catch(e => console.error(e));
+</script>
+
+</body>
+</html>
