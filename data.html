@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — База данных</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f7f9;
+    --surface: #ffffff;
+    --surface2: #fafbfc;
+    --border: #e5ecef;
+    --text: #0b1620;
+    --text2: #4a5967;
+    --text3: #8a9ba8;
+    --accent: #0ABAB5;
+    --accent-soft: rgba(10,186,181,0.1);
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header.top {
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 16px 24px; display: flex; align-items: center; gap: 14px;
+    position: sticky; top: 0; z-index: 20;
+  }
+  .top a.logo { font-size: 17px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: -0.3px; }
+  .top a.logo em { color: var(--accent); font-style: normal; }
+  .top .sub { color: var(--text3); font-size: 13px; margin-left: 4px; }
+  .top nav { margin-left: auto; display: flex; gap: 18px; }
+  .top nav a { color: var(--text2); font-size: 13px; text-decoration: none; }
+  .top nav a:hover, .top nav a.active { color: var(--accent); }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 24px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.4px; }
+  .desc { color: var(--text2); font-size: 13px; margin-bottom: 20px; }
+
+  /* Tab switcher */
+  .tabs {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 6px; margin-bottom: 16px;
+  }
+  .tabs button {
+    background: transparent; border: none; font: inherit; cursor: pointer;
+    padding: 8px 14px; border-radius: 8px; color: var(--text2); font-size: 13px; font-weight: 500;
+    transition: all .15s;
+  }
+  .tabs button:hover { color: var(--text); }
+  .tabs button.active {
+    background: var(--accent-soft); color: var(--accent);
+  }
+  .tabs button .count { color: var(--text3); font-size: 11px; margin-left: 4px; }
+  .tabs button.active .count { color: var(--accent); }
+
+  /* Filters */
+  .filters {
+    display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+    align-items: center;
+  }
+  .filters input, .filters select {
+    font: inherit; font-size: 13px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px; color: var(--text);
+    outline: none; transition: border-color .15s;
+  }
+  .filters input:focus, .filters select:focus { border-color: var(--accent); }
+  .filters input { min-width: 220px; }
+  .filters .count-label { color: var(--text3); font-size: 12px; margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* Table */
+  .table-wrap {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); overflow: hidden;
+  }
+  .scroll {
+    overflow-x: auto; max-height: calc(100vh - 260px);
+    overflow-y: auto;
+  }
+  table {
+    width: 100%; font-size: 12px; border-collapse: separate; border-spacing: 0;
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  }
+  thead th {
+    text-align: left; font-weight: 500; color: var(--text3);
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
+    padding: 10px 12px; background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    position: sticky; top: 0; z-index: 1;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer; user-select: none;
+    white-space: nowrap;
+  }
+  thead th:hover { color: var(--accent); }
+  thead th.sorted-asc::after  { content: " ↑"; color: var(--accent); }
+  thead th.sorted-desc::after { content: " ↓"; color: var(--accent); }
+  tbody td {
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    white-space: nowrap; color: var(--text);
+    max-width: 260px; overflow: hidden; text-overflow: ellipsis;
+  }
+  tbody tr:hover td { background: var(--accent-soft); }
+  tbody tr:last-child td { border-bottom: none; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  td.neg { color: #e74c3c; }
+
+  .loading { padding: 40px; text-align: center; color: var(--text3); font-size: 13px; font-family: 'Inter', sans-serif; }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 10px;
+    font-size: 11px; font-weight: 500;
+    background: var(--accent-soft); color: var(--accent);
+    font-family: 'Inter', sans-serif;
+  }
+  .badge.warn { background: #fff3cd; color: #856404; }
+  .badge.bad  { background: #f8d7da; color: #721c24; }
+
+  .pager {
+    display: flex; gap: 8px; justify-content: center; margin-top: 14px;
+    font-family: 'Inter', sans-serif; font-size: 12px; color: var(--text2);
+    align-items: center;
+  }
+  .pager button {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    padding: 5px 10px; font-size: 12px; cursor: pointer; color: var(--text);
+    font-family: 'Inter', sans-serif;
+  }
+  .pager button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .pager button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  footer.meta {
+    margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--border);
+    color: var(--text3); font-size: 11px; text-align: center;
+    font-family: 'Inter', sans-serif;
+  }
+
+  @media (max-width: 700px) {
+    .container { padding: 14px; }
+    .filters input { min-width: 140px; }
+    thead th { font-size: 10px; padding: 8px; }
+    tbody td { font-size: 11px; padding: 6px 8px; max-width: 140px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="logo" href="index.html">V7<em>Padel</em></a>
+  <span class="sub">База данных · v7padel_db</span>
+  <nav>
+    <a href="index.html">Главная</a>
+    <a href="dashboard.html">Дашборд</a>
+    <a href="data.html" class="active">Данные</a>
+  </nav>
+</header>
+
+<div class="container">
+  <h1>База данных</h1>
+  <div class="desc">
+    Живые данные из Google Sheets <code>v7padel_db</code> · обновление при перезагрузке ·
+    <span class="badge">pnl_monthly — authoritative</span>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div class="filters">
+    <input id="q" type="text" placeholder="Поиск по всем полям…" />
+    <select id="month"><option value="">Все месяцы</option></select>
+    <select id="category"><option value="">Все категории</option></select>
+    <span class="count-label" id="count-label">—</span>
+  </div>
+
+  <div class="table-wrap">
+    <div class="scroll">
+      <table>
+        <thead id="thead"></thead>
+        <tbody id="tbody"><tr><td class="loading" colspan="99">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="pager" id="pager"></div>
+
+  <footer class="meta">
+    Источник: <code>v7padel_db</code> · gviz CSV (публичный Viewer) ·
+    последнее обновление данных: <span id="ts">—</span>
+  </footer>
+</div>
+
+<script>
+// ============================================================
+// V7 PADEL DATA BROWSER
+// ============================================================
+const DB_ID = "1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY";
+
+// Tabs to expose; schemas pre-declared for column order / rendering
+const TABS = [
+  { key: "transactions", label: "Транзакции",     monthKey: "month",        catKey: "category",    numCols: ["price","amount1","amount2","total"] },
+  { key: "expenses",     label: "Расходы",        monthKey: "month",        catKey: "category",    numCols: ["amount","amort_monthly_try"] },
+  { key: "pnl_monthly",  label: "P&L помесячно",  monthKey: "period_month", catKey: "article_name",numCols: ["cashless","cash","total","level"] },
+  { key: "memberships",  label: "Карты",          monthKey: null,           catKey: "card_type",   numCols: ["first_fee","fee"] },
+  { key: "bookings",     label: "Брони",          monthKey: null,           catKey: "court_id",    numCols: ["price"] },
+  { key: "customers",    label: "Клиенты",        monthKey: null,           catKey: "level",       numCols: ["age"] },
+  { key: "liabilities",  label: "Обязательства",  monthKey: null,           catKey: "creditor",    numCols: ["amount"] },
+];
+
+// state
+let currentTab = TABS[0];
+const cache = {}; // key -> {header, rows}
+let view = [];     // filtered + sorted
+let page = 0;
+const PAGE_SIZE = 200;
+let sortCol = null;
+let sortDir = 1;
+
+const fmt = v => (Math.round(v)).toLocaleString("ru-RU");
+const isNumeric = v => {
+  if (v === null || v === undefined || v === "") return false;
+  const s = String(v).replace(/\s|\u00a0/g,"").replace(",",".");
+  return /^-?\d+(\.\d+)?$/.test(s);
+};
+const toNum = v => {
+  const s = String(v || "").replace(/\s|\u00a0/g,"").replace(",",".");
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+};
+
+// CSV parser
+function parseCSV(str) {
+  const rows = [];
+  let cur = [], field = "", q = false;
+  for (let i = 0; i < str.length; i++) {
+    const c = str[i];
+    if (q) {
+      if (c === '"') { if (str[i+1]==='"'){ field+='"'; i++; } else q=false; }
+      else field += c;
+    } else {
+      if (c === '"') q = true;
+      else if (c === ",") { cur.push(field); field = ""; }
+      else if (c === "\n") { cur.push(field); rows.push(cur); cur=[]; field=""; }
+      else if (c === "\r") {}
+      else field += c;
+    }
+  }
+  if (field.length || cur.length) { cur.push(field); rows.push(cur); }
+  return rows;
+}
+
+async function loadTab(key) {
+  if (cache[key]) return cache[key];
+  const url = `https://docs.google.com/spreadsheets/d/${DB_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(key)}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`${key} → ${r.status}`);
+  const text = await r.text();
+  const raw = parseCSV(text);
+  const header = raw[0] || [];
+  const rows = raw.slice(1)
+    .filter(r => r.length > 1 || (r[0] && r[0].length))
+    .map(r => { const o = {}; header.forEach((h,i)=>o[h]=r[i]??""); return o; });
+  const res = { header, rows };
+  cache[key] = res;
+  return res;
+}
+
+function renderTabs() {
+  const c = document.getElementById("tabs");
+  c.innerHTML = "";
+  TABS.forEach(t => {
+    const b = document.createElement("button");
+    const cnt = cache[t.key] ? cache[t.key].rows.length : "…";
+    b.innerHTML = `${t.label}<span class="count">${cnt}</span>`;
+    if (t.key === currentTab.key) b.classList.add("active");
+    b.onclick = () => switchTab(t);
+    c.appendChild(b);
+  });
+}
+
+async function switchTab(t) {
+  currentTab = t;
+  page = 0; sortCol = null;
+  document.getElementById("q").value = "";
+  document.getElementById("month").value = "";
+  document.getElementById("category").value = "";
+  document.getElementById("tbody").innerHTML = '<tr><td class="loading" colspan="99">Загрузка…</td></tr>';
+  try {
+    await loadTab(t.key);
+    rebuildFilters();
+    applyFilters();
+  } catch (e) {
+    document.getElementById("tbody").innerHTML = `<tr><td class="loading" colspan="99">Ошибка: ${e.message}</td></tr>`;
+  }
+  renderTabs();
+}
+
+function rebuildFilters() {
+  const { rows } = cache[currentTab.key];
+  const mSel = document.getElementById("month");
+  const cSel = document.getElementById("category");
+  mSel.innerHTML = '<option value="">Все месяцы</option>';
+  cSel.innerHTML = '<option value="">Все категории</option>';
+
+  if (currentTab.monthKey) {
+    const ms = [...new Set(rows.map(r => {
+      const v = r[currentTab.monthKey] || "";
+      // normalize 2026-4 -> 2026-04
+      const m = v.match(/^(\d{4})-(\d{1,2})$/);
+      if (m) return m[1] + "-" + m[2].padStart(2,"0");
+      return v.slice(0,7);
+    }).filter(Boolean))].sort();
+    ms.forEach(m => { const o = document.createElement("option"); o.value = m; o.textContent = m; mSel.appendChild(o); });
+    mSel.disabled = false;
+  } else {
+    mSel.disabled = true;
+  }
+
+  if (currentTab.catKey) {
+    const cats = [...new Set(rows.map(r => r[currentTab.catKey]).filter(Boolean))].sort();
+    cats.forEach(c => { const o = document.createElement("option"); o.value = c; o.textContent = c.length > 60 ? c.slice(0,60) + "…" : c; cSel.appendChild(o); });
+    cSel.disabled = false;
+  } else {
+    cSel.disabled = true;
+  }
+}
+
+function applyFilters() {
+  const { header, rows } = cache[currentTab.key];
+  const q = document.getElementById("q").value.trim().toLowerCase();
+  const m = document.getElementById("month").value;
+  const c = document.getElementById("category").value;
+
+  view = rows.filter(r => {
+    if (m && currentTab.monthKey) {
+      const v = (r[currentTab.monthKey] || "").slice(0,7);
+      const norm = v.match(/^(\d{4})-(\d{1,2})$/);
+      const vm = norm ? norm[1] + "-" + norm[2].padStart(2,"0") : v;
+      if (vm !== m) return false;
+    }
+    if (c && currentTab.catKey && r[currentTab.catKey] !== c) return false;
+    if (q) {
+      const s = Object.values(r).join("\u0001").toLowerCase();
+      if (!s.includes(q)) return false;
+    }
+    return true;
+  });
+
+  if (sortCol) {
+    const numSet = new Set(currentTab.numCols);
+    view.sort((a, b) => {
+      const va = a[sortCol], vb = b[sortCol];
+      if (numSet.has(sortCol) || (isNumeric(va) && isNumeric(vb))) {
+        return (toNum(va) - toNum(vb)) * sortDir;
+      }
+      return String(va||"").localeCompare(String(vb||"")) * sortDir;
+    });
+  }
+
+  page = 0;
+  render();
+}
+
+function render() {
+  const { header } = cache[currentTab.key];
+  const thead = document.getElementById("thead");
+  thead.innerHTML = "";
+  const tr = document.createElement("tr");
+  header.forEach(h => {
+    const th = document.createElement("th");
+    th.textContent = h;
+    if (h === sortCol) th.classList.add(sortDir === 1 ? "sorted-asc" : "sorted-desc");
+    th.onclick = () => {
+      if (sortCol === h) sortDir = -sortDir;
+      else { sortCol = h; sortDir = 1; }
+      applyFilters();
+    };
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
+
+  const tbody = document.getElementById("tbody");
+  tbody.innerHTML = "";
+  const start = page * PAGE_SIZE;
+  const slice = view.slice(start, start + PAGE_SIZE);
+  if (slice.length === 0) {
+    tbody.innerHTML = '<tr><td class="loading" colspan="99">Нет данных</td></tr>';
+  } else {
+    const numSet = new Set(currentTab.numCols);
+    slice.forEach(r => {
+      const row = document.createElement("tr");
+      header.forEach(h => {
+        const td = document.createElement("td");
+        const v = r[h];
+        if (numSet.has(h) && isNumeric(v)) {
+          td.className = "num";
+          const n = toNum(v);
+          if (n < 0) td.classList.add("neg");
+          td.textContent = fmt(n);
+        } else {
+          td.textContent = v || "";
+          td.title = v || "";
+        }
+        row.appendChild(td);
+      });
+      tbody.appendChild(row);
+    });
+  }
+
+  document.getElementById("count-label").textContent =
+    `${fmt(view.length)} строк${view.length === 1 ? "а" : ""}`;
+
+  renderPager();
+}
+
+function renderPager() {
+  const total = view.length;
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const p = document.getElementById("pager");
+  p.innerHTML = "";
+  if (pages <= 1) return;
+  const info = document.createElement("span");
+  info.textContent = `Стр. ${page + 1} из ${pages} · показано ${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, total)}`;
+  const prev = document.createElement("button");
+  prev.textContent = "← назад"; prev.disabled = page === 0;
+  prev.onclick = () => { page--; render(); };
+  const next = document.createElement("button");
+  next.textContent = "вперёд →"; next.disabled = page >= pages - 1;
+  next.onclick = () => { page++; render(); };
+  p.append(prev, info, next);
+}
+
+// event wires
+document.getElementById("q").addEventListener("input", applyFilters);
+document.getElementById("month").addEventListener("change", applyFilters);
+document.getElementById("category").addEventListener("change", applyFilters);
+
+// initial load
+(async function() {
+  renderTabs();
+  try {
+    await switchTab(TABS[0]);
+    document.getElementById("ts").textContent = new Date().toLocaleString("ru-RU");
+  } catch (e) {
+    console.error(e);
+  }
+})();
+</script>
+</body>
+</html>

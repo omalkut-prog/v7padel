@@ -126,6 +126,7 @@
 <header class="top">
   <a class="logo" href="index.html">V7<em>Padel</em></a>
   <span class="sub">Дашборд · Анталья</span>
+  <a class="back" href="data.html" style="margin-right:14px">Данные →</a>
   <a class="back" href="index.html">← на главную</a>
 </header>
 
@@ -204,6 +205,15 @@
 // ============================================================
 // V7 PADEL DASHBOARD — reads v7padel_db via public gviz CSV
 // ============================================================
+// SOURCE PRIORITY (authoritative):
+//   1. pnl_monthly (source=accountant_pnl) — ALWAYS authoritative for P&L
+//        Revenue  = row article="Доход от деятельности" AND level=0 AND branch=revenue
+//        OPEX     = row article contains "Условно-постоянные расходы" AND level=1 AND branch=expense
+//        Op. P&L  = Revenue − |OPEX|
+//   2. transactions — revenue STRUCTURE / mix only (courts / memberships / training / tournaments / goods)
+//   3. expenses tab — detail only; DO NOT sum for OPEX (contains capex + loans)
+//   4. bookings / customers / memberships — Matchpoint (read-only)
+//   5. Divergences → display PnL figure (never expenses total)
 const DB_ID = "1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY";
 const ACCENT = "#0ABAB5";
 const ACCENT_D = "#0e8a87";
@@ -263,17 +273,21 @@ function sortedMonths(obj) { return Object.keys(obj).sort(); }
 // ---------------- P&L MONTHLY ----------------
 async function loadPnL() {
   const rows = await gviz("pnl_monthly");
+  // AUTHORITATIVE mapping — match by exact article_name, not level aggregation
   const byM = {};
   rows.forEach(r => {
-    if (r.level !== "0") return;
     const m = r.period_month;
     if (!m || !/^\d{4}-\d{2}$/.test(m)) return;
     byM[m] = byM[m] || { revenue: 0, opex: 0 };
     const total = toNum(r.total);
-    if (r.branch === "revenue" && r.article_name && r.article_name.toLowerCase().includes("доход")) {
-      byM[m].revenue += total;
-    } else if (r.branch === "expense") {
-      byM[m].opex += Math.abs(total);
+    const art = (r.article_name || "").toLowerCase();
+    // Revenue — single row "Доход от деятельности" at level 0
+    if (r.level === "0" && r.branch === "revenue" && art.includes("доход от деятельности")) {
+      byM[m].revenue = total;
+    }
+    // OPEX — single aggregator row "Условно-постоянные расходы бизнеса" at level 1
+    if (r.branch === "expense" && art.includes("условно-постоянные расходы")) {
+      byM[m].opex = Math.abs(total);
     }
   });
   const months = Object.keys(byM).sort();
