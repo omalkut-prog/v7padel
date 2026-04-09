@@ -224,8 +224,8 @@
 
   <!-- BLOCK 5: Tournaments -->
   <section class="section">
-    <div class="section-head"><h2>5 · Турниры</h2><span class="hint">вкладка tournaments · Racket.ID интеграция отложена</span></div>
-    <div class="tours" id="tours"><div class="loading">Читаю вкладку tournaments…</div></div>
+    <div class="section-head"><h2>5 · Турниры</h2><span class="hint">Racket.ID · 338 событий · 300 уникальных участников</span></div>
+    <div class="tours" id="tours"><div class="loading">Читаю данные Racket.ID…</div></div>
   </section>
 
   <!-- BLOCK 6: Goods -->
@@ -476,33 +476,38 @@ async function renderHeatmap() {
  * BLOCK 5 — Tournaments
  * ============================================================= */
 async function renderTournaments() {
-  const tours = await loadSheet('tournaments');
   const box = document.getElementById('tours');
+  // Load from Racket.ID CSV extract (data/racketid_tournaments.csv)
+  let tours = [];
+  try {
+    const resp = await fetch('data/racketid_tournaments.csv');
+    if (resp.ok) tours = V7.parseCSV(await resp.text());
+  } catch (e) { /* fallback below */ }
   if (!tours || !tours.length) {
-    box.innerHTML = '<div class="tour-empty">Вкладка <code>tournaments</code> пустая или отсутствует.<br>Интеграция с Racket.ID отложена — данные появятся позже.</div>';
+    box.innerHTML = '<div class="tour-empty">Нет данных по турнирам. Запустите <code>scripts/racketid_extract.py</code>.</div>';
     return;
   }
-  const keys = Object.keys(tours[0]);
-  const k = (re) => keys.find(x => re.test(x));
-  const kName = k(/name|название|title/i);
-  const kDate = k(/date|дата/i);
-  const kReg  = k(/reg|записан|participants/i);
-  const kMax  = k(/max|cap|потолок|limit/i);
-  const kStat = k(/status|статус/i);
-  const kRev  = k(/revenue|выручка|доход/i);
+  // Sort by date descending, filter completed (instance status)
+  tours = tours.filter(t => t.status === 'instance');
+  tours.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
   box.innerHTML = tours.slice(0, 12).map(t => {
-    const reg = num(t[kReg]), max = num(t[kMax]) || 16;
+    const reg = num(t.participants_count);
+    const max = num(t.slots) || 16;
     const pct = Math.min(100, Math.round((reg / max) * 100));
-    const dateStr = t[kDate] || '—';
-    const status = (t[kStat] || '').toLowerCase();
-    const badge = status.indexOf('закр') >= 0 || status === 'closed' ? '#e74c3c' :
-                  status.indexOf('прош') >= 0 || status === 'past' ? '#8a9ba8' :
-                  '#13c296';
+    const dateStr = t.date ? t.date.slice(0, 10) : '—';
+    const gpState = (t.gameplan_state || '').toLowerCase();
+    const badge = gpState === 'ended' ? '#8a9ba8' :
+                  gpState === 'signup' ? '#13c296' :
+                  gpState === 'playing' ? '#f39c12' : '#13c296';
+    const statusLabel = gpState === 'ended' ? 'завершён' :
+                        gpState === 'signup' ? 'запись' :
+                        gpState === 'playing' ? 'идёт' : gpState || 'open';
     return '<div class="tour-row">' +
-      '<div class="name">' + (t[kName] || '—') + '<small>' + dateStr + '</small></div>' +
+      '<div class="name">' + (t.title || '—') + '<small>' + dateStr + '</small></div>' +
       '<div><div class="tour-bar-bg"><div class="tour-bar" style="width:' + pct + '%"></div></div><div class="fill-label">' + reg + ' / ' + max + ' · ' + pct + '%</div></div>' +
-      '<div class="rev">' + (t[kRev] ? fmtMoney(num(t[kRev])) : '—') + '</div>' +
-      '<div><span class="status" style="color:' + badge + ';border-color:' + badge + '">' + (t[kStat] || 'open') + '</span></div>' +
+      '<div class="rev">—</div>' +
+      '<div><span class="status" style="color:' + badge + ';border-color:' + badge + '">' + statusLabel + '</span></div>' +
     '</div>';
   }).join('');
 }
