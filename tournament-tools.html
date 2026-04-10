@@ -110,7 +110,7 @@
   .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
   /* RESULT CARDS */
-  .result-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 20px; }
+  .result-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 20px; }
   .result-card {
     background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
     padding: 16px; text-align: center;
@@ -130,10 +130,32 @@
 
   .ge-results { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 20px; }
 
+  /* TABS */
+  .tool-tabs{display:flex;gap:0;margin-bottom:20px}
+  .tool-tab{
+    padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;
+    background:var(--surface2);border:1px solid var(--border);color:var(--text3);
+    transition:all .2s;font-family:inherit;
+  }
+  .tool-tab:first-child{border-radius:10px 0 0 10px}
+  .tool-tab:last-child{border-radius:0 10px 10px 0;border-left:none}
+  .tool-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+  /* SAVE/LOAD BUTTONS */
+  .save-btn,.load-btn{
+    padding:10px 20px;font-size:13px;font-weight:600;border-radius:8px;
+    cursor:pointer;font-family:inherit;transition:all .2s;
+  }
+  .save-btn{background:var(--accent);color:#fff;border:1px solid var(--accent)}
+  .save-btn:hover{filter:brightness(.9)}
+  .load-btn{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+  .load-btn:hover{border-color:var(--border-hover);color:var(--text)}
+
   /* RESPONSIVE */
   @media (max-width: 900px) {
     .calc-grid, .ge-grid { grid-template-columns: 1fr; }
-    .result-grid, .ge-results { grid-template-columns: repeat(2, 1fr); }
+    .result-grid { grid-template-columns: repeat(3, 1fr); }
+    .ge-results { grid-template-columns: repeat(2, 1fr); }
     .nav-links a { padding: 0 10px; font-size: 12px; }
     h1.page-title { font-size: 22px; }
   }
@@ -171,39 +193,18 @@
 
 <main>
   <h1 class="page-title">Инструменты турниров</h1>
-  <p class="page-sub">Калькулятор маржи, планирование Grand Event · данные из racketid_tournaments</p>
+  <p class="page-sub">Калькулятор маржи ежедневных турниров и Grand Event · сохранение расчётов</p>
 
-  <!-- ============ BLOCK 1: КАЛЕНДАРЬ ТУРНИРОВ ============ -->
+  <!-- ============ TABS ============ -->
+  <div class="tool-tabs">
+    <button class="tool-tab active" data-tab="daily">Ежедневный турнир</button>
+    <button class="tool-tab" data-tab="grand">Grand Event</button>
+  </div>
+
+  <div class="tool-panel" id="panel-daily" style="display:block">
   <section class="section">
     <div class="section-head">
-      <h2>1 · Календарь турниров</h2>
-      <span class="hint">последние 30 дней + 4 недели вперёд · источник: Racket.ID</span>
-    </div>
-    <div class="card">
-      <div id="cal-loading" class="cal-loading">Загрузка данных...</div>
-      <div id="cal-content" style="display:none">
-        <!-- Будущие -->
-        <h3 id="cal-future-head" style="font-size:13px;font-weight:600;color:var(--good);margin-bottom:10px;display:none">▸ Запланированные</h3>
-        <table class="cal-table" id="cal-table-future" style="display:none">
-          <thead><tr><th>Дата</th><th>День</th><th>Время</th><th>Формат</th><th>Заполненность</th><th>Статус</th></tr></thead>
-          <tbody id="cal-body-future"></tbody>
-        </table>
-        <div id="cal-no-future" style="font-size:13px;color:var(--text3);padding:10px 0;display:none">Нет запланированных турниров</div>
-        <!-- Прошедшие -->
-        <h3 id="cal-past-head" style="font-size:13px;font-weight:600;color:var(--text3);margin:20px 0 10px;display:none">▸ Прошедшие (30 дней)</h3>
-        <table class="cal-table" id="cal-table-past" style="display:none">
-          <thead><tr><th>Дата</th><th>День</th><th>Время</th><th>Формат</th><th>Заполненность</th><th>Статус</th></tr></thead>
-          <tbody id="cal-body-past"></tbody>
-        </table>
-      </div>
-      <div id="cal-empty" class="cal-loading" style="display:none">Нет турниров за последние 30 дней</div>
-    </div>
-  </section>
-
-  <!-- ============ BLOCK 2: КАЛЬКУЛЯТОР ТУРНИРА ============ -->
-  <section class="section">
-    <div class="section-head">
-      <h2>2 · Калькулятор турнира</h2>
+      <h2>Калькулятор турнира</h2>
       <span class="hint">выберите формат — поля заполнятся автоматически</span>
     </div>
     <div class="card">
@@ -270,6 +271,10 @@
             <div class="field-group"><label>Цена Club (₺)</label><input type="number" id="c-clubPrice" value="300"></div>
             <div class="field-group"><label>Цена VIP (₺)</label><input type="number" id="c-vipPrice" value="300"></div>
           </div>
+          <div class="field-group" style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+            <label>Вейт-лист (чел.)</label>
+            <input type="number" id="c-waitlist" min="0" value="0">
+          </div>
         </div>
       </div>
 
@@ -280,14 +285,25 @@
         <div class="result-card"><div class="r-label">Маржа ивента</div><div class="r-value" id="r-eventMargin">0 ₺</div></div>
         <div class="result-card"><div class="r-label">Маржа клуба</div><div class="r-value" id="r-clubMargin">0 ₺</div></div>
         <div class="result-card"><div class="r-label">Точка безубыточности</div><div class="r-value" id="r-breakeven">0 чел.</div></div>
+        <div class="result-card">
+          <div class="r-label">FOMO</div>
+          <div class="r-value" id="r-fomo">—</div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px" id="r-fomo-hint"></div>
+        </div>
+      </div>
+      <div style="margin-top:20px;display:flex;gap:10px">
+        <button class="save-btn" onclick="saveCalc('daily')">💾 Сохранить расчёт</button>
+        <button class="load-btn" onclick="loadCalc('daily')">📂 Загрузить расчёт</button>
+        <span id="save-status-daily" style="font-size:12px;color:var(--text3);align-self:center"></span>
       </div>
     </div>
   </section>
+  </div><!-- /panel-daily -->
 
-  <!-- ============ BLOCK 3: GRAND EVENT КАЛЬКУЛЯТОР ============ -->
+  <div class="tool-panel" id="panel-grand" style="display:none">
   <section class="section">
     <div class="section-head">
-      <h2>3 · Grand Event калькулятор</h2>
+      <h2>Grand Event калькулятор</h2>
       <span class="hint">2-дневный турнир с призовым фондом</span>
     </div>
     <div class="card">
@@ -354,6 +370,23 @@
         </div>
       </div>
 
+      <!-- MEDIA PLAN -->
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+        <h3 style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Медийный план</h3>
+        <div class="field-row" style="max-width:640px">
+          <div class="field-group"><label>Бюджет на рекламу (₺)</label><input type="number" id="ge-adBudget" min="0" value="5000"></div>
+          <div class="field-group"><label>Ожидаемый охват (чел.)</label><input type="number" id="ge-adReach" min="0" value="10000"></div>
+        </div>
+        <div class="field-row" style="max-width:640px;margin-top:10px">
+          <div class="field-group"><label>Конверсия в участника (%)</label><input type="number" id="ge-adConv" min="0" max="100" step="0.1" value="1.5"></div>
+          <div class="field-group">
+            <label>Стоимость привлечения (₺/чел)</label>
+            <div id="ge-cpa" style="font-size:18px;font-weight:700;color:var(--text);padding:8px 0">—</div>
+          </div>
+        </div>
+        <div id="ge-media-summary" style="font-size:13px;color:var(--text2);margin-top:10px;line-height:1.7"></div>
+      </div>
+
       <!-- GRAND EVENT RESULTS -->
       <div class="ge-results" id="ge-results">
         <div class="result-card"><div class="r-label">Расходы День 1</div><div class="r-value" id="ge-r-exp1">0 ₺</div></div>
@@ -362,8 +395,14 @@
         <div class="result-card"><div class="r-label">Маржа ивента (2 дня)</div><div class="r-value" id="ge-r-margin">0 ₺</div></div>
         <div class="result-card"><div class="r-label">Маржа клуба (2 дня)</div><div class="r-value" id="ge-r-clubMargin">0 ₺</div></div>
       </div>
+      <div style="margin-top:20px;display:flex;gap:10px">
+        <button class="save-btn" onclick="saveCalc('grand')">💾 Сохранить расчёт</button>
+        <button class="load-btn" onclick="loadCalc('grand')">📂 Загрузить расчёт</button>
+        <span id="save-status-grand" style="font-size:12px;color:var(--text3);align-self:center"></span>
+      </div>
     </div>
   </section>
+  </div><!-- /panel-grand -->
 </main>
 
 <script>
@@ -454,191 +493,52 @@ const $ = id => document.getElementById(id);
 const num = id => parseFloat($(id).value) || 0;
 const fmt = v => v.toLocaleString('ru-RU') + ' ₺';
 
-/* ===================== BLOCK 1: CALENDAR ===================== */
-(function loadCalendar() {
-  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY/gviz/tq?tqx=out:csv&sheet=racketid_tournaments';
-  const DAYS_RU = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+/* ===================== TAB SWITCHING ===================== */
+document.querySelectorAll('.tool-tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tool-tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tool-panel').forEach(p => p.style.display = 'none');
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).style.display = 'block';
+  });
+});
 
-  fetch(SHEET_URL)
-    .then(r => r.text())
-    .then(csv => {
-      const rows = parseCSV(csv);
-      if (rows.length < 2) { showEmpty(); return; }
+/* ===================== SAVE / LOAD ===================== */
+function saveCalc(type) {
+  const inputs = document.querySelectorAll('#panel-' + type + ' input, #panel-' + type + ' select');
+  const data = {};
+  inputs.forEach(el => { if (el.id) data[el.id] = el.value; });
+  localStorage.setItem('v7-calc-' + type, JSON.stringify(data));
+  const status = document.getElementById('save-status-' + type);
+  status.textContent = '✓ Сохранено ' + new Date().toLocaleTimeString('ru-RU', {hour:'2-digit',minute:'2-digit'});
+  setTimeout(() => { status.textContent = ''; }, 3000);
+}
 
-      const headers = rows[0].map(h => h.trim().toLowerCase());
-      const dateIdx = headers.findIndex(h => h.includes('date') || h.includes('дата'));
-      const timeIdx = headers.findIndex(h => h.includes('time') || h.includes('время'));
-      const formatIdx = headers.findIndex(h => h.includes('format') || h.includes('формат') || h.includes('name') || h.includes('название') || h.includes('title'));
-      const regIdx = headers.findIndex(h => h.includes('registered') || h.includes('зарег') || h.includes('participants_count') || h.includes('участник'));
-      const capIdx = headers.findIndex(h => h.includes('capacity') || h.includes('вместимость') || h.includes('slots') || h.includes('макс') || h.includes('max'));
-      const statusIdx = headers.findIndex(h => h === 'status');
-
-      const now = new Date();
-      now.setHours(0,0,0,0);
-      const thirtyDaysAgo = new Date(now);
-      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      const fourWeeksAhead = new Date(now);
-      fourWeeksAhead.setDate(fourWeeksAhead.getDate() + 28);
-
-      const pastItems = [];
-      const futureItems = [];
-
-      for (let i = 1; i < rows.length; i++) {
-        const row = rows[i];
-        const rawDate = dateIdx >= 0 ? row[dateIdx] : '';
-        if (!rawDate) continue;
-        const d = parseDate(rawDate);
-        if (!d) continue;
-
-        // Извлекаем время из даты (формат "YYYY-MM-DD HH:MM:SS")
-        let timeStr = timeIdx >= 0 && row[timeIdx] ? row[timeIdx].trim() : '';
-        if (!timeStr) {
-          const tm = rawDate.match(/\d{2}:\d{2}/);
-          if (tm) timeStr = tm[0];
-        }
-        if (timeStr) timeStr = timeStr.replace(/:\d{2}$/, ''); // убрать секунды
-
-        // Пропускаем program-записи (шаблоны, не реальные турниры)
-        const rowStatus = statusIdx >= 0 ? (row[statusIdx] || '').trim().toLowerCase() : '';
-        if (rowStatus === 'program') continue;
-
-        const item = {
-          date: d,
-          time: timeStr || '—',
-          format: formatIdx >= 0 ? row[formatIdx] : '—',
-          registered: regIdx >= 0 ? parseInt(row[regIdx]) || 0 : 0,
-          capacity: capIdx >= 0 ? parseInt(row[capIdx]) || 0 : 0
-        };
-
-        if (d >= now && d <= fourWeeksAhead) {
-          futureItems.push(item);
-        } else if (d >= thirtyDaysAgo && d < now) {
-          pastItems.push(item);
-        }
-      }
-
-      futureItems.sort((a,b) => a.date - b.date);
-      pastItems.sort((a,b) => b.date - a.date); // новые сверху
-
-      if (!futureItems.length && !pastItems.length) { showEmpty(); return; }
-
-      // Рендер будущих
-      if (futureItems.length) {
-        $('cal-future-head').style.display = '';
-        $('cal-table-future').style.display = '';
-        const tbody = $('cal-body-future');
-        futureItems.forEach(t => { tbody.innerHTML += renderRow(t, false); });
-      } else {
-        $('cal-future-head').style.display = '';
-        $('cal-no-future').style.display = '';
-      }
-
-      // Рендер прошедших
-      if (pastItems.length) {
-        $('cal-past-head').style.display = '';
-        $('cal-table-past').style.display = '';
-        const tbody = $('cal-body-past');
-        pastItems.forEach(t => { tbody.innerHTML += renderRow(t, true); });
-      }
-
-      $('cal-loading').style.display = 'none';
-      $('cal-content').style.display = '';
-    })
-    .catch(err => {
-      console.error('Ошибка загрузки календаря:', err);
-      $('cal-loading').textContent = 'Ошибка загрузки данных';
-    });
-
-  function renderRow(t, isPast) {
-    const pct = t.capacity > 0 ? Math.round(t.registered / t.capacity * 100) : 0;
-    let badge, barClass;
-    if (isPast) {
-      badge = '<span class="badge" style="background:var(--surface2);color:var(--text3)">Завершён</span>';
-      barClass = 'green';
-    } else if (t.registered >= t.capacity && t.capacity > 0) {
-      if (t.registered > t.capacity) {
-        badge = '<span class="badge badge-wait">Вейт-лист</span>';
-        barClass = 'yellow';
-      } else {
-        badge = '<span class="badge badge-full">Заполнен</span>';
-        barClass = 'red';
-      }
-    } else {
-      badge = '<span class="badge badge-open">Открыт</span>';
-      barClass = 'green';
-    }
-
-    const dd = t.date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
-    const dow = DAYS_RU[t.date.getDay()];
-    const rowStyle = isPast ? 'opacity:0.65' : '';
-
-    return `<tr style="${rowStyle}">
-      <td>${dd}</td>
-      <td>${dow}</td>
-      <td>${t.time}</td>
-      <td>${t.format}</td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div class="fill-bar-bg" style="flex:1"><div class="fill-bar ${barClass}" style="width:${Math.min(pct,100)}%"></div></div>
-          <span style="font-size:12px;color:var(--text2);white-space:nowrap">${t.registered}/${t.capacity}</span>
-        </div>
-      </td>
-      <td>${badge}</td>
-    </tr>`;
+function loadCalc(type) {
+  const raw = localStorage.getItem('v7-calc-' + type);
+  if (!raw) {
+    const status = document.getElementById('save-status-' + type);
+    status.textContent = 'Нет сохранённых данных';
+    setTimeout(() => { status.textContent = ''; }, 3000);
+    return;
   }
-
-  function showEmpty() {
-    $('cal-loading').style.display = 'none';
-    $('cal-empty').style.display = '';
+  const data = JSON.parse(raw);
+  Object.entries(data).forEach(([id, val]) => {
+    const el = document.getElementById(id);
+    if (el) { el.value = val; }
+  });
+  // Trigger recalculation
+  if (type === 'daily') {
+    document.querySelector('#panel-daily input').dispatchEvent(new Event('input'));
+  } else {
+    document.querySelector('#panel-grand input').dispatchEvent(new Event('input'));
   }
+  const status = document.getElementById('save-status-' + type);
+  status.textContent = '✓ Загружено';
+  setTimeout(() => { status.textContent = ''; }, 3000);
+}
 
-  function parseDate(s) {
-    if (!s) return null;
-    s = s.trim().replace(/"/g, '');
-    // Try ISO / datetime "2026-03-11 18:30:00"
-    let d = new Date(s);
-    if (!isNaN(d)) return d;
-    // Try "YYYY-MM-DD HH:MM:SS" with space (Safari fix)
-    const iso = s.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
-    if (iso) return new Date(+iso[1], +iso[2]-1, +iso[3], +iso[4], +iso[5]);
-    // Try DD.MM.YYYY or DD/MM/YYYY
-    const m = s.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
-    if (m) {
-      const y = m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3]);
-      return new Date(y, parseInt(m[2]) - 1, parseInt(m[1]));
-    }
-    return null;
-  }
-
-  function parseCSV(text) {
-    const lines = [];
-    let current = [];
-    let field = '';
-    let inQuote = false;
-    for (let i = 0; i < text.length; i++) {
-      const ch = text[i];
-      if (inQuote) {
-        if (ch === '"' && text[i+1] === '"') { field += '"'; i++; }
-        else if (ch === '"') { inQuote = false; }
-        else { field += ch; }
-      } else {
-        if (ch === '"') { inQuote = true; }
-        else if (ch === ',') { current.push(field); field = ''; }
-        else if (ch === '\n' || (ch === '\r' && text[i+1] === '\n')) {
-          current.push(field); field = '';
-          if (current.some(c => c.trim())) lines.push(current);
-          current = [];
-          if (ch === '\r') i++;
-        } else { field += ch; }
-      }
-    }
-    current.push(field);
-    if (current.some(c => c.trim())) lines.push(current);
-    return lines;
-  }
-})();
-
-/* ===================== BLOCK 2: CALCULATOR ===================== */
+/* ===================== CALCULATOR ===================== */
 (function initCalc() {
   const sel = $('tpl-select');
   Object.keys(TEMPLATES).forEach(k => {
@@ -754,6 +654,14 @@ const fmt = v => v.toLocaleString('ru-RU') + ' ₺';
     $('r-clubMargin').className = 'r-value ' + (clubMargin >= 0 ? 'positive' : 'negative');
 
     $('r-breakeven').textContent = breakeven + ' чел.';
+
+    // FOMO
+    const waitlist = num('c-waitlist');
+    const fomoPct = players > 0 ? Math.round(waitlist / players * 100) : 0;
+    const isHot = fomoPct > 20;
+    $('r-fomo').textContent = fomoPct + '%';
+    $('r-fomo').className = 'r-value ' + (isHot ? 'negative' : '');
+    $('r-fomo-hint').textContent = isHot ? '🔥 Горячий турнир!' : 'Норма';
   }
 
   // Initial calc
@@ -762,7 +670,7 @@ const fmt = v => v.toLocaleString('ru-RU') + ' ₺';
 
 /* ===================== BLOCK 3: GRAND EVENT ===================== */
 (function initGrandEvent() {
-  const inputs = document.querySelectorAll('[id^="ge-d1-"], [id^="ge-d2-"], #ge-prize');
+  const inputs = document.querySelectorAll('[id^="ge-d1-"], [id^="ge-d2-"], #ge-prize, #ge-adBudget, #ge-adReach, #ge-adConv');
   inputs.forEach(el => {
     el.addEventListener('input', recalcGE);
     el.addEventListener('change', recalcGE);
@@ -828,8 +736,18 @@ const fmt = v => v.toLocaleString('ru-RU') + ' ₺';
       breakdown.innerHTML = '<div style="color:var(--text3)">Введите сумму призового фонда</div>';
     }
 
+    // Media plan
+    const adBudget = num('ge-adBudget');
+    const adReach = num('ge-adReach');
+    const adConv = num('ge-adConv');
+    const expectedPlayers = Math.round(adReach * adConv / 100);
+    const cpa = expectedPlayers > 0 ? Math.round(adBudget / expectedPlayers) : 0;
+    $('ge-cpa').textContent = cpa > 0 ? fmt(cpa) : '—';
+    $('ge-media-summary').innerHTML = adBudget > 0 ?
+      `Охват ${adReach.toLocaleString('ru-RU')} чел. → ~${expectedPlayers} участников → CPA ${fmt(cpa)}` : '';
+
     // Totals
-    const totalExpenses = d1expenses + d2expenses + prize;
+    const totalExpenses = d1expenses + d2expenses + prize + adBudget;
     const totalRevenue = d1revenue + d2revenue;
     const totalCourtCost = d1courtCost + d2courtCost;
     const eventMargin = totalRevenue - totalExpenses;
