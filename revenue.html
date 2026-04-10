@@ -306,7 +306,7 @@
 const MONTHLY_GOAL = 1800000;
 const WEEKLY_GOAL = Math.round(MONTHLY_GOAL / 4.33);
 
-const { loadSheet, num, fmt, fmtMoney, fmtInt, parseDate, ymKey, ymLabel, categorizeRevenue,
+const { loadSheet, loadCacheTab, num, fmt, fmtMoney, fmtInt, parseDate, ymKey, ymLabel, categorizeRevenue,
         REV_CAT_ORDER, REV_CAT_COLORS, accent, cssVar, renderReloadNotice } = V7;
 
 const DOW_NAMES = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
@@ -375,81 +375,163 @@ function chartTextColor()  { return cssVar('--text2') || '#4a5967'; }
 function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
 
 /* =========================================================================
- * MAIN
+ * Shared rendering state — populated by either mainFromCache or mainFromSheet
  * ========================================================================= */
-(async function main() {
-  let rows;
-  try {
-    rows = await loadSheet('transactions');
-  } catch (err) {
-    document.querySelector('main').innerHTML =
-      '<div class="panel" style="margin-top:40px"><div class="error">Не удалось загрузить данные: ' +
-      (err.message || err) + '</div></div>';
-    return;
-  }
+let weekMap = {};   // weekKey -> { mon: Date, days: [0..6], total }
+let weekKeys = [];  // sorted descending
+let showAll = false;
+const VISIBLE_WEEKS = 12;
+const MONTH_NAMES_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 
-  if (!rows || !rows.length) {
-    document.querySelector('main').innerHTML =
-      '<div class="panel" style="margin-top:40px"><div class="error">Нет данных в таблице transactions.</div></div>';
-    return;
-  }
+/* ---- Shared rendering helpers ---- */
 
-  /* ---- Parse all rows ---- */
-  const txns = [];
-  rows.forEach(r => {
-    const d = parseDate(r.date);
-    if (!d) return;
-    const total = num(r.total);
-    if (!total) return;
-    txns.push({
-      date: d,
-      total,
-      category: r.category || '',
-      subcategory: r.subcategory || '',
-      source: r.source || '',
-      month: r.month || ymKey(d)
-    });
+function computeMaxes(keys) {
+  const maxDay = [0,0,0,0,0,0,0];
+  let maxTotal = 0;
+  keys.forEach(wk => {
+    const w = weekMap[wk];
+    for (let d = 0; d < 7; d++) maxDay[d] = Math.max(maxDay[d], w.days[d]);
+    maxTotal = Math.max(maxTotal, w.total);
   });
+  return { maxDay, maxTotal };
+}
 
-  txns.sort((a, b) => a.date - b.date);
+function autoNote(w, prevWk) {
+  const notes = [];
+  const zeroDays = w.days.filter(d => d === 0).length;
+  if (zeroDays >= 4) notes.push('дожди/простой');
+  else if (zeroDays >= 2) notes.push(zeroDays + ' дн. без выручки');
+  const maxDay = Math.max(...w.days);
+  if (maxDay > w.total * 0.4 && w.total > 50000) {
+    const dayIdx = w.days.indexOf(maxDay);
+    notes.push('пик ' + DOW_NAMES[dayIdx] + ' ' + fmtInt(Math.round(maxDay)));
+  }
+  return notes.join('; ');
+}
 
-  /* ---- Build weekly data ---- */
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const currentMonday = getMonday(today);
+function renderWeeklyTable() {
+  const curWeekKey = weekKey(new Date());
+  const keysChron = [...weekKeys].reverse();
+  const keysToShow = showAll ? keysChron : keysChron.slice(-VISIBLE_WEEKS);
+  const { maxDay, maxTotal } = computeMaxes(weekKeys);
+  const tbody = document.querySelector('#weekly-table tbody');
+  const tfoot = document.getElementById('weekly-foot');
+  let html = '';
+  let lastMonth = '';
+  let monthTotal = 0;
+  let monthAvgDays = 0;
+  let monthName = '';
 
-  // Group by week (key = Monday date string)
-  const weekMap = {}; // weekKey -> { mon: Date, days: [0..6] totals, total }
-  txns.forEach(t => {
-    const wk = weekKey(t.date);
-    if (!weekMap[wk]) {
-      const mon = getMonday(t.date);
-      weekMap[wk] = { mon, days: [0,0,0,0,0,0,0], total: 0 };
+  function flushMonth() {
+    if (!monthName) return '';
+    const avgPerDay = monthAvgDays > 0 ? monthTotal / monthAvgDays : 0;
+    return '<tr class="month-subtotal">' +
+      '<td></td><td>Итого ' + monthName + '</td>' +
+      '<td colspan="7"></td>' +
+      '<td class="num">' + fmtInt(Math.round(monthTotal)) + '</td>' +
+      '<td class="num">' + fmtInt(Math.round(avgPerDay)) + '</td>' +
+      '<td colspan="3"></td></tr>';
+  }
+
+  keysToShow.forEach((wk, i) => {
+    const w = weekMap[wk];
+    const sun = getSunday(w.mon);
+    const thu = new Date(w.mon); thu.setDate(thu.getDate() + 3);
+    const wkMonth = thu.getFullYear() + '-' + String(thu.getMonth()+1).padStart(2,'0');
+    const wkMonthLabel = MONTH_NAMES_RU[thu.getMonth()];
+
+    if (wkMonth !== lastMonth && lastMonth) {
+      html += flushMonth();
+      monthTotal = 0; monthAvgDays = 0;
     }
-    const dow = isoWeekDow(t.date);
-    weekMap[wk].days[dow] += t.total;
-    weekMap[wk].total += t.total;
+    lastMonth = wkMonth;
+    monthName = wkMonthLabel;
+    monthTotal += w.total;
+    const daysWithData = w.days.filter(d => d > 0).length || 7;
+    monthAvgDays += daysWithData;
+
+    const rangeStr = fmtDate(w.mon) + ' – ' + fmtDate(sun);
+    const isCurrent = wk === curWeekKey;
+    const avg = w.total / 7;
+
+    const prevIdx = keysChron.indexOf(wk) - 1;
+    const prevWk = prevIdx >= 0 ? weekMap[keysChron[prevIdx]] : null;
+    let deltaStr = '—';
+    let deltaCls = 'muted';
+    if (prevWk && prevWk.total > 0) {
+      const diff = w.total - prevWk.total;
+      deltaStr = (diff >= 0 ? '+' : '') + fmtInt(Math.round(diff));
+      deltaCls = diff >= 0 ? 'pos' : 'neg';
+    }
+    const goalPctWeek = WEEKLY_GOAL > 0 ? (w.total / WEEKLY_GOAL * 100).toFixed(0) + '%' : '—';
+    const note = autoNote(w, prevWk);
+    const weekNum = keysChron.indexOf(wk) + 1;
+
+    html += '<tr' + (isCurrent ? ' class="current-week"' : '') + '>';
+    html += '<td class="muted">' + weekNum + '</td>';
+    html += '<td style="white-space:nowrap;font-weight:500">' + rangeStr + '</td>';
+    for (let d = 0; d < 7; d++) {
+      const val = w.days[d];
+      const bg = heatColor(val, maxDay[d]);
+      html += '<td class="heat num" style="background:' + bg + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">0</span>') + '</td>';
+    }
+    html += '<td class="num" style="font-weight:700;background:' + heatColor(w.total, maxTotal) + '">' + fmtInt(Math.round(w.total)) + '</td>';
+    html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
+    html += '<td class="' + deltaCls + '">' + deltaStr + '</td>';
+    html += '<td class="num">' + goalPctWeek + '</td>';
+    html += '<td class="note" title="' + note.replace(/"/g,'&quot;') + '">' + note + '</td>';
+    html += '</tr>';
   });
 
-  // Sort weeks descending
-  const weekKeys = Object.keys(weekMap).sort().reverse();
+  html += flushMonth();
+  tbody.innerHTML = html;
 
-  /* ---- KPI ---- */
+  const allKeys = showAll ? keysChron : keysChron.slice(-VISIBLE_WEEKS);
+  const footDow = [0,0,0,0,0,0,0];
+  const footCnt = [0,0,0,0,0,0,0];
+  let grandTotal = 0;
+  allKeys.forEach(wk => {
+    const w = weekMap[wk];
+    grandTotal += w.total;
+    for (let d = 0; d < 7; d++) {
+      footDow[d] += w.days[d];
+      if (w.days[d] > 0) footCnt[d]++;
+    }
+  });
+  let footHtml = '<tr>';
+  footHtml += '<td></td><td style="font-weight:700">СРЕДНЕЕ</td>';
+  for (let d = 0; d < 7; d++) {
+    const avg = footCnt[d] > 0 ? footDow[d] / footCnt[d] : 0;
+    footHtml += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
+  }
+  footHtml += '<td class="num" style="font-weight:700">' + fmtInt(Math.round(grandTotal)) + '</td>';
+  footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / Math.max(allKeys.length * 7, 1))) + '</td>';
+  footHtml += '<td colspan="3"></td></tr>';
+  tfoot.innerHTML = footHtml;
+
+  const btn = document.getElementById('toggle-weeks');
+  if (weekKeys.length > VISIBLE_WEEKS) {
+    btn.style.display = '';
+    btn.textContent = showAll ? 'Последние 12 недель' : 'Все ' + weekKeys.length + ' недель';
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+function renderKPIs(monthSoFar, dayOfMonth, dimCur) {
+  const today = new Date(); today.setHours(0,0,0,0);
   const curWeekKey = weekKey(today);
+  const currentMonday = getMonday(today);
   const curWeek = weekMap[curWeekKey] || { mon: currentMonday, days: [0,0,0,0,0,0,0], total: 0 };
   const curWeekTotal = curWeek.total;
-
-  // Days elapsed this week (1 = Monday itself)
   const daysElapsedWeek = isoWeekDow(today) + 1;
 
-  // Previous week
   const prevMonday = new Date(currentMonday);
   prevMonday.setDate(prevMonday.getDate() - 7);
   const prevWeekKey = weekKey(prevMonday);
   const prevWeek = weekMap[prevWeekKey];
   const prevWeekTotal = prevWeek ? prevWeek.total : 0;
 
-  // KPI 1: Current week total + delta
   document.getElementById('kpi-week-total').textContent = fmtMoney(curWeekTotal);
   if (prevWeekTotal > 0) {
     const delta = ((curWeekTotal - prevWeekTotal) / prevWeekTotal * 100);
@@ -458,209 +540,22 @@ function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
     el.className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
   }
 
-  // KPI 2: Avg per day this week
   const avgDay = daysElapsedWeek > 0 ? curWeekTotal / daysElapsedWeek : 0;
   document.getElementById('kpi-avg-day').textContent = fmtMoney(avgDay);
   document.getElementById('kpi-avg-hint').textContent = 'за ' + daysElapsedWeek + ' дн. текущей недели';
 
-  // KPI 3: Monthly forecast
-  const curMonth = today.getMonth();
-  const curYear = today.getFullYear();
-  const dimCur = daysInMonth(curYear, curMonth);
-  const dayOfMonth = today.getDate();
-  let monthSoFar = 0;
-  txns.forEach(t => {
-    if (t.date.getMonth() === curMonth && t.date.getFullYear() === curYear) {
-      monthSoFar += t.total;
-    }
-  });
   const forecast = dayOfMonth > 0 ? (monthSoFar / dayOfMonth) * dimCur : 0;
   document.getElementById('kpi-month-forecast').textContent = fmtMoney(forecast);
   document.getElementById('kpi-forecast-hint').textContent = 'факт ' + fmtMoney(monthSoFar) + ' за ' + dayOfMonth + ' дн.';
 
-  // KPI 4: % of goal
   const goalPct = MONTHLY_GOAL > 0 ? (monthSoFar / MONTHLY_GOAL * 100) : 0;
   document.getElementById('kpi-goal-pct').textContent = goalPct.toFixed(1) + '%';
   document.getElementById('kpi-goal-bar').style.width = Math.min(goalPct, 100) + '%';
   document.getElementById('kpi-goal-hint').textContent = 'цель: ' + fmtMoney(MONTHLY_GOAL);
+}
 
-  /* =========================================================================
-   * BLOCK 1 — Weekly revenue table
-   * ========================================================================= */
-  const VISIBLE_WEEKS = 12;
-  let showAll = false;
-
-  // Compute column maxima for heatmap (day columns only)
-  function computeMaxes(keys) {
-    const maxDay = [0,0,0,0,0,0,0];
-    let maxTotal = 0;
-    keys.forEach(wk => {
-      const w = weekMap[wk];
-      for (let d = 0; d < 7; d++) maxDay[d] = Math.max(maxDay[d], w.days[d]);
-      maxTotal = Math.max(maxTotal, w.total);
-    });
-    return { maxDay, maxTotal };
-  }
-
-  const MONTH_NAMES_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-
-  // Auto-generate notes based on data patterns
-  function autoNote(w, prevWk) {
-    const notes = [];
-    // Count zero days
-    const zeroDays = w.days.filter(d => d === 0).length;
-    if (zeroDays >= 4) notes.push('дожди/простой');
-    else if (zeroDays >= 2) notes.push(zeroDays + ' дн. без выручки');
-    // Big single-day spike
-    const maxDay = Math.max(...w.days);
-    if (maxDay > w.total * 0.4 && w.total > 50000) {
-      const dayIdx = w.days.indexOf(maxDay);
-      notes.push('пик ' + DOW_NAMES[dayIdx] + ' ' + fmtInt(Math.round(maxDay)));
-    }
-    return notes.join('; ');
-  }
-
-  function renderWeeklyTable() {
-    // Always show chronologically (oldest first) like the Excel
-    const keysChron = [...weekKeys].reverse();
-    const keysToShow = showAll ? keysChron : keysChron.slice(-VISIBLE_WEEKS);
-    const { maxDay, maxTotal } = computeMaxes(weekKeys);
-    const tbody = document.querySelector('#weekly-table tbody');
-    const tfoot = document.getElementById('weekly-foot');
-    let html = '';
-    let lastMonth = '';
-
-    // Track monthly subtotals
-    let monthTotal = 0;
-    let monthAvgDays = 0;
-    let monthName = '';
-
-    function flushMonth() {
-      if (!monthName) return '';
-      const avgPerDay = monthAvgDays > 0 ? monthTotal / monthAvgDays : 0;
-      return '<tr class="month-subtotal">' +
-        '<td></td><td>Итого ' + monthName + '</td>' +
-        '<td colspan="7"></td>' +
-        '<td class="num">' + fmtInt(Math.round(monthTotal)) + '</td>' +
-        '<td class="num">' + fmtInt(Math.round(avgPerDay)) + '</td>' +
-        '<td colspan="3"></td></tr>';
-    }
-
-    keysToShow.forEach((wk, i) => {
-      const w = weekMap[wk];
-      const sun = getSunday(w.mon);
-      // Determine month of this week (by Thursday = day+3)
-      const thu = new Date(w.mon); thu.setDate(thu.getDate() + 3);
-      const wkMonth = thu.getFullYear() + '-' + String(thu.getMonth()+1).padStart(2,'0');
-      const wkMonthLabel = MONTH_NAMES_RU[thu.getMonth()];
-
-      // If month changed, flush previous month subtotal
-      if (wkMonth !== lastMonth && lastMonth) {
-        html += flushMonth();
-        monthTotal = 0; monthAvgDays = 0;
-      }
-      lastMonth = wkMonth;
-      monthName = wkMonthLabel;
-      monthTotal += w.total;
-      // Count actual days with data this week
-      const daysWithData = w.days.filter(d => d > 0).length || 7;
-      monthAvgDays += daysWithData;
-
-      const rangeStr = fmtDate(w.mon) + ' – ' + fmtDate(sun);
-      const isCurrent = wk === curWeekKey;
-      const avg = w.total / 7;
-
-      // Delta (absolute + %)
-      const prevIdx = keysChron.indexOf(wk) - 1;
-      const prevWk = prevIdx >= 0 ? weekMap[keysChron[prevIdx]] : null;
-      let deltaStr = '—';
-      let deltaCls = 'muted';
-      if (prevWk && prevWk.total > 0) {
-        const diff = w.total - prevWk.total;
-        const pct = (diff / prevWk.total * 100);
-        deltaStr = (diff >= 0 ? '+' : '') + fmtInt(Math.round(diff));
-        deltaCls = diff >= 0 ? 'pos' : 'neg';
-      }
-      const goalPctWeek = WEEKLY_GOAL > 0 ? (w.total / WEEKLY_GOAL * 100).toFixed(0) + '%' : '—';
-      const note = autoNote(w, prevWk);
-
-      // Week number (chronological)
-      const weekNum = keysChron.indexOf(wk) + 1;
-
-      html += '<tr' + (isCurrent ? ' class="current-week"' : '') + '>';
-      html += '<td class="muted">' + weekNum + '</td>';
-      html += '<td style="white-space:nowrap;font-weight:500">' + rangeStr + '</td>';
-      for (let d = 0; d < 7; d++) {
-        const val = w.days[d];
-        const bg = heatColor(val, maxDay[d]);
-        html += '<td class="heat num" style="background:' + bg + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">0</span>') + '</td>';
-      }
-      html += '<td class="num" style="font-weight:700;background:' + heatColor(w.total, maxTotal) + '">' + fmtInt(Math.round(w.total)) + '</td>';
-      html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
-      html += '<td class="' + deltaCls + '">' + deltaStr + '</td>';
-      html += '<td class="num">' + goalPctWeek + '</td>';
-      html += '<td class="note" title="' + note.replace(/"/g,'&quot;') + '">' + note + '</td>';
-      html += '</tr>';
-    });
-
-    // Flush last month
-    html += flushMonth();
-
-    tbody.innerHTML = html;
-
-    // Footer: averages per day of week + grand total
-    const allKeys = showAll ? keysChron : keysChron.slice(-VISIBLE_WEEKS);
-    const footDow = [0,0,0,0,0,0,0];
-    const footCnt = [0,0,0,0,0,0,0];
-    let grandTotal = 0;
-    allKeys.forEach(wk => {
-      const w = weekMap[wk];
-      grandTotal += w.total;
-      for (let d = 0; d < 7; d++) {
-        footDow[d] += w.days[d];
-        if (w.days[d] > 0) footCnt[d]++;
-      }
-    });
-    let footHtml = '<tr>';
-    footHtml += '<td></td><td style="font-weight:700">СРЕДНЕЕ</td>';
-    for (let d = 0; d < 7; d++) {
-      const avg = footCnt[d] > 0 ? footDow[d] / footCnt[d] : 0;
-      footHtml += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
-    }
-    footHtml += '<td class="num" style="font-weight:700">' + fmtInt(Math.round(grandTotal)) + '</td>';
-    footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / Math.max(allKeys.length * 7, 1))) + '</td>';
-    footHtml += '<td colspan="3"></td></tr>';
-    tfoot.innerHTML = footHtml;
-
-    const btn = document.getElementById('toggle-weeks');
-    if (weekKeys.length > VISIBLE_WEEKS) {
-      btn.style.display = '';
-      btn.textContent = showAll ? 'Последние 12 недель' : 'Все ' + weekKeys.length + ' недель';
-    } else {
-      btn.style.display = 'none';
-    }
-  }
-
-  renderWeeklyTable();
-
-  document.getElementById('toggle-weeks').addEventListener('click', () => {
-    showAll = !showAll;
-    renderWeeklyTable();
-  });
-
-  /* =========================================================================
-   * BLOCK 2 — Average revenue by day of week
-   * ========================================================================= */
-  const dowTotals = [0,0,0,0,0,0,0];
-  const dowCounts = [0,0,0,0,0,0,0];
-  txns.forEach(t => {
-    const d = isoWeekDow(t.date);
-    dowTotals[d] += t.total;
-    dowCounts[d]++;
-  });
-  const dowAvg = dowTotals.map((tot, i) => dowCounts[i] > 0 ? tot / dowCounts[i] : 0);
+function renderDowChart(dowAvg) {
   const bestDow = dowAvg.indexOf(Math.max(...dowAvg));
-
   const dowColors = dowAvg.map((_, i) => i === bestDow ? (accent() || '#0ABAB5') : (cssVar('--text3') || '#8a9ba8'));
 
   new Chart(document.getElementById('dow-chart'), {
@@ -698,32 +593,16 @@ function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
       }
     }
   });
+}
 
-  /* =========================================================================
-   * BLOCK 3 — Monthly summary
-   * ========================================================================= */
-  // Group by month
-  const monthMap = {}; // 'YYYY-MM' -> { total, days: Set, dayTotals: {} }
-  txns.forEach(t => {
-    const ym = ymKey(t.date);
-    if (!monthMap[ym]) monthMap[ym] = { total: 0, daySet: new Set(), dayTotals: {} };
-    monthMap[ym].total += t.total;
-    const dk = t.date.toDateString();
-    monthMap[ym].daySet.add(dk);
-    monthMap[ym].dayTotals[dk] = (monthMap[ym].dayTotals[dk] || 0) + t.total;
-  });
-
-  const monthKeys = Object.keys(monthMap).sort();
-  const last8 = monthKeys.slice(-8);
-
-  // Monthly chart
+function renderMonthlyChart(monthKeys, monthTotals) {
   new Chart(document.getElementById('monthly-chart'), {
     type: 'bar',
     data: {
-      labels: last8.map(ymLabel),
+      labels: monthKeys.map(ymLabel),
       datasets: [{
         label: 'Выручка',
-        data: last8.map(ym => monthMap[ym].total),
+        data: monthTotals,
         backgroundColor: accent() || '#0ABAB5',
         borderRadius: 8,
         maxBarThickness: 72
@@ -748,59 +627,9 @@ function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
       }
     }
   });
+}
 
-  // Monthly table: best/worst week per month
-  function bestWorstWeekForMonth(ym) {
-    // Find all week keys whose Monday falls in this month
-    const [y, m] = ym.split('-').map(Number);
-    let best = null, worst = null;
-    weekKeys.forEach(wk => {
-      const w = weekMap[wk];
-      const wym = ymKey(w.mon);
-      if (wym === ym) {
-        if (!best || w.total > best.total) best = w;
-        if (!worst || w.total < worst.total) worst = w;
-      }
-    });
-    return {
-      best: best ? fmtInt(Math.round(best.total)) : '—',
-      worst: worst ? fmtInt(Math.round(worst.total)) : '—'
-    };
-  }
-
-  {
-    const tbody = document.querySelector('#monthly-table tbody');
-    let html = '';
-    last8.forEach(ym => {
-      const m = monthMap[ym];
-      const ndays = m.daySet.size;
-      const avg = ndays > 0 ? m.total / ndays : 0;
-      const bw = bestWorstWeekForMonth(ym);
-      html += '<tr>';
-      html += '<td style="font-weight:500">' + ymLabel(ym) + '</td>';
-      html += '<td class="num">' + fmtInt(Math.round(m.total)) + ' ₺</td>';
-      html += '<td class="num">' + fmtInt(Math.round(avg)) + ' ₺</td>';
-      html += '<td class="num pos">' + bw.best + '</td>';
-      html += '<td class="num neg">' + bw.worst + '</td>';
-      html += '</tr>';
-    });
-    tbody.innerHTML = html;
-  }
-
-  /* =========================================================================
-   * BLOCK 4 — Revenue by category (current month)
-   * ========================================================================= */
-  const curYM = ymKey(today);
-  const catMap = {}; // catName -> total
-  let catTotal = 0;
-  txns.forEach(t => {
-    if (ymKey(t.date) !== curYM) return;
-    const cat = categorizeRevenue(t.category);
-    if (!cat) return; // skip internal
-    catMap[cat] = (catMap[cat] || 0) + t.total;
-    catTotal += t.total;
-  });
-
+function renderCatBlock(catMap, catTotal) {
   const catOrder = REV_CAT_ORDER;
   const catColors = REV_CAT_COLORS;
   const catLabels = [];
@@ -848,30 +677,362 @@ function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
   }
 
   // Category table
-  {
-    const tbody = document.querySelector('#cat-table tbody');
-    let html = '';
-    catOrder.forEach((c, i) => {
-      const v = catMap[c] || 0;
-      if (v <= 0) return;
-      const pct = catTotal > 0 ? (v / catTotal * 100).toFixed(1) : '0';
+  const tbody = document.querySelector('#cat-table tbody');
+  let html = '';
+  catOrder.forEach((c, i) => {
+    const v = catMap[c] || 0;
+    if (v <= 0) return;
+    const pct = catTotal > 0 ? (v / catTotal * 100).toFixed(1) : '0';
+    html += '<tr>';
+    html += '<td style="font-weight:500"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + catColors[i] + ';margin-right:8px;vertical-align:middle"></span>' + c + '</td>';
+    html += '<td class="num">' + fmtInt(Math.round(v)) + ' ₺</td>';
+    html += '<td class="num">' + pct + '%</td>';
+    html += '</tr>';
+  });
+  if (!html) html = '<tr><td colspan="3" class="muted" style="text-align:center">Нет данных</td></tr>';
+  tbody.innerHTML = html;
+}
+
+function renderGoodsBlock(goodsItems, weeklyValues) {
+  // goodsItems = [{ sub, count, total }], weeklyValues = [[v0..v7], ...]
+  const tbody = document.querySelector('#goods-table tbody');
+  let html = '';
+  if (!goodsItems.length) {
+    html = '<tr><td colspan="4" class="muted" style="text-align:center">Нет товарных продаж</td></tr>';
+  } else {
+    goodsItems.forEach((item, idx) => {
+      const sparkId = 'spark-' + idx;
       html += '<tr>';
-      html += '<td style="font-weight:500"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + catColors[i] + ';margin-right:8px;vertical-align:middle"></span>' + c + '</td>';
-      html += '<td class="num">' + fmtInt(Math.round(v)) + ' ₺</td>';
-      html += '<td class="num">' + pct + '%</td>';
+      html += '<td style="font-weight:500">' + item.sub + '</td>';
+      html += '<td class="num">' + item.count + '</td>';
+      html += '<td class="num">' + fmtInt(Math.round(item.total)) + ' ₺</td>';
+      html += '<td><div class="sparkline-cell"><canvas id="' + sparkId + '" width="100" height="28"></canvas></div></td>';
       html += '</tr>';
     });
-    if (!html) html = '<tr><td colspan="3" class="muted" style="text-align:center">Нет данных</td></tr>';
+  }
+  tbody.innerHTML = html;
+
+  // Draw sparklines
+  goodsItems.forEach((item, idx) => {
+    const canvas = document.getElementById('spark-' + idx);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const values = weeklyValues[idx];
+    const maxV = Math.max(...values, 1);
+    const w = canvas.width;
+    const h = canvas.height;
+    const padding = 2;
+    const step = (w - padding * 2) / Math.max(values.length - 1, 1);
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.strokeStyle = accent() || '#0ABAB5';
+    ctx.lineWidth = 1.5;
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    values.forEach((v, i) => {
+      const x = padding + i * step;
+      const y = h - padding - (v / maxV) * (h - padding * 2);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.stroke();
+
+    ctx.lineTo(padding + (values.length - 1) * step, h - padding);
+    ctx.lineTo(padding, h - padding);
+    ctx.closePath();
+    const [r, g, b] = getAccentRGB();
+    ctx.fillStyle = `rgba(${r},${g},${b},0.1)`;
+    ctx.fill();
+  });
+}
+
+/* =========================================================================
+ * MAIN FROM CACHE (fast path)
+ * ========================================================================= */
+async function mainFromCache() {
+  var [weeklyRows, dowRows, monthlyTxRows, revCatRows, goodsWeeklyRows] = await Promise.all([
+    loadCacheTab('rev_weekly'),
+    loadCacheTab('rev_dow_avg'),
+    loadCacheTab('rev_monthly_tx'),
+    loadCacheTab('rev_by_month_cat'),
+    loadCacheTab('rev_goods_weekly')
+  ]);
+
+  if (!weeklyRows.length) throw new Error('rev_weekly cache empty');
+
+  /* ---- Build weekMap from cache ---- */
+  weekMap = {};
+  weeklyRows.forEach(function(r) {
+    var monDate = new Date(r.week_mon + 'T00:00:00');
+    weekMap[r.week_mon] = {
+      mon: monDate,
+      days: [num(r.d0), num(r.d1), num(r.d2), num(r.d3), num(r.d4), num(r.d5), num(r.d6)],
+      total: num(r.total)
+    };
+  });
+  weekKeys = Object.keys(weekMap).sort().reverse();
+
+  /* ---- KPI: monthly fact from rev_monthly_tx ---- */
+  var today = new Date(); today.setHours(0,0,0,0);
+  var curYear = today.getFullYear();
+  var curMonth = today.getMonth();
+  var curYM = curYear + '-' + String(curMonth + 1).padStart(2, '0');
+  var dimCur = daysInMonth(curYear, curMonth);
+  var dayOfMonth = today.getDate();
+  var monthSoFar = 0;
+  monthlyTxRows.forEach(function(r) {
+    if (r.month === curYM) monthSoFar = num(r.total);
+  });
+
+  renderKPIs(monthSoFar, dayOfMonth, dimCur);
+
+  /* ---- BLOCK 1: Weekly table ---- */
+  renderWeeklyTable();
+  document.getElementById('toggle-weeks').addEventListener('click', function() {
+    showAll = !showAll;
+    renderWeeklyTable();
+  });
+
+  /* ---- BLOCK 2: DOW chart ---- */
+  var dowAvg = [0,0,0,0,0,0,0];
+  var DOW_MAP = {'Пн':0,'Вт':1,'Ср':2,'Чт':3,'Пт':4,'Сб':5,'Вс':6};
+  dowRows.forEach(function(r) {
+    var idx = DOW_MAP[r.day];
+    if (idx !== undefined) dowAvg[idx] = num(r.avg);
+  });
+  renderDowChart(dowAvg);
+
+  /* ---- BLOCK 3: Monthly summary ---- */
+  // Build monthMap-like structure from rev_monthly_tx
+  var monthInfoMap = {};
+  monthlyTxRows.forEach(function(r) {
+    monthInfoMap[r.month] = { total: num(r.total), daysCount: num(r.days_count) };
+  });
+  var monthKeys = Object.keys(monthInfoMap).sort();
+  var last8 = monthKeys.slice(-8);
+
+  renderMonthlyChart(last8, last8.map(function(ym) { return monthInfoMap[ym].total; }));
+
+  // Monthly table with best/worst week from weekMap
+  function bestWorstWeekForMonth(ym) {
+    var best = null, worst = null;
+    weekKeys.forEach(function(wk) {
+      var w = weekMap[wk];
+      var wym = w.mon.getFullYear() + '-' + String(w.mon.getMonth()+1).padStart(2,'0');
+      if (wym === ym) {
+        if (!best || w.total > best.total) best = w;
+        if (!worst || w.total < worst.total) worst = w;
+      }
+    });
+    return {
+      best: best ? fmtInt(Math.round(best.total)) : '—',
+      worst: worst ? fmtInt(Math.round(worst.total)) : '—'
+    };
+  }
+
+  {
+    var tbody = document.querySelector('#monthly-table tbody');
+    var html = '';
+    last8.forEach(function(ym) {
+      var m = monthInfoMap[ym];
+      var avg = m.daysCount > 0 ? m.total / m.daysCount : 0;
+      var bw = bestWorstWeekForMonth(ym);
+      html += '<tr>';
+      html += '<td style="font-weight:500">' + ymLabel(ym) + '</td>';
+      html += '<td class="num">' + fmtInt(Math.round(m.total)) + ' ₺</td>';
+      html += '<td class="num">' + fmtInt(Math.round(avg)) + ' ₺</td>';
+      html += '<td class="num pos">' + bw.best + '</td>';
+      html += '<td class="num neg">' + bw.worst + '</td>';
+      html += '</tr>';
+    });
     tbody.innerHTML = html;
   }
 
-  /* =========================================================================
-   * BLOCK 5 — Additional sales (goods)
-   * ========================================================================= */
-  const goodsTxns = txns.filter(t => categorizeRevenue(t.category) === 'Товары');
+  /* ---- BLOCK 4: Category donut ---- */
+  var catMap = {};
+  var catTotal = 0;
+  var curCatRow = null;
+  revCatRows.forEach(function(r) {
+    if (r.month === curYM) curCatRow = r;
+  });
+  if (curCatRow) {
+    var catNames = ['Корты','Инвентарь','Клубные карты','Тренировки','Турниры','Товары','Прочее'];
+    catNames.forEach(function(c) {
+      var v = num(curCatRow[c]);
+      if (v > 0) {
+        catMap[c] = v;
+        catTotal += v;
+      }
+    });
+  }
+  renderCatBlock(catMap, catTotal);
 
-  // Group by subcategory
-  const goodsMap = {}; // subcategory -> { count, total, weeklyTotals: { weekKey: total } }
+  /* ---- BLOCK 5: Goods sparklines ---- */
+  var goodsItems = [];
+  var goodsWeeklyVals = [];
+  goodsWeeklyRows.forEach(function(r) {
+    goodsItems.push({ sub: r.name, count: num(r.count), total: num(r.total) });
+    goodsWeeklyVals.push([num(r.w0), num(r.w1), num(r.w2), num(r.w3), num(r.w4), num(r.w5), num(r.w6), num(r.w7)]);
+  });
+  renderGoodsBlock(goodsItems, goodsWeeklyVals);
+}
+
+/* =========================================================================
+ * MAIN FROM SHEET (slow fallback)
+ * ========================================================================= */
+async function mainFromSheet() {
+  let rows;
+  try {
+    rows = await loadSheet('transactions');
+  } catch (err) {
+    document.querySelector('main').innerHTML =
+      '<div class="panel" style="margin-top:40px"><div class="error">Не удалось загрузить данные: ' +
+      (err.message || err) + '</div></div>';
+    return;
+  }
+
+  if (!rows || !rows.length) {
+    document.querySelector('main').innerHTML =
+      '<div class="panel" style="margin-top:40px"><div class="error">Нет данных в таблице transactions.</div></div>';
+    return;
+  }
+
+  /* ---- Parse all rows ---- */
+  const txns = [];
+  rows.forEach(r => {
+    const d = parseDate(r.date);
+    if (!d) return;
+    const total = num(r.total);
+    if (!total) return;
+    txns.push({
+      date: d,
+      total,
+      category: r.category || '',
+      subcategory: r.subcategory || '',
+      source: r.source || '',
+      month: r.month || ymKey(d)
+    });
+  });
+
+  txns.sort((a, b) => a.date - b.date);
+
+  /* ---- Build weekly data ---- */
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  weekMap = {};
+  txns.forEach(t => {
+    const wk = weekKey(t.date);
+    if (!weekMap[wk]) {
+      const mon = getMonday(t.date);
+      weekMap[wk] = { mon, days: [0,0,0,0,0,0,0], total: 0 };
+    }
+    const dow = isoWeekDow(t.date);
+    weekMap[wk].days[dow] += t.total;
+    weekMap[wk].total += t.total;
+  });
+
+  weekKeys = Object.keys(weekMap).sort().reverse();
+
+  /* ---- KPI ---- */
+  const curMonth = today.getMonth();
+  const curYear = today.getFullYear();
+  const dimCur = daysInMonth(curYear, curMonth);
+  const dayOfMonth = today.getDate();
+  let monthSoFar = 0;
+  txns.forEach(t => {
+    if (t.date.getMonth() === curMonth && t.date.getFullYear() === curYear) {
+      monthSoFar += t.total;
+    }
+  });
+
+  renderKPIs(monthSoFar, dayOfMonth, dimCur);
+
+  /* ---- BLOCK 1: Weekly table ---- */
+  renderWeeklyTable();
+  document.getElementById('toggle-weeks').addEventListener('click', () => {
+    showAll = !showAll;
+    renderWeeklyTable();
+  });
+
+  /* ---- BLOCK 2: DOW chart ---- */
+  const dowTotals = [0,0,0,0,0,0,0];
+  const dowCounts = [0,0,0,0,0,0,0];
+  txns.forEach(t => {
+    const d = isoWeekDow(t.date);
+    dowTotals[d] += t.total;
+    dowCounts[d]++;
+  });
+  const dowAvg = dowTotals.map((tot, i) => dowCounts[i] > 0 ? tot / dowCounts[i] : 0);
+  renderDowChart(dowAvg);
+
+  /* ---- BLOCK 3: Monthly summary ---- */
+  const monthMap = {};
+  txns.forEach(t => {
+    const ym = ymKey(t.date);
+    if (!monthMap[ym]) monthMap[ym] = { total: 0, daySet: new Set(), dayTotals: {} };
+    monthMap[ym].total += t.total;
+    const dk = t.date.toDateString();
+    monthMap[ym].daySet.add(dk);
+    monthMap[ym].dayTotals[dk] = (monthMap[ym].dayTotals[dk] || 0) + t.total;
+  });
+
+  const monthKeysAll = Object.keys(monthMap).sort();
+  const last8 = monthKeysAll.slice(-8);
+
+  renderMonthlyChart(last8, last8.map(ym => monthMap[ym].total));
+
+  function bestWorstWeekForMonth(ym) {
+    let best = null, worst = null;
+    weekKeys.forEach(wk => {
+      const w = weekMap[wk];
+      const wym = ymKey(w.mon);
+      if (wym === ym) {
+        if (!best || w.total > best.total) best = w;
+        if (!worst || w.total < worst.total) worst = w;
+      }
+    });
+    return {
+      best: best ? fmtInt(Math.round(best.total)) : '—',
+      worst: worst ? fmtInt(Math.round(worst.total)) : '—'
+    };
+  }
+
+  {
+    const tbody = document.querySelector('#monthly-table tbody');
+    let html = '';
+    last8.forEach(ym => {
+      const m = monthMap[ym];
+      const ndays = m.daySet.size;
+      const avg = ndays > 0 ? m.total / ndays : 0;
+      const bw = bestWorstWeekForMonth(ym);
+      html += '<tr>';
+      html += '<td style="font-weight:500">' + ymLabel(ym) + '</td>';
+      html += '<td class="num">' + fmtInt(Math.round(m.total)) + ' ₺</td>';
+      html += '<td class="num">' + fmtInt(Math.round(avg)) + ' ₺</td>';
+      html += '<td class="num pos">' + bw.best + '</td>';
+      html += '<td class="num neg">' + bw.worst + '</td>';
+      html += '</tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  /* ---- BLOCK 4: Category donut ---- */
+  const curYM = ymKey(today);
+  const catMap = {};
+  let catTotal = 0;
+  txns.forEach(t => {
+    if (ymKey(t.date) !== curYM) return;
+    const cat = categorizeRevenue(t.category);
+    if (!cat) return;
+    catMap[cat] = (catMap[cat] || 0) + t.total;
+    catTotal += t.total;
+  });
+  renderCatBlock(catMap, catTotal);
+
+  /* ---- BLOCK 5: Goods sparklines ---- */
+  const goodsTxns = txns.filter(t => categorizeRevenue(t.category) === 'Товары');
+  const goodsMap = {};
   goodsTxns.forEach(t => {
     const sub = t.subcategory || t.category || 'Без подкатегории';
     if (!goodsMap[sub]) goodsMap[sub] = { count: 0, total: 0, weeklyTotals: {} };
@@ -881,67 +1042,36 @@ function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
     goodsMap[sub].weeklyTotals[wk] = (goodsMap[sub].weeklyTotals[wk] || 0) + t.total;
   });
 
-  const goodsItems = Object.entries(goodsMap)
+  const goodsItemsList = Object.entries(goodsMap)
     .map(([sub, data]) => ({ sub, ...data }))
     .sort((a, b) => b.total - a.total)
     .slice(0, 10);
 
-  // Last 8 weeks keys for sparklines
   const last8Weeks = weekKeys.slice(0, 8).reverse();
+  const goodsWeeklyVals = goodsItemsList.map(item =>
+    last8Weeks.map(wk => item.weeklyTotals[wk] || 0)
+  );
 
-  {
-    const tbody = document.querySelector('#goods-table tbody');
-    let html = '';
-    if (!goodsItems.length) {
-      html = '<tr><td colspan="4" class="muted" style="text-align:center">Нет товарных продаж</td></tr>';
-    } else {
-      goodsItems.forEach((item, idx) => {
-        const sparkId = 'spark-' + idx;
-        html += '<tr>';
-        html += '<td style="font-weight:500">' + item.sub + '</td>';
-        html += '<td class="num">' + item.count + '</td>';
-        html += '<td class="num">' + fmtInt(Math.round(item.total)) + ' ₺</td>';
-        html += '<td><div class="sparkline-cell"><canvas id="' + sparkId + '" width="100" height="28"></canvas></div></td>';
-        html += '</tr>';
-      });
+  renderGoodsBlock(goodsItemsList, goodsWeeklyVals);
+}
+
+/* =========================================================================
+ * INIT — try cache first, fallback to sheet
+ * ========================================================================= */
+(async function init() {
+  try {
+    await mainFromCache();
+    console.log('[revenue] loaded from cache');
+  } catch (e) {
+    console.warn('[revenue] cache failed, falling back to sheet:', e);
+    try {
+      await mainFromSheet();
+    } catch (err) {
+      document.querySelector('main').innerHTML =
+        '<div class="panel" style="margin-top:40px"><div class="error">Не удалось загрузить данные: ' +
+        (err.message || err) + '</div></div>';
     }
-    tbody.innerHTML = html;
-
-    // Draw sparklines
-    goodsItems.forEach((item, idx) => {
-      const canvas = document.getElementById('spark-' + idx);
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const values = last8Weeks.map(wk => item.weeklyTotals[wk] || 0);
-      const maxV = Math.max(...values, 1);
-      const w = canvas.width;
-      const h = canvas.height;
-      const padding = 2;
-      const step = (w - padding * 2) / Math.max(values.length - 1, 1);
-
-      ctx.clearRect(0, 0, w, h);
-      ctx.strokeStyle = accent() || '#0ABAB5';
-      ctx.lineWidth = 1.5;
-      ctx.lineJoin = 'round';
-      ctx.beginPath();
-      values.forEach((v, i) => {
-        const x = padding + i * step;
-        const y = h - padding - (v / maxV) * (h - padding * 2);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-
-      // Fill under line
-      ctx.lineTo(padding + (values.length - 1) * step, h - padding);
-      ctx.lineTo(padding, h - padding);
-      ctx.closePath();
-      const [r, g, b] = getAccentRGB();
-      ctx.fillStyle = `rgba(${r},${g},${b},0.1)`;
-      ctx.fill();
-    });
   }
-
 })();
 </script>
 </body>

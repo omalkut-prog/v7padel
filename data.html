@@ -28,17 +28,20 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
-  header.top {
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    padding: 16px 24px; display: flex; align-items: center; gap: 14px;
-    position: sticky; top: 0; z-index: 20;
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px;
   }
-  .top a.logo { font-size: 17px; font-weight: 700; color: var(--text); text-decoration: none; letter-spacing: -0.3px; }
-  .top a.logo em { color: var(--accent); font-style: normal; }
-  .top .sub { color: var(--text3); font-size: 13px; margin-left: 4px; }
-  .top nav { margin-left: auto; display: flex; gap: 18px; }
-  .top nav a { color: var(--text2); font-size: 13px; text-decoration: none; }
-  .top nav a:hover, .top nav a.active { color: var(--accent); }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  ul.nav-links { display: flex !important; list-style: none !important; margin: 0; padding: 0; gap: 0; }
+  .nav-links li { list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid rgba(10,186,181,0.25); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
 
   .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
   h1 { font-size: 24px; font-weight: 600; margin-bottom: 4px; letter-spacing: -0.4px; }
