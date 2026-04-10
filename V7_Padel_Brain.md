@@ -38,6 +38,12 @@
 
 - `data/` — CSV файлы в репо: `racketid_members.csv`, `racketid_tournaments.csv`, `racketid_participants.csv`.
 
+**Кеш-слой (v7padel_cache):**
+- ID: `1zQAnH-FUlShzWjsy24UWg7Ru2qempWW7Q8GqwFeQES0`
+- 15 предагрегированных вкладок: dashboard_kpis, monthly_series, rev_mix, liabilities, clients_enriched, rev_weekly, rev_dow_avg, rev_monthly и др.
+- Архитектура cache-first: страницы грузят 2-4 кеш-вкладки параллельно (500-700мс), fallback на прямые запросы к v7padel_db.
+- Генерируется ежедневно в 06:15 скриптом `build_cache.py`.
+
 **ETL (автоматизация):**
 - Python-скрипты в `etl/`:
   - `sync_customers_matchpoint.py` — ✅ **НОВЫЙ** синк customers из Matchpoint (1173 клиентов, двухшаговый логин, HTML-парсинг с пагинацией). Вс 05:30.
@@ -46,10 +52,12 @@
   - `fuzzy_match.py` — привязка bookings ↔ customers по тексту (14% покрытие)
   - `racketid_extract.py` — извлечение данных из Firestore
   - `cross_match.py` — кросс-матчинг Racket.ID ↔ Matchpoint (77% покрытие)
+- `build_cache.py` — ✅ **НОВЫЙ** ETL-конвейер для v7padel_cache: 15 кеш-вкладок, предагрегированные данные для всех дашбордов. Ежедневно 06:15.
 - **Расписание Task Scheduler:**
   - `V7Padel_Matchpoint_Weekly` — Вс 05:30 — синк customers из Matchpoint
   - `V7Padel_Enrich_Weekly` — Вс 06:00 — обогащение из таблицы Оли
   - `V7Padel_ETL_Daily` — ежедневно 06:00 — CSV → Google Sheets
+  - `V7Padel_Cache_Daily` — ежедневно 06:15 — build_cache.py → v7padel_cache
 - Приоритет источников:
   1. **PnL бухгалтера** (отдельный Google Sheet) — всегда авторитет
   2. `transactions` — детализация доходов
@@ -60,6 +68,8 @@
 - [v7padel.space](http://v7padel.space) — статический HTML на GitHub Pages.
 - Репо: [omalkut-prog/v7padel](https://github.com/omalkut-prog/v7padel).
 - Три темы: **tiffany** (CEO), **dark** (PM), **v7** (команда).
+- Единые ассеты: `assets/data.js` (константы, API, утилиты), `assets/theme.css` (переменные + темы), `assets/theme.js` (переключатель тем), `assets/nav.js` (hamburger меню).
+- Мобильное меню: hamburger ☰ на ≤768px, анимация ☰→✕, dropdown с 9 ссылками.
 
 ---
 
@@ -93,6 +103,56 @@
 - [x] **Task Scheduler** — 3 задачи: Matchpoint Вс 05:30, обогащение Вс 06:00, CSV ежедневно 06:00
 - [x] Навигация и локализация — CSS фикс на всех 8 страницах, перевод на русский
 - [x] Удалены устаревшие вкладки (booking_matches, customer_linkage)
+
+---
+
+## 📊 Статус страниц портала (10.04.2026)
+
+| Страница | Данные | Кеш | Мобилка | Примечание |
+|----------|--------|-----|---------|------------|
+| dashboard.html | ✅ 6 блоков | cache-first | ✅ hamburger | KPI кликабельные: выручка→разбивка, карты→список участников |
+| revenue.html | ✅ 4 таблицы | cache-first | ✅ hamburger | Сортировка новые сверху, реальное среднее по дням |
+| finance.html | ✅ P&L + расходы | cache-first + PnL бухгалтера | ✅ hamburger | P&L последний месяц сверху |
+| clients.html | ✅ 1173 клиентов | cache-first | ✅ hamburger | Сегментация, drill-down карточка |
+| management.html | ✅ 6 блоков | direct queries | ✅ hamburger | Хитмап, воронка, CEO overview |
+| data.html | ✅ 8 вкладок | direct queries | ✅ hamburger | Сырые данные из v7padel_db |
+| tournaments.html | ✅ обзор | static + Racket.ID | ✅ hamburger | Шаблоны турниров |
+| tournament-calendar.html | ✅ 4 KPI + архив | Racket.ID live | ✅ hamburger | 4 месяца, заполняемость, архив за всё время |
+| tournament-tools.html | ✅ калькулятор | static | ✅ hamburger | Калькулятор маржи турниров |
+| index.html | ✅ | static | ✅ hamburger | Лендинг + role picker |
+| team.html | ✅ | V7_Padel_Brain.md | ✅ hamburger | Этот документ |
+| brain.html | ✅ | V7_Padel_Brain.md | ✅ hamburger | Markdown-рендер brain |
+
+---
+
+## 🔧 Сессия 10.04.2026 — Кеш, баги, технический долг, мобилка
+
+**v7padel_cache подключён:**
+- ETL `build_cache.py` — 15 кеш-вкладок, ежедневно 06:15
+- Все дашборды загружаются за 500-700мс (было 8-15 секунд)
+- Архитектура cache-first с fallback на прямые запросы
+
+**Волна 1 — баги (4 фикса):**
+- CL-1: clients.html — fix `fmtDate(c.lastBk.date)` → `fmtDate(c.lastBk)`
+- F-6: finance.html — перевод статусов обязательств на русский
+- F-1: finance.html — убран хардкод fallback 3.7M
+- M-1: management.html — перестановка блоков (турниры в конец)
+
+**Дополнительные задачи:**
+- dashboard.html — KPI: среднее/день + прогноз, кликабельные модалки (выручка по категориям, список Club/VIP)
+- finance.html — P&L сортировка последний месяц сверху
+- revenue.html — навигация после дашборда, сортировка новые сверху, среднее по реальным дням, DOW по уникальным датам
+- tournament-calendar.html — Racket.ID заполняемость на календаре, 4 KPI карточки (турниры/заполняемость/формат/выручка), архив за всё время с фильтром по месяцам
+
+**Волна 2 — технический долг:**
+- G-6: `V7.START_MONTH = '2025-10'` — заменены 9 хардкодов в dashboard + finance
+- R-1: `V7.MONTHLY_GOAL = 1800000` — вынесен из revenue в конфиг data.js
+- G-1/G-2: единый `:root` в theme.css — удалены дубликаты из 9 файлов (−131 строка)
+
+**Волна 3 — мобильное меню:**
+- `assets/nav.js` — единый hamburger ☰ для всех 12 страниц
+- CSS в theme.css: breakpoint 768px, dropdown, анимация ☰→✕
+- `ul.nav-links` стили вынесены из 12 файлов в theme.css
 
 ---
 
@@ -169,3 +229,4 @@
 - **2026-04-09** — Спринт 1 завершён. Racket.ID подключён через Firestore. Fuzzy matching + cross-matching. PnL бухгалтера. Gulcan Yanar → staff_former.
 - **2026-04-09** — Спринт 1 закрыт окончательно. ETL Matchpoint (двухшаговый логин, 1173 customers). Обогащение из таблицы Оли (523 ячейки). Task Scheduler: 3 задачи. v7padel_db: 8 вкладок, 12 357 строк. Спринт 2 начат.
 - **2026-04-10** — Бэклог расширен: продукты (Grand Event, бизнес-лига, школа, V7 Queen), маркетинг (Марбелья, туристы, группы), инструменты (калькуляторы, календарь, задачник), законодательство.
+- **2026-04-10** — v7padel_cache подключён (15 вкладок, 500-700мс). Волна 1: 4 бага (CL-1, F-6, F-1, M-1). Кликабельные KPI на dashboard. P&L сортировка. Revenue улучшения. Tournament-calendar: KPI дашборд + архив. Волна 2: техдолг (START_MONTH, MONTHLY_GOAL, единый :root). Волна 3: hamburger меню + nav.js.
