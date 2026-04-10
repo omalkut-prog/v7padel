@@ -314,7 +314,7 @@ async function renderBlock1() {
   }
   if (!Object.keys(pnlData).length) { tbody.innerHTML = '<tr><td colspan="5" class="error">PnL пуст</td></tr>'; return; }
 
-  const monthsAsc = Object.keys(pnlData).filter(m => m >= '2025-10').sort();
+  const monthsAsc = Object.keys(pnlData).filter(m => m >= V7.START_MONTH).sort();
   if (!monthsAsc.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
 
   // Дельта вычисляется хронологически, таблица — новые сверху
@@ -403,7 +403,7 @@ async function renderBlock2() {
   const monthsSet = new Set(txRev.map(x => x.ym).filter(Boolean));
   txByMonth = Array.from(monthsSet).sort();
   const sel = document.getElementById('rev-month');
-  txByMonth.filter(m => m >= '2025-10').forEach(m => {
+  txByMonth.filter(m => m >= V7.START_MONTH).forEach(m => {
     const opt = document.createElement('option');
     opt.value = m; opt.textContent = ymLabel(m);
     sel.appendChild(opt);
@@ -518,7 +518,7 @@ async function renderBlock3() {
   // --- OPEX monthly chart — use authoritative PnL data, not raw expenses ---
   let pnlData = {};
   try { pnlData = await V7.loadPnL(); } catch (e) { console.warn('PnL load for OPEX chart failed:', e); }
-  const pnlMonths = Object.keys(pnlData).sort().filter(m => m >= '2025-10');
+  const pnlMonths = Object.keys(pnlData).sort().filter(m => m >= V7.START_MONTH);
   const months = pnlMonths;
   const labels = months.map(ymLabel);
   const values = months.map(m => pnlData[m] ? pnlData[m].opex : 0);
@@ -579,7 +579,7 @@ async function renderBlock4() {
   const byMonth = {};
   cancelled.forEach(b => {
     const d = parseDate(b.start_ts); if (!d) return;
-    const ym = ymKey(d); if (ym < '2025-10') return;
+    const ym = ymKey(d); if (ym < V7.START_MONTH) return;
     byMonth[ym] = (byMonth[ym] || 0) + 1;
   });
   const months = Object.keys(byMonth).sort();
@@ -657,7 +657,7 @@ function renderBlock1FromCache(seriesRows) {
   const tbody = document.querySelector('#pnl-table tbody');
   const tfoot = document.querySelector('#pnl-table tfoot');
   const monthsAsc = seriesRows
-    .filter(r => (r.period_month || '') >= '2025-10')
+    .filter(r => (r.period_month || '') >= V7.START_MONTH)
     .sort((a, b) => a.period_month < b.period_month ? -1 : 1);
   if (!monthsAsc.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
 
@@ -729,7 +729,7 @@ function renderBlock2FromCache(revCatRows) {
   }
   var availMonths = revCatRows.map(r => r.month).filter(Boolean).sort();
   var sel = document.getElementById('rev-month');
-  availMonths.filter(m => m >= '2025-10').forEach(function(m) {
+  availMonths.filter(m => m >= V7.START_MONTH).forEach(function(m) {
     var opt = document.createElement('option');
     opt.value = m; opt.textContent = ymLabel(m);
     sel.appendChild(opt);
@@ -823,7 +823,7 @@ function renderBlock3FromCache(expRows, seriesRows) {
 
   // --- OPEX monthly chart from seriesRows ---
   var months = (seriesRows || [])
-    .filter(function(r) { return (r.period_month || '') >= '2025-10'; })
+    .filter(function(r) { return (r.period_month || '') >= V7.START_MONTH; })
     .sort(function(a, b) { return a.period_month < b.period_month ? -1 : 1; });
   var labels = months.map(function(r) { return ymLabel(r.period_month); });
   var values = months.map(function(r) { return num(r.opex); });

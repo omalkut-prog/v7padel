@@ -439,7 +439,7 @@ function renderLiabilities(rows) {
 // ============================================================
 async function loadSlowPnL() {
   var byM = await V7.loadPnL();
-  var months = Object.keys(byM).filter(function(m) { return m >= '2025-10'; }).sort();
+  var months = Object.keys(byM).filter(function(m) { return m >= V7.START_MONTH; }).sort();
   if (months.length) {
     var last = months[months.length - 1];
     var isLive = byM[last].source === 'live';
@@ -595,7 +595,7 @@ async function loadSlowLiabilities() {
 
       // ── PNL CHART (from monthly_series) ──
       var series = cache.series || [];
-      var sMonths = series.map(function(r) { return r.period_month; }).filter(function(m) { return m >= '2025-10'; });
+      var sMonths = series.map(function(r) { return r.period_month; }).filter(function(m) { return m >= V7.START_MONTH; });
       var sMap = {}; series.forEach(function(r) { sMap[r.period_month] = r; });
       renderPnlChart(sMonths,
         sMonths.map(function(m) { return sMap[m].revenue; }),
