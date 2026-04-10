@@ -24,9 +24,11 @@
 
   // --- Constants ---
   const SHEET_ID = '1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY';
+  const CACHE_ID = '1zQAnH-FUlShzWjsy24UWg7Ru2qempWW7Q8GqwFeQES0';
   const NEW_PNL_SHEET_ID = '1wLvhEUAsS08K6LvxSKAx5-soh5NxayMpU3brvd4rQ54';
   const NEW_PNL_GID = '1844112584';
   const GVIZ_BASE = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=';
+  const CACHE_BASE = 'https://docs.google.com/spreadsheets/d/' + CACHE_ID + '/gviz/tq?tqx=out:csv&sheet=';
   const DEFAULT_TIMEOUT = 30000;
 
   const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Товары', 'Прочее'];
@@ -452,13 +454,76 @@
     return 'Прочее';
   }
 
+  /* -------------------------------------------------------------------------
+   * CACHE: fast pre-aggregated data from v7padel_cache (built by ETL).
+   * loadCache()       → {revenue_last_month, opex_last_month, ...}  (1 row)
+   * loadCacheSeries() → [{period_month, revenue, opex, pnl}, ...]
+   *
+   * Both return null on error (caller should fallback to slow path).
+   * ----------------------------------------------------------------------- */
+  async function loadCache() {
+    try {
+      var url = CACHE_BASE + encodeURIComponent('dashboard_kpis');
+      var ctrl = new AbortController();
+      var tmr = setTimeout(function() { ctrl.abort(); }, 10000); // fast: 10s
+      var r = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(tmr);
+      if (!r.ok) return null;
+      var rows = parseCSV(await r.text());
+      if (!rows || !rows.length) return null;
+      // Convert number strings to numbers
+      var d = rows[0];
+      ['revenue_last_month','opex_last_month','pnl_last_month',
+       'clients_total','clients_new_30d','bookings_30d',
+       'memberships_club','memberships_vip','memberships_total',
+       'liabilities_total'].forEach(function(k) {
+        if (d[k] !== undefined) d[k] = num(d[k]);
+      });
+      return d;
+    } catch (e) {
+      console.warn('loadCache failed:', e);
+      return null;
+    }
+  }
+
+  async function loadCacheSeries() {
+    try {
+      var url = CACHE_BASE + encodeURIComponent('monthly_series');
+      var ctrl = new AbortController();
+      var tmr = setTimeout(function() { ctrl.abort(); }, 10000);
+      var r = await fetch(url, { signal: ctrl.signal });
+      clearTimeout(tmr);
+      if (!r.ok) return null;
+      var rows = parseCSV(await r.text());
+      if (!rows || !rows.length) return null;
+      // Convert to {ym: {revenue, opex, pnl}}
+      var out = {};
+      rows.forEach(function(r) {
+        var ym = r.period_month;
+        if (!ym) return;
+        out[ym] = {
+          revenue: num(r.revenue),
+          opex: num(r.opex),
+          pnl: num(r.pnl)
+        };
+      });
+      return out;
+    } catch (e) {
+      console.warn('loadCacheSeries failed:', e);
+      return null;
+    }
+  }
+
   // Export
   window.V7 = {
     SHEET_ID,
+    CACHE_ID,
     NEW_PNL_SHEET_ID,
     parseCSV,
     loadSheet,
     loadPnL,
+    loadCache,
+    loadCacheSeries,
     renderReloadNotice,
     num, fmt, fmtMoney, fmtPct, fmtSigned, fmtInt,
     parseDate, ymKey, ymLabel, nameKey,

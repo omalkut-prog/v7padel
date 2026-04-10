@@ -497,19 +497,86 @@ async function loadLiabilities() {
 }
 
 // ---------------- INIT ----------------
+// Strategy: try fast cache first (1 request, <1s), fallback to slow direct queries.
 (async function() {
+  var usedCache = false;
   try {
-    await Promise.all([
-      loadPnL().catch(e => console.error("pnl:", e)),
-      loadRevMix().catch(e => console.error("revmix:", e)),
-      loadCourts().catch(e => console.error("courts:", e)),
-      loadMemberships().catch(e => console.error("mem:", e)),
-      loadClients().catch(e => console.error("clients:", e)),
-      loadLiabilities().catch(e => console.error("liab:", e)),
-    ]);
-    document.getElementById("ts").textContent = new Date().toLocaleString("ru-RU");
+    // ── FAST PATH: v7padel_cache ──
+    var cache = await V7.loadCache();
+    if (cache && cache.revenue_last_month) {
+      usedCache = true;
+      console.log('dashboard: using cache');
+
+      // KPI cards from cache
+      var isLive = false; // cache always has accountant data
+      document.getElementById("kpi-rev").textContent = fmtK(cache.revenue_last_month) + " ₺";
+      document.getElementById("kpi-opex").textContent = fmtK(cache.opex_last_month) + " ₺";
+      var pnlVal = cache.pnl_last_month;
+      document.getElementById("kpi-pnl").textContent = (pnlVal > 0 ? "+" : "") + fmtK(pnlVal) + " ₺";
+      document.getElementById("kpi-pnl").style.color = pnlVal >= 0 ? "var(--good, #27ae60)" : "var(--bad, #e74c3c)";
+      document.getElementById("kpi-clients").textContent = fmt(cache.clients_total);
+      document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + cache.clients_new_30d;
+
+      // Timestamp from cache
+      var updAt = cache.updated_at || '';
+      var updTime = updAt.length >= 16 ? updAt.substring(11, 16) : '';
+      document.getElementById("ts").textContent = updAt + (updTime ? ' (кеш, данные от ' + updTime + ')' : '');
+
+      // Monthly chart from cache series
+      var series = await V7.loadCacheSeries();
+      if (series) {
+        var months = Object.keys(series).filter(function(m) { return m >= '2025-10'; }).sort();
+        var rev  = months.map(function(m) { return series[m].revenue; });
+        var opex = months.map(function(m) { return series[m].opex; });
+        var pnl  = months.map(function(m) { return series[m].pnl; });
+        var labels = months.map(V7.ymLabel);
+
+        // Render PnL chart if canvas exists
+        var pnlCanvas = document.getElementById("chart-pnl");
+        if (pnlCanvas) {
+          new Chart(pnlCanvas, {
+            type: "bar",
+            data: {
+              labels: labels,
+              datasets: [
+                { label: "Выручка", data: rev, backgroundColor: ACCENT, borderRadius: 4, order: 2 },
+                { label: "OPEX", data: opex, backgroundColor: "#e74c3c80", borderRadius: 4, order: 2 },
+                { label: "P&L", data: pnl, type: "line", borderColor: "#f39c12", backgroundColor: "transparent", tension: 0.3, pointRadius: 4, order: 1 }
+              ]
+            },
+            options: { responsive: true, plugins: { legend: { position: "bottom" } }, scales: { y: { ticks: { callback: function(v) { return fmtK(v); } } } } }
+          });
+        }
+      }
+
+      // Load remaining sections (revmix, courts, memberships, clients, liabilities) in background
+      // These are secondary — cache already filled the main KPIs
+      loadRevMix().catch(function(e) { console.warn("revmix:", e); });
+      loadCourts().catch(function(e) { console.warn("courts:", e); });
+      loadMemberships().catch(function(e) { console.warn("mem:", e); });
+      loadClients().catch(function(e) { console.warn("clients:", e); });
+      loadLiabilities().catch(function(e) { console.warn("liab:", e); });
+    }
   } catch (e) {
-    console.error(e);
+    console.warn('cache path failed:', e);
+  }
+
+  // ── SLOW PATH: direct queries (fallback or enrichment) ──
+  if (!usedCache) {
+    console.log('dashboard: cache miss, using direct queries');
+    try {
+      await Promise.all([
+        loadPnL().catch(function(e) { console.error("pnl:", e); }),
+        loadRevMix().catch(function(e) { console.error("revmix:", e); }),
+        loadCourts().catch(function(e) { console.error("courts:", e); }),
+        loadMemberships().catch(function(e) { console.error("mem:", e); }),
+        loadClients().catch(function(e) { console.error("clients:", e); }),
+        loadLiabilities().catch(function(e) { console.error("liab:", e); }),
+      ]);
+      document.getElementById("ts").textContent = new Date().toLocaleString("ru-RU");
+    } catch (e) {
+      console.error(e);
+    }
   }
 })();
 </script>
