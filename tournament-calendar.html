@@ -155,6 +155,9 @@ ul.nav-links { display: flex !important; list-style: none !important; margin: 0;
 .tl-fill.yellow{background:#f39c12}
 .tl-fill.red{background:#e74c3c}
 .tl-empty{font-size:.82rem;color:var(--text3);padding:12px 0}
+.arch-btn{padding:6px 14px;font-size:.75rem;font-weight:600;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s}
+.arch-btn:hover{border-color:var(--accent);color:var(--accent)}
+.arch-btn.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 
 @media(max-width:860px){
   .main{padding:8px}
@@ -220,6 +223,10 @@ ul.nav-links { display: flex !important; list-style: none !important; margin: 0;
 
   <h3 class="list-title" style="margin-top:24px">Прошедшие (30 дней)</h3>
   <div id="tl-past"></div>
+
+  <h3 class="list-title" style="margin-top:32px">Архив — все прошедшие турниры</h3>
+  <div id="archive-filter" style="margin-bottom:12px;display:flex;gap:6px;flex-wrap:wrap"></div>
+  <div id="tl-archive"></div>
 </div>
 
 <div class="month-nav">
@@ -442,6 +449,43 @@ window._racketByDate = {};
       renderTable(futureItems, document.getElementById('tl-future'), false);
       if(!futureItems.length) document.getElementById('tl-no-future').style.display='block';
       renderTable(pastItems, document.getElementById('tl-past'), true);
+
+      // ── ARCHIVE: all past tournaments with month filter ──
+      var allPast = data.filter(r=> r._date < now).sort((a,b)=> b._date - a._date);
+      if(allPast.length){
+        // Collect unique months (YYYY-MM)
+        var monthSet = {};
+        allPast.forEach(function(r){ monthSet[r._date.toISOString().slice(0,7)] = true; });
+        var archiveMonths = Object.keys(monthSet).sort().reverse();
+        var MONTH_NAMES = ['','Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+        var filterEl = document.getElementById('archive-filter');
+        var archiveEl = document.getElementById('tl-archive');
+        var activeArchMonth = 'all';
+
+        function renderArchive(filterMonth){
+          activeArchMonth = filterMonth;
+          var items = filterMonth === 'all' ? allPast : allPast.filter(function(r){ return r._date.toISOString().slice(0,7) === filterMonth; });
+          renderTable(items, archiveEl, true);
+          // Update button states
+          filterEl.querySelectorAll('.arch-btn').forEach(function(b){
+            b.classList.toggle('active', b.dataset.month === filterMonth);
+          });
+        }
+
+        // Build filter buttons
+        var btnAll = '<button class="arch-btn active" data-month="all" onclick="this.parentElement._render(\'all\')">Все ('+allPast.length+')</button>';
+        var btnMonths = archiveMonths.map(function(ym){
+          var parts = ym.split('-');
+          var label = MONTH_NAMES[+parts[1]] + ' ' + parts[0];
+          var cnt = allPast.filter(function(r){ return r._date.toISOString().slice(0,7) === ym; }).length;
+          return '<button class="arch-btn" data-month="'+ym+'" onclick="this.parentElement._render(\''+ym+'\')">'+label+' ('+cnt+')</button>';
+        }).join('');
+        filterEl.innerHTML = btnAll + btnMonths;
+        filterEl._render = renderArchive;
+
+        renderArchive('all');
+      }
     })
     .catch(err=>{
       console.warn('Ошибка загрузки турниров из Google Sheets:', err);
