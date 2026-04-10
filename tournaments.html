@@ -10,15 +10,11 @@
 <link rel="stylesheet" href="assets/theme.css">
 <style>
   :root {
-    --bg: #000;
-    --surface: #111;
-    --surface2: #1a1a1a;
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.16);
-    --text: #f5f5f7;
-    --text2: #a1a1a6;
-    --text3: #6e6e73;
-    --accent: #ff9f0a;
+    --bg: #f5f7f9; --surface: #ffffff; --surface2: #f1f5f9;
+    --border: rgba(15,23,42,0.08); --border-hover: rgba(15,23,42,0.18);
+    --text: #0f172a; --text2: #475569; --text3: #94a3b8;
+    --accent: #0ABAB5; --accent-soft: rgba(10,186,181,0.1); --accent-border: rgba(10,186,181,0.25);
+    --shadow: 0 1px 3px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -26,24 +22,24 @@
 
   /* NAV */
   nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    height: 52px; background: rgba(0,0,0,0.82);
-    backdrop-filter: saturate(180%) blur(20px);
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; background: var(--surface);
     border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; padding: 0 32px; gap: 16px;
+    display: flex; align-items: center; padding: 0 24px; gap: 0;
   }
-  .back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text2); text-decoration: none; transition: color 0.2s; }
-  .back-btn:hover { color: var(--text); }
-  .back-btn svg { width: 16px; height: 16px; }
-  .nav-sep { width: 1px; height: 16px; background: var(--border); }
-  .nav-title { font-size: 14px; font-weight: 500; }
-  .nav-badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; background: rgba(255,159,10,0.1); border: 1px solid rgba(255,159,10,0.2); color: var(--accent); }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  ul.nav-links { display: flex !important; list-style: none !important; margin: 0; padding: 0; gap: 0; }
+  .nav-links li { list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: .3px; margin-right: 12px; }
 
   /* SUBNAV */
   .subnav {
-    position: fixed; top: 52px; left: 0; right: 0; z-index: 99;
-    display: flex; gap: 0; background: rgba(0,0,0,0.82); backdrop-filter: saturate(180%) blur(20px);
-    border-bottom: 1px solid var(--border); padding: 0 32px;
+    display: flex; gap: 0; background: var(--surface); border-bottom: 1px solid var(--border);
+    padding: 0 24px;
   }
   .subnav a {
     padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--text3);
@@ -53,7 +49,7 @@
   .subnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
 
   /* HERO */
-  .hero { padding: 132px 40px 60px; max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
+  .hero { padding: 100px 40px 60px; max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
   .hero-eye { font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
   .hero h1 { font-size: clamp(44px, 6vw, 72px); font-weight: 600; letter-spacing: -2px; line-height: 1.03; margin-bottom: 16px; }
   .hero-sub { font-size: 17px; font-weight: 300; color: var(--text2); max-width: 480px; line-height: 1.6; }
@@ -120,7 +116,7 @@
   .pink .card-glow { background: radial-gradient(circle, rgba(255,55,95,0.08), transparent); }
   .teal .card-title { color: #5ac8fa; }
 
-  .card.featured { background: linear-gradient(140deg, #1a0a00 0%, #0e0e0e 60%); border-color: rgba(255,159,10,0.12); min-height: 300px; }
+  .card.featured { background: linear-gradient(140deg, var(--surface2) 0%, var(--surface) 60%); border-color: var(--border-hover); min-height: 300px; }
   .card.featured .card-title { font-size: 32px; }
 
   /* FORMAT TABLE */
@@ -173,13 +169,19 @@
 <body>
 
 <nav>
-  <a class="back-btn" href="index.html">
-    <svg viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    На главную
-  </a>
-  <div class="nav-sep"></div>
-  <div class="nav-title">Турниры & Ивенты</div>
-  <span class="nav-badge">Фаза 1</span>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li class="team-link"><a href="team.html">Команда</a></li>
+    <li><a href="tournaments.html" class="active">Турниры</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
 </nav>
 
 <div class="subnav">
