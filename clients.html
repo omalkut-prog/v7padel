@@ -583,7 +583,7 @@ function renderTable() {
   } else {
     tbody.innerHTML = slice.map(i => {
       const c = customers[i];
-      const lastStr = c.lastBk ? fmtDate(c.lastBk.date) : '—';
+      const lastStr = c.lastBk ? fmtDate(c.lastBk) : '—';
       const bkStr = c.bkCount == null ? '—' : c.bkCount;
       const badgeClass =
         c.segment === 'active' ? 'seg-active' :

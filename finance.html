@@ -611,18 +611,24 @@ async function renderBlock4() {
 async function renderBlock5() {
   const liab = await loadSheet('liabilities');
   const host = document.getElementById('liab-host');
-  let amount = 3700000; // fallback from spec
-  let desc = 'Кредит учредителей — долгосрочное обязательство клуба перед основателями.';
-  let status = 'outstanding';
+  let amount = 0;
+  let desc = '';
+  let status = 'к возврату';
 
   // Real liabilities columns: liability_id, date, amount, currency, creditor, description, status
+  const STATUS_MAP = { outstanding: 'к возврату', partial: 'частично', paid: 'погашено' };
   if (liab && liab.length) {
     let found = 0;
     liab.forEach(row => { found += num(row.amount); });
     if (found > 0) amount = found;
     const r = liab[0];
     if (r.description) desc = r.description;
-    if (r.status) status = r.status;
+    if (r.status) status = STATUS_MAP[r.status] || r.status;
+  }
+
+  if (!amount) {
+    host.innerHTML = '<div class="liab"><div class="desc muted">Данные обязательств не загружены</div></div>';
+    return;
   }
 
   host.innerHTML =
@@ -631,7 +637,7 @@ async function renderBlock5() {
         '<div class="lbl">Кредит учредителей</div>' +
         '<div class="big">' + fmtMoney(amount) + '</div>' +
       '</div>' +
-      '<div class="desc">' + desc + '</div>' +
+      '<div class="desc">' + (desc || '—') + '</div>' +
       '<div><span class="badge">' + status + '</span></div>' +
     '</div>';
 }
@@ -878,17 +884,23 @@ function renderBlock4FromCache(cancelRows) {
 
 function renderBlock5FromCache(liabRows) {
   var host = document.getElementById('liab-host');
-  var amount = 3700000; // fallback
-  var desc = 'Кредит учредителей — долгосрочное обязательство клуба перед основателями.';
-  var status = 'outstanding';
+  var amount = 0;
+  var desc = '';
+  var status = 'к возврату';
 
+  var STATUS_MAP = { outstanding: 'к возврату', partial: 'частично', paid: 'погашено' };
   if (liabRows && liabRows.length) {
     var found = 0;
     liabRows.forEach(function(row) { found += num(row.amount); });
     if (found > 0) amount = found;
     var r = liabRows[0];
     if (r.description) desc = r.description;
-    if (r.status) status = r.status;
+    if (r.status) status = STATUS_MAP[r.status] || r.status;
+  }
+
+  if (!amount) {
+    host.innerHTML = '<div class="liab"><div class="desc muted">Данные обязательств не загружены</div></div>';
+    return;
   }
 
   host.innerHTML =
@@ -897,7 +909,7 @@ function renderBlock5FromCache(liabRows) {
         '<div class="lbl">Кредит учредителей</div>' +
         '<div class="big">' + fmtMoney(amount) + '</div>' +
       '</div>' +
-      '<div class="desc">' + desc + '</div>' +
+      '<div class="desc">' + (desc || '—') + '</div>' +
       '<div><span class="badge">' + status + '</span></div>' +
     '</div>';
 }
