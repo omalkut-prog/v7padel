@@ -456,62 +456,90 @@
 
   /* -------------------------------------------------------------------------
    * CACHE: fast pre-aggregated data from v7padel_cache (built by ETL).
-   * loadCache()       → {revenue_last_month, opex_last_month, ...}  (1 row)
-   * loadCacheSeries() → [{period_month, revenue, opex, pnl}, ...]
-   *
-   * Both return null on error (caller should fallback to slow path).
+   * loadFullCache() → {kpis, series, revMix, liabilities} or null
+   * 4 parallel requests to tiny sheets — all data for dashboard in <2s.
    * ----------------------------------------------------------------------- */
-  async function loadCache() {
+  async function _fetchCacheTab(tab) {
+    var url = CACHE_BASE + encodeURIComponent(tab);
+    var ctrl = new AbortController();
+    var tmr = setTimeout(function() { ctrl.abort(); }, 10000);
     try {
-      var url = CACHE_BASE + encodeURIComponent('dashboard_kpis');
-      var ctrl = new AbortController();
-      var tmr = setTimeout(function() { ctrl.abort(); }, 10000); // fast: 10s
       var r = await fetch(url, { signal: ctrl.signal });
-      clearTimeout(tmr);
       if (!r.ok) return null;
-      var rows = parseCSV(await r.text());
-      if (!rows || !rows.length) return null;
-      // Convert number strings to numbers
-      var d = rows[0];
+      return parseCSV(await r.text());
+    } catch (e) {
+      return null;
+    } finally {
+      clearTimeout(tmr);
+    }
+  }
+
+  async function loadFullCache() {
+    try {
+      var results = await Promise.all([
+        _fetchCacheTab('dashboard_kpis'),
+        _fetchCacheTab('monthly_series'),
+        _fetchCacheTab('rev_mix'),
+        _fetchCacheTab('liabilities')
+      ]);
+      var kpiRows = results[0], seriesRows = results[1], mixRows = results[2], liabRows = results[3];
+
+      // KPIs
+      if (!kpiRows || !kpiRows.length) return null;
+      var kpis = kpiRows[0];
       ['revenue_last_month','opex_last_month','pnl_last_month',
        'clients_total','clients_new_30d','bookings_30d',
        'memberships_club','memberships_vip','memberships_total',
        'liabilities_total'].forEach(function(k) {
-        if (d[k] !== undefined) d[k] = num(d[k]);
+        if (kpis[k] !== undefined) kpis[k] = num(kpis[k]);
       });
-      return d;
+
+      // Monthly series
+      var series = [];
+      if (seriesRows) {
+        series = seriesRows.map(function(r) {
+          return {
+            period_month: r.period_month,
+            revenue: num(r.revenue), opex: num(r.opex), pnl: num(r.pnl),
+            courts_p1: num(r.courts_p1), courts_p2: num(r.courts_p2),
+            courts_p3: num(r.courts_p3), courts_p4: num(r.courts_p4),
+            clients_new: num(r.clients_new), clients_cumulative: num(r.clients_cumulative)
+          };
+        });
+      }
+
+      // Rev mix
+      var revMix = [];
+      if (mixRows) {
+        revMix = mixRows.map(function(r) { return { category: r.category, amount: num(r.amount) }; });
+      }
+
+      // Liabilities
+      var liabilities = [];
+      if (liabRows) {
+        liabilities = liabRows.map(function(r) {
+          return { date: r.date, creditor: r.creditor, description: r.description, amount: num(r.amount) };
+        });
+      }
+
+      return { kpis: kpis, series: series, revMix: revMix, liabilities: liabilities };
     } catch (e) {
-      console.warn('loadCache failed:', e);
+      console.warn('loadFullCache failed:', e);
       return null;
     }
   }
 
+  // Legacy compat
+  async function loadCache() {
+    var full = await loadFullCache();
+    return full ? full.kpis : null;
+  }
   async function loadCacheSeries() {
-    try {
-      var url = CACHE_BASE + encodeURIComponent('monthly_series');
-      var ctrl = new AbortController();
-      var tmr = setTimeout(function() { ctrl.abort(); }, 10000);
-      var r = await fetch(url, { signal: ctrl.signal });
-      clearTimeout(tmr);
-      if (!r.ok) return null;
-      var rows = parseCSV(await r.text());
-      if (!rows || !rows.length) return null;
-      // Convert to {ym: {revenue, opex, pnl}}
-      var out = {};
-      rows.forEach(function(r) {
-        var ym = r.period_month;
-        if (!ym) return;
-        out[ym] = {
-          revenue: num(r.revenue),
-          opex: num(r.opex),
-          pnl: num(r.pnl)
-        };
-      });
-      return out;
-    } catch (e) {
-      console.warn('loadCacheSeries failed:', e);
-      return null;
-    }
+    var full = await loadFullCache();
+    if (!full) return null;
+    var out = {};
+    full.series.forEach(function(r) { out[r.period_month] = r; });
+    return out;
   }
 
   // Export
@@ -524,6 +552,7 @@
     loadPnL,
     loadCache,
     loadCacheSeries,
+    loadFullCache,
     renderReloadNotice,
     num, fmt, fmtMoney, fmtPct, fmtSigned, fmtInt,
     parseDate, ymKey, ymLabel, nameKey,

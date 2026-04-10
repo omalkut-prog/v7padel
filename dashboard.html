@@ -247,38 +247,20 @@ function byMonth(rows, monthKey) {
 }
 function sortedMonths(obj) { return Object.keys(obj).sort(); }
 
-// ---------------- P&L MONTHLY (NEW — reads from accountant's PnL spreadsheet) ----------------
-async function loadPnL() {
-  const byM = await V7.loadPnL();
-  const months = Object.keys(byM).filter(m => m >= '2025-10').sort();
-  const rev  = months.map(m => byM[m].revenue);
-  const opex = months.map(m => byM[m].opex);
-  const pnl  = months.map(m => byM[m].pnl);
+// ============================================================
+// RENDER FUNCTIONS — work with both cache and direct data
+// ============================================================
 
-  // KPI
-  if (months.length) {
-    const last = months[months.length - 1];
-    const isLive = byM[last].source === 'live';
-    const liveTag = isLive ? ' ⚡' : '';
-    document.getElementById("kpi-rev").textContent = fmtK(byM[last].revenue) + " ₺" + liveTag;
-    document.getElementById("kpi-rev-mo").textContent = last + (isLive ? ' (живые данные)' : '');
-    document.getElementById("kpi-opex").textContent = fmtK(byM[last].opex) + " ₺" + liveTag;
-    document.getElementById("kpi-opex-mo").textContent = last + (isLive ? ' (живые данные)' : '');
-    const p = byM[last].revenue - byM[last].opex;
-    const el = document.getElementById("kpi-pnl");
-    el.textContent = (p>=0?"+":"") + fmtK(p) + " ₺";
-    el.classList.add(p >= 0 ? "good" : "bad");
-    document.getElementById("kpi-pnl-mo").textContent = last + (isLive ? ' (живые данные)' : '');
-  }
-
+// --- P&L chart ---
+function renderPnlChart(months, revArr, opexArr, pnlArr) {
   new Chart(document.getElementById("chart-pnl"), {
     type: "bar",
     data: {
-      labels: months.map(m => byM[m].source === 'live' ? m + ' ⚡' : m),
+      labels: months.map(V7.ymLabel),
       datasets: [
-        { label: "Выручка", data: rev, backgroundColor: ACCENT, borderRadius: 4, order: 2 },
-        { label: "OPEX",    data: opex, backgroundColor: "#f39c12", borderRadius: 4, order: 2 },
-        { label: "P&L",     data: pnl, type: "line", borderColor: "#0b1620", backgroundColor: "#0b1620",
+        { label: "Выручка", data: revArr, backgroundColor: ACCENT, borderRadius: 4, order: 2 },
+        { label: "OPEX", data: opexArr, backgroundColor: "#f39c12", borderRadius: 4, order: 2 },
+        { label: "P&L", data: pnlArr, type: "line", borderColor: "#0b1620", backgroundColor: "#0b1620",
           pointRadius: 4, pointHoverRadius: 6, tension: 0.25, borderWidth: 2, order: 1 }
       ]
     },
@@ -286,57 +268,30 @@ async function loadPnL() {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 14 } },
-        tooltip: { callbacks: { label: c => c.dataset.label + ": " + fmt(c.parsed.y) + " ₺" } }
+        tooltip: { callbacks: { label: function(c) { return c.dataset.label + ": " + fmt(c.parsed.y) + " ₺"; } } }
       },
       scales: {
-        y: { ticks: { callback: v => fmtK(v) }, grid: { color: "#eef2f4" } },
+        y: { ticks: { callback: function(v) { return fmtK(v); } }, grid: { color: "#eef2f4" } },
         x: { grid: { display: false } }
       }
     }
   });
 }
 
-// ---------------- REVENUE MIX ----------------
-function categorize(cat) {
-  const s = (cat || "").toLowerCase();
-  if (s.includes("rent from")) return "Корты";
-  if (s.includes("equipment rental") || s.includes("equipment")) return "Инвентарь";
-  if (s.includes("club card")) return "Клубные карты";
-  if (s.includes("tournament")) return "Турниры";
-  if (s.includes("training") || s.includes("individual") || s.includes("group") || s.includes("children") || s.includes("kids") || s.includes("adult")) return "Тренировки";
-  if (s.includes("inventory") || s.includes("giftbox") || s.includes("accessor")) return "Товары";
-  if (s.includes("internal") || s.includes("deposit")) return null;
-  return "Прочее";
-}
-
-async function loadRevMix() {
-  const rows = await gviz("transactions");
-  // last 6 months window
-  const allMonths = [...new Set(rows.map(r => r.month).filter(Boolean))].sort();
-  const window = new Set(allMonths.slice(-6));
-  const agg = {};
-  rows.forEach(r => {
-    if (!window.has(r.month)) return;
-    const g = categorize(r.category);
-    if (!g) return;
-    agg[g] = (agg[g] || 0) + toNum(r.total);
-  });
-  const order = ["Корты","Инвентарь","Клубные карты","Тренировки","Турниры","Товары","Прочее"];
-  const labels = order.filter(k => agg[k] > 0);
-  const data   = labels.map(k => agg[k]);
-  const total  = data.reduce((a,b)=>a+b,0);
-
+// --- Revenue mix doughnut ---
+function renderRevMix(labels, data) {
+  var total = data.reduce(function(a, b) { return a + b; }, 0);
   new Chart(document.getElementById("chart-rev-mix"), {
     type: "doughnut",
-    data: { labels, datasets: [{ data, backgroundColor: PALETTE, borderColor:"#fff", borderWidth: 2 }] },
+    data: { labels: labels, datasets: [{ data: data, backgroundColor: PALETTE, borderColor: "#fff", borderWidth: 2 }] },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: "62%",
       plugins: {
         legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 12, font: { size: 12 } } },
         tooltip: { callbacks: {
-          label: c => {
-            const v = c.parsed;
-            const pct = total ? (v*100/total).toFixed(1) : 0;
+          label: function(c) {
+            var v = c.parsed;
+            var pct = total ? (v * 100 / total).toFixed(1) : 0;
             return c.label + ": " + fmt(v) + " ₺ (" + pct + "%)";
           }
         }}
@@ -345,28 +300,17 @@ async function loadRevMix() {
   });
 }
 
-// ---------------- COURTS LOAD ----------------
-async function loadCourts() {
-  const rows = await gviz("bookings");
-  const byMC = {}; // month -> {P1,P2,P3,P4}
-  rows.forEach(r => {
-    if ((r.status || "").toLowerCase() !== "active") return;
-    const ts = r.start_ts || "";
-    const m = ts.slice(0, 7);
-    if (!/^\d{4}-\d{2}$/.test(m)) return;
-    byMC[m] = byMC[m] || { P1:0, P2:0, P3:0, P4:0 };
-    const c = r.court_id;
-    if (byMC[m][c] !== undefined) byMC[m][c]++;
-  });
-  const curYM = new Date().toISOString().slice(0, 7);
-  const months = Object.keys(byMC).sort().filter(m => m <= curYM).slice(-8);
-  const datasets = ["P1","P2","P3","P4"].map((p,i) => ({
-    label: p, data: months.map(m => byMC[m][p] || 0),
-    backgroundColor: PALETTE[i], borderRadius: 3
-  }));
+// --- Courts stacked bar ---
+function renderCourts(months, p1, p2, p3, p4) {
+  var datasets = [
+    { label: "P1", data: p1, backgroundColor: PALETTE[0], borderRadius: 3 },
+    { label: "P2", data: p2, backgroundColor: PALETTE[1], borderRadius: 3 },
+    { label: "P3", data: p3, backgroundColor: PALETTE[2], borderRadius: 3 },
+    { label: "P4", data: p4, backgroundColor: PALETTE[3], borderRadius: 3 }
+  ];
   new Chart(document.getElementById("chart-courts"), {
     type: "bar",
-    data: { labels: months, datasets },
+    data: { labels: months.map(V7.ymLabel), datasets: datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 12 } } },
@@ -378,28 +322,19 @@ async function loadCourts() {
   });
 }
 
-// ---------------- MEMBERSHIPS ----------------
-async function loadMemberships() {
-  const rows = await gviz("memberships");
-  let club = 0, vip = 0;
-  rows.forEach(r => {
-    if ((r.status || "").toLowerCase() !== "active") return;
-    const t = (r.card_type || "").toLowerCase();
-    if (t.includes("vip")) vip++;
-    else if (t.includes("club")) club++;
-  });
-  const total = club + vip;
-  const CAP = 55;
+// --- Memberships ---
+function renderMemberships(club, vip) {
+  var total = club + vip;
+  var CAP = 55;
   document.getElementById("mem-total").textContent = total;
   document.getElementById("mem-club").textContent = club;
   document.getElementById("mem-vip").textContent = vip;
   document.getElementById("mem-free").textContent = "свободно: " + Math.max(0, CAP - total);
-  document.getElementById("mem-fill").style.width = Math.min(100, total*100/CAP).toFixed(1) + "%";
-
+  document.getElementById("mem-fill").style.width = Math.min(100, total * 100 / CAP).toFixed(1) + "%";
   new Chart(document.getElementById("chart-mem-type"), {
     type: "doughnut",
     data: {
-      labels: ["Club","VIP","Свободно"],
+      labels: ["Club", "VIP", "Свободно"],
       datasets: [{
         data: [club, vip, Math.max(0, CAP - total)],
         backgroundColor: [ACCENT, ACCENT_D, "#e8eef1"],
@@ -408,44 +343,20 @@ async function loadMemberships() {
     },
     options: {
       responsive: true, maintainAspectRatio: false, cutout: "64%",
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => c.label + ": " + c.parsed } } }
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return c.label + ": " + c.parsed; } } } }
     }
   });
 }
 
-// ---------------- CLIENTS ----------------
-async function loadClients() {
-  const rows = await gviz("customers");
-  document.getElementById("kpi-clients").textContent = fmt(rows.length);
-  const byM = {};
-  rows.forEach(r => {
-    // subs_date e.g. "08/04/2026" → 2026-04
-    const s = (r.subs_date || "").trim();
-    let m = "";
-    const dm = s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})$/);
-    const iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (dm) m = dm[3] + "-" + dm[2].padStart(2, "0");
-    else if (iso) m = iso[1] + "-" + iso[2];
-    if (!m) return;
-    byM[m] = (byM[m] || 0) + 1;
-  });
-  const months = Object.keys(byM).sort().slice(-12);
-  const vals = months.map(m => byM[m]);
-  let running = 0;
-  const cum = vals.map(v => running += v);
-  const firstM = months[0];
-  // compute baseline of pre-window clients
-  const pre = rows.length - vals.reduce((a,b)=>a+b,0);
-  const cumAbs = cum.map(v => v + pre);
-  document.getElementById("kpi-clients-sub").textContent = "+" + vals[vals.length - 1] + " за " + (months[months.length - 1] || "");
-
+// --- Clients line+bar ---
+function renderClients(months, newArr, cumArr) {
   new Chart(document.getElementById("chart-clients"), {
     type: "line",
     data: {
-      labels: months,
+      labels: months.map(V7.ymLabel),
       datasets: [
-        { label: "Новые", data: vals, type: "bar", backgroundColor: ACCENT, borderRadius: 3, yAxisID: "y", order: 2 },
-        { label: "Всего", data: cumAbs, borderColor: ACCENT_D, backgroundColor: "rgba(14,138,135,0.1)",
+        { label: "Новые", data: newArr, type: "bar", backgroundColor: ACCENT, borderRadius: 3, yAxisID: "y", order: 2 },
+        { label: "Всего", data: cumArr, borderColor: ACCENT_D, backgroundColor: "rgba(14,138,135,0.1)",
           tension: 0.25, pointRadius: 3, yAxisID: "y1", order: 1, fill: false }
       ]
     },
@@ -461,122 +372,226 @@ async function loadClients() {
   });
 }
 
-// ---------------- LIABILITIES ----------------
-async function loadLiabilities() {
-  const rows = await gviz("liabilities");
-  const tbody = document.querySelector("#tbl-liab tbody");
+// --- Liabilities table ---
+function renderLiabilities(rows) {
+  var tbody = document.querySelector("#tbl-liab tbody");
   tbody.innerHTML = "";
-  if (!rows.length) {
+  if (!rows || !rows.length) {
     tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет обязательств</td></tr>';
     return;
   }
-  const trCreditor = {'Founders (individuals)': 'Учредители (физ. лица)'};
-  const trDesc = {
+  var trCreditor = {'Founders (individuals)': 'Учредители (физ. лица)'};
+  var trDesc = {
     'Loan from founders to the club': 'Заём учредителей клубу',
     'was previously misclassified as expense': 'ранее ошибочно учтён как расход',
-    'Reclassified per user': 'Переклассифицировано',
+    'Reclassified per user': 'Переклассифицировано'
   };
   function translateField(val, dict) {
-    let s = val || '';
-    for (const [en, ru] of Object.entries(dict)) s = s.replace(en, ru);
+    var s = val || '';
+    for (var en in dict) s = s.replace(en, dict[en]);
     return s;
   }
-  rows.forEach(r => {
-    const tr = document.createElement("tr");
-    const cred = translateField(r.creditor, trCreditor);
-    let desc = translateField((r.description||""), trDesc);
-    // Keep only first sentence, strip parentheticals and English artifacts
+  rows.forEach(function(r) {
+    var tr = document.createElement("tr");
+    var cred = translateField(r.creditor, trCreditor);
+    var desc = translateField((r.description || ""), trDesc);
     desc = desc.replace(/\s*\([^)]*\)/g, '');
-    const dot = desc.indexOf('. ');
+    var dot = desc.indexOf('. ');
     if (dot > 0) desc = desc.slice(0, dot);
     desc = desc.trim();
     if (desc.length > 80) desc = desc.slice(0, 80) + '…';
-    tr.innerHTML = `<td>${r.date||""}</td><td>${cred}</td><td>${desc}</td><td class="num">${fmt(toNum(r.amount))}</td>`;
+    tr.innerHTML = '<td>' + (r.date || "") + '</td><td>' + cred + '</td><td>' + desc + '</td><td class="num">' + fmt(toNum(r.amount)) + '</td>';
     tbody.appendChild(tr);
   });
 }
 
-// ---------------- INIT ----------------
-// Strategy: try fast cache first (1 request, <1s), fallback to slow direct queries.
+// ============================================================
+// SLOW PATH: direct queries (fallback if cache fails)
+// ============================================================
+async function loadSlowPnL() {
+  var byM = await V7.loadPnL();
+  var months = Object.keys(byM).filter(function(m) { return m >= '2025-10'; }).sort();
+  if (months.length) {
+    var last = months[months.length - 1];
+    var isLive = byM[last].source === 'live';
+    var tag = isLive ? ' ⚡' : '';
+    document.getElementById("kpi-rev").textContent = fmtK(byM[last].revenue) + " ₺" + tag;
+    document.getElementById("kpi-rev-mo").textContent = last + (isLive ? ' (живые данные)' : '');
+    document.getElementById("kpi-opex").textContent = fmtK(byM[last].opex) + " ₺" + tag;
+    document.getElementById("kpi-opex-mo").textContent = last + (isLive ? ' (живые данные)' : '');
+    var p = byM[last].revenue - byM[last].opex;
+    var el = document.getElementById("kpi-pnl");
+    el.textContent = (p >= 0 ? "+" : "") + fmtK(p) + " ₺";
+    el.classList.add(p >= 0 ? "good" : "bad");
+    document.getElementById("kpi-pnl-mo").textContent = last;
+  }
+  renderPnlChart(months, months.map(function(m) { return byM[m].revenue; }), months.map(function(m) { return byM[m].opex; }), months.map(function(m) { return byM[m].pnl; }));
+}
+
+async function loadSlowRevMix() {
+  var rows = await gviz("transactions");
+  var allMonths = []; var seen = {};
+  rows.forEach(function(r) { if (r.month && !seen[r.month]) { seen[r.month] = 1; allMonths.push(r.month); } });
+  allMonths.sort();
+  var win = {}; allMonths.slice(-6).forEach(function(m) { win[m] = 1; });
+  var agg = {};
+  rows.forEach(function(r) {
+    if (!win[r.month]) return;
+    var g = V7.categorizeRevenue(r.category);
+    if (!g) return;
+    agg[g] = (agg[g] || 0) + toNum(r.total);
+  });
+  var order = ["Корты","Инвентарь","Клубные карты","Тренировки","Турниры","Товары","Прочее"];
+  var labels = order.filter(function(k) { return agg[k] > 0; });
+  var data = labels.map(function(k) { return agg[k]; });
+  renderRevMix(labels, data);
+}
+
+async function loadSlowCourts() {
+  var rows = await gviz("bookings");
+  var byMC = {};
+  rows.forEach(function(r) {
+    if ((r.status || "").toLowerCase() !== "active") return;
+    var m = (r.start_ts || "").slice(0, 7);
+    if (!/^\d{4}-\d{2}$/.test(m)) return;
+    if (!byMC[m]) byMC[m] = { P1: 0, P2: 0, P3: 0, P4: 0 };
+    if (byMC[m][r.court_id] !== undefined) byMC[m][r.court_id]++;
+  });
+  var curYM = new Date().toISOString().slice(0, 7);
+  var months = Object.keys(byMC).sort().filter(function(m) { return m <= curYM; }).slice(-8);
+  renderCourts(months,
+    months.map(function(m) { return byMC[m].P1 || 0; }),
+    months.map(function(m) { return byMC[m].P2 || 0; }),
+    months.map(function(m) { return byMC[m].P3 || 0; }),
+    months.map(function(m) { return byMC[m].P4 || 0; }));
+}
+
+async function loadSlowMemberships() {
+  var rows = await gviz("memberships");
+  var club = 0, vip = 0;
+  rows.forEach(function(r) {
+    if ((r.status || "").toLowerCase() !== "active") return;
+    var t = (r.card_type || "").toLowerCase();
+    if (t.indexOf("vip") >= 0) vip++;
+    else if (t.indexOf("club") >= 0) club++;
+  });
+  renderMemberships(club, vip);
+}
+
+async function loadSlowClients() {
+  var rows = await gviz("customers");
+  document.getElementById("kpi-clients").textContent = fmt(rows.length);
+  var byM = {};
+  rows.forEach(function(r) {
+    var s = (r.subs_date || "").trim();
+    var m = "";
+    var dm = s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{4})$/);
+    var iso = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (dm) m = dm[3] + "-" + dm[2].padStart(2, "0");
+    else if (iso) m = iso[1] + "-" + iso[2];
+    if (!m) return;
+    byM[m] = (byM[m] || 0) + 1;
+  });
+  var months = Object.keys(byM).sort().slice(-12);
+  var vals = months.map(function(m) { return byM[m]; });
+  var pre = rows.length - vals.reduce(function(a, b) { return a + b; }, 0);
+  var running = 0;
+  var cumAbs = vals.map(function(v) { running += v; return running + pre; });
+  document.getElementById("kpi-clients-sub").textContent = "+" + vals[vals.length - 1] + " за " + (months[months.length - 1] || "");
+  renderClients(months, vals, cumAbs);
+}
+
+async function loadSlowLiabilities() {
+  var rows = await gviz("liabilities");
+  renderLiabilities(rows);
+}
+
+// ============================================================
+// INIT — cache-first: ALL blocks from v7padel_cache (4 parallel requests)
+// Fallback: 6+ sequential Google Sheets queries (slow path)
+// ============================================================
 (async function() {
-  var usedCache = false;
+  var t0 = performance.now();
   try {
-    // ── FAST PATH: v7padel_cache ──
-    var cache = await V7.loadCache();
-    if (cache && cache.revenue_last_month) {
-      usedCache = true;
-      console.log('dashboard: using cache');
+    var cache = await V7.loadFullCache();
+    if (cache && cache.kpis && cache.kpis.revenue_last_month) {
+      console.log('dashboard: full cache loaded in ' + Math.round(performance.now() - t0) + 'ms');
+      var kpis = cache.kpis;
 
-      // KPI cards from cache
-      var isLive = false; // cache always has accountant data
-      document.getElementById("kpi-rev").textContent = fmtK(cache.revenue_last_month) + " ₺";
-      document.getElementById("kpi-opex").textContent = fmtK(cache.opex_last_month) + " ₺";
-      var pnlVal = cache.pnl_last_month;
-      document.getElementById("kpi-pnl").textContent = (pnlVal > 0 ? "+" : "") + fmtK(pnlVal) + " ₺";
-      document.getElementById("kpi-pnl").style.color = pnlVal >= 0 ? "var(--good, #27ae60)" : "var(--bad, #e74c3c)";
-      document.getElementById("kpi-clients").textContent = fmt(cache.clients_total);
-      document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + cache.clients_new_30d;
+      // ── KPI CARDS ──
+      document.getElementById("kpi-rev").textContent = fmtK(kpis.revenue_last_month) + " ₺";
+      document.getElementById("kpi-rev-mo").textContent = kpis.last_month || '';
+      document.getElementById("kpi-opex").textContent = fmtK(kpis.opex_last_month) + " ₺";
+      document.getElementById("kpi-opex-mo").textContent = kpis.last_month || '';
+      var pnlVal = kpis.pnl_last_month;
+      var pnlEl = document.getElementById("kpi-pnl");
+      pnlEl.textContent = (pnlVal > 0 ? "+" : "") + fmtK(pnlVal) + " ₺";
+      pnlEl.classList.add(pnlVal >= 0 ? "good" : "bad");
+      document.getElementById("kpi-pnl-mo").textContent = kpis.last_month || '';
+      document.getElementById("kpi-clients").textContent = fmt(kpis.clients_total);
+      document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + kpis.clients_new_30d;
 
-      // Timestamp from cache
-      var updAt = cache.updated_at || '';
-      var updTime = updAt.length >= 16 ? updAt.substring(11, 16) : '';
-      document.getElementById("ts").textContent = updAt + (updTime ? ' (кеш, данные от ' + updTime + ')' : '');
+      // ── PNL CHART (from monthly_series) ──
+      var series = cache.series || [];
+      var sMonths = series.map(function(r) { return r.period_month; }).filter(function(m) { return m >= '2025-10'; });
+      var sMap = {}; series.forEach(function(r) { sMap[r.period_month] = r; });
+      renderPnlChart(sMonths,
+        sMonths.map(function(m) { return sMap[m].revenue; }),
+        sMonths.map(function(m) { return sMap[m].opex; }),
+        sMonths.map(function(m) { return sMap[m].pnl; }));
 
-      // Monthly chart from cache series
-      var series = await V7.loadCacheSeries();
-      if (series) {
-        var months = Object.keys(series).filter(function(m) { return m >= '2025-10'; }).sort();
-        var rev  = months.map(function(m) { return series[m].revenue; });
-        var opex = months.map(function(m) { return series[m].opex; });
-        var pnl  = months.map(function(m) { return series[m].pnl; });
-        var labels = months.map(V7.ymLabel);
+      // ── REVENUE MIX (from rev_mix) ──
+      var mix = cache.revMix || [];
+      var mixLabels = [], mixData = [];
+      mix.forEach(function(r) { if (r.amount > 0) { mixLabels.push(r.category); mixData.push(r.amount); } });
+      renderRevMix(mixLabels, mixData);
 
-        // Render PnL chart if canvas exists
-        var pnlCanvas = document.getElementById("chart-pnl");
-        if (pnlCanvas) {
-          new Chart(pnlCanvas, {
-            type: "bar",
-            data: {
-              labels: labels,
-              datasets: [
-                { label: "Выручка", data: rev, backgroundColor: ACCENT, borderRadius: 4, order: 2 },
-                { label: "OPEX", data: opex, backgroundColor: "#e74c3c80", borderRadius: 4, order: 2 },
-                { label: "P&L", data: pnl, type: "line", borderColor: "#f39c12", backgroundColor: "transparent", tension: 0.3, pointRadius: 4, order: 1 }
-              ]
-            },
-            options: { responsive: true, plugins: { legend: { position: "bottom" } }, scales: { y: { ticks: { callback: function(v) { return fmtK(v); } } } } }
-          });
-        }
-      }
+      // ── COURTS (from monthly_series) ──
+      var curYM = new Date().toISOString().slice(0, 7);
+      var cMonths = sMonths.filter(function(m) { return m <= curYM; }).slice(-8);
+      renderCourts(cMonths,
+        cMonths.map(function(m) { return sMap[m].courts_p1; }),
+        cMonths.map(function(m) { return sMap[m].courts_p2; }),
+        cMonths.map(function(m) { return sMap[m].courts_p3; }),
+        cMonths.map(function(m) { return sMap[m].courts_p4; }));
 
-      // Load remaining sections (revmix, courts, memberships, clients, liabilities) in background
-      // These are secondary — cache already filled the main KPIs
-      loadRevMix().catch(function(e) { console.warn("revmix:", e); });
-      loadCourts().catch(function(e) { console.warn("courts:", e); });
-      loadMemberships().catch(function(e) { console.warn("mem:", e); });
-      loadClients().catch(function(e) { console.warn("clients:", e); });
-      loadLiabilities().catch(function(e) { console.warn("liab:", e); });
+      // ── MEMBERSHIPS (from kpis) ──
+      renderMemberships(kpis.memberships_club, kpis.memberships_vip);
+
+      // ── CLIENTS (from monthly_series) ──
+      var clMonths = sMonths.slice(-12);
+      renderClients(clMonths,
+        clMonths.map(function(m) { return sMap[m].clients_new; }),
+        clMonths.map(function(m) { return sMap[m].clients_cumulative; }));
+
+      // ── LIABILITIES (from liabilities tab) ──
+      renderLiabilities(cache.liabilities);
+
+      // ── TIMESTAMP ──
+      var updAt = kpis.updated_at || '';
+      document.getElementById("ts").textContent = updAt + ' (кеш)';
+
+      console.log('dashboard: all blocks rendered from cache');
+      return; // done, no slow path needed
     }
   } catch (e) {
     console.warn('cache path failed:', e);
   }
 
-  // ── SLOW PATH: direct queries (fallback or enrichment) ──
-  if (!usedCache) {
-    console.log('dashboard: cache miss, using direct queries');
-    try {
-      await Promise.all([
-        loadPnL().catch(function(e) { console.error("pnl:", e); }),
-        loadRevMix().catch(function(e) { console.error("revmix:", e); }),
-        loadCourts().catch(function(e) { console.error("courts:", e); }),
-        loadMemberships().catch(function(e) { console.error("mem:", e); }),
-        loadClients().catch(function(e) { console.error("clients:", e); }),
-        loadLiabilities().catch(function(e) { console.error("liab:", e); }),
-      ]);
-      document.getElementById("ts").textContent = new Date().toLocaleString("ru-RU");
-    } catch (e) {
-      console.error(e);
-    }
+  // ── SLOW PATH: direct queries (fallback) ──
+  console.log('dashboard: cache miss, falling back to direct queries');
+  try {
+    await Promise.all([
+      loadSlowPnL().catch(function(e) { console.error("pnl:", e); }),
+      loadSlowRevMix().catch(function(e) { console.error("revmix:", e); }),
+      loadSlowCourts().catch(function(e) { console.error("courts:", e); }),
+      loadSlowMemberships().catch(function(e) { console.error("mem:", e); }),
+      loadSlowClients().catch(function(e) { console.error("clients:", e); }),
+      loadSlowLiabilities().catch(function(e) { console.error("liab:", e); })
+    ]);
+    document.getElementById("ts").textContent = new Date().toLocaleString("ru-RU") + ' (прямые запросы)';
+  } catch (e) {
+    console.error(e);
   }
 })();
 </script>
