@@ -160,24 +160,26 @@
   <section class="section">
     <div class="section-head">
       <h2>1 · Календарь турниров</h2>
-      <span class="hint">ближайшие 4 недели · источник: Google Sheets</span>
+      <span class="hint">последние 30 дней + 4 недели вперёд · источник: Racket.ID</span>
     </div>
     <div class="card">
       <div id="cal-loading" class="cal-loading">Загрузка данных...</div>
-      <table class="cal-table" id="cal-table" style="display:none">
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>День</th>
-            <th>Время</th>
-            <th>Формат</th>
-            <th>Заполненность</th>
-            <th>Статус</th>
-          </tr>
-        </thead>
-        <tbody id="cal-body"></tbody>
-      </table>
-      <div id="cal-empty" class="cal-loading" style="display:none">Нет турниров в ближайшие 4 недели</div>
+      <div id="cal-content" style="display:none">
+        <!-- Будущие -->
+        <h3 id="cal-future-head" style="font-size:13px;font-weight:600;color:var(--good);margin-bottom:10px;display:none">▸ Запланированные</h3>
+        <table class="cal-table" id="cal-table-future" style="display:none">
+          <thead><tr><th>Дата</th><th>День</th><th>Время</th><th>Формат</th><th>Заполненность</th><th>Статус</th></tr></thead>
+          <tbody id="cal-body-future"></tbody>
+        </table>
+        <div id="cal-no-future" style="font-size:13px;color:var(--text3);padding:10px 0;display:none">Нет запланированных турниров</div>
+        <!-- Прошедшие -->
+        <h3 id="cal-past-head" style="font-size:13px;font-weight:600;color:var(--text3);margin:20px 0 10px;display:none">▸ Прошедшие (30 дней)</h3>
+        <table class="cal-table" id="cal-table-past" style="display:none">
+          <thead><tr><th>Дата</th><th>День</th><th>Время</th><th>Формат</th><th>Заполненность</th><th>Статус</th></tr></thead>
+          <tbody id="cal-body-past"></tbody>
+        </table>
+      </div>
+      <div id="cal-empty" class="cal-loading" style="display:none">Нет турниров за последние 30 дней</div>
     </div>
   </section>
 
@@ -449,76 +451,124 @@ const fmt = v => v.toLocaleString('ru-RU') + ' ₺';
       const headers = rows[0].map(h => h.trim().toLowerCase());
       const dateIdx = headers.findIndex(h => h.includes('date') || h.includes('дата'));
       const timeIdx = headers.findIndex(h => h.includes('time') || h.includes('время'));
-      const formatIdx = headers.findIndex(h => h.includes('format') || h.includes('формат') || h.includes('name') || h.includes('название'));
-      const regIdx = headers.findIndex(h => h.includes('registered') || h.includes('зарег') || h.includes('players') || h.includes('участник'));
-      const capIdx = headers.findIndex(h => h.includes('capacity') || h.includes('вместимость') || h.includes('макс') || h.includes('max'));
+      const formatIdx = headers.findIndex(h => h.includes('format') || h.includes('формат') || h.includes('name') || h.includes('название') || h.includes('title'));
+      const regIdx = headers.findIndex(h => h.includes('registered') || h.includes('зарег') || h.includes('participants_count') || h.includes('участник'));
+      const capIdx = headers.findIndex(h => h.includes('capacity') || h.includes('вместимость') || h.includes('slots') || h.includes('макс') || h.includes('max'));
+      const statusIdx = headers.findIndex(h => h === 'status');
 
       const now = new Date();
       now.setHours(0,0,0,0);
-      const fourWeeks = new Date(now);
-      fourWeeks.setDate(fourWeeks.getDate() + 28);
+      const thirtyDaysAgo = new Date(now);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const fourWeeksAhead = new Date(now);
+      fourWeeksAhead.setDate(fourWeeksAhead.getDate() + 28);
 
-      const future = [];
+      const pastItems = [];
+      const futureItems = [];
+
       for (let i = 1; i < rows.length; i++) {
         const row = rows[i];
-        if (!row[dateIdx]) continue;
-        const d = parseDate(row[dateIdx]);
-        if (!d || d < now || d > fourWeeks) continue;
-        future.push({
+        const rawDate = dateIdx >= 0 ? row[dateIdx] : '';
+        if (!rawDate) continue;
+        const d = parseDate(rawDate);
+        if (!d) continue;
+
+        // Извлекаем время из даты (формат "YYYY-MM-DD HH:MM:SS")
+        let timeStr = timeIdx >= 0 && row[timeIdx] ? row[timeIdx].trim() : '';
+        if (!timeStr) {
+          const tm = rawDate.match(/\d{2}:\d{2}/);
+          if (tm) timeStr = tm[0];
+        }
+        if (timeStr) timeStr = timeStr.replace(/:\d{2}$/, ''); // убрать секунды
+
+        // Пропускаем program-записи (шаблоны, не реальные турниры)
+        const rowStatus = statusIdx >= 0 ? (row[statusIdx] || '').trim().toLowerCase() : '';
+        if (rowStatus === 'program') continue;
+
+        const item = {
           date: d,
-          time: timeIdx >= 0 ? row[timeIdx] : '—',
+          time: timeStr || '—',
           format: formatIdx >= 0 ? row[formatIdx] : '—',
           registered: regIdx >= 0 ? parseInt(row[regIdx]) || 0 : 0,
           capacity: capIdx >= 0 ? parseInt(row[capIdx]) || 0 : 0
-        });
+        };
+
+        if (d >= now && d <= fourWeeksAhead) {
+          futureItems.push(item);
+        } else if (d >= thirtyDaysAgo && d < now) {
+          pastItems.push(item);
+        }
       }
 
-      future.sort((a,b) => a.date - b.date);
+      futureItems.sort((a,b) => a.date - b.date);
+      pastItems.sort((a,b) => b.date - a.date); // новые сверху
 
-      if (!future.length) { showEmpty(); return; }
+      if (!futureItems.length && !pastItems.length) { showEmpty(); return; }
 
-      const tbody = $('cal-body');
-      future.forEach(t => {
-        const pct = t.capacity > 0 ? Math.round(t.registered / t.capacity * 100) : 0;
-        let badge, barClass;
-        if (t.registered >= t.capacity && t.capacity > 0) {
-          if (t.registered > t.capacity) {
-            badge = '<span class="badge badge-wait">Вейт-лист</span>';
-            barClass = 'yellow';
-          } else {
-            badge = '<span class="badge badge-full">Заполнен</span>';
-            barClass = 'red';
-          }
-        } else {
-          badge = '<span class="badge badge-open">Открыт</span>';
-          barClass = 'green';
-        }
+      // Рендер будущих
+      if (futureItems.length) {
+        $('cal-future-head').style.display = '';
+        $('cal-table-future').style.display = '';
+        const tbody = $('cal-body-future');
+        futureItems.forEach(t => { tbody.innerHTML += renderRow(t, false); });
+      } else {
+        $('cal-future-head').style.display = '';
+        $('cal-no-future').style.display = '';
+      }
 
-        const dd = t.date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
-        const dow = DAYS_RU[t.date.getDay()];
-
-        tbody.innerHTML += `<tr>
-          <td>${dd}</td>
-          <td>${dow}</td>
-          <td>${t.time}</td>
-          <td>${t.format}</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:8px">
-              <div class="fill-bar-bg" style="flex:1"><div class="fill-bar ${barClass}" style="width:${Math.min(pct,100)}%"></div></div>
-              <span style="font-size:12px;color:var(--text2);white-space:nowrap">${t.registered}/${t.capacity}</span>
-            </div>
-          </td>
-          <td>${badge}</td>
-        </tr>`;
-      });
+      // Рендер прошедших
+      if (pastItems.length) {
+        $('cal-past-head').style.display = '';
+        $('cal-table-past').style.display = '';
+        const tbody = $('cal-body-past');
+        pastItems.forEach(t => { tbody.innerHTML += renderRow(t, true); });
+      }
 
       $('cal-loading').style.display = 'none';
-      $('cal-table').style.display = '';
+      $('cal-content').style.display = '';
     })
     .catch(err => {
       console.error('Ошибка загрузки календаря:', err);
       $('cal-loading').textContent = 'Ошибка загрузки данных';
     });
+
+  function renderRow(t, isPast) {
+    const pct = t.capacity > 0 ? Math.round(t.registered / t.capacity * 100) : 0;
+    let badge, barClass;
+    if (isPast) {
+      badge = '<span class="badge" style="background:var(--surface2);color:var(--text3)">Завершён</span>';
+      barClass = 'green';
+    } else if (t.registered >= t.capacity && t.capacity > 0) {
+      if (t.registered > t.capacity) {
+        badge = '<span class="badge badge-wait">Вейт-лист</span>';
+        barClass = 'yellow';
+      } else {
+        badge = '<span class="badge badge-full">Заполнен</span>';
+        barClass = 'red';
+      }
+    } else {
+      badge = '<span class="badge badge-open">Открыт</span>';
+      barClass = 'green';
+    }
+
+    const dd = t.date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+    const dow = DAYS_RU[t.date.getDay()];
+    const rowStyle = isPast ? 'opacity:0.65' : '';
+
+    return `<tr style="${rowStyle}">
+      <td>${dd}</td>
+      <td>${dow}</td>
+      <td>${t.time}</td>
+      <td>${t.format}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="fill-bar-bg" style="flex:1"><div class="fill-bar ${barClass}" style="width:${Math.min(pct,100)}%"></div></div>
+          <span style="font-size:12px;color:var(--text2);white-space:nowrap">${t.registered}/${t.capacity}</span>
+        </div>
+      </td>
+      <td>${badge}</td>
+    </tr>`;
+  }
 
   function showEmpty() {
     $('cal-loading').style.display = 'none';
@@ -528,9 +578,12 @@ const fmt = v => v.toLocaleString('ru-RU') + ' ₺';
   function parseDate(s) {
     if (!s) return null;
     s = s.trim().replace(/"/g, '');
-    // Try ISO
+    // Try ISO / datetime "2026-03-11 18:30:00"
     let d = new Date(s);
     if (!isNaN(d)) return d;
+    // Try "YYYY-MM-DD HH:MM:SS" with space (Safari fix)
+    const iso = s.match(/(\d{4})-(\d{2})-(\d{2})\s+(\d{2}):(\d{2})/);
+    if (iso) return new Date(+iso[1], +iso[2]-1, +iso[3], +iso[4], +iso[5]);
     // Try DD.MM.YYYY or DD/MM/YYYY
     const m = s.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
     if (m) {
