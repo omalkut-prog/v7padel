@@ -109,6 +109,27 @@
     color: var(--text3); font-size: 12px; text-align: center;
   }
 
+  /* MODAL */
+  .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:999; align-items:center; justify-content:center; padding:20px; }
+  .modal-backdrop.active { display:flex; }
+  .modal { background:var(--surface); border-radius:16px; max-width:520px; width:100%; max-height:80vh; overflow-y:auto; box-shadow:0 24px 80px rgba(0,0,0,.25); animation:mdPop .15s ease; }
+  @keyframes mdPop { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+  .modal-head { padding:18px 22px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .modal-head h3 { font-size:16px; font-weight:600; }
+  .modal-close { background:var(--bg); border:none; width:28px; height:28px; border-radius:50%; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--text3); }
+  .modal-close:hover { background:var(--border); }
+  .modal-body { padding:16px 22px 22px; }
+  .modal-body table { width:100%; font-size:13px; border-collapse:collapse; }
+  .modal-body th { text-align:left; font-weight:500; color:var(--text3); font-size:11px; text-transform:uppercase; padding:8px; border-bottom:1px solid var(--border); }
+  .modal-body td { padding:10px 8px; border-bottom:1px solid var(--border); }
+  .modal-body tr:last-child td { border-bottom:none; }
+  .modal-body td.num { text-align:right; font-weight:500; font-variant-numeric:tabular-nums; }
+  .modal-body { overflow-x:auto; }
+  .kpi.clickable { cursor:pointer; transition:transform .15s, border-color .15s; }
+  .kpi.clickable:hover { transform:translateY(-2px); border-color:var(--accent); }
+  .card.clickable { cursor:pointer; transition:transform .15s, border-color .15s; }
+  .card.clickable:hover { transform:translateY(-2px); border-color:var(--accent); }
+
   @media (max-width: 900px) {
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
     .grid, .grid.equal, .grid.three { grid-template-columns: 1fr; }
@@ -147,7 +168,7 @@
 
   <!-- KPI row -->
   <div class="kpi-row" id="kpi-row">
-    <div class="kpi"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span><span class="sub" id="kpi-rev-avg"></span><span class="sub" id="kpi-rev-forecast"></span></div>
+    <div class="kpi clickable" id="kpi-rev-card" title="Клик — разбивка по категориям"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span><span class="sub" id="kpi-rev-avg"></span><span class="sub" id="kpi-rev-forecast"></span></div>
     <div class="kpi"><span class="label">OPEX (посл. месяц)</span><span class="value" id="kpi-opex">—</span><span class="sub" id="kpi-opex-mo"></span></div>
     <div class="kpi"><span class="label">Операц. P&L</span><span class="value" id="kpi-pnl">—</span><span class="sub" id="kpi-pnl-mo"></span></div>
     <div class="kpi"><span class="label">Клиентов всего</span><span class="value" id="kpi-clients">—</span><span class="sub" id="kpi-clients-sub"></span></div>
@@ -171,7 +192,7 @@
       <h3>Загрузка кортов P1–P4 <small>активные брони по месяцам</small></h3>
       <div class="chart-wrap"><canvas id="chart-courts"></canvas></div>
     </div>
-    <div class="card">
+    <div class="card clickable" id="mem-card" title="Клик — список участников">
       <h3>Активные карты <small>потолок 55</small></h3>
       <div id="mem-box">
         <div class="kpi" style="border:none;padding:0;margin-bottom:10px;">
@@ -210,6 +231,14 @@
     V7 Padel · источник данных: <code>v7padel_db</code> (Google Sheets, gviz CSV) ·
     обновлено <span id="ts">—</span>
   </footer>
+</div>
+
+<!-- MODAL -->
+<div class="modal-backdrop" id="dash-modal">
+  <div class="modal">
+    <div class="modal-head"><h3 id="modal-title"></h3><button class="modal-close" onclick="closeDashModal()">×</button></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
 </div>
 
 <script>
@@ -460,6 +489,7 @@ async function loadSlowRevMix() {
   var labels = order.filter(function(k) { return agg[k] > 0; });
   var data = labels.map(function(k) { return agg[k]; });
   renderRevMix(labels, data);
+  _revMixCache = {labels: labels, data: data};
 }
 
 async function loadSlowCourts() {
@@ -577,6 +607,7 @@ async function loadSlowLiabilities() {
       var mixLabels = [], mixData = [];
       mix.forEach(function(r) { if (r.amount > 0) { mixLabels.push(r.category); mixData.push(r.amount); } });
       renderRevMix(mixLabels, mixData);
+      _revMixCache = {labels: mixLabels, data: mixData};
 
       // ── COURTS (from monthly_series) ──
       var curYM = new Date().toISOString().slice(0, 7);
@@ -626,6 +657,63 @@ async function loadSlowLiabilities() {
     console.error(e);
   }
 })();
+
+// ── MODAL FUNCTIONS ──
+var _revMixCache = null; // {labels:[], data:[]}
+
+function closeDashModal() {
+  document.getElementById('dash-modal').classList.remove('active');
+}
+document.getElementById('dash-modal').addEventListener('click', function(e) {
+  if (e.target.id === 'dash-modal') closeDashModal();
+});
+document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDashModal(); });
+
+// Revenue KPI click → category breakdown
+document.getElementById('kpi-rev-card').addEventListener('click', function() {
+  if (!_revMixCache) return;
+  var labels = _revMixCache.labels;
+  var data = _revMixCache.data;
+  var total = data.reduce(function(s, v) { return s + v; }, 0);
+  var html = '<table><thead><tr><th>Категория</th><th style="text-align:right">Сумма</th><th style="text-align:right">Доля</th></tr></thead><tbody>';
+  // Sort by amount descending
+  var pairs = labels.map(function(l, i) { return { label: l, amount: data[i] }; });
+  pairs.sort(function(a, b) { return b.amount - a.amount; });
+  pairs.forEach(function(p) {
+    var pct = total > 0 ? (p.amount / total * 100).toFixed(1) + '%' : '—';
+    html += '<tr><td>' + p.label + '</td><td class="num">' + fmtK(p.amount) + ' ₺</td><td class="num">' + pct + '</td></tr>';
+  });
+  html += '</tbody><tfoot><tr><td style="font-weight:700">Итого</td><td class="num" style="font-weight:700">' + fmtK(total) + ' ₺</td><td></td></tr></tfoot></table>';
+  document.getElementById('modal-title').textContent = 'Структура выручки за месяц';
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('dash-modal').classList.add('active');
+});
+
+// Active Cards click → member list
+document.getElementById('mem-card').addEventListener('click', async function() {
+  document.getElementById('modal-title').textContent = 'Активные карты — Club & VIP';
+  document.getElementById('modal-body').innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div>';
+  document.getElementById('dash-modal').classList.add('active');
+  try {
+    var rows = await V7.loadCacheTab('clients_enriched');
+    if (!rows || !rows.length) throw new Error('no cache');
+    var members = rows.filter(function(r) { return r.card === 'Club' || r.card === 'VIP'; });
+    members.sort(function(a, b) { return (a.card || '').localeCompare(b.card || '') || (a.name || '').localeCompare(b.name || ''); });
+    if (!members.length) {
+      document.getElementById('modal-body').innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет активных карт</div>';
+      return;
+    }
+    var html = '<table><thead><tr><th>Имя</th><th>Телефон</th><th>Карта</th><th>Дата подключения</th></tr></thead><tbody>';
+    members.forEach(function(m) {
+      var badge = m.card === 'VIP' ? '<span style="color:#0e8a87;font-weight:600">VIP</span>' : '<span style="color:var(--accent);font-weight:600">Club</span>';
+      html += '<tr><td>' + (m.name || '—') + '</td><td>' + (m.phone || '—') + '</td><td>' + badge + '</td><td>' + (m.subs_date || '—') + '</td></tr>';
+    });
+    html += '</tbody></table>';
+    document.getElementById('modal-body').innerHTML = html;
+  } catch (e) {
+    document.getElementById('modal-body').innerHTML = '<div style="color:var(--bad);padding:20px;text-align:center">Ошибка загрузки: ' + e.message + '</div>';
+  }
+});
 </script>
 </body>
 </html>
