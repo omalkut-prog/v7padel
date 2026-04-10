@@ -412,8 +412,31 @@ window._racketByDate = {};
         document.getElementById('kpi-popular').textContent = top ? top[0] : '—';
       }
 
-      // Revenue: not yet available
-      // kpi-revenue already has default "нет данных"
+      // Revenue: estimate from templates × participants
+      if(pastItems.length){
+        // Extract base price (first number) from T templates
+        function basePrice(title){
+          // Fuzzy match title to T keys
+          var up = (title||'').toUpperCase().replace(/[📈🏆🌱👑👥🌙📊🔥🔀🎭⭐☕🎾🧒⛺🌟🏅🎉]/g,'').trim();
+          for(var k in T){
+            if(up.includes(k) || k.includes(up.split(' ').slice(0,2).join(' '))){
+              var m = (T[k].price||'').match(/(\d[\d\s]*)\s*TL/);
+              return m ? parseInt(m[1].replace(/\s/g,'')) : 0;
+            }
+          }
+          return 1200; // fallback average
+        }
+        var estRev = pastItems.reduce(function(s,r){
+          var cnt = parseInt(r.participants_count)||0;
+          var pr = basePrice(r.title);
+          return s + cnt * pr;
+        }, 0);
+        if(estRev > 0){
+          var revStr = estRev >= 1000000 ? (estRev/1000000).toFixed(1)+'M' : estRev >= 1000 ? Math.round(estRev/1000)+'K' : estRev;
+          document.getElementById('kpi-revenue').textContent = '~' + revStr + ' ₺';
+          document.getElementById('kpi-revenue').closest('.kpi-card').querySelector('.kpi-hint').textContent = 'расчёт: участники × базовая цена';
+        }
+      }
 
       // Render tables
       renderTable(futureItems, document.getElementById('tl-future'), false);
