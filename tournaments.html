@@ -3,463 +3,804 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Турниры & Ивенты — V7 Padel</title>
+<title>V7 Padel — Турниры</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <style>
   :root {
-    --bg: #000;
-    --surface: #111;
-    --surface2: #1a1a1a;
-    --border: rgba(255,255,255,0.08);
-    --border-hover: rgba(255,255,255,0.16);
-    --text: #f5f5f7;
-    --text2: #a1a1a6;
-    --text3: #6e6e73;
-    --accent: #ff9f0a;
+    --bg: #f5f7f9;
+    --surface: #ffffff;
+    --surface2: #f1f5f9;
+    --border: #e5ecef;
+    --border-hover: rgba(15,23,42,0.18);
+    --text: #0b1620;
+    --text2: #4a5967;
+    --text3: #8a9ba8;
+    --accent: #0ABAB5;
+    --accent-soft: rgba(10,186,181,0.12);
+    --accent-border: rgba(10,186,181,0.25);
+    --good: #13c296;
+    --bad: #e74c3c;
+    --warn: #f39c12;
+    --radius: 16px;
+    --shadow: 0 1px 3px rgba(15,23,42,0.04), 0 8px 24px rgba(15,23,42,0.06);
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
 
   /* NAV */
   nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    height: 52px; background: rgba(0,0,0,0.82);
-    backdrop-filter: saturate(180%) blur(20px);
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; background: var(--surface);
     border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; padding: 0 32px; gap: 16px;
+    display: flex; align-items: center; padding: 0 24px; gap: 0;
   }
-  .back-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text2); text-decoration: none; transition: color 0.2s; }
-  .back-btn:hover { color: var(--text); }
-  .back-btn svg { width: 16px; height: 16px; }
-  .nav-sep { width: 1px; height: 16px; background: var(--border); }
-  .nav-title { font-size: 14px; font-weight: 500; }
-  .nav-badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; background: rgba(255,159,10,0.1); border: 1px solid rgba(255,159,10,0.2); color: var(--accent); }
-
-  /* HERO */
-  .hero { padding: 100px 40px 60px; max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
-  .hero-eye { font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
-  .hero h1 { font-size: clamp(44px, 6vw, 72px); font-weight: 600; letter-spacing: -2px; line-height: 1.03; margin-bottom: 16px; }
-  .hero-sub { font-size: 17px; font-weight: 300; color: var(--text2); max-width: 480px; line-height: 1.6; }
-  .hero-stats { display: flex; gap: 32px; flex-wrap: wrap; }
-  .stat { text-align: right; }
-  .stat-n { font-size: 32px; font-weight: 600; letter-spacing: -1px; color: var(--accent); line-height: 1; }
-  .stat-l { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  ul.nav-links { display: flex !important; list-style: none !important; margin: 0; padding: 0; gap: 0; }
+  .nav-links li { list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; letter-spacing: .3px; margin-right: 12px; }
 
   /* MAIN */
-  main { max-width: 1200px; margin: 0 auto; padding: 0 40px 120px; }
-  .divider { height: 1px; background: var(--border); margin: 0 0 56px; }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
 
-  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
-  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
-
-  /* BENTO */
-  .bento { display: grid; grid-template-columns: repeat(12,1fr); gap: 12px; margin-bottom: 48px; }
-  .col3 { grid-column: span 3; }
-  .col4 { grid-column: span 4; }
-  .col6 { grid-column: span 6; }
-  .col8 { grid-column: span 8; }
-  .col12 { grid-column: span 12; }
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+  .section-head .hint { font-size: 11px; color: var(--text3); }
 
   /* CARD */
   .card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
-    padding: 28px; text-decoration: none; color: inherit;
-    display: flex; flex-direction: column; min-height: 240px;
-    position: relative; overflow: hidden;
-    transition: border-color 0.3s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; box-shadow: var(--shadow);
   }
-  a.card { cursor: pointer; }
-  a.card:hover { border-color: var(--border-hover); transform: translateY(-3px); }
-  .card-glow { position: absolute; width: 300px; height: 300px; border-radius: 50%; bottom: -100px; right: -80px; pointer-events: none; opacity: 0; transition: opacity 0.4s; }
-  a.card:hover .card-glow { opacity: 1; }
 
-  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
-  .card-icon { font-size: 32px; line-height: 1; }
-  .card-tag { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; }
-  .tag-tool { background: rgba(255,159,10,0.1); color: var(--accent); border: 1px solid rgba(255,159,10,0.2); }
-  .tag-soon { background: rgba(255,255,255,0.04); color: var(--text3); border: 1px solid var(--border); }
-  .tag-info { background: rgba(90,200,250,0.08); color: #5ac8fa; border: 1px solid rgba(90,200,250,0.2); }
+  /* CALENDAR TABLE */
+  .cal-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cal-table th { text-align: left; padding: 10px 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .8px; color: var(--text3); border-bottom: 2px solid var(--border); }
+  .cal-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .cal-table tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-open { background: rgba(19,194,150,0.12); color: var(--good); }
+  .badge-full { background: rgba(231,76,60,0.12); color: var(--bad); }
+  .badge-wait { background: rgba(243,156,18,0.12); color: var(--warn); }
+  .fill-bar-bg { background: var(--surface2); height: 8px; border-radius: 4px; overflow: hidden; min-width: 80px; }
+  .fill-bar { height: 100%; border-radius: 4px; transition: width .4s ease; }
+  .fill-bar.green { background: var(--good); }
+  .fill-bar.red { background: var(--bad); }
+  .fill-bar.yellow { background: var(--warn); }
+  .cal-loading { text-align: center; color: var(--text3); font-size: 13px; padding: 24px; }
 
-  .card-title { font-size: 22px; font-weight: 600; letter-spacing: -0.4px; margin-bottom: 8px; line-height: 1.1; }
-  .card-desc { font-size: 13px; color: var(--text2); font-weight: 300; line-height: 1.55; flex: 1; padding-bottom: 16px; }
-  .card-list { border-top: 1px solid var(--border); padding-top: 14px; display: flex; flex-direction: column; gap: 7px; margin-top: auto; }
-  .card-list-item { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 8px; }
-  .card-list-item::before { content:''; width:3px; height:3px; border-radius:50%; background:var(--text3); flex-shrink:0; }
-  .card-arrow { position: absolute; bottom: 24px; right: 24px; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text3); transition: all 0.2s; }
-  a.card:hover .card-arrow { border-color: var(--border-hover); color: var(--text); transform: translate(2px,-2px); }
+  /* CALCULATOR */
+  .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .calc-col { display: flex; flex-direction: column; gap: 14px; }
+  .field-group { display: flex; flex-direction: column; gap: 4px; }
+  .field-group label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); }
+  .field-group input, .field-group select {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 8px 12px; font-size: 14px; color: var(--text); font-family: inherit;
+    transition: border-color .2s;
+  }
+  .field-group input:focus, .field-group select:focus { outline: none; border-color: var(--accent); }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
 
-  /* Colors */
-  .orange .card-title { color: #ff9f0a; }
-  .orange .card-glow { background: radial-gradient(circle, rgba(255,159,10,0.08), transparent); }
-  .green .card-title { color: #30d158; }
-  .green .card-glow { background: radial-gradient(circle, rgba(48,209,88,0.08), transparent); }
-  .blue .card-title { color: #5ac8fa; }
-  .blue .card-glow { background: radial-gradient(circle, rgba(90,200,250,0.08), transparent); }
-  .yellow .card-title { color: #d4f03a; }
-  .yellow .card-glow { background: radial-gradient(circle, rgba(212,240,58,0.08), transparent); }
-  .purple .card-title { color: #bf5af2; }
-  .purple .card-glow { background: radial-gradient(circle, rgba(191,90,242,0.08), transparent); }
-  .pink .card-title { color: #ff375f; }
-  .pink .card-glow { background: radial-gradient(circle, rgba(255,55,95,0.08), transparent); }
-  .teal .card-title { color: #5ac8fa; }
+  /* RESULT CARDS */
+  .result-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 20px; }
+  .result-card {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; text-align: center;
+  }
+  .result-card .r-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); margin-bottom: 6px; }
+  .result-card .r-value { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+  .result-card .r-value.positive { color: var(--good); }
+  .result-card .r-value.negative { color: var(--bad); }
 
-  .card.featured { background: linear-gradient(140deg, #1a0a00 0%, #0e0e0e 60%); border-color: rgba(255,159,10,0.12); min-height: 300px; }
-  .card.featured .card-title { font-size: 32px; }
+  /* GRAND EVENT */
+  .ge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .ge-day { display: flex; flex-direction: column; gap: 12px; }
+  .ge-day h3 { font-size: 14px; font-weight: 600; color: var(--text); padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .prize-dist { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .prize-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); padding: 4px 0; }
+  .prize-row span:last-child { font-weight: 600; color: var(--text); }
 
-  /* FORMAT TABLE */
-  .format-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
-  .format-table th { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); padding: 0 10px 10px; text-align: left; }
-  .format-table td { padding: 9px 10px; border-top: 1px solid var(--border); color: var(--text2); vertical-align: top; line-height: 1.4; }
-  .format-table td:first-child { color: var(--accent); font-weight: 500; white-space: nowrap; }
-  .format-table tr.ranking td { }
-  .format-badge { display: inline-block; font-size: 9px; font-weight: 600; letter-spacing: 0.5px; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; }
-  .badge-rank { background: rgba(255,159,10,0.12); color: var(--accent); }
-  .badge-norank { background: rgba(255,255,255,0.05); color: var(--text3); }
+  .ge-results { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-top: 20px; }
 
-  /* PRICE TABLE */
-  .price-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-  .price-table th { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text3); padding: 0 12px 10px; text-align: center; }
-  .price-table th:first-child { text-align: left; }
-  .price-table td { padding: 10px 12px; border-top: 1px solid var(--border); text-align: center; color: var(--text2); }
-  .price-table td:first-child { text-align: left; color: var(--text); font-weight: 500; }
-  .price-table .regular { color: var(--text); }
-  .price-table .club { color: #30d158; font-weight: 500; }
-  .price-table .vip { color: var(--accent); font-weight: 600; }
-
-  /* HORIZONTAL CARD */
-  .card.horizontal { flex-direction: row; align-items: center; gap: 32px; min-height: 140px; }
-  .card.horizontal .card-body { flex: 1; }
-  .card.horizontal .card-aside { border-left: 1px solid var(--border); padding-left: 32px; min-width: 220px; }
-  .card.horizontal .card-arrow { position: static; margin-left: auto; flex-shrink: 0; }
-
-  footer { border-top: 1px solid var(--border); padding: 32px 40px; max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-  .footer-logo { font-size: 14px; font-weight: 500; color: var(--text3); }
-  .footer-logo em { color: var(--accent); font-style: normal; }
-  .footer-text { font-size: 12px; color: var(--text3); }
-
-  .fade { opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
-  .fade.vis { opacity: 1; transform: none; }
-
-  @media(max-width:960px) {
-    .col3,.col4,.col6,.col8,.col12 { grid-column: span 12; }
-    .hero { padding: 80px 20px 48px; }
-    main { padding: 0 20px 80px; }
-    .hero-stats { justify-content: flex-start; }
-    .stat { text-align: left; }
-    nav { padding: 0 20px; }
-    footer { padding: 24px 20px; }
-    .card.horizontal { flex-direction: column; }
-    .card.horizontal .card-aside { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 16px; min-width: auto; width: 100%; }
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .calc-grid, .ge-grid { grid-template-columns: 1fr; }
+    .result-grid, .ge-results { grid-template-columns: repeat(2, 1fr); }
+    .nav-links a { padding: 0 10px; font-size: 12px; }
+    h1.page-title { font-size: 22px; }
+  }
+  @media (max-width: 600px) {
+    .result-grid, .ge-results { grid-template-columns: 1fr; }
+    .field-row, .field-row-3 { grid-template-columns: 1fr; }
+    .cal-table { font-size: 12px; }
+    .cal-table th, .cal-table td { padding: 8px 6px; }
   }
 </style>
 </head>
 <body>
 
 <nav>
-  <a class="back-btn" href="index.html">
-    <svg viewBox="0 0 16 16" fill="none"><path d="M10 12L6 8L10 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    На главную
-  </a>
-  <div class="nav-sep"></div>
-  <div class="nav-title">Турниры & Ивенты</div>
-  <span class="nav-badge">Фаза 1</span>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li class="team-link"><a href="team.html">Команда</a></li>
+    <li><a href="tournaments.html" class="active">Турниры</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
 </nav>
 
-<div class="hero">
-  <div class="hero-left">
-    <div class="hero-eye">04 · Турниры и мероприятия</div>
-    <h1>Турниры<br><span style="color:var(--text3)">& Ивенты.</span></h1>
-    <p class="hero-sub">Календарь, форматы, ценообразование, призовой фонд и корпоративные мероприятия V7 Padel Antalya.</p>
-  </div>
-  <div class="hero-stats">
-    <div class="stat">
-      <div class="stat-n">8</div>
-      <div class="stat-l">Форматов турниров</div>
-    </div>
-    <div class="stat">
-      <div class="stat-n">3</div>
-      <div class="stat-l">Уровня цен</div>
-    </div>
-    <div class="stat">
-      <div class="stat-n">4</div>
-      <div class="stat-l">Корта</div>
-    </div>
-  </div>
-</div>
-
 <main>
-  <div class="divider"></div>
+  <h1 class="page-title">Турниры</h1>
+  <p class="page-sub">Календарь, калькулятор и планирование Grand Event · данные из racketid_tournaments</p>
 
-  <!-- TOOLS -->
-  <div class="section-label fade">Инструменты</div>
-  <div class="bento">
-
-    <div class="col6 fade" style="transition-delay:0.05s">
-      <a class="card featured orange" href="tournament-calendar.html">
-        <div class="card-glow"></div>
-        <div class="card-top">
-          <div class="card-icon">📅</div>
-          <span class="card-tag tag-tool">Инструмент</span>
-        </div>
-        <div class="card-title">Календарь турниров</div>
-        <div class="card-desc">Интерактивный календарь на апрель 2026 — все турниры, форматы, даты и время.</div>
-        <div class="card-list">
-          <div class="card-list-item">Апрель 2026</div>
-          <div class="card-list-item">Все форматы и уровни</div>
-          <div class="card-list-item">Регулярные и ранкинговые события</div>
-        </div>
-        <div class="card-arrow">↗</div>
-      </a>
+  <!-- ============ BLOCK 1: КАЛЕНДАРЬ ТУРНИРОВ ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2>1 · Календарь турниров</h2>
+      <span class="hint">ближайшие 4 недели · источник: Google Sheets</span>
     </div>
-
-    <div class="col6 fade" style="transition-delay:0.1s">
-      <a class="card blue" href="schedule-builder.html">
-        <div class="card-glow"></div>
-        <div class="card-top">
-          <div class="card-icon">🗓️</div>
-          <span class="card-tag tag-tool">Инструмент</span>
-        </div>
-        <div class="card-title">Конструктор расписания</div>
-        <div class="card-desc">Инструмент для построения и планирования расписания тренировок и мероприятий клуба.</div>
-        <div class="card-list">
-          <div class="card-list-item">Расписание тренировок</div>
-          <div class="card-list-item">Загрузка кортов P1–P4</div>
-          <div class="card-list-item">Планирование по неделям</div>
-        </div>
-        <div class="card-arrow">↗</div>
-      </a>
+    <div class="card">
+      <div id="cal-loading" class="cal-loading">Загрузка данных...</div>
+      <table class="cal-table" id="cal-table" style="display:none">
+        <thead>
+          <tr>
+            <th>Дата</th>
+            <th>День</th>
+            <th>Время</th>
+            <th>Формат</th>
+            <th>Заполненность</th>
+            <th>Статус</th>
+          </tr>
+        </thead>
+        <tbody id="cal-body"></tbody>
+      </table>
+      <div id="cal-empty" class="cal-loading" style="display:none">Нет турниров в ближайшие 4 недели</div>
     </div>
+  </section>
 
-  </div>
-
-  <!-- FORMATS -->
-  <div class="section-label fade">Форматы турниров</div>
-  <div class="bento">
-
-    <div class="col8 fade" style="transition-delay:0.05s">
-      <div class="card orange" style="cursor:default;min-height:auto;">
-        <div class="card-glow"></div>
-        <div class="card-top">
-          <div class="card-icon">🏆</div>
-          <span class="card-tag tag-info">Справочник</span>
-        </div>
-        <div class="card-title">Все форматы</div>
-        <table class="format-table">
-          <thead>
-            <tr><th>Название</th><th>День</th><th>Время</th><th>Тип</th></tr>
-          </thead>
-          <tbody>
-            <tr><td>Morning Coffee</td><td>Пятница</td><td>10:00–12:00</td><td><span class="format-badge badge-norank">Нерейтинг</span></td></tr>
-            <tr><td>Mixed Pair Americano</td><td>Пятница</td><td>19:00–21:30</td><td><span class="format-badge badge-rank">Рейтинг</span></td></tr>
-            <tr><td>Pair Mexicano</td><td>Суббота</td><td>10:00–12:00</td><td><span class="format-badge badge-norank">Нерейтинг</span></td></tr>
-            <tr><td>V7 Americano 900–1100</td><td>Четверг</td><td>19:00–21:30</td><td><span class="format-badge badge-rank">Рейтинг</span></td></tr>
-            <tr><td>V7 Americano 1100+</td><td>Четверг</td><td>19:00–21:30</td><td><span class="format-badge badge-rank">Рейтинг</span></td></tr>
-            <tr><td>Sunday Ranked 1100+</td><td>Воскресенье</td><td>10:00–12:00</td><td><span class="format-badge badge-rank">Рейтинг</span></td></tr>
-            <tr><td>Sunday Ranked до 1100</td><td>Воскресенье</td><td>12:30–14:30</td><td><span class="format-badge badge-rank">Рейтинг</span></td></tr>
-            <tr><td>Padel vs Tennis</td><td>Суббота</td><td>—</td><td><span class="format-badge badge-rank">Рейтинг</span></td></tr>
-          </tbody>
-        </table>
+  <!-- ============ BLOCK 2: КАЛЬКУЛЯТОР ТУРНИРА ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2>2 · Калькулятор турнира</h2>
+      <span class="hint">выберите формат — поля заполнятся автоматически</span>
+    </div>
+    <div class="card">
+      <div class="field-group" style="max-width:320px;margin-bottom:18px">
+        <label>Формат турнира</label>
+        <select id="tpl-select">
+          <option value="">— Выбрать формат —</option>
+        </select>
       </div>
-    </div>
 
-    <div class="col4 fade" style="transition-delay:0.1s">
-      <div class="card yellow" style="cursor:default;">
-        <div class="card-glow"></div>
-        <div class="card-top">
-          <div class="card-icon">🎁</div>
-          <span class="card-tag tag-info">Призы</span>
-        </div>
-        <div class="card-title">Призовой фонд</div>
-        <div class="card-desc">Стандартные призы по форматам.</div>
-        <div class="card-list" style="gap:10px;">
-          <div class="card-list-item" style="font-size:12px;color:var(--text2);">Медали победителям</div>
-          <div class="card-list-item" style="font-size:12px;color:var(--text2);">Ваучер 30–50% на след. турнир</div>
-          <div class="card-list-item" style="font-size:12px;color:var(--text2);">Overgrips — 2–4 шт</div>
-          <div class="card-list-item" style="font-size:12px;color:var(--text2);">1 бесплатный час корта</div>
-          <div class="card-list-item" style="font-size:12px;color:var(--text2);">V7 Padel Hat (раффл)</div>
-          <div class="card-list-item" style="font-size:12px;color:var(--text2);">Бесплатный напиток</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- PRICES -->
-  <div class="section-label fade">Ценообразование</div>
-  <div class="bento">
-
-    <div class="col12 fade">
-      <div class="card" style="cursor:default;min-height:auto;">
-        <div class="card-top" style="margin-bottom:16px;">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <div class="card-icon" style="font-size:24px;">💳</div>
-            <div class="card-title" style="font-size:20px;margin-bottom:0;">Цены по уровням членства</div>
+      <div class="calc-grid">
+        <!-- LEFT: расходы -->
+        <div class="calc-col">
+          <h3 style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Расходы</h3>
+          <div class="field-row">
+            <div class="field-group"><label>Корты</label><input type="number" id="c-courts" min="1" value="2"></div>
+            <div class="field-group"><label>Длительность (ч)</label><input type="number" id="c-duration" min="0.5" step="0.5" value="2"></div>
           </div>
-          <span class="card-tag tag-info">Анталья 2026</span>
+          <div class="field-group"><label>Цена корта (₺/ч)</label><input type="number" id="c-courtPrice" value="1800"></div>
+          <div class="field-row">
+            <div class="field-group"><label>Напитки (₺)</label><input type="number" id="c-drinkPrice" value="200"></div>
+            <div class="field-group"><label>Напитки на игрока?</label><select id="c-drinkPerPlayer"><option value="true">Да (× игроков)</option><option value="false">Нет (фикс.)</option></select></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Медали (шт)</label><input type="number" id="c-medals" min="0" value="0"></div>
+            <div class="field-group"><label>Цена медали (₺)</label><input type="number" id="c-medalPrice" value="200"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Мячи (пачки)</label><input type="number" id="c-ballPacks" min="0" value="0"></div>
+            <div class="field-group"><label>Цена пачки (₺)</label><input type="number" id="c-ballPrice" value="270"></div>
+          </div>
+          <div class="field-row-3">
+            <div class="field-group"><label>Футболки (шт)</label><input type="number" id="c-tshirts" min="0" value="0"></div>
+            <div class="field-group"><label>Полотенца (шт)</label><input type="number" id="c-towels" min="0" value="0"></div>
+            <div class="field-group"><label>Овергрипы (шт)</label><input type="number" id="c-overgrips" min="0" value="0"></div>
+          </div>
+          <div class="field-row-3">
+            <div class="field-group"><label>Цена футб. (₺)</label><input type="number" id="c-tshirtPrice" value="350"></div>
+            <div class="field-group"><label>Цена полот. (₺)</label><input type="number" id="c-towelPrice" value="220"></div>
+            <div class="field-group"><label>Цена оверг. (₺)</label><input type="number" id="c-overgripPrice" value="50"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Ваучер 1ч (шт)</label><input type="number" id="c-giftVoucher1h" min="0" value="0"></div>
+            <div class="field-group"><label>Цена ваучера 1ч (₺)</label><input type="number" id="c-giftVoucher1hPrice" value="500"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Ваучер 50% (шт)</label><input type="number" id="c-giftVoucher50" min="0" value="0"></div>
+            <div class="field-group"><label>Цена ваучера 50% (₺)</label><input type="number" id="c-giftVoucher50Price" value="650"></div>
+          </div>
+          <div class="field-group"><label>Призы доп. (₺)</label><input type="number" id="c-customPrize" min="0" value="0"></div>
         </div>
-        <table class="price-table">
-          <thead>
-            <tr>
-              <th>Формат</th>
-              <th>Regular</th>
-              <th>Club</th>
-              <th>VIP</th>
-              <th>Напитки</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Morning Coffee</td>
-              <td class="regular">1 400 ₺</td>
-              <td class="club">500 ₺</td>
-              <td class="vip">500 ₺</td>
-              <td style="color:var(--text3);font-size:12px;">Кофе всем</td>
-            </tr>
-            <tr>
-              <td>Mixed Pair Americano</td>
-              <td class="regular">1 600 ₺</td>
-              <td class="club">1 600 ₺</td>
-              <td class="vip">400 ₺</td>
-              <td style="color:var(--text3);font-size:12px;">—</td>
-            </tr>
-            <tr>
-              <td>Pair Mexicano</td>
-              <td class="regular">1 400 ₺</td>
-              <td class="club">1 400 ₺</td>
-              <td class="vip">300 ₺</td>
-              <td style="color:var(--text3);font-size:12px;">—</td>
-            </tr>
-            <tr>
-              <td>V7 Americano 900–1100</td>
-              <td class="regular">1 500 ₺</td>
-              <td class="club">300 ₺</td>
-              <td class="vip">300 ₺</td>
-              <td style="color:var(--text3);font-size:12px;">—</td>
-            </tr>
-            <tr>
-              <td>V7 Americano 1100+</td>
-              <td class="regular">1 500 ₺</td>
-              <td class="club">1 500 ₺</td>
-              <td class="vip">300 ₺</td>
-              <td style="color:var(--text3);font-size:12px;">—</td>
-            </tr>
-            <tr>
-              <td>Sunday Ranked 1100+</td>
-              <td class="regular">1 500 ₺</td>
-              <td class="club">800 ₺</td>
-              <td class="vip">500 ₺</td>
-              <td style="color:var(--text3);font-size:12px;">Cola/Sprite/Fanta</td>
-            </tr>
-            <tr>
-              <td>Sunday Ranked до 1100</td>
-              <td class="regular">1 500 ₺</td>
-              <td class="club">800 ₺</td>
-              <td class="vip">500 ₺</td>
-              <td style="color:var(--text3);font-size:12px;">Cola/Sprite/Fanta</td>
-            </tr>
-            <tr>
-              <td>Padel vs Tennis</td>
-              <td class="regular">1 500 ₺</td>
-              <td class="club">1 500 ₺</td>
-              <td class="vip">500 ₺</td>
-              <td style="color:var(--text3);font-size:12px;">—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
 
-  </div>
-
-  <!-- CORPORATE -->
-  <div class="section-label fade">Корпоративные ивенты & Спонсоры</div>
-  <div class="bento">
-
-    <div class="col4 fade" style="transition-delay:0.05s">
-      <div class="card green" style="cursor:default;">
-        <div class="card-glow"></div>
-        <div class="card-top"><div class="card-icon">🏢</div><span class="card-tag tag-info">Team Pack</span></div>
-        <div class="card-title">Team Pack</div>
-        <div class="card-desc">Для компаний, которые хотят создать корпоративную команду.</div>
-        <div class="card-list">
-          <div class="card-list-item">6–10 игроков</div>
-          <div class="card-list-item">8 матчей за сезон</div>
-          <div class="card-list-item">Командная форма</div>
-          <div class="card-list-item">Фото & видео контент</div>
+        <!-- RIGHT: выручка -->
+        <div class="calc-col">
+          <h3 style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">Выручка</h3>
+          <div class="field-group"><label>Всего игроков</label><input type="number" id="c-players" min="1" value="8"></div>
+          <div class="field-row-3">
+            <div class="field-group"><label>Regular (кол-во)</label><input type="number" id="c-regCount" min="0" value="8"></div>
+            <div class="field-group"><label>Club (кол-во)</label><input type="number" id="c-clubCount" min="0" value="0"></div>
+            <div class="field-group"><label>VIP (кол-во)</label><input type="number" id="c-vipCount" min="0" value="0"></div>
+          </div>
+          <div class="field-row-3">
+            <div class="field-group"><label>Цена Regular (₺)</label><input type="number" id="c-regPrice" value="1300"></div>
+            <div class="field-group"><label>Цена Club (₺)</label><input type="number" id="c-clubPrice" value="300"></div>
+            <div class="field-group"><label>Цена VIP (₺)</label><input type="number" id="c-vipPrice" value="300"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="col4 fade" style="transition-delay:0.1s">
-      <div class="card purple" style="cursor:default;">
-        <div class="card-glow"></div>
-        <div class="card-top"><div class="card-icon">⭐</div><span class="card-tag tag-info">Premium Brand</span></div>
-        <div class="card-title">Premium Brand</div>
-        <div class="card-desc">Для брендов с целью повышения видимости.</div>
-        <div class="card-list">
-          <div class="card-list-item">Категорийный спонсоринг</div>
-          <div class="card-list-item">Брендинг на корте и digital</div>
-          <div class="card-list-item">Road to Finals контент</div>
-          <div class="card-list-item">VIP корпоративный вечер</div>
-        </div>
+      <!-- RESULTS -->
+      <div class="result-grid" id="calc-results">
+        <div class="result-card"><div class="r-label">Расходы</div><div class="r-value" id="r-expenses">0 ₺</div></div>
+        <div class="result-card"><div class="r-label">Выручка</div><div class="r-value" id="r-revenue">0 ₺</div></div>
+        <div class="result-card"><div class="r-label">Маржа ивента</div><div class="r-value" id="r-eventMargin">0 ₺</div></div>
+        <div class="result-card"><div class="r-label">Маржа клуба</div><div class="r-value" id="r-clubMargin">0 ₺</div></div>
+        <div class="result-card"><div class="r-label">Точка безубыточности</div><div class="r-value" id="r-breakeven">0 чел.</div></div>
       </div>
     </div>
+  </section>
 
-    <div class="col4 fade" style="transition-delay:0.15s">
-      <div class="card orange" style="cursor:default;">
-        <div class="card-glow"></div>
-        <div class="card-top"><div class="card-icon">🥇</div><span class="card-tag tag-info">Title Partner</span></div>
-        <div class="card-title">Title Partner</div>
-        <div class="card-desc">Престижное спонсорство лиги TPL.</div>
-        <div class="card-list">
-          <div class="card-list-item">Право именования дивизиона</div>
-          <div class="card-list-item">LED & брендинг на корте</div>
-          <div class="card-list-item">Интеграция на финале</div>
-          <div class="card-list-item">Высокая PR-видимость</div>
+  <!-- ============ BLOCK 3: GRAND EVENT КАЛЬКУЛЯТОР ============ -->
+  <section class="section">
+    <div class="section-head">
+      <h2>3 · Grand Event калькулятор</h2>
+      <span class="hint">2-дневный турнир с призовым фондом</span>
+    </div>
+    <div class="card">
+      <div class="ge-grid">
+        <!-- DAY 1 -->
+        <div class="ge-day">
+          <h3>День 1 — Групповой этап</h3>
+          <div class="field-row">
+            <div class="field-group"><label>Кол-во групп</label><input type="number" id="ge-d1-groups" min="1" value="4"></div>
+            <div class="field-group"><label>Игроков в группе</label><input type="number" id="ge-d1-ppg" min="2" value="4"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Корты</label><input type="number" id="ge-d1-courts" min="1" value="4"></div>
+            <div class="field-group"><label>Часы</label><input type="number" id="ge-d1-hours" min="1" step="0.5" value="3"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Цена корта (₺/ч)</label><input type="number" id="ge-d1-courtPrice" value="1800"></div>
+            <div class="field-group"><label>Взнос игрока (₺)</label><input type="number" id="ge-d1-fee" value="1500"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Напитки (₺/чел)</label><input type="number" id="ge-d1-drinks" value="62"></div>
+            <div class="field-group"><label>Мячи пачки</label><input type="number" id="ge-d1-balls" min="0" value="4"></div>
+          </div>
+          <div class="field-group"><label>Цена пачки мячей (₺)</label><input type="number" id="ge-d1-ballPrice" value="270"></div>
+        </div>
+
+        <!-- DAY 2 -->
+        <div class="ge-day">
+          <h3>День 2 — Плей-офф (16 → 8 → 4 → 2 → 1)</h3>
+          <div class="field-row">
+            <div class="field-group"><label>Игроков плей-офф</label><input type="number" id="ge-d2-players" min="2" value="16"></div>
+            <div class="field-group"><label>Корты</label><input type="number" id="ge-d2-courts" min="1" value="4"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Часы</label><input type="number" id="ge-d2-hours" min="1" step="0.5" value="4"></div>
+            <div class="field-group"><label>Цена корта (₺/ч)</label><input type="number" id="ge-d2-courtPrice" value="1800"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Взнос игрока (₺)</label><input type="number" id="ge-d2-fee" value="1500"></div>
+            <div class="field-group"><label>Напитки (₺/чел)</label><input type="number" id="ge-d2-drinks" value="62"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-group"><label>Мячи пачки</label><input type="number" id="ge-d2-balls" min="0" value="4"></div>
+            <div class="field-group"><label>Цена пачки мячей (₺)</label><input type="number" id="ge-d2-ballPrice" value="270"></div>
+          </div>
         </div>
       </div>
-    </div>
 
-  </div>
-
-  <!-- REPORTS -->
-  <div class="section-label fade">Отчёты по турнирам</div>
-  <div class="bento">
-    <div class="col12 fade">
-      <div class="card horizontal" style="cursor:default;min-height:140px;">
-        <div class="card-glow" style="left:-60px;right:auto;top:-60px;bottom:auto;background:radial-gradient(circle,rgba(255,159,10,0.06),transparent);"></div>
-        <div class="card-body">
-          <div class="card-icon" style="margin-bottom:12px;">📋</div>
-          <div class="card-title" style="font-size:20px;">Отчёты турниров</div>
-          <div class="card-desc" style="padding-bottom:0;font-size:13px;">Отчёты по каждому турниру загружаются сюда после проведения.</div>
+      <!-- PRIZE FUND -->
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border)">
+        <h3 style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Призовой фонд</h3>
+        <div class="field-row" style="max-width:640px">
+          <div class="field-group"><label>Общий призовой фонд (₺)</label><input type="number" id="ge-prize" min="0" value="10000"></div>
         </div>
-        <div class="card-aside card-list">
-          <div class="card-list-item">Итоги турнира (участники, результаты)</div>
-          <div class="card-list-item">Финансовый результат ивента</div>
-          <div class="card-list-item">Список победителей и призов</div>
-          <div class="card-list-item">Фото-отчёт</div>
+        <div class="prize-dist" id="ge-prize-dist">
+          <div class="prize-row"><span>1-е место (40%)</span><span id="ge-p1">4 000 ₺</span></div>
+          <div class="prize-row"><span>2-е место (25%)</span><span id="ge-p2">2 500 ₺</span></div>
+          <div class="prize-row"><span>3-е место ×2 (10% каждый)</span><span id="ge-p3">1 000 ₺ × 2</span></div>
+          <div class="prize-row"><span>Розыгрыш (15%)</span><span id="ge-p4">1 500 ₺</span></div>
+        </div>
+        <div style="margin-top:16px">
+          <h4 style="font-size:12px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Варианты распределения призов</h4>
+          <div id="ge-prize-breakdown" style="font-size:13px;color:var(--text2);line-height:1.7"></div>
         </div>
       </div>
-    </div>
-  </div>
 
+      <!-- GRAND EVENT RESULTS -->
+      <div class="ge-results" id="ge-results">
+        <div class="result-card"><div class="r-label">Расходы День 1</div><div class="r-value" id="ge-r-exp1">0 ₺</div></div>
+        <div class="result-card"><div class="r-label">Расходы День 2</div><div class="r-value" id="ge-r-exp2">0 ₺</div></div>
+        <div class="result-card"><div class="r-label">Общая выручка</div><div class="r-value" id="ge-r-rev">0 ₺</div></div>
+        <div class="result-card"><div class="r-label">Маржа ивента (2 дня)</div><div class="r-value" id="ge-r-margin">0 ₺</div></div>
+        <div class="result-card"><div class="r-label">Маржа клуба (2 дня)</div><div class="r-value" id="ge-r-clubMargin">0 ₺</div></div>
+      </div>
+    </div>
+  </section>
 </main>
 
-<footer>
-  <div class="footer-logo">V7 <em>Padel</em> · Турниры & Ивенты</div>
-  <div class="footer-text">Внутренний портал · 2026</div>
-</footer>
-
 <script>
-const io = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('vis'); io.unobserve(e.target); }});
-}, { threshold: 0.08 });
-document.querySelectorAll('.fade').forEach((el,i) => { el.style.transitionDelay = (i*0.04)+'s'; io.observe(el); });
-</script>
+/* ===================== TEMPLATES ===================== */
+const TEMPLATES = {
+  'Morning Coffee': {
+    courts: 2, duration: 2, courtPrice: 1800,
+    drinkPrice: 200, drinkPerPlayer: true,
+    medals: 0, ballPacks: 0, ballPrice: 270,
+    tshirts: 0, towels: 0, overgrips: 0,
+    tshirtPrice: 350, towelPrice: 220, overgripPrice: 50,
+    regularPrice: 1300, clubPrice: 300, vipPrice: 300,
+    defaultPlayers: 8, defaultRegular: 8, defaultClub: 0, defaultVip: 0,
+    variants: {8: {courts:2}, 12: {courts:3}, 16: {courts:4}}
+  },
+  'Beginners': {
+    courts: 2, duration: 1.5, courtPrice: 1867,
+    drinkPrice: 62, drinkPerPlayer: false,
+    medals: 0, ballPacks: 0, ballPrice: 270,
+    tshirts: 0, towels: 0, overgrips: 0,
+    tshirtPrice: 350, towelPrice: 220, overgripPrice: 100,
+    regularPrice: 800, clubPrice: 0, vipPrice: 0,
+    defaultPlayers: 8, defaultRegular: 8, defaultClub: 0, defaultVip: 0
+  },
+  'Ranked (1100+)': {
+    courts: 2, duration: 2, courtPrice: 2000,
+    drinkPrice: 62, drinkPerPlayer: true,
+    medals: 1, ballPacks: 2, ballPrice: 297,
+    tshirts: 0, towels: 0, overgrips: 0,
+    tshirtPrice: 350, towelPrice: 220, overgripPrice: 50,
+    regularPrice: 1200, clubPrice: 1200, vipPrice: 300,
+    defaultPlayers: 8, defaultRegular: 8, defaultClub: 0, defaultVip: 0
+  },
+  'Ranked (до 900)': {
+    courts: 2, duration: 2, courtPrice: 1800,
+    drinkPrice: 62, drinkPerPlayer: true,
+    medals: 1, ballPacks: 2, ballPrice: 360,
+    tshirts: 0, towels: 0, overgrips: 0,
+    tshirtPrice: 350, towelPrice: 220, overgripPrice: 50,
+    regularPrice: 1100, clubPrice: 200, vipPrice: 200,
+    defaultPlayers: 8, defaultRegular: 8, defaultClub: 0, defaultVip: 0
+  },
+  'Ranked (900-1099)': {
+    courts: 2, duration: 1.5, courtPrice: 1800,
+    drinkPrice: 62, drinkPerPlayer: true,
+    medals: 1, ballPacks: 2, ballPrice: 270,
+    tshirts: 0, towels: 0, overgrips: 0,
+    tshirtPrice: 350, towelPrice: 220, overgripPrice: 50,
+    regularPrice: 1100, clubPrice: 200, vipPrice: 200,
+    defaultPlayers: 8, defaultRegular: 8, defaultClub: 0, defaultVip: 0
+  },
+  'Power Duo': {
+    courts: 2, duration: 1.5, courtPrice: 2000,
+    drinkPrice: 62, drinkPerPlayer: true,
+    medals: 2, ballPacks: 2, ballPrice: 270,
+    tshirts: 1, towels: 0, overgrips: 1,
+    tshirtPrice: 350, towelPrice: 220, overgripPrice: 100,
+    giftVoucher1h: 1, giftVoucher1hPrice: 500,
+    regularPrice: 1200, clubPrice: 1200, vipPrice: 200,
+    defaultPlayers: 8, defaultRegular: 6, defaultClub: 0, defaultVip: 2
+  },
+  'Sunday Ranked': {
+    courts: 4, duration: 2, courtPrice: 1800,
+    drinkPrice: 62, drinkPerPlayer: true,
+    medals: 3, ballPacks: 4, ballPrice: 270,
+    tshirts: 1, towels: 0, overgrips: 2,
+    tshirtPrice: 350, towelPrice: 220, overgripPrice: 50,
+    giftVoucher1h: 1, giftVoucher1hPrice: 500,
+    giftVoucher50: 1, giftVoucher50Price: 650,
+    regularPrice: 1300, clubPrice: 700, vipPrice: 300,
+    defaultPlayers: 16, defaultRegular: 16, defaultClub: 0, defaultVip: 0
+  },
+  'V7 Mixed Power': {
+    courts: 2, duration: 2, courtPrice: 2000,
+    drinkPrice: 62, drinkPerPlayer: true,
+    medals: 0, ballPacks: 0, ballPrice: 270,
+    tshirts: 0, towels: 0, overgrips: 0,
+    tshirtPrice: 350, towelPrice: 220, overgripPrice: 100,
+    regularPrice: 1100, clubPrice: 0, vipPrice: 200,
+    defaultPlayers: 8, defaultRegular: 8, defaultClub: 0, defaultVip: 0
+  }
+};
 
+const MEDAL_PRICE = 200;
+
+/* ===================== HELPERS ===================== */
+const $ = id => document.getElementById(id);
+const num = id => parseFloat($(id).value) || 0;
+const fmt = v => v.toLocaleString('ru-RU') + ' ₺';
+
+/* ===================== BLOCK 1: CALENDAR ===================== */
+(function loadCalendar() {
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY/gviz/tq?tqx=out:csv&sheet=racketid_tournaments';
+  const DAYS_RU = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+
+  fetch(SHEET_URL)
+    .then(r => r.text())
+    .then(csv => {
+      const rows = parseCSV(csv);
+      if (rows.length < 2) { showEmpty(); return; }
+
+      const headers = rows[0].map(h => h.trim().toLowerCase());
+      const dateIdx = headers.findIndex(h => h.includes('date') || h.includes('дата'));
+      const timeIdx = headers.findIndex(h => h.includes('time') || h.includes('время'));
+      const formatIdx = headers.findIndex(h => h.includes('format') || h.includes('формат') || h.includes('name') || h.includes('название'));
+      const regIdx = headers.findIndex(h => h.includes('registered') || h.includes('зарег') || h.includes('players') || h.includes('участник'));
+      const capIdx = headers.findIndex(h => h.includes('capacity') || h.includes('вместимость') || h.includes('макс') || h.includes('max'));
+
+      const now = new Date();
+      now.setHours(0,0,0,0);
+      const fourWeeks = new Date(now);
+      fourWeeks.setDate(fourWeeks.getDate() + 28);
+
+      const future = [];
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (!row[dateIdx]) continue;
+        const d = parseDate(row[dateIdx]);
+        if (!d || d < now || d > fourWeeks) continue;
+        future.push({
+          date: d,
+          time: timeIdx >= 0 ? row[timeIdx] : '—',
+          format: formatIdx >= 0 ? row[formatIdx] : '—',
+          registered: regIdx >= 0 ? parseInt(row[regIdx]) || 0 : 0,
+          capacity: capIdx >= 0 ? parseInt(row[capIdx]) || 0 : 0
+        });
+      }
+
+      future.sort((a,b) => a.date - b.date);
+
+      if (!future.length) { showEmpty(); return; }
+
+      const tbody = $('cal-body');
+      future.forEach(t => {
+        const pct = t.capacity > 0 ? Math.round(t.registered / t.capacity * 100) : 0;
+        let badge, barClass;
+        if (t.registered >= t.capacity && t.capacity > 0) {
+          if (t.registered > t.capacity) {
+            badge = '<span class="badge badge-wait">Вейт-лист</span>';
+            barClass = 'yellow';
+          } else {
+            badge = '<span class="badge badge-full">Заполнен</span>';
+            barClass = 'red';
+          }
+        } else {
+          badge = '<span class="badge badge-open">Открыт</span>';
+          barClass = 'green';
+        }
+
+        const dd = t.date.toLocaleDateString('ru-RU', {day:'2-digit', month:'2-digit'});
+        const dow = DAYS_RU[t.date.getDay()];
+
+        tbody.innerHTML += `<tr>
+          <td>${dd}</td>
+          <td>${dow}</td>
+          <td>${t.time}</td>
+          <td>${t.format}</td>
+          <td>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div class="fill-bar-bg" style="flex:1"><div class="fill-bar ${barClass}" style="width:${Math.min(pct,100)}%"></div></div>
+              <span style="font-size:12px;color:var(--text2);white-space:nowrap">${t.registered}/${t.capacity}</span>
+            </div>
+          </td>
+          <td>${badge}</td>
+        </tr>`;
+      });
+
+      $('cal-loading').style.display = 'none';
+      $('cal-table').style.display = '';
+    })
+    .catch(err => {
+      console.error('Ошибка загрузки календаря:', err);
+      $('cal-loading').textContent = 'Ошибка загрузки данных';
+    });
+
+  function showEmpty() {
+    $('cal-loading').style.display = 'none';
+    $('cal-empty').style.display = '';
+  }
+
+  function parseDate(s) {
+    if (!s) return null;
+    s = s.trim().replace(/"/g, '');
+    // Try ISO
+    let d = new Date(s);
+    if (!isNaN(d)) return d;
+    // Try DD.MM.YYYY or DD/MM/YYYY
+    const m = s.match(/(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+    if (m) {
+      const y = m[3].length === 2 ? 2000 + parseInt(m[3]) : parseInt(m[3]);
+      return new Date(y, parseInt(m[2]) - 1, parseInt(m[1]));
+    }
+    return null;
+  }
+
+  function parseCSV(text) {
+    const lines = [];
+    let current = [];
+    let field = '';
+    let inQuote = false;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      if (inQuote) {
+        if (ch === '"' && text[i+1] === '"') { field += '"'; i++; }
+        else if (ch === '"') { inQuote = false; }
+        else { field += ch; }
+      } else {
+        if (ch === '"') { inQuote = true; }
+        else if (ch === ',') { current.push(field); field = ''; }
+        else if (ch === '\n' || (ch === '\r' && text[i+1] === '\n')) {
+          current.push(field); field = '';
+          if (current.some(c => c.trim())) lines.push(current);
+          current = [];
+          if (ch === '\r') i++;
+        } else { field += ch; }
+      }
+    }
+    current.push(field);
+    if (current.some(c => c.trim())) lines.push(current);
+    return lines;
+  }
+})();
+
+/* ===================== BLOCK 2: CALCULATOR ===================== */
+(function initCalc() {
+  const sel = $('tpl-select');
+  Object.keys(TEMPLATES).forEach(k => {
+    const opt = document.createElement('option');
+    opt.value = k; opt.textContent = k;
+    sel.appendChild(opt);
+  });
+
+  sel.addEventListener('change', () => {
+    const t = TEMPLATES[sel.value];
+    if (!t) return;
+    $('c-courts').value = t.courts;
+    $('c-duration').value = t.duration;
+    $('c-courtPrice').value = t.courtPrice;
+    $('c-drinkPrice').value = t.drinkPrice;
+    $('c-drinkPerPlayer').value = String(t.drinkPerPlayer);
+    $('c-medals').value = t.medals;
+    $('c-medalPrice').value = MEDAL_PRICE;
+    $('c-ballPacks').value = t.ballPacks;
+    $('c-ballPrice').value = t.ballPrice;
+    $('c-tshirts').value = t.tshirts;
+    $('c-towels').value = t.towels;
+    $('c-overgrips').value = t.overgrips;
+    $('c-tshirtPrice').value = t.tshirtPrice;
+    $('c-towelPrice').value = t.towelPrice;
+    $('c-overgripPrice').value = t.overgripPrice;
+    $('c-giftVoucher1h').value = t.giftVoucher1h || 0;
+    $('c-giftVoucher1hPrice').value = t.giftVoucher1hPrice || 500;
+    $('c-giftVoucher50').value = t.giftVoucher50 || 0;
+    $('c-giftVoucher50Price').value = t.giftVoucher50Price || 650;
+    $('c-customPrize').value = 0;
+    $('c-players').value = t.defaultPlayers;
+    $('c-regCount').value = t.defaultRegular;
+    $('c-clubCount').value = t.defaultClub;
+    $('c-vipCount').value = t.defaultVip;
+    $('c-regPrice').value = t.regularPrice;
+    $('c-clubPrice').value = t.clubPrice;
+    $('c-vipPrice').value = t.vipPrice;
+    recalc();
+  });
+
+  // Handle Morning Coffee variants
+  $('c-players').addEventListener('input', () => {
+    const t = TEMPLATES[sel.value];
+    if (t && t.variants) {
+      const p = num('c-players');
+      if (t.variants[p]) {
+        $('c-courts').value = t.variants[p].courts;
+      }
+    }
+    recalc();
+  });
+
+  // Recalc on any input change
+  document.querySelectorAll('.calc-grid input, .calc-grid select').forEach(el => {
+    el.addEventListener('input', recalc);
+    el.addEventListener('change', recalc);
+  });
+
+  function recalc() {
+    const courts = num('c-courts');
+    const duration = num('c-duration');
+    const courtPrice = num('c-courtPrice');
+    const players = num('c-players');
+    const drinkPrice = num('c-drinkPrice');
+    const drinkPerPlayer = $('c-drinkPerPlayer').value === 'true';
+    const medals = num('c-medals');
+    const medalPrice = num('c-medalPrice');
+    const ballPacks = num('c-ballPacks');
+    const ballPrice = num('c-ballPrice');
+    const tshirts = num('c-tshirts');
+    const towels = num('c-towels');
+    const overgrips = num('c-overgrips');
+    const tshirtPrice = num('c-tshirtPrice');
+    const towelPrice = num('c-towelPrice');
+    const overgripPrice = num('c-overgripPrice');
+    const v1h = num('c-giftVoucher1h');
+    const v1hPrice = num('c-giftVoucher1hPrice');
+    const v50 = num('c-giftVoucher50');
+    const v50Price = num('c-giftVoucher50Price');
+    const customPrize = num('c-customPrize');
+
+    const courtRental = courtPrice * duration * courts;
+    const drinksCost = drinkPerPlayer ? drinkPrice * players : drinkPrice;
+    const medalsCost = medalPrice * medals;
+    const ballsCost = ballPrice * ballPacks;
+    const tshirtsCost = tshirtPrice * tshirts;
+    const towelsCost = towelPrice * towels;
+    const overgripsCost = overgripPrice * overgrips;
+    const voucherCost = (v1h * v1hPrice) + (v50 * v50Price);
+
+    const totalExpenses = courtRental + drinksCost + medalsCost + ballsCost + tshirtsCost + towelsCost + overgripsCost + voucherCost + customPrize;
+
+    const regCount = num('c-regCount');
+    const clubCount = num('c-clubCount');
+    const vipCount = num('c-vipCount');
+    const regPrice = num('c-regPrice');
+    const clubPrice = num('c-clubPrice');
+    const vipPrice = num('c-vipPrice');
+
+    const revenue = (regCount * regPrice) + (clubCount * clubPrice) + (vipCount * vipPrice);
+    const eventMargin = revenue - totalExpenses;
+    const clubMargin = revenue - (totalExpenses - courtRental);
+    const breakeven = regPrice > 0 ? Math.ceil(totalExpenses / regPrice) : 0;
+
+    $('r-expenses').textContent = fmt(totalExpenses);
+    $('r-revenue').textContent = fmt(revenue);
+
+    $('r-eventMargin').textContent = fmt(eventMargin);
+    $('r-eventMargin').className = 'r-value ' + (eventMargin >= 0 ? 'positive' : 'negative');
+
+    $('r-clubMargin').textContent = fmt(clubMargin);
+    $('r-clubMargin').className = 'r-value ' + (clubMargin >= 0 ? 'positive' : 'negative');
+
+    $('r-breakeven').textContent = breakeven + ' чел.';
+  }
+
+  // Initial calc
+  recalc();
+})();
+
+/* ===================== BLOCK 3: GRAND EVENT ===================== */
+(function initGrandEvent() {
+  const inputs = document.querySelectorAll('[id^="ge-d1-"], [id^="ge-d2-"], #ge-prize');
+  inputs.forEach(el => {
+    el.addEventListener('input', recalcGE);
+    el.addEventListener('change', recalcGE);
+  });
+
+  function recalcGE() {
+    // Day 1
+    const d1groups = num('ge-d1-groups');
+    const d1ppg = num('ge-d1-ppg');
+    const d1players = d1groups * d1ppg;
+    const d1courts = num('ge-d1-courts');
+    const d1hours = num('ge-d1-hours');
+    const d1courtPrice = num('ge-d1-courtPrice');
+    const d1fee = num('ge-d1-fee');
+    const d1drinks = num('ge-d1-drinks');
+    const d1balls = num('ge-d1-balls');
+    const d1ballPrice = num('ge-d1-ballPrice');
+
+    const d1courtCost = d1courts * d1hours * d1courtPrice;
+    const d1drinkCost = d1drinks * d1players;
+    const d1ballCost = d1balls * d1ballPrice;
+    const d1expenses = d1courtCost + d1drinkCost + d1ballCost;
+    const d1revenue = d1players * d1fee;
+
+    // Day 2
+    const d2players = num('ge-d2-players');
+    const d2courts = num('ge-d2-courts');
+    const d2hours = num('ge-d2-hours');
+    const d2courtPrice = num('ge-d2-courtPrice');
+    const d2fee = num('ge-d2-fee');
+    const d2drinks = num('ge-d2-drinks');
+    const d2balls = num('ge-d2-balls');
+    const d2ballPrice = num('ge-d2-ballPrice');
+
+    const d2courtCost = d2courts * d2hours * d2courtPrice;
+    const d2drinkCost = d2drinks * d2players;
+    const d2ballCost = d2balls * d2ballPrice;
+    const d2expenses = d2courtCost + d2drinkCost + d2ballCost;
+    const d2revenue = d2players * d2fee;
+
+    // Prize fund
+    const prize = num('ge-prize');
+    const p1 = Math.round(prize * 0.40);
+    const p2 = Math.round(prize * 0.25);
+    const p3 = Math.round(prize * 0.10);
+    const pRaffle = Math.round(prize * 0.15);
+
+    $('ge-p1').textContent = fmt(p1);
+    $('ge-p2').textContent = fmt(p2);
+    $('ge-p3').textContent = fmt(p3) + ' × 2';
+    $('ge-p4').textContent = fmt(pRaffle);
+
+    // Prize breakdown suggestions
+    const breakdown = $('ge-prize-breakdown');
+    if (prize > 0) {
+      breakdown.innerHTML = `
+        <div>Подарочные карты: ${fmt(Math.round(prize * 0.4))} (4 карты по ${fmt(Math.round(prize * 0.1))})</div>
+        <div>Ракетка (приз за 1-е место): ~${fmt(Math.round(prize * 0.3))}</div>
+        <div>Пополнение баланса: ${fmt(Math.round(prize * 0.15))}</div>
+        <div>Розыгрыш призов: ${fmt(pRaffle)}</div>
+      `;
+    } else {
+      breakdown.innerHTML = '<div style="color:var(--text3)">Введите сумму призового фонда</div>';
+    }
+
+    // Totals
+    const totalExpenses = d1expenses + d2expenses + prize;
+    const totalRevenue = d1revenue + d2revenue;
+    const totalCourtCost = d1courtCost + d2courtCost;
+    const eventMargin = totalRevenue - totalExpenses;
+    const clubMargin = totalRevenue - (totalExpenses - totalCourtCost);
+
+    $('ge-r-exp1').textContent = fmt(d1expenses);
+    $('ge-r-exp2').textContent = fmt(d2expenses);
+    $('ge-r-rev').textContent = fmt(totalRevenue);
+
+    $('ge-r-margin').textContent = fmt(eventMargin);
+    $('ge-r-margin').className = 'r-value ' + (eventMargin >= 0 ? 'positive' : 'negative');
+
+    $('ge-r-clubMargin').textContent = fmt(clubMargin);
+    $('ge-r-clubMargin').className = 'r-value ' + (clubMargin >= 0 ? 'positive' : 'negative');
+  }
+
+  recalcGE();
+})();
+
+/* ===================== SELF-AUDIT: Morning Coffee 16 players ===================== */
+(function selfAudit() {
+  const t = TEMPLATES['Morning Coffee'];
+  const players = 16;
+  const courts = t.variants[players].courts; // 4
+  const courtRental = courts * t.courtPrice * t.duration; // 4 * 1800 * 2 = 14400
+  const drinks = t.drinkPrice * players; // 200 * 16 = 3200
+  const totalExpenses = courtRental + drinks; // 17600
+  const revenue = players * t.regularPrice; // 16 * 1300 = 20800
+  const eventMargin = revenue - totalExpenses; // 3200
+  const clubMargin = revenue - (totalExpenses - courtRental); // 20800 - 3200 = 17600
+
+  console.log('=== SELF-AUDIT: Morning Coffee 16 players ===');
+  console.log('Courts: ' + courts + ' x ' + t.courtPrice + ' x ' + t.duration + ' = ' + courtRental);
+  console.log('Drinks: ' + t.drinkPrice + ' x ' + players + ' = ' + drinks);
+  console.log('Total expenses: ' + totalExpenses);
+  console.log('Revenue: ' + players + ' x ' + t.regularPrice + ' = ' + revenue);
+  console.log('Event margin: ' + eventMargin);
+  console.log('Club margin: ' + clubMargin);
+  console.log('Expected: expenses=17600, revenue=20800, eventMargin=3200, clubMargin=17600');
+  console.log('PASS: ' + (courtRental === 14400 && drinks === 3200 && totalExpenses === 17600 && revenue === 20800 && eventMargin === 3200 && clubMargin === 17600));
+})();
+</script>
 </body>
 </html>
