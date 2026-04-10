@@ -8,7 +8,7 @@
  * Правила (см. brain.html):
  *   - Все константы и ID таблиц — здесь, в шапке файла.
  *   - Общий код (gviz парсер, утилиты) — только здесь, без дублей на страницах.
- *   - Таймаут gviz — 10 секунд. При таймауте — кнопка "Обновить".
+ *   - Таймаут gviz — 30 секунд + 1 авто-retry при AbortError. При таймауте — кнопка "Обновить".
  *   - Нет данных = явное сообщение с причиной, никогда вечный спиннер.
  *
  * Источник правды для P&L: NEW_PNL spreadsheet (от бухгалтера, обновляется ежемесячно).
@@ -27,7 +27,7 @@
   const NEW_PNL_SHEET_ID = '1wLvhEUAsS08K6LvxSKAx5-soh5NxayMpU3brvd4rQ54';
   const NEW_PNL_GID = '1844112584';
   const GVIZ_BASE = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=';
-  const DEFAULT_TIMEOUT = 10000;
+  const DEFAULT_TIMEOUT = 30000;
 
   const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Товары', 'Прочее'];
   const REV_CAT_COLORS = ['#0ABAB5', '#0e8a87', '#7C3AED', '#13c296', '#f39c12', '#5ac8fa', '#8a9ba8'];
@@ -63,12 +63,14 @@
   }
 
   /* -------------------------------------------------------------------------
-   * loadSheet(name, opts?) — fetch + parse, with 10s AbortController timeout.
-   * Throws DOMException('AbortError') on timeout, or Error('HTTP NNN') on HTTP errors.
+   * loadSheet(name, opts?) — fetch + parse, with 30s timeout + 1 auto-retry.
+   * Запросы выполняются последовательно (через очередь) чтобы не перегружать
+   * Google Sheets API параллельными запросами.
    * ----------------------------------------------------------------------- */
-  async function loadSheet(name, opts) {
-    opts = opts || {};
-    const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT;
+  // Sequential queue to avoid parallel Google Sheets rate limiting
+  var _sheetQueue = Promise.resolve();
+
+  async function _fetchSheet(name, timeoutMs) {
     const url = GVIZ_BASE + encodeURIComponent(name);
     const ctrl = new AbortController();
     const tmr = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -81,6 +83,27 @@
     }
   }
 
+  async function loadSheet(name, opts) {
+    opts = opts || {};
+    const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT;
+    // Queue: each request waits for the previous one to finish
+    const job = _sheetQueue.then(async () => {
+      try {
+        return await _fetchSheet(name, timeoutMs);
+      } catch (err) {
+        // Auto-retry once on AbortError (timeout) or network failure
+        const isRetryable = err.name === 'AbortError' || String(err).indexOf('Failed to fetch') >= 0;
+        if (isRetryable) {
+          console.warn(name + ': retry after ' + err.name);
+          return await _fetchSheet(name, timeoutMs);
+        }
+        throw err;
+      }
+    });
+    _sheetQueue = job.catch(() => {}); // keep queue alive even on error
+    return job;
+  }
+
   /* -------------------------------------------------------------------------
    * renderReloadNotice(target, err, retryFn)
    * Показывает сообщение об ошибке и кнопку "Обновить".
@@ -90,7 +113,7 @@
     if (!target) return;
     const isTimeout = err && (err.name === 'AbortError' || String(err).indexOf('abort') >= 0);
     const msg = isTimeout
-      ? 'Google Sheets не ответил за 10 секунд.'
+      ? 'Google Sheets не ответил за 30 секунд (после повторной попытки).'
       : 'Не удалось загрузить данные: ' + (err && err.message ? err.message : String(err));
     target.innerHTML =
       '<div style="text-align:center;padding:32px 20px;">' +
@@ -236,15 +259,35 @@
     var timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT;
     var url = 'https://docs.google.com/spreadsheets/d/' + NEW_PNL_SHEET_ID +
               '/gviz/tq?tqx=out:csv&gid=' + NEW_PNL_GID;
-    var ctrl = new AbortController();
-    var tmr = setTimeout(function() { ctrl.abort(); }, timeoutMs);
-    try {
-      var r = await fetch(url, { signal: ctrl.signal });
-      if (!r.ok) throw new Error('HTTP ' + r.status + ' для PnL');
-      var text = await r.text();
-    } finally {
-      clearTimeout(tmr);
+
+    async function _fetchPnL() {
+      var ctrl = new AbortController();
+      var tmr = setTimeout(function() { ctrl.abort(); }, timeoutMs);
+      try {
+        var r = await fetch(url, { signal: ctrl.signal });
+        if (!r.ok) throw new Error('HTTP ' + r.status + ' для PnL');
+        return await r.text();
+      } finally {
+        clearTimeout(tmr);
+      }
     }
+
+    // PnL fetch also goes through the sequential queue
+    var text;
+    var pnlJob = _sheetQueue.then(async () => {
+      try {
+        return await _fetchPnL();
+      } catch (err) {
+        var isRetryable = err.name === 'AbortError' || String(err).indexOf('Failed to fetch') >= 0;
+        if (isRetryable) {
+          console.warn('PnL: retry after ' + err.name);
+          return await _fetchPnL();
+        }
+        throw err;
+      }
+    });
+    _sheetQueue = pnlJob.catch(() => {});
+    text = await pnlJob;
 
     // Parse CSV into raw 2D array
     var lines = text.replace(/\r/g, '').split('\n');
