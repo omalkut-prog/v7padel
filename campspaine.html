@@ -1,0 +1,575 @@
+
+<meta charset="UTF-8">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#0B1F3A;--gold:#C8941A;--teal:#0F5E6B;
+  --g-bg:#EAF3DE;--g-t:#27500A;--g-b:#97C459;
+  --r-bg:#FDECEA;--r-t:#791F1F;--r-b:#F09595;
+  --b-bg:#E6F1FB;--b-t:#0C447C;--b-b:#85B7EB;
+  --a-bg:#FAEEDA;--a-t:#633806;--a-b:#EF9F27;
+  --card:#fff;--bg:#f3f4f6;--border:#e0e0e0;
+  --text:#111;--text2:#666;--text3:#999;
+}
+@media(prefers-color-scheme:dark){
+  :root{--card:#1e1e1e;--bg:#111;--border:#333;--text:#eee;--text2:#aaa;--text3:#777}
+}
+html,body{width:100%;overflow-x:hidden}
+.w{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:15px;line-height:1.6;color:var(--text);background:var(--bg);padding-bottom:4rem}
+
+/* HERO */
+.hero{background:var(--navy);padding:2rem 1rem 1.75rem;text-align:center}
+.hero-badge{display:inline-block;background:var(--gold);color:#2A1800;font-size:11px;font-weight:600;padding:3px 12px;border-radius:20px;margin-bottom:14px;letter-spacing:.08em}
+.hero h1{font-size:22px;font-weight:600;color:#fff;line-height:1.35;margin-bottom:6px}
+.hero-sub{color:#85B7EB;font-size:14px;margin-bottom:20px}
+.price-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.pp{background:rgba(255,255,255,.09);border:0.5px solid rgba(255,255,255,.18);border-radius:12px;padding:10px 20px;text-align:center}
+.pp .amt{font-size:22px;font-weight:600;color:#fff}
+.pp .lbl{font-size:11px;color:#85B7EB;margin-top:1px}
+.htags{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:14px}
+.htag{background:rgba(255,255,255,.07);border:0.5px solid rgba(255,255,255,.13);border-radius:20px;padding:4px 10px;font-size:12px;color:#B5D4F4}
+
+/* NAV — touchstart instead of onclick for mobile */
+.nav{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:0.5px solid var(--border);display:flex;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.nav::-webkit-scrollbar{display:none}
+.nbtn{flex:1;min-width:80px;padding:14px 6px;font-size:14px;font-weight:400;color:var(--text2);background:transparent;border:none;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.nbtn.on{color:#0C447C;border-bottom-color:#378ADD;font-weight:600}
+
+.tab{display:none;padding:1rem}
+.tab.on{display:block}
+
+/* CARD */
+.card{background:var(--card);border:0.5px solid var(--border);border-radius:14px;padding:1rem 1.125rem;margin-bottom:.875rem}
+.sec-lbl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+.stripe{width:32px;height:3px;border-radius:2px;margin-bottom:10px}
+
+/* COACH */
+.coach-wrap{background:var(--navy);border-radius:14px;padding:1.25rem;margin-bottom:.875rem}
+.coach-row{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px}
+.av{width:60px;height:60px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600;color:#9FE1CB;flex-shrink:0}
+.cname{font-size:19px;font-weight:600;color:#fff;margin-bottom:3px}
+.cclub{font-size:13px;color:#85B7EB}
+.award{display:flex;align-items:flex-start;gap:8px;background:rgba(200,148,26,.13);border:0.5px solid rgba(200,148,26,.4);border-radius:9px;padding:8px 12px;font-size:13px;color:#E8C96A;line-height:1.5}
+
+/* KPI */
+.kgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:.875rem}
+.kpi{background:var(--bg);border-radius:10px;padding:12px 14px}
+.kpi-l{font-size:11px;color:var(--text2);margin-bottom:3px;line-height:1.3}
+.kpi-v{font-size:20px;font-weight:600;color:var(--text)}
+.kpi-s{font-size:11px;color:var(--text3);margin-top:1px}
+.kpi.bl .kpi-v{color:#0C447C}.kpi.gr .kpi-v{color:#27500A}
+
+/* PROGRAM */
+.prog-row{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:0.5px solid var(--border)}
+.prog-row:last-child{border-bottom:none}
+.day-dot{width:32px;height:32px;border-radius:50%;font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.dd-def{background:var(--b-bg);color:var(--b-t)}
+.dd-fin{background:var(--a-bg);color:var(--a-t)}
+.dd-open{background:var(--g-bg);color:var(--g-t)}
+.prog-date{font-size:12px;color:var(--text2);margin-bottom:2px}
+.prog-theme{font-size:15px;font-weight:600}
+.prog-sub{font-size:12px;color:var(--text2);margin-top:2px;line-height:1.4}
+.pbadge{font-size:11px;padding:2px 8px;border-radius:20px;display:inline-block;margin-top:4px}
+
+/* INCL */
+.ii{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:0.5px solid var(--border);font-size:14px;color:var(--text2);line-height:1.5}
+.ii:last-child{border-bottom:none}
+.idot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:7px}
+
+/* ── CALC ── */
+.calc-layout{display:grid;grid-template-columns:1fr 1fr;gap:1rem;align-items:start}
+@media(max-width:600px){.calc-layout{grid-template-columns:1fr}}
+
+.pgroup{margin-bottom:1rem}
+.pgt{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.pgt::after{content:'';flex:1;height:0.5px;background:var(--border)}
+
+.prow{display:flex;align-items:center;background:var(--card);border:0.5px solid var(--border);border-radius:10px;margin-bottom:5px;overflow:hidden;touch-action:manipulation}
+.prow.currency{border-left:3px solid #378ADD}
+.prow.cost{border-left:3px solid var(--teal)}
+.prow.org{border-left:3px solid var(--gold)}
+.prow.ext{border-left:3px solid #639922}
+.prow.target{border-left:3px solid #A32D2D}
+.prow.free{border-left:3px solid #7F77DD}
+
+.prow-left{flex:1;padding:8px 10px;min-width:0}
+.prow-label{font-size:13px;font-weight:600;color:var(--text);line-height:1.2}
+.prow-note{font-size:11px;color:var(--text2)}
+.prow-ctrl{display:flex;align-items:stretch;flex-shrink:0;border-left:0.5px solid var(--border)}
+.pbtn{width:40px;min-height:50px;border:none;background:transparent;font-size:20px;color:var(--text2);cursor:pointer;display:flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.pbtn:active{background:var(--bg)}
+.pvalw{min-width:70px;border-left:0.5px solid var(--border);border-right:0.5px solid var(--border);background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px}
+.pval{font-size:15px;font-weight:600;color:var(--text);border:none;background:transparent;text-align:center;width:100%;outline:none}
+.pval:focus{color:#0C447C}
+.punit{font-size:10px;color:var(--text2)}
+
+/* Currency toggle */
+.ctog{display:flex;gap:4px;margin-bottom:4px}
+.cbtn{flex:1;padding:6px;font-size:13px;border:0.5px solid var(--border);border-radius:7px;background:transparent;cursor:pointer;color:var(--text2);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.cbtn.on{background:var(--b-bg);color:var(--b-t);border-color:var(--b-b);font-weight:600}
+
+/* RESULT */
+.rgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:.875rem}
+@media(max-width:400px){.rgrid{grid-template-columns:repeat(2,1fr)}}
+.rc{border-radius:10px;padding:10px 12px}
+.rc.inc{background:var(--g-bg);border:0.5px solid var(--g-b)}.rc.inc .rl,.rc.inc .rv,.rc.inc .rs{color:var(--g-t)}
+.rc.exp{background:var(--r-bg);border:0.5px solid var(--r-b)}.rc.exp .rl,.rc.exp .rv,.rc.exp .rs{color:var(--r-t)}
+.rc.prf{background:var(--a-bg);border:0.5px solid var(--a-b)}.rc.prf .rl,.rc.prf .rv,.rc.prf .rs{color:var(--a-t)}
+.rc.roi{background:var(--b-bg);border:0.5px solid var(--b-b)}.rc.roi .rl,.rc.roi .rv,.rc.roi .rs{color:var(--b-t)}
+.rc.neu{background:var(--bg)}.rc.neu .rl,.rc.neu .rs{color:var(--text2)}
+.rl{font-size:11px;margin-bottom:3px}
+.rv{font-size:16px;font-weight:600}
+.rs{font-size:11px;margin-top:1px}
+
+/* STATUS */
+.status{border-radius:10px;padding:10px 14px;margin-bottom:10px;font-size:14px;font-weight:500;line-height:1.5;display:none}
+.status.ok{background:var(--g-bg);color:var(--g-t);border:0.5px solid var(--g-b);display:block}
+.status.bad{background:var(--r-bg);color:var(--r-t);border:0.5px solid var(--r-b);display:block}
+
+/* BREAKDOWN */
+.bkwrap{background:var(--card);border:0.5px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:8px}
+.bkhdr{padding:12px 14px;display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--bg);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.bkicon{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.bktitle{font-size:14px;font-weight:600;flex:1;color:var(--text)}
+.bktot{font-size:13px;font-weight:600;white-space:nowrap;color:#A32D2D}
+.bkarr{font-size:10px;color:var(--text3);transition:transform .2s;margin-left:2px}
+.bkarr.open{transform:rotate(180deg)}
+.bkbody{display:none}
+.bkbody.open{display:block}
+.bkrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:9px 14px;border-bottom:0.5px solid var(--border)}
+.bkrow:last-child{border-bottom:none}
+.bkrn{font-size:13px;color:var(--text);line-height:1.4}
+.bkrd{font-size:11px;color:var(--text2);margin-top:1px}
+/* 3-currency display */
+.bkamt{text-align:right;flex-shrink:0}
+.bkamt .a1{font-size:13px;font-weight:600;color:#A32D2D}
+.bkamt .a2{font-size:11px;color:var(--text2)}
+.bkamt .a3{font-size:11px;color:var(--text3)}
+
+.bkgrand{display:flex;justify-content:space-between;align-items:flex-start;padding:12px 14px;background:var(--bg)}
+.bkgl{font-size:14px;font-weight:600;color:var(--text)}
+.bkga{text-align:right}
+.bkga .a1{font-size:16px;font-weight:600;color:#A32D2D}
+.bkga .a2{font-size:12px;color:var(--text2)}
+.bkga .a3{font-size:12px;color:var(--text3)}
+
+.profit-box{padding:14px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.pbl{font-size:15px;font-weight:600;margin-bottom:2px}
+.pbs{font-size:11px;color:var(--text2);margin-top:3px}
+.pbr{text-align:right}
+.pbr .a1{font-size:20px;font-weight:700}
+.pbr .a2{font-size:12px;margin-top:2px}
+.pbr .a3{font-size:12px}
+</style>
+
+<div class="w">
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">V7 PADEL CLUB &#xB7; &#1040;&#1053;&#1058;&#1040;&#1051;&#1068;&#1071;</div>
+  <h1>&#1048;&#1089;&#1087;&#1072;&#1085;&#1089;&#1082;&#1080;&#1081; &#1080;&#1085;&#1090;&#1077;&#1085;&#1089;&#1080;&#1074;<br>&#1089; Juanpi Vanella</h1>
+  <div class="hero-sub">17&ndash;24 &#1084;&#1072;&#1103; 2025 &#xB7; 3 &#1075;&#1088;&#1091;&#1087;&#1087;&#1099; &#xB7; 3 &#1095;&#1077;&#1083;&#1086;&#1074;&#1077;&#1082;&#1072;</div>
+  <div class="price-pills">
+    <div class="pp"><div class="amt">50 000 &#8378;</div><div class="lbl">&#1079;&#1072; &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;&#1072;</div></div>
+    <div class="pp"><div class="amt">~975 &euro;</div><div class="lbl">&#1101;&#1082;&#1074;&#1080;&#1074;&#1072;&#1083;&#1077;&#1085;&#1090;</div></div>
+  </div>
+  <div class="htags">
+    <span class="htag">9 &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;&#1086;&#1074;</span>
+    <span class="htag">5 &#1075;&#1088;&#1091;&#1087;. + 1 &#1080;&#1085;&#1076;.</span>
+    <span class="htag">2 &#1090;&#1091;&#1088;&#1085;&#1080;&#1088;&#1072;</span>
+    <span class="htag">&#1053;&#1086;&#1074;&#1099;&#1077; &#1084;&#1103;&#1095;&#1080;</span>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav" id="nav">
+  <button class="nbtn on" data-tab="trainer">&#1058;&#1088;&#1077;&#1085;&#1077;&#1088;</button>
+  <button class="nbtn" data-tab="program">&#1055;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1072;</button>
+  <button class="nbtn" data-tab="included">&#1063;&#1090;&#1086; &#1074;&#1093;&#1086;&#1076;&#1080;&#1090;</button>
+  <button class="nbtn" data-tab="calc">&#1069;&#1082;&#1086;&#1085;&#1086;&#1084;&#1080;&#1082;&#1072;</button>
+</div>
+
+<!-- TRAINER -->
+<div id="t-trainer" class="tab on">
+  <div class="coach-wrap">
+    <div class="coach-row">
+      <div class="av">JV</div>
+      <div>
+        <div class="cname">Juanpi Vanella</div>
+        <div class="cclub">Nueva Alc&aacute;ntara Club, &#1048;&#1089;&#1087;&#1072;&#1085;&#1080;&#1103;</div>
+      </div>
+    </div>
+    <div class="award">
+      <span style="font-size:16px;flex-shrink:0">&#9733;</span>
+      <span>&#1051;&#1091;&#1095;&#1096;&#1080;&#1081; &#1082;&#1083;&#1091;&#1073; &#1084;&#1080;&#1088;&#1072; 2026 &mdash; World Padel Awards. &#1058;&#1088;&#1077;&#1090;&#1080;&#1081; &#1075;&#1086;&#1076; &#1087;&#1086;&#1076;&#1088;&#1103;&#1076;.</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="sec-lbl">&#1054; &#1090;&#1088;&#1077;&#1085;&#1077;&#1088;&#1077;</div>
+    <p style="font-size:15px;color:var(--text2);line-height:1.7">Juanpi Vanella &mdash; &#1075;&#1083;&#1072;&#1074;&#1085;&#1099;&#1081; &#1090;&#1088;&#1077;&#1085;&#1077;&#1088; Nueva Alc&aacute;ntara Club. &#1057;&#1087;&#1077;&#1094;&#1080;&#1072;&#1083;&#1080;&#1079;&#1072;&#1094;&#1080;&#1103;: &#1080;&#1089;&#1087;&#1072;&#1085;&#1089;&#1082;&#1072;&#1103; &#1096;&#1082;&#1086;&#1083;&#1072; &#1087;&#1072;&#1076;&#1077;&#1083;&#1072;, &#1090;&#1077;&#1093;&#1085;&#1080;&#1082;&#1072; &#1091;&#1076;&#1072;&#1088;&#1086;&#1074;, &#1090;&#1072;&#1082;&#1090;&#1080;&#1082;&#1072;. &#1056;&#1072;&#1073;&#1086;&#1090;&#1072;&#1077;&#1090; &#1089; &#1080;&#1075;&#1088;&#1086;&#1082;&#1072;&#1084;&#1080; &#1074;&#1089;&#1077;&#1093; &#1091;&#1088;&#1086;&#1074;&#1085;&#1077;&#1081;.</p>
+  </div>
+  <div class="card">
+    <div class="sec-lbl">&#1057;&#1090;&#1080;&#1083;&#1100; &#1088;&#1072;&#1073;&#1086;&#1090;&#1099;</div>
+    <div class="ii"><div class="idot" style="background:var(--teal)"></div>&#1052;&#1072;&#1082;&#1089;&#1080;&#1084;&#1091;&#1084; &#1087;&#1088;&#1072;&#1082;&#1090;&#1080;&#1082;&#1080;, &#1084;&#1080;&#1085;&#1080;&#1084;&#1091;&#1084; &#1090;&#1077;&#1086;&#1088;&#1080;&#1080;</div>
+    <div class="ii"><div class="idot" style="background:var(--teal)"></div>&#1048;&#1085;&#1076;&#1080;&#1074;&#1080;&#1076;&#1091;&#1072;&#1083;&#1100;&#1085;&#1072;&#1103; &#1082;&#1086;&#1088;&#1088;&#1077;&#1082;&#1094;&#1080;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1075;&#1086; &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;&#1072;</div>
+    <div class="ii"><div class="idot" style="background:var(--teal)"></div>&#1057;&#1090;&#1088;&#1091;&#1082;&#1090;&#1091;&#1088;&#1080;&#1088;&#1086;&#1074;&#1072;&#1085;&#1085;&#1072;&#1103; &#1087;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1072; &mdash; &#1082;&#1072;&#1078;&#1076;&#1099;&#1081; &#1076;&#1077;&#1085;&#1100; &#1085;&#1086;&#1074;&#1072;&#1103; &#1090;&#1077;&#1084;&#1072;</div>
+    <div class="ii"><div class="idot" style="background:var(--teal)"></div>&#1040;&#1075;&#1088;&#1077;&#1089;&#1089;&#1080;&#1074;&#1085;&#1072;&#1103; &#1080;&#1075;&#1088;&#1072; &#1091; &#1089;&#1077;&#1090;&#1082;&#1080; &mdash; &#1080;&#1089;&#1087;&#1072;&#1085;&#1089;&#1082;&#1080;&#1081; &#1089;&#1090;&#1080;&#1083;&#1100;</div>
+    <div class="ii"><div class="idot" style="background:var(--teal)"></div>&#1056;&#1072;&#1079;&#1073;&#1086;&#1088; &#1086;&#1096;&#1080;&#1073;&#1086;&#1082; &#1080; &#1090;&#1072;&#1082;&#1090;&#1080;&#1095;&#1077;&#1089;&#1082;&#1080;&#1081; &#1072;&#1085;&#1072;&#1083;&#1080;&#1079;</div>
+  </div>
+  <div class="kgrid">
+    <div class="kpi bl"><div class="kpi-l">&#1043;&#1088;&#1091;&#1087;&#1087;</div><div class="kpi-v">3</div><div class="kpi-s">A, B, C</div></div>
+    <div class="kpi bl"><div class="kpi-l">&#1063;&#1077;&#1083;. &#1074; &#1075;&#1088;&#1091;&#1087;&#1087;&#1077;</div><div class="kpi-v">3</div><div class="kpi-s">&#1084;&#1072;&#1082;&#1089;&#1080;&#1084;&#1091;&#1084;</div></div>
+    <div class="kpi bl"><div class="kpi-l">&#1043;&#1088;&#1091;&#1087;. &#1079;&#1072;&#1085;&#1103;&#1090;&#1080;&#1081;</div><div class="kpi-v">5</div><div class="kpi-s">&#1087;&#1086; 1.5 &#1095; &#1082;&#1072;&#1078;&#1076;&#1086;&#1077;</div></div>
+    <div class="kpi bl"><div class="kpi-l">&#1048;&#1085;&#1076;&#1080;&#1074;. 1:1</div><div class="kpi-v">1</div><div class="kpi-s">1.5 &#1095; / &#1095;&#1077;&#1083;.</div></div>
+    <div class="kpi bl"><div class="kpi-l">&#1044;&#1085;&#1077;&#1081;</div><div class="kpi-v">7</div><div class="kpi-s">17&ndash;24 &#1084;&#1072;&#1103;</div></div>
+    <div class="kpi gr"><div class="kpi-l">&#1057;&#1090;&#1086;&#1080;&#1084;&#1086;&#1089;&#1090;&#1100;</div><div class="kpi-v">50K &#8378;</div><div class="kpi-s">~975 &euro; / &#1095;&#1077;&#1083;.</div></div>
+  </div>
+</div>
+
+<!-- PROGRAM -->
+<div id="t-program" class="tab">
+  <div class="card">
+    <div class="sec-lbl">&#1056;&#1072;&#1089;&#1087;&#1080;&#1089;&#1072;&#1085;&#1080;&#1077; &#1079;&#1072;&#1085;&#1103;&#1090;&#1080;&#1081;</div>
+    <div class="prog-row"><div class="day-dot dd-open">0</div><div style="flex:1"><div class="prog-date">17 &#1084;&#1072;&#1103; (&#1089;&#1073;) &#xB7; &#1074;&#1077;&#1095;&#1077;&#1088;</div><div class="prog-theme">&#1058;&#1091;&#1088;&#1085;&#1080;&#1088;-&#1079;&#1085;&#1072;&#1082;&#1086;&#1084;&#1089;&#1090;&#1074;&#1086;</div><div class="prog-sub">WinZecourt &#xB7; 3 &#1082;&#1086;&#1088;&#1090;&#1072; &#xB7; 2 &#1095; &#xB7; &#1044;&#1056; &#1090;&#1088;&#1077;&#1085;&#1077;&#1088;&#1072;</div><span class="pbadge" style="background:var(--g-bg);color:var(--g-t)">&#1042;&#1082;&#1083;&#1102;&#1095;&#1077;&#1085;&#1086;</span></div></div>
+    <div class="prog-row"><div class="day-dot dd-def">1</div><div style="flex:1"><div class="prog-date">18 &#1084;&#1072;&#1103; (&#1087;&#1085;)</div><div class="prog-theme">&#1041;&#1072;&#1079;&#1086;&#1074;&#1072;&#1103; &#1090;&#1077;&#1093;&#1085;&#1080;&#1082;&#1072;</div><div class="prog-sub">&#1050;&#1088;&#1086;&#1089;&#1089;, &#1074;&#1086;&#1083;&#1083;&#1077;&#1080;, &#1087;&#1086;&#1076;&#1072;&#1095;&#1072;</div></div></div>
+    <div class="prog-row"><div class="day-dot dd-def">2</div><div style="flex:1"><div class="prog-date">19 &#1084;&#1072;&#1103; (&#1074;&#1090;)</div><div class="prog-theme">&#1042;&#1099;&#1093;&#1086;&#1076; &#1082; &#1089;&#1077;&#1090;&#1082;&#1077;</div><div class="prog-sub">&#1055;&#1086;&#1083;&#1085;&#1072;&#1103; &#1087;&#1086;&#1089;&#1083;&#1077;&#1076;&#1086;&#1074;&#1072;&#1090;&#1077;&#1083;&#1100;&#1085;&#1086;&#1089;&#1090;&#1100;, &#1076;&#1074;&#1086;&#1081;&#1085;&#1072;&#1103; &#1089;&#1090;&#1077;&#1085;&#1072;</div></div></div>
+    <div class="prog-row"><div class="day-dot dd-def">3</div><div style="flex:1"><div class="prog-date">20 &#1084;&#1072;&#1103; (&#1089;&#1088;)</div><div class="prog-theme">&#1055;&#1077;&#1088;&#1077;&#1093;&#1086;&#1076;&#1099; &#1089;&#1077;&#1090;&#1082;&#1072;&ndash;&#1079;&#1072;&#1076;&#1085;&#1103;&#1103;</div><div class="prog-sub">Drop shot, flat smash</div></div></div>
+    <div class="prog-row"><div class="day-dot dd-def">4</div><div style="flex:1"><div class="prog-date">21 &#1084;&#1072;&#1103; (&#1095;&#1090;)</div><div class="prog-theme">Chiquitas &#1080; X3</div><div class="prog-sub">&#1058;&#1072;&#1082;&#1090;&#1080;&#1082;&#1072; &#1087;&#1086;&#1089;&#1090;&#1088;&#1086;&#1077;&#1085;&#1080;&#1103; &#1088;&#1086;&#1079;&#1099;&#1075;&#1088;&#1099;&#1096;&#1072;</div></div></div>
+    <div class="prog-row"><div class="day-dot dd-def">5</div><div style="flex:1"><div class="prog-date">22 &#1084;&#1072;&#1103; (&#1087;&#1090;)</div><div class="prog-theme">&#1047;&#1072;&#1097;&#1080;&#1090;&#1072; &#1089;&#1090;&#1077;&#1085;&#1099; &#1080; &#1083;&#1086;&#1073;&#1099;</div><div class="prog-sub">&#1042;&#1099;&#1093;&#1086;&#1076; &#1080;&#1079; &#1079;&#1072;&#1097;&#1080;&#1090;&#1099;, &#1074;&#1086;&#1089;&#1089;&#1090;&#1072;&#1085;&#1086;&#1074;&#1083;&#1077;&#1085;&#1080;&#1077;</div></div></div>
+    <div class="prog-row"><div class="day-dot dd-def">6</div><div style="flex:1"><div class="prog-date">23 &#1084;&#1072;&#1103; (&#1089;&#1073;)</div><div class="prog-theme">BANDEJA &#1080; VIBORA</div><div class="prog-sub">&#1042;&#1099;&#1089;&#1086;&#1090;&#1072;, &#1082;&#1086;&#1085;&#1090;&#1088;&#1086;&#1083;&#1100;, &#1080;&#1075;&#1088;&#1072; &#1091; &#1089;&#1077;&#1090;&#1082;&#1080;</div></div></div>
+    <div class="prog-row"><div class="day-dot dd-open">+</div><div style="flex:1"><div class="prog-date">18&ndash;23 &#1084;&#1072;&#1103;, &#1087;&#1086; &#1086;&#1076;&#1085;&#1086;&#1084;&#1091; &#1085;&#1072; &#1082;&#1072;&#1078;&#1076;&#1086;&#1075;&#1086;</div><div class="prog-theme">&#1048;&#1085;&#1076;&#1080;&#1074;&#1080;&#1076;&#1091;&#1072;&#1083;&#1100;&#1085;&#1086;&#1077; 1:1</div><div class="prog-sub">&#1055;&#1077;&#1088;&#1089;&#1086;&#1085;&#1072;&#1083;&#1100;&#1085;&#1072;&#1103; &#1087;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1072; &#xB7; 1.5 &#1095; / &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;</div></div></div>
+    <div class="prog-row"><div class="day-dot dd-fin">7</div><div style="flex:1"><div class="prog-date">24 &#1084;&#1072;&#1103; (&#1074;&#1089;)</div><div class="prog-theme">&#1060;&#1080;&#1085;&#1072;&#1083;&#1100;&#1085;&#1099;&#1077; &#1090;&#1091;&#1088;&#1085;&#1080;&#1088;&#1099;</div><div class="prog-sub">1100+ &#1080; 1100&minus; &#xB7; WinZecourt &#xB7; 3 &#1082;&#1086;&#1088;&#1090;&#1072; &#xD7; 4 &#1095; &#xB7; &#1090;&#1088;&#1077;&#1085;&#1077;&#1088; 5 &#1095;</div><span class="pbadge" style="background:var(--a-bg);color:var(--a-t)">&#1042;&#1082;&#1083;&#1102;&#1095;&#1077;&#1085;&#1086;</span></div></div>
+  </div>
+  <div class="card">
+    <div class="sec-lbl">&#1060;&#1080;&#1085;&#1072;&#1083; 24 &#1084;&#1072;&#1103;</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+      <div style="background:var(--b-bg);border-radius:10px;padding:12px"><div style="font-size:12px;font-weight:600;color:var(--b-t);margin-bottom:4px">&#1058;&#1091;&#1088;&#1085;&#1080;&#1088; 1100+</div><div style="font-size:13px;color:#185FA5">&#1055;&#1088;&#1086;&#1076;&#1074;&#1080;&#1085;&#1091;&#1090;&#1099;&#1077; &#xB7; 2 &#1095;</div></div>
+      <div style="background:var(--a-bg);border-radius:10px;padding:12px"><div style="font-size:12px;font-weight:600;color:var(--a-t);margin-bottom:4px">&#1058;&#1091;&#1088;&#1085;&#1080;&#1088; 1100&minus;</div><div style="font-size:13px;color:#854F0B">&#1057;&#1088;&#1077;&#1076;&#1085;&#1080;&#1081; &#1091;&#1088;. &#xB7; 2 &#1095;</div></div>
+    </div>
+    <div style="font-size:13px;color:var(--text2)">&#1044;&#1086; +15 &#1074;&#1085;&#1077;&#1096;&#1085;&#1080;&#1093; &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;&#1086;&#1074; &mdash; &#1076;&#1086;&#1087;&#1086;&#1083;&#1085;&#1080;&#1090;&#1077;&#1083;&#1100;&#1085;&#1099;&#1081; &#1074;&#1079;&#1085;&#1086;&#1089;</div>
+  </div>
+</div>
+
+<!-- INCLUDED -->
+<div id="t-included" class="tab">
+  <div class="card"><div class="stripe" style="background:var(--teal)"></div><div class="sec-lbl">&#1058;&#1088;&#1077;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1080;</div>
+    <div class="ii"><div class="idot" style="background:var(--teal)"></div>5 &#1075;&#1088;&#1091;&#1087;&#1087;&#1086;&#1074;&#1099;&#1093; &#1090;&#1088;&#1077;&#1085;&#1080;&#1088;&#1086;&#1074;&#1086;&#1082; &#1087;&#1086; 1.5 &#1095; &mdash; &#1072;&#1074;&#1090;&#1086;&#1088;&#1089;&#1082;&#1072;&#1103; &#1087;&#1088;&#1086;&#1075;&#1088;&#1072;&#1084;&#1084;&#1072; &#1090;&#1088;&#1077;&#1085;&#1077;&#1088;&#1072;</div>
+    <div class="ii"><div class="idot" style="background:var(--teal)"></div>1 &#1080;&#1085;&#1076;&#1080;&#1074;&#1080;&#1076;&#1091;&#1072;&#1083;&#1100;&#1085;&#1086;&#1077; 1:1 &mdash; 1.5 &#1095; &#1076;&#1083;&#1103; &#1082;&#1072;&#1078;&#1076;&#1086;&#1075;&#1086;</div>
+    <div class="ii"><div class="idot" style="background:var(--teal)"></div>&#1058;&#1091;&#1088;&#1085;&#1080;&#1088;-&#1079;&#1085;&#1072;&#1082;&#1086;&#1084;&#1089;&#1090;&#1074;&#1086; 17 &#1084;&#1072;&#1103; (2 &#1095;) &mdash; &#1074;&#1077;&#1095;&#1077;&#1088; &#1086;&#1090;&#1082;&#1088;&#1099;&#1090;&#1080;&#1103;</div>
+    <div class="ii"><div class="idot" style="background:var(--teal)"></div>&#1060;&#1080;&#1085;&#1072;&#1083;&#1100;&#1085;&#1099;&#1081; &#1090;&#1091;&#1088;&#1085;&#1080;&#1088; 24 &#1084;&#1072;&#1103; &#1087;&#1086; &#1091;&#1088;&#1086;&#1074;&#1085;&#1103;&#1084; &mdash; &#1074;&#1082;&#1083;&#1102;&#1095;&#1077;&#1085; &#1074; &#1089;&#1090;&#1086;&#1080;&#1084;&#1086;&#1089;&#1090;&#1100;</div>
+  </div>
+  <div class="card"><div class="stripe" style="background:var(--gold)"></div><div class="sec-lbl">Welcome Pack</div>
+    <div class="ii"><div class="idot" style="background:var(--gold)"></div>&#1048;&#1084;&#1077;&#1085;&#1085;&#1086;&#1081; &#1084;&#1077;&#1088;&#1095; (&#1092;&#1091;&#1090;&#1073;&#1086;&#1083;&#1082;&#1072;, &#1085;&#1072;&#1084;&#1086;&#1090;&#1082;&#1080; &#1080; &#1076;&#1088;. &mdash; &#1089;&#1086;&#1089;&#1090;&#1072;&#1074; &#1091;&#1090;&#1086;&#1095;&#1085;&#1103;&#1077;&#1090;&#1089;&#1103;)</div>
+    <div class="ii"><div class="idot" style="background:var(--gold)"></div>&#1048;&#1084;&#1077;&#1085;&#1085;&#1086;&#1081; &#1089;&#1077;&#1088;&#1090;&#1080;&#1092;&#1080;&#1082;&#1072;&#1090; &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;&#1072; &#1080;&#1085;&#1090;&#1077;&#1085;&#1089;&#1080;&#1074;&#1072;</div>
+    <div style="margin-top:8px;background:var(--bg);border-radius:8px;padding:10px 12px;font-size:13px;color:var(--text2)">&#1057;&#1086;&#1089;&#1090;&#1072;&#1074; &#1076;&#1086;&#1087;&#1086;&#1083;&#1085;&#1103;&#1077;&#1090;&#1089;&#1103; &mdash; &#1089;&#1083;&#1077;&#1076;&#1080;&#1090;&#1077; &#1079;&#1072; &#1072;&#1085;&#1086;&#1085;&#1089;&#1086;&#1084;</div>
+  </div>
+  <div class="card"><div class="stripe" style="background:#378ADD"></div><div class="sec-lbl">&#1044;&#1086;&#1087;&#1086;&#1083;&#1085;&#1080;&#1090;&#1077;&#1083;&#1100;&#1085;&#1086;</div>
+    <div class="ii"><div class="idot" style="background:#378ADD"></div>&#1053;&#1086;&#1074;&#1099;&#1077; &#1084;&#1103;&#1095;&#1080; &#1085;&#1072; &#1082;&#1072;&#1078;&#1076;&#1091;&#1102; &#1090;&#1088;&#1077;&#1085;&#1080;&#1088;&#1086;&#1074;&#1082;&#1091; &#1080; &#1082;&#1072;&#1078;&#1076;&#1099;&#1081; &#1090;&#1091;&#1088;&#1085;&#1080;&#1088;</div>
+    <div class="ii"><div class="idot" style="background:#378ADD"></div>2 &#1095;&#1072;&#1089;&#1072; &#1073;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;&#1075;&#1086; &#1082;&#1086;&#1088;&#1090;&#1072; &#1076;&#1083;&#1103; &#1089;&#1072;&#1084;&#1086;&#1089;&#1090;&#1086;&#1103;&#1090;&#1077;&#1083;&#1100;&#1085;&#1086;&#1081; &#1086;&#1090;&#1088;&#1072;&#1073;&#1086;&#1090;&#1082;&#1080; &mdash; &frac14; &#1082;&#1086;&#1088;&#1090;&#1072; &#1085;&#1072; &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;&#1072;</div>
+    <div class="ii"><div class="idot" style="background:#378ADD"></div>&#1050;&#1091;&#1073;&#1082;&#1080; &#1076;&#1083;&#1103; 3 &#1087;&#1086;&#1073;&#1077;&#1076;&#1080;&#1090;&#1077;&#1083;&#1077;&#1081; &#1092;&#1080;&#1085;&#1072;&#1083;&#1100;&#1085;&#1086;&#1075;&#1086; &#1090;&#1091;&#1088;&#1085;&#1080;&#1088;&#1072;</div>
+    <div class="ii"><div class="idot" style="background:#378ADD"></div>&#1060;&#1086;&#1090;&#1086; &#1080; &#1074;&#1080;&#1076;&#1077;&#1086; &#1089; &#1092;&#1080;&#1085;&#1072;&#1083;&#1100;&#1085;&#1086;&#1075;&#1086; &#1090;&#1091;&#1088;&#1085;&#1080;&#1088;&#1072;</div>
+    <div class="ii" style="border-top:0.5px solid var(--border);padding-top:10px;margin-top:4px">
+      <div class="idot" style="background:#7F77DD"></div>
+      <div><div style="font-weight:600;color:var(--text);font-size:13px">&#1044;&#1083;&#1103; VIP &#1080; Club Members</div><div style="font-size:13px;color:var(--text2);margin-top:2px">&#1041;&#1077;&#1089;&#1087;&#1083;&#1072;&#1090;&#1085;&#1086;&#1077; &#1091;&#1095;&#1072;&#1089;&#1090;&#1080;&#1077; &#1074; &#1086;&#1076;&#1085;&#1086;&#1084; &#1082;&#1083;&#1091;&#1073;&#1085;&#1086;&#1084; &#1090;&#1091;&#1088;&#1085;&#1080;&#1088;&#1077; &#1074; &#1080;&#1102;&#1085;&#1077; &mdash; &#1073;&#1086;&#1085;&#1091;&#1089; &#1079;&#1072; &#1095;&#1083;&#1077;&#1085;&#1089;&#1090;&#1074;&#1086;</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- CALC -->
+<div id="t-calc" class="tab">
+  <div class="calc-layout">
+    <div>
+      <div class="pgroup">
+        <div class="pgt">&#1044;&#1086;&#1093;&#1086;&#1076;&#1099;</div>
+        <div class="prow currency"><div class="prow-left"><div class="prow-label">&#1062;&#1077;&#1085;&#1072; &#1087;&#1072;&#1082;&#1077;&#1090;&#1072;</div><div class="prow-note">&#8378; / &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-pkg-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-pkg" value="50000" step="500" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-pkg-p">+</button></div></div>
+      </div>
+      <div class="pgroup">
+        <div class="pgt">&#1050;&#1091;&#1088;&#1089;&#1099; &#1074;&#1072;&#1083;&#1102;&#1090;</div>
+        <div class="prow currency"><div class="prow-left"><div class="prow-label">EUR &#8594; TRY</div><div class="prow-note">1 &euro; = ? &#8378;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-eur-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-eur" value="53" step="1" inputmode="numeric"><div class="punit"></div></div><button class="pbtn" id="b-eur-p">+</button></div></div>
+        <div class="prow currency"><div class="prow-left"><div class="prow-label">USD &#8594; TRY</div><div class="prow-note">1 $ = ? &#8378;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-usd-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-usd" value="45" step="1" inputmode="numeric"><div class="punit"></div></div><button class="pbtn" id="b-usd-p">+</button></div></div>
+      </div>
+      <div class="pgroup">
+        <div class="pgt">&#1058;&#1088;&#1077;&#1085;&#1077;&#1088;</div>
+        <div class="card" style="padding:10px 12px;margin-bottom:5px">
+          <div style="font-size:12px;color:var(--text2);margin-bottom:6px">&#1042;&#1072;&#1083;&#1102;&#1090;&#1072; &#1089;&#1090;&#1072;&#1074;&#1082;&#1080;:</div>
+          <div class="ctog"><button class="cbtn on" id="cur-usd">$ &#1044;&#1086;&#1083;&#1083;&#1072;&#1088;&#1099;</button><button class="cbtn" id="cur-eur">&euro; &#1045;&#1074;&#1088;&#1086;</button></div>
+          <div id="coach-info" style="font-size:11px;color:var(--text2);margin-top:4px">&#1050;&#1091;&#1088;&#1089; USD = 45</div>
+        </div>
+        <div class="prow cost"><div class="prow-left"><div class="prow-label">&#1057;&#1090;&#1072;&#1074;&#1082;&#1072; &#1090;&#1088;&#1077;&#1085;&#1077;&#1088;&#1072;</div><div class="prow-note" id="coach-note">$ &#1074; &#1095;&#1072;&#1089;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-coach-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-coach" value="45" step="5" inputmode="numeric"><div class="punit" id="coach-unit">$/&#1095;</div></div><button class="pbtn" id="b-coach-p">+</button></div></div>
+        <div class="prow cost"><div class="prow-left"><div class="prow-label">&#1040;&#1088;&#1077;&#1085;&#1076;&#1072; &#1082;&#1086;&#1088;&#1090;&#1072;</div><div class="prow-note">&#8378; &#1074; &#1095;&#1072;&#1089;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-court-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-court" value="2000" step="100" inputmode="numeric"><div class="punit">&#8378;/&#1095;</div></div><button class="pbtn" id="b-court-p">+</button></div></div>
+      </div>
+      <div class="pgroup">
+        <div class="pgt">&#1060;&#1080;&#1082;&#1089;. &#1088;&#1072;&#1089;&#1093;&#1086;&#1076;&#1099;</div>
+        <div class="prow cost"><div class="prow-left"><div class="prow-label">&#1055;&#1077;&#1088;&#1077;&#1083;&#1105;&#1090; &#1090;&#1088;&#1077;&#1085;&#1077;&#1088;&#1072;</div><div class="prow-note">&euro;, &#1090;&#1091;&#1076;&#1072;-&#1086;&#1073;&#1088;&#1072;&#1090;&#1085;&#1086;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-flight-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-flight" value="650" step="50" inputmode="numeric"><div class="punit">&euro;</div></div><button class="pbtn" id="b-flight-p">+</button></div></div>
+        <div class="prow cost"><div class="prow-left"><div class="prow-label">&#1055;&#1088;&#1086;&#1078;&#1080;&#1074;&#1072;&#1085;&#1080;&#1077;</div><div class="prow-note">&#8378;, 8 &#1085;&#1086;&#1095;&#1077;&#1081;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-house-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-house" value="30000" step="500" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-house-p">+</button></div></div>
+        <div class="prow cost"><div class="prow-left"><div class="prow-label">&#1056;&#1077;&#1082;&#1083;&#1072;&#1084;&#1072;</div><div class="prow-note">&#1076;&#1086;&#1083;&#1083;&#1072;&#1088;&#1086;&#1074;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-ads-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-ads" value="100" step="50" inputmode="numeric"><div class="punit">$</div></div><button class="pbtn" id="b-ads-p">+</button></div></div>
+      </div>
+    </div>
+    <div>
+      <div class="pgroup">
+        <div class="pgt">&#1054;&#1088;&#1075;. &#1088;&#1072;&#1089;&#1093;&#1086;&#1076;&#1099;</div>
+        <div class="prow org"><div class="prow-left"><div class="prow-label">&#1055;&#1072;&#1095;&#1082;&#1072; &#1084;&#1103;&#1095;&#1077;&#1081;</div><div class="prow-note">&#8378;, 33 &#1091;&#1087;&#1072;&#1082;. &#1074;&#1089;&#1077;&#1075;&#1086;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-balls-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-balls" value="500" step="50" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-balls-p">+</button></div></div>
+        <div class="prow org"><div class="prow-left"><div class="prow-label">&#1057;&#1077;&#1088;&#1090;&#1080;&#1092;&#1080;&#1082;&#1072;&#1090;</div><div class="prow-note">&#8378; / &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-cert-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-cert" value="300" step="50" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-cert-p">+</button></div></div>
+        <div class="prow org"><div class="prow-left"><div class="prow-label">&#1052;&#1077;&#1088;&#1095;</div><div class="prow-note">&#8378; / &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-shirt-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-shirt" value="1000" step="100" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-shirt-p">+</button></div></div>
+        <div class="prow org"><div class="prow-left"><div class="prow-label">&#1050;&#1091;&#1073;&#1086;&#1082;</div><div class="prow-note">&#8378;, &#1082;&#1091;&#1087;&#1083;&#1077;&#1085;&#1086; 3 &#1096;&#1090;.</div></div><div class="prow-ctrl"><button class="pbtn" id="b-trophy-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-trophy" value="700" step="50" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-trophy-p">+</button></div></div>
+        <div class="prow org"><div class="prow-left"><div class="prow-label">&#1060;&#1086;&#1090;&#1086;&#1075;&#1088;&#1072;&#1092;</div><div class="prow-note">$, &#1085;&#1072; &#1092;&#1080;&#1085;&#1072;&#1083;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-photo-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-photo" value="200" step="50" inputmode="numeric"><div class="punit">$</div></div><button class="pbtn" id="b-photo-p">+</button></div></div>
+        <div class="prow org"><div class="prow-left"><div class="prow-label">&#1045;&#1076;&#1072; &#1080; &#1085;&#1072;&#1087;&#1080;&#1090;&#1082;&#1080;</div><div class="prow-note">&#8378;, &#1086;&#1073;&#1072; &#1090;&#1091;&#1088;&#1085;&#1080;&#1088;&#1072;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-food-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-food" value="10000" step="500" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-food-p">+</button></div></div>
+      </div>
+      <div class="pgroup">
+        <div class="pgt">&#1042;&#1085;&#1077;&#1096;&#1085;&#1080;&#1077; &#1091;&#1095;&#1072;&#1089;&#1090;&#1085;&#1080;&#1082;&#1080;</div>
+        <div class="prow ext"><div class="prow-left"><div class="prow-label">&#1050;&#1086;&#1083;-&#1074;&#1086; &#1074;&#1085;&#1077;&#1096;&#1085;&#1080;&#1093;</div><div class="prow-note">&#1095;&#1077;&#1083;&#1086;&#1074;&#1077;&#1082; &#1085;&#1072; &#1092;&#1080;&#1085;&#1072;&#1083;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-ext_n-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-ext_n" value="15" step="1" inputmode="numeric"><div class="punit">&#1095;&#1077;&#1083;.</div></div><button class="pbtn" id="b-ext_n-p">+</button></div></div>
+        <div class="prow ext"><div class="prow-left"><div class="prow-label">&#1042;&#1079;&#1085;&#1086;&#1089; &#1074;&#1085;&#1077;&#1096;&#1085;&#1077;&#1075;&#1086;</div><div class="prow-note">&#8378; / &#1095;&#1077;&#1083;&#1086;&#1074;&#1077;&#1082;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-ext_p-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-ext_p" value="1500" step="100" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-ext_p-p">+</button></div></div>
+      </div>
+      <div class="pgroup">
+        <div class="pgt">&#1055;&#1088;&#1086;&#1095;&#1077;&#1077;</div>
+        <div class="prow free"><div class="prow-left"><div class="prow-label">&#1044;&#1086;&#1087;. &#1088;&#1072;&#1089;&#1093;&#1086;&#1076;&#1099;</div><div class="prow-note">&#8378;, &#1083;&#1102;&#1073;&#1099;&#1077;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-extra-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-extra" value="0" step="500" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-extra-p">+</button></div></div>
+        <div class="prow target"><div class="prow-left"><div class="prow-label">&#1052;&#1080;&#1085;. &#1087;&#1088;&#1080;&#1073;&#1099;&#1083;&#1100;</div><div class="prow-note">&#8378;, &#1094;&#1077;&#1083;&#1077;&#1074;&#1086;&#1081; &#1087;&#1086;&#1082;&#1072;&#1079;&#1072;&#1090;&#1077;&#1083;&#1100;</div></div><div class="prow-ctrl"><button class="pbtn" id="b-minp-m">&#8722;</button><div class="pvalw"><input class="pval" type="number" id="p-minp" value="10000" step="1000" inputmode="numeric"><div class="punit">&#8378;</div></div><button class="pbtn" id="b-minp-p">+</button></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="status-el" class="status"></div>
+  <div class="rgrid" id="res-kpis"></div>
+  <div id="breakdown"></div>
+</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+// ── TAB SWITCHING — works on mobile ─────────────────────────────────
+var navEl = document.getElementById('nav');
+navEl.addEventListener('click', function(e){
+  var btn = e.target.closest('[data-tab]');
+  if(!btn) return;
+  var id = btn.getAttribute('data-tab');
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('on'); });
+  document.querySelectorAll('.nbtn').forEach(function(b){ b.classList.remove('on'); });
+  document.getElementById('t-'+id).classList.add('on');
+  btn.classList.add('on');
+});
+
+// ── CURRENCY toggle ──────────────────────────────────────────────────
+var coachCur = 'usd';
+document.getElementById('cur-usd').addEventListener('click', function(){ setCur('usd'); });
+document.getElementById('cur-eur').addEventListener('click', function(){ setCur('eur'); });
+
+function setCur(c){
+  coachCur = c;
+  document.getElementById('cur-usd').className = 'cbtn' + (c==='usd'?' on':'');
+  document.getElementById('cur-eur').className = 'cbtn' + (c==='eur'?' on':'');
+  var rate = c==='usd' ? V('usd') : V('eur');
+  document.getElementById('coach-info').textContent = (c==='usd' ? '&#1050;&#1091;&#1088;&#1089; USD = ' : '&#1050;&#1091;&#1088;&#1089; EUR = ') + rate;
+  document.getElementById('coach-note').textContent = c==='usd' ? '$ &#1074; &#1095;&#1072;&#1089;' : '\u20AC \u0432 \u0447\u0430\u0441';
+  document.getElementById('coach-unit').textContent = c==='usd' ? '$/\u0447' : '\u20AC/\u0447';
+  calc();
+}
+
+// ── +/− BUTTONS ─────────────────────────────────────────────────────
+var params = {
+  pkg:{step:500}, eur:{step:1}, usd:{step:1}, coach:{step:5}, court:{step:100},
+  flight:{step:50}, house:{step:500}, ads:{step:50},
+  balls:{step:50}, cert:{step:50}, shirt:{step:100}, trophy:{step:50},
+  photo:{step:50}, food:{step:500}, ext_n:{step:1}, ext_p:{step:100},
+  extra:{step:500}, minp:{step:1000}
+};
+
+Object.keys(params).forEach(function(id){
+  var mp = document.getElementById('b-'+id+'-m');
+  var pp = document.getElementById('b-'+id+'-p');
+  var inp = document.getElementById('p-'+id);
+  if(mp) mp.addEventListener('click', function(){ adj(id, -params[id].step); });
+  if(pp) pp.addEventListener('click', function(){ adj(id,  params[id].step); });
+  if(inp) inp.addEventListener('input', function(){ calc(); });
+});
+
+function adj(id, delta){
+  var el = document.getElementById('p-'+id);
+  if(!el) return;
+  var nv = Math.max(0, (parseFloat(el.value)||0) + delta);
+  el.value = nv;
+  if(id==='usd'||id==='eur') { document.getElementById('coach-info').textContent = (coachCur==='usd'?'&#1050;&#1091;&#1088;&#1089; USD = ':'&#1050;&#1091;&#1088;&#1089; EUR = ')+nv; }
+  calc();
+}
+
+function V(id){ return parseFloat(document.getElementById('p-'+id).value)||0; }
+function f(n){ return Math.round(n).toLocaleString('ru-RU'); }
+
+// 3-currency display helper
+function tri(try_, eur, usd, redClass){
+  var rc = redClass ? ' red' : '';
+  return '<div class="bkamt"><div class="a1' + rc + '">' + f(try_) + ' \u20BA</div>' +
+    '<div class="a2">' + f(eur) + ' \u20AC</div>' +
+    '<div class="a3">' + f(usd) + ' $</div></div>';
+}
+function triG(try_, eur, usd, label, sub){
+  return '<div class="bkga"><div class="a1">' + f(try_) + ' \u20BA</div>' +
+    '<div class="a2">' + f(eur) + ' \u20AC</div>' +
+    '<div class="a3">' + f(usd) + ' $</div></div>';
+}
+
+function calc(){
+  var USD = V('usd'), EUR = V('eur');
+  var COACH = V('coach');
+  var COURT = V('court');
+  var CLI=9, GN=3, GS=5, GH=1.5, IH=1.5, BALLS=33;
+  var coachTRY = coachCur==='usd' ? COACH*USD : COACH*EUR;
+
+  // Hours
+  var ch_op=2, ch_gr=GN*GS*GH, ch_in=CLI*IH, ch_fi=5;
+  var CH = ch_op+ch_gr+ch_in+ch_fi;
+  var co_op=3*2, co_gr=GN*GS*GH, co_in=CLI*IH, co_fi=3*4;
+  var CO = co_op+co_gr+co_in+co_fi;
+  var co_free=CLI*2*0.25, exp_free=co_free*COURT;
+
+  // Revenue
+  var rev_pkg=CLI*V('pkg'), rev_ext=V('ext_n')*V('ext_p');
+  var INC = rev_pkg+rev_ext;
+
+  // Expenses
+  var exp_coach = CH*coachTRY;
+  var exp_court = CO*COURT;
+  var exp_fl=V('flight')*EUR, exp_ho=V('house'), exp_ad=V('ads')*USD;
+  var exp_ba=BALLS*V('balls'), exp_ce=CLI*V('cert');
+  var exp_sh=CLI*V('shirt'), exp_tr=3*V('trophy');
+  var exp_ph=V('photo')*USD, exp_fo=V('food'), exp_ex=V('extra');
+  var EXP_FIXED=exp_fl+exp_ho+exp_ad;
+  var EXP_ORG=exp_ba+exp_ce+exp_sh+exp_tr+exp_ph+exp_fo+exp_free;
+  var EXP_TOT=exp_coach+exp_court+EXP_FIXED+EXP_ORG+exp_ex;
+  var PROFIT=INC-EXP_TOT, MIN_P=V('minp');
+  var ROI=EXP_TOT>0?PROFIT/EXP_TOT*100:0;
+
+  // Helper: convert TRY to EUR and USD
+  function toE(t){ return EUR>0?t/EUR:0; }
+  function toD(t){ return USD>0?t/USD:0; }
+
+  // STATUS
+  var sb=document.getElementById('status-el');
+  if(PROFIT>=MIN_P){
+    sb.className='status ok';
+    sb.innerHTML='&#10003; \u041a\u043b\u0443\u0431 \u0432 \u043f\u043b\u044e\u0441\u0435 \u2014 \u043f\u0440\u0438\u0431\u044b\u043b\u044c <strong>'+f(PROFIT)+' \u20BA</strong> (~'+f(toE(PROFIT))+' \u20AC / ~'+f(toD(PROFIT))+' $) &middot; ROI '+ROI.toFixed(1)+'%';
+  } else {
+    sb.className='status bad';
+    sb.innerHTML='&#9888; \u041d\u0435 \u0445\u0432\u0430\u0442\u0430\u0435\u0442 <strong>'+f(MIN_P-PROFIT)+' \u20BA</strong> \u0434\u043e \u043c\u0438\u043d\u0438\u043c\u0430\u043b\u044c\u043d\u043e\u0439 \u043f\u0440\u0438\u0431\u044b\u043b\u0438.';
+  }
+
+  // KPIs (3 currencies in subtext)
+  var prfCls = PROFIT>=MIN_P?'prf':'exp';
+  document.getElementById('res-kpis').innerHTML=
+    '<div class="rc inc"><div class="rl">\u0414\u043e\u0445\u043e\u0434</div><div class="rv">'+f(INC)+' \u20BA</div><div class="rs">'+f(toE(INC))+' \u20AC / '+f(toD(INC))+' $</div></div>'+
+    '<div class="rc exp"><div class="rl">\u0420\u0430\u0441\u0445\u043e\u0434\u044b</div><div class="rv">'+f(EXP_TOT)+' \u20BA</div><div class="rs">'+f(toE(EXP_TOT))+' \u20AC / '+f(toD(EXP_TOT))+' $</div></div>'+
+    '<div class="rc '+prfCls+'"><div class="rl">\u041f\u0440\u0438\u0431\u044b\u043b\u044c</div><div class="rv">'+f(PROFIT)+' \u20BA</div><div class="rs">'+f(toE(PROFIT))+' \u20AC / '+f(toD(PROFIT))+' $</div></div>'+
+    '<div class="rc roi"><div class="rl">ROI</div><div class="rv">'+ROI.toFixed(1)+'%</div><div class="rs">\u043e\u043a\u0443\u043f\u0430\u0435\u043c\u043e\u0441\u0442\u044c</div></div>'+
+    '<div class="rc neu"><div class="rl">\u0427\u0430\u0441\u043e\u0432 \u0442\u0440\u0435\u043d\u0435\u0440\u0430</div><div class="rv">'+CH.toFixed(1)+'</div><div class="rs">\u0437\u0430 \u043d\u0435\u0434\u0435\u043b\u044e</div></div>'+
+    '<div class="rc neu"><div class="rl">\u041a\u043e\u0440\u0442-\u0447\u0430\u0441\u043e\u0432</div><div class="rv">'+CO.toFixed(1)+'</div><div class="rs">+'+co_free+' \u0431\u0435\u0441\u043f\u043b.</div></div>';
+
+  function row(name, det, amt_try){
+    var e=toE(amt_try), d=toD(amt_try);
+    return '<div class="bkrow"><div style="flex:1;min-width:0"><div class="bkrn">'+name+'</div>'+(det?'<div class="bkrd">'+det+'</div>':'')+
+      '</div>'+tri(amt_try,e,d,true)+'</div>';
+  }
+  function irow(name, det, amt_try){
+    var e=toE(amt_try), d=toD(amt_try);
+    return '<div class="bkrow"><div style="flex:1;min-width:0"><div class="bkrn">'+name+'</div>'+(det?'<div class="bkrd">'+det+'</div>':'')+
+      '</div><div class="bkamt"><div class="a1" style="color:var(--g-t)">'+f(amt_try)+' \u20BA</div><div class="a2">'+f(e)+' \u20AC</div><div class="a3">'+f(d)+' $</div></div></div>';
+  }
+  function sec(id, icon, bg, title, tot, rows, open){
+    var e=toE(tot), d=toD(tot);
+    return '<div class="bkwrap">'+
+      '<div class="bkhdr" data-sec="'+id+'">'+
+        '<div class="bkicon" style="background:'+bg+'">'+icon+'</div>'+
+        '<div class="bktitle">'+title+'</div>'+
+        '<div style="text-align:right;flex-shrink:0"><div class="bktot">'+f(tot)+' \u20BA</div>'+
+          '<div style="font-size:10px;color:var(--text2)">'+f(e)+' \u20AC / '+f(d)+' $</div></div>'+
+        '<div class="bkarr'+(open?' open':'')+'" id="arr-'+id+'">\u25BE</div>'+
+      '</div>'+
+      '<div class="bkbody'+(open?' open':'')+'" id="bod-'+id+'">'+rows+'</div>'+
+    '</div>';
+  }
+
+  var clbl = coachCur==='usd'
+    ? COACH+'$\xD7'+USD+'='+Math.round(coachTRY)+'\u20BA/\u0447'
+    : COACH+'\u20AC\xD7'+EUR+'='+Math.round(coachTRY)+'\u20BA/\u0447';
+
+  var bk =
+    '<div class="bkwrap" style="margin-bottom:8px">'+
+      '<div style="padding:10px 14px;background:var(--g-bg)">'+
+        '<div style="display:flex;justify-content:space-between;align-items:flex-start">'+
+          '<div style="font-size:14px;font-weight:600;color:var(--g-t)">\u0414\u043e\u0445\u043e\u0434\u044b</div>'+
+          '<div style="text-align:right"><div style="font-size:16px;font-weight:700;color:var(--g-t)">'+f(INC)+' \u20BA</div>'+
+          '<div style="font-size:11px;color:var(--g-t)">'+f(toE(INC))+' \u20AC / '+f(toD(INC))+' $</div></div>'+
+        '</div>'+
+      '</div>'+
+      irow('\u041f\u0430\u043a\u0435\u0442\u044b \u0438\u043d\u0442\u0435\u043d\u0441\u0438\u0432\u0430','9 \u0447\u0435\u043b. \xD7 '+f(V('pkg'))+' \u20BA',rev_pkg)+
+      (V('ext_n')>0?irow('\u0412\u043d\u0435\u0448\u043d\u0438\u0435 \u0443\u0447\u0430\u0441\u0442\u043d\u0438\u043a\u0438',V('ext_n')+' \u0447\u0435\u043b. \xD7 '+f(V('ext_p'))+' \u20BA',rev_ext):'')+
+    '</div>';
+
+  bk+=sec('coach','\uD83D\uDC64','#E6F1FB','\u0413\u043e\u043d\u043e\u0440\u0430\u0440 \u0442\u0440\u0435\u043d\u0435\u0440\u0430',exp_coach,
+    row('\u0413\u0440\u0443\u043f\u043f\u043e\u0432\u044b\u0435 \u0437\u0430\u043d\u044f\u0442\u0438\u044f',GN+'\xD7'+GS+'\xD71.5\u0447='+ch_gr+'\u0447 \xB7 '+clbl,ch_gr*coachTRY)+
+    row('\u0418\u043d\u0434\u0438\u0432\u0438\u0434\u0443\u0430\u043b\u044c\u043d\u044b\u0435',CLI+' \u0447\u0435\u043b. \xD7 1.5 \u0447 = '+ch_in+' \u0447',ch_in*coachTRY)+
+    row('\u0422\u0443\u0440\u043d\u0438\u0440 17 \u043c\u0430\u044f',ch_op+' \u0447',ch_op*coachTRY)+
+    row('\u0424\u0438\u043d\u0430\u043b + \u0446\u0435\u0440\u0435\u043c\u043e\u043d\u0438\u044f',ch_fi+' \u0447',ch_fi*coachTRY)
+  ,true);
+
+  bk+=sec('court','\uD83C\uDFBE','#E1F5EE','\u0410\u0440\u0435\u043d\u0434\u0430 \u043a\u043e\u0440\u0442\u043e\u0432',exp_court+exp_free,
+    row('\u0422\u0443\u0440\u043d\u0438\u0440 17 \u043c\u0430\u044f','3 \u043a\u043e\u0440\u0442\u0430 \xD7 2 \u0447 = '+co_op+' \u043a\u043e\u0440\u0442-\u0447',co_op*COURT)+
+    row('\u0413\u0440\u0443\u043f\u043f\u043e\u0432\u044b\u0435','3\xD75\xD71.5\u0447 = '+co_gr+' \u043a\u043e\u0440\u0442-\u0447',co_gr*COURT)+
+    row('\u0418\u043d\u0434\u0438\u0432\u0438\u0434\u0443\u0430\u043b\u044c\u043d\u044b\u0435','9\xD71.5\u0447 = '+co_in+' \u043a\u043e\u0440\u0442-\u0447',co_in*COURT)+
+    row('\u0424\u0438\u043d\u0430\u043b 24 \u043c\u0430\u044f','3 \u043a\u043e\u0440\u0442\u0430 \xD7 4 \u0447 = '+co_fi+' \u043a\u043e\u0440\u0442-\u0447',co_fi*COURT)+
+    row('\u0411\u0435\u0441\u043f\u043b. \u043a\u043e\u0440\u0442 \u0443\u0447-\u043a\u043e\u0432','9\xD72\u0447\xD7\xBC = '+co_free+' \u043a\u043e\u0440\u0442-\u0447',exp_free)
+  );
+
+  bk+=sec('fixed','\u2708\uFE0F','#FAEEDA','\u0424\u0438\u043a\u0441. \u0440\u0430\u0441\u0445\u043e\u0434\u044b',EXP_FIXED,
+    row('\u041f\u0435\u0440\u0435\u043b\xB8\u0442 \u0442\u0440\u0435\u043d\u0435\u0440\u0430',V('flight')+' \u20AC \xD7 '+EUR,exp_fl)+
+    row('\u041f\u0440\u043e\u0436\u0438\u0432\u0430\u043d\u0438\u0435','8 \u043d\u043e\u0447\u0435\u0439',exp_ho)+
+    row('\u0420\u0435\u043a\u043b\u0430\u043c\u0430',V('ads')+' $ \xD7 '+USD,exp_ad)
+  );
+
+  bk+=sec('org','\uD83D\uDCE6','#F0EBFF','\u041e\u0440\u0433\u0430\u043d\u0438\u0437\u0430\u0446\u0438\u043e\u043d\u043d\u044b\u0435',EXP_ORG,
+    row('\u041c\u044f\u0447\u0438',BALLS+' \u0443\u043f\u0430\u043a. \xD7 '+f(V('balls'))+' \u20BA',exp_ba)+
+    row('\u0421\u0435\u0440\u0442\u0438\u0444\u0438\u043a\u0430\u0442\u044b','9 \xD7 '+V('cert')+' \u20BA',exp_ce)+
+    row('\u041c\u0435\u0440\u0447','9 \xD7 '+V('shirt')+' \u20BA',exp_sh)+
+    row('\u041a\u0443\u0431\u043a\u0438','3 \xD7 '+V('trophy')+' \u20BA',exp_tr)+
+    row('\u0424\u043e\u0442\u043e\u0433\u0440\u0430\u0444',V('photo')+' $ \xD7 '+USD,exp_ph)+
+    row('\u0415\u0434\u0430 \u0438 \u043d\u0430\u043f\u0438\u0442\u043a\u0438','\u043e\u0431\u0430 \u0442\u0443\u0440\u043d\u0438\u0440\u0430',exp_fo)+
+    row('\u0411\u0435\u0441\u043f\u043b. \u043a\u043e\u0440\u0442','\u0443\u0447\u0442\xB8\u043d \u0432 \u0430\u0440\u0435\u043d\u0434\u0435',exp_free)
+  );
+
+  if(exp_ex>0) bk+=sec('extra','+','#f4f4f4','\u0414\u043e\u043f. \u0440\u0430\u0441\u0445\u043e\u0434\u044b',exp_ex,
+    row('\u0414\u043e\u043f\u043e\u043b\u043d\u0438\u0442\u0435\u043b\u044c\u043d\u044b\u0435','\u0441\u0432\u043e\u0431\u043e\u0434\u043d\u044b\u0439 \u043f\u0443\u043d\u043a\u0442',exp_ex));
+
+  var profBg = PROFIT>=MIN_P?'var(--a-bg)':'var(--r-bg)';
+  var profCol = PROFIT>=MIN_P?'var(--a-t)':'var(--r-t)';
+  bk+='<div class="bkwrap">'+
+    '<div class="bkgrand"><div class="bkgl">\u0418\u0442\u043e\u0433\u043e \u0440\u0430\u0441\u0445\u043e\u0434\u043e\u0432</div>'+
+      '<div class="bkga"><div class="a1" style="color:var(--r-t)">'+f(EXP_TOT)+' \u20BA</div>'+
+        '<div class="a2">'+f(toE(EXP_TOT))+' \u20AC</div>'+
+        '<div class="a3">'+f(toD(EXP_TOT))+' $</div>'+
+      '</div></div>'+
+    '<div class="profit-box" style="background:'+profBg+'">'+
+      '<div><div class="pbl" style="color:'+profCol+'">\u041f\u0440\u0438\u0431\u044b\u043b\u044c \u043a\u043b\u0443\u0431\u0430</div>'+
+        '<div class="pbs">\u0426\u0435\u043b\u044c: '+f(MIN_P)+' \u20BA &middot; \u0414\u0435\u0444: '+f(Math.max(0,MIN_P-PROFIT))+' \u20BA</div></div>'+
+      '<div class="pbr">'+
+        '<div class="a1" style="font-size:20px;font-weight:700;color:'+profCol+'">'+f(PROFIT)+' \u20BA</div>'+
+        '<div class="a2" style="color:'+profCol+'">'+f(toE(PROFIT))+' \u20AC</div>'+
+        '<div class="a3" style="color:'+profCol+'">'+f(toD(PROFIT))+' $ &middot; ROI '+ROI.toFixed(1)+'%</div>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+
+  document.getElementById('breakdown').innerHTML = bk;
+
+  // Attach breakdown toggle
+  document.querySelectorAll('[data-sec]').forEach(function(h){
+    h.addEventListener('click', function(){
+      var id = h.getAttribute('data-sec');
+      document.getElementById('bod-'+id).classList.toggle('open');
+      document.getElementById('arr-'+id).classList.toggle('open');
+    });
+  });
+}
+
+calc();
+})();
+</script>
