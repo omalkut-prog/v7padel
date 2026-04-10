@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <style>
 /* Variables from theme.css :root */
@@ -203,8 +204,8 @@ nav {
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Выручка за месяц</div>
-      <div class="kpi-value" id="kpi-revenue">нет данных</div>
-      <div class="kpi-hint">источник: transactions (скоро)</div>
+      <div class="kpi-value" id="kpi-revenue">загрузка…</div>
+      <div class="kpi-hint" id="kpi-revenue-hint">источник: transactions</div>
     </div>
   </div>
 </div>
@@ -320,14 +321,22 @@ window._racketByDate = {};
     return '<span class="tl-badge open">Открыт</span>';
   }
 
+  // Revenue by date from transactions (populated async)
+  window._txRevByDate = {}; // date (YYYY-MM-DD) → total revenue (₺)
+
+  function fmtRev(n){ return n >= 1000 ? Math.round(n/1000)+'K' : n > 0 ? n.toLocaleString('ru-RU') : '—'; }
+
   function renderTable(items, container, isPast){
     if(!items.length){
       container.innerHTML = '<div class="tl-empty">Нет данных</div>';
       return;
     }
-    let html='<table class="tl-table"><thead><tr><th>Дата</th><th>День</th><th>Время</th><th>Формат</th><th>Заполненность</th><th>Статус</th></tr></thead><tbody>';
+    var hasRevData = Object.keys(window._txRevByDate).length > 0;
+    var revHeader = isPast && hasRevData ? '<th>Выручка</th>' : '';
+    let html='<table class="tl-table"><thead><tr><th>Дата</th><th>День</th><th>Время</th><th>Формат</th><th>Заполненность</th>'+revHeader+'<th>Статус</th></tr></thead><tbody>';
     items.forEach(r=>{
       const dt = r._date;
+      const dateKey = dt.toISOString().slice(0,10);
       const dd = String(dt.getDate()).padStart(2,'0')+'.'+String(dt.getMonth()+1).padStart(2,'0');
       const dayName = DAYS_RU[dt.getDay()];
       const time = extractTime(r.date);
@@ -336,12 +345,18 @@ window._racketByDate = {};
       const pct = slots>0 ? Math.round(count/slots*100) : 0;
       const fillCls = fillColor(pct);
       const trCls = isPast ? ' class="past"' : '';
+      var revCell = '';
+      if(isPast && hasRevData){
+        var dayRev = window._txRevByDate[dateKey] || 0;
+        revCell = '<td style="text-align:right;font-variant-numeric:tabular-nums">' + (dayRev > 0 ? fmtRev(dayRev)+' ₺' : '<span style="color:var(--text3)">—</span>') + '</td>';
+      }
       html+=`<tr${trCls}>
         <td>${dd}</td>
         <td>${dayName}</td>
         <td>${time}</td>
         <td>${r.title||'—'}</td>
         <td><div style="display:flex;align-items:center;gap:8px"><div class="tl-fill-bg"><div class="tl-fill ${fillCls}" style="width:${pct}%"></div></div><span>${count}/${slots}</span></div></td>
+        ${revCell}
         <td>${badge(r, !isPast)}</td>
       </tr>`;
     });
@@ -412,31 +427,50 @@ window._racketByDate = {};
         document.getElementById('kpi-popular').textContent = top ? top[0] : '—';
       }
 
-      // Revenue: estimate from templates × participants
-      if(pastItems.length){
-        // Extract base price (first number) from T templates
-        function basePrice(title){
-          // Fuzzy match title to T keys
-          var up = (title||'').toUpperCase().replace(/[📈🏆🌱👑👥🌙📊🔥🔀🎭⭐☕🎾🧒⛺🌟🏅🎉]/g,'').trim();
-          for(var k in T){
-            if(up.includes(k) || k.includes(up.split(' ').slice(0,2).join(' '))){
-              var m = (T[k].price||'').match(/(\d[\d\s]*)\s*TL/);
-              return m ? parseInt(m[1].replace(/\s/g,'')) : 0;
+      // Revenue: load real data from transactions (async, doesn't block tables)
+      (async function(){
+        try {
+          var txRows = await V7.loadSheet('transactions');
+          var tourTx = txRows.filter(function(r){ return (r.category||'').indexOf('Tournament') >= 0; });
+          // Group by date
+          tourTx.forEach(function(r){
+            var d = (r.date||'').slice(0,10);
+            if(!d) return;
+            window._txRevByDate[d] = (window._txRevByDate[d]||0) + V7.num(r.total);
+          });
+          // KPI: real revenue for past 30 days
+          var rev30d = 0;
+          pastItems.forEach(function(r){
+            var dk = r._date.toISOString().slice(0,10);
+            if(window._txRevByDate[dk]) rev30d += window._txRevByDate[dk];
+          });
+          // Deduplicate: count unique dates, not per-tournament
+          var seen = {};
+          var realRev30d = 0;
+          pastItems.forEach(function(r){
+            var dk = r._date.toISOString().slice(0,10);
+            if(!seen[dk] && window._txRevByDate[dk]){
+              realRev30d += window._txRevByDate[dk];
+              seen[dk] = true;
             }
+          });
+          if(realRev30d > 0){
+            var revStr = realRev30d >= 1000000 ? (realRev30d/1000000).toFixed(1)+'M' : realRev30d >= 1000 ? Math.round(realRev30d/1000)+'K' : realRev30d;
+            document.getElementById('kpi-revenue').textContent = revStr + ' ₺';
+            document.getElementById('kpi-revenue').closest('.kpi-card').querySelector('.kpi-hint').textContent = 'источник: transactions';
           }
-          return 1200; // fallback average
+          // Re-render past tables with revenue column
+          renderTable(pastItems, document.getElementById('tl-past'), true);
+          // Re-render archive if active
+          var archEl = document.getElementById('tl-archive');
+          if(archEl && archEl.querySelector('table')){
+            var filterEl = document.getElementById('archive-filter');
+            if(filterEl && filterEl._render) filterEl._render(filterEl.querySelector('.arch-btn.active')?.dataset.month || 'all');
+          }
+        } catch(e){
+          console.warn('Tournament revenue load failed:', e);
         }
-        var estRev = pastItems.reduce(function(s,r){
-          var cnt = parseInt(r.participants_count)||0;
-          var pr = basePrice(r.title);
-          return s + cnt * pr;
-        }, 0);
-        if(estRev > 0){
-          var revStr = estRev >= 1000000 ? (estRev/1000000).toFixed(1)+'M' : estRev >= 1000 ? Math.round(estRev/1000)+'K' : estRev;
-          document.getElementById('kpi-revenue').textContent = '~' + revStr + ' ₺';
-          document.getElementById('kpi-revenue').closest('.kpi-card').querySelector('.kpi-hint').textContent = 'расчёт: участники × базовая цена';
-        }
-      }
+      })();
 
       // Render tables
       renderTable(futureItems, document.getElementById('tl-future'), false);
