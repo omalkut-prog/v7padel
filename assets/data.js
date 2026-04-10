@@ -542,6 +542,12 @@
     return out;
   }
 
+  // Generic cache tab loader (for page-specific cache tabs)
+  async function loadCacheTab(tabName) {
+    var rows = await _fetchCacheTab(tabName);
+    return rows || [];
+  }
+
   // Export
   window.V7 = {
     SHEET_ID,
@@ -553,6 +559,7 @@
     loadCache,
     loadCacheSeries,
     loadFullCache,
+    loadCacheTab,
     renderReloadNotice,
     num, fmt, fmtMoney, fmtPct, fmtSigned, fmtInt,
     parseDate, ymKey, ymLabel, nameKey,

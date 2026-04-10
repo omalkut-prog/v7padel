@@ -703,20 +703,235 @@ window.closeModal = closeModal;
 document.getElementById('modal-backdrop').addEventListener('click', e => { if (e.target.id === 'modal-backdrop') closeModal(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
+/* =============================================================
+ * CACHE-BASED RENDER FUNCTIONS
+ * ============================================================= */
+
+function renderCEOFromCache(kpis, series) {
+  var revCur = num(kpis.revenue_last_month), opexCur = num(kpis.opex_last_month), pnlCur = num(kpis.pnl_last_month);
+  var todayBookings = num(kpis.today_bookings);
+  var maxSlotsPerDay = 17 * 4;
+  var utilPct = maxSlotsPerDay ? Math.round((todayBookings / maxSlotsPerDay) * 100) : 0;
+
+  // Find last two months in series for deltas
+  var sorted = series.slice().sort(function(a,b){ return (a.period_month||'').localeCompare(b.period_month||''); });
+  var cur = sorted.length >= 1 ? sorted[sorted.length - 1] : null;
+  var prv = sorted.length >= 2 ? sorted[sorted.length - 2] : null;
+  var revPrev = prv ? num(prv.revenue) : 0;
+  var opexPrev = prv ? num(prv.opex) : 0;
+  var pnlPrev = prv ? num(prv.pnl) : 0;
+
+  var dayOfMonth = TODAY.getDate();
+  var daysInPrevMonth = new Date(TODAY.getFullYear(), TODAY.getMonth(), 0).getDate();
+  function setDelta(id, curVal, prevVal) {
+    var el = document.getElementById(id);
+    if (!prevVal) { el.textContent = '—'; el.className = 'delta flat'; return; }
+    var dailyCur  = dayOfMonth > 0 ? curVal / dayOfMonth : 0;
+    var dailyPrev = daysInPrevMonth > 0 ? prevVal / daysInPrevMonth : 0;
+    if (!dailyPrev) { el.textContent = '—'; el.className = 'delta flat'; return; }
+    var d = ((dailyCur - dailyPrev) / dailyPrev) * 100;
+    var sign = d > 0 ? '▲' : d < 0 ? '▼' : '●';
+    var cls = d > 0.5 ? 'up' : d < -0.5 ? 'down' : 'flat';
+    el.textContent = sign + ' ' + Math.abs(d).toFixed(1) + '% (ср/день)';
+    el.className = 'delta ' + cls;
+  }
+
+  var isLive = cur && cur.source === 'live';
+  var liveTag = isLive ? ' ⚡' : '';
+  document.getElementById('kpi-rev').textContent  = fmtMoney(revCur) + liveTag;
+  document.getElementById('kpi-opex').textContent = fmtMoney(opexCur) + liveTag;
+  document.getElementById('kpi-pnl').textContent  = fmtMoney(pnlCur) + liveTag;
+  document.getElementById('kpi-util').textContent = utilPct + '% · ' + todayBookings + ' брон.';
+  setDelta('kpi-rev-d',  revCur,  revPrev);
+  setDelta('kpi-opex-d', opexCur, opexPrev);
+  setDelta('kpi-pnl-d',  pnlCur,  pnlPrev);
+  document.getElementById('kpi-util-d').textContent = 'из ' + maxSlotsPerDay + ' слотов';
+  document.getElementById('kpi-util-d').className = 'delta flat';
+
+  // Anomalies
+  var anom = [];
+  var revDailyNow  = dayOfMonth > 0 ? revCur / dayOfMonth : 0;
+  var revDailyPrev = daysInPrevMonth > 0 ? revPrev / daysInPrevMonth : 0;
+  if (revDailyPrev > 0) {
+    var d = ((revDailyNow - revDailyPrev) / revDailyPrev) * 100;
+    if (d < -15) anom.push({sev:'high', text:'Ср. дневная выручка упала на ' + Math.abs(d).toFixed(1) + '% к прошлому месяцу (' + fmtMoney(revDailyNow) + '/день vs ' + fmtMoney(revDailyPrev) + '/день)'});
+    if (d > 30) anom.push({sev:'low', text:'Ср. дневная выручка выросла на ' + d.toFixed(1) + '% к прошлому (' + fmtMoney(revDailyNow) + '/день)'});
+  }
+  var opexDailyNow  = dayOfMonth > 0 ? opexCur / dayOfMonth : 0;
+  var opexDailyPrev = daysInPrevMonth > 0 ? opexPrev / daysInPrevMonth : 0;
+  if (opexDailyPrev > 0) {
+    var d2 = ((opexDailyNow - opexDailyPrev) / opexDailyPrev) * 100;
+    if (d2 > 30) anom.push({sev:'high', text:'Ср. дневные расходы выросли на ' + d2.toFixed(1) + '% к прошлому месяцу'});
+  }
+  if (pnlCur < 0 && pnlPrev >= 0) anom.push({sev:'high', text:'Операционный P&L ушёл в минус: ' + fmtMoney(pnlCur)});
+  if (utilPct < 30) anom.push({sev:'mid', text:'Низкая загрузка кортов сегодня: ' + utilPct + '%'});
+  if (utilPct > 85) anom.push({sev:'low', text:'Пик загрузки сегодня: ' + utilPct + '% — нужно увеличить цены?'});
+  var list = document.getElementById('anomalies-list');
+  list.innerHTML = '';
+  if (!anom.length) {
+    list.innerHTML = '<li><span class="ico sev-low">✓</span>Аномалий не найдено — все метрики в пределах нормы.</li>';
+  } else {
+    anom.slice(0, 3).forEach(function(a) {
+      var li = document.createElement('li');
+      li.innerHTML = '<span class="ico sev-' + a.sev + '">' + (a.sev === 'high' ? '!' : a.sev === 'mid' ? '⚠' : 'ℹ') + '</span><div>' + a.text + '</div>';
+      list.appendChild(li);
+    });
+  }
+}
+
+function renderFunnelFromCache(funnelRows) {
+  var box = document.getElementById('funnel');
+  if (!funnelRows || !funnelRows.length) { box.innerHTML = '<div class="error">Нет данных воронки в кеше</div>'; return; }
+  var stages = funnelRows.map(function(row) {
+    return { name: row.name, sub: row.sub, n: num(row.count) };
+  });
+  var maxN = Math.max.apply(null, stages.map(function(s){ return s.n; }).concat(1));
+  box.innerHTML = stages.map(function(s, i) {
+    var prev = i > 0 ? stages[i-1].n : s.n;
+    var conv = prev > 0 ? Math.round((s.n / prev) * 100) : 0;
+    var w = Math.max(2, Math.round((s.n / maxN) * 100));
+    return '<div class="funnel-row">' +
+      '<div class="stage">' + s.name + '<small>' + s.sub + '</small></div>' +
+      '<div class="funnel-bar-bg"><div class="funnel-bar" style="width:' + w + '%">' + (s.n > 0 ? fmt(s.n) : '') + '</div></div>' +
+      '<div class="count">' + s.n + '</div>' +
+      '<div class="conv">' + (i > 0 ? conv + '%' : '—') + '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderClientsFromCache(clientsRows) {
+  _cust = clientsRows; _book = null; _memb = null;
+  var tbody = document.getElementById('clients-tbody');
+  if (!clientsRows || !clientsRows.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет клиентов в кеше</td></tr>'; return; }
+  var sorted = clientsRows.slice().sort(function(a,b){ return num(b.bk_count) - num(a.bk_count); }).slice(0, 100);
+  tbody.innerHTML = sorted.map(function(c, idx) {
+    return '<tr data-idx="' + idx + '">' +
+      '<td>' + (c.name || '—') + '</td>' +
+      '<td>' + (c.phone || '—') + '</td>' +
+      '<td>' + (num(c.bk_count) || 0) + '</td>' +
+      '<td>' + (c.card || '—') + '</td>' +
+      '<td>' + (c.subs_date || '—') + '</td>' +
+    '</tr>';
+  }).join('');
+  tbody.querySelectorAll('tr').forEach(function(tr) {
+    tr.addEventListener('click', function() { openClientCardFromCache(sorted[+tr.dataset.idx]); });
+  });
+}
+
+function openClientCardFromCache(c) {
+  if (!c) return;
+  var body = document.getElementById('modal-body');
+  body.innerHTML =
+    '<button class="modal-close" aria-label="Закрыть" onclick="closeModal()">×</button>' +
+    '<h3>' + (c.name || '—') + '</h3>' +
+    '<div class="sub">Данные из кеша</div>' +
+    '<div class="fields">' +
+      '<div class="f"><span>Телефон</span><b>' + (c.phone || '—') + '</b></div>' +
+      '<div class="f"><span>Email</span><b>' + (c.email || '—') + '</b></div>' +
+      '<div class="f"><span>Источник</span><b>' + (c.source || '—') + '</b></div>' +
+      '<div class="f"><span>Карта</span><b>' + (c.card || '—') + '</b></div>' +
+      '<div class="f"><span>Регистрация</span><b>' + (c.subs_date || '—') + '</b></div>' +
+      '<div class="f"><span>Всего бронирований</span><b>' + (num(c.bk_count) || 0) + '</b></div>' +
+      '<div class="f"><span>Сегмент</span><b>' + (c.segment || '—') + '</b></div>' +
+      '<div class="f"><span>Последнее бронирование</span><b>' + (c.last_bk || '—') + '</b></div>' +
+    '</div>' +
+    '<h4>История бронирований</h4>' +
+    '<div class="loading">Данные из кеша — детали недоступны</div>';
+  document.getElementById('modal-backdrop').classList.add('active');
+}
+
+function renderHeatmapFromCache(heatmapRows) {
+  var box = document.getElementById('heatmap');
+  if (!heatmapRows || !heatmapRows.length) { box.innerHTML = '<div class="error" style="grid-column:1/-1">Нет данных heatmap в кеше</div>'; return; }
+  var HOURS = []; for (var h = 7; h <= 23; h++) HOURS.push(h);
+  var maxVal = 0;
+  heatmapRows.forEach(function(row) {
+    HOURS.forEach(function(h) {
+      var v = num(row['h' + h]);
+      if (v > maxVal) maxVal = v;
+    });
+  });
+  var html = '<div class="cell h"></div>';
+  HOURS.forEach(function(h) { html += '<div class="cell h">' + h + '</div>'; });
+  heatmapRows.forEach(function(row) {
+    html += '<div class="cell dow">' + row.day + '</div>';
+    HOURS.forEach(function(h) {
+      var v = num(row['h' + h]);
+      var intensity = maxVal ? (v / maxVal) : 0;
+      var bg = 'rgba(10,186,181,' + (0.05 + intensity * 0.9).toFixed(2) + ')';
+      var txt = v > 0 ? v : '';
+      html += '<div class="cell" style="background:' + bg + '" title="' + row.day + ' ' + h + ':00 → ' + v + ' брон.">' + txt + '</div>';
+    });
+  });
+  box.innerHTML = html;
+}
+
+function renderGoodsFromCache(goodsRows) {
+  if (!goodsRows || !goodsRows.length) { document.getElementById('goods-top').innerHTML = '<li class="error">Нет данных товаров в кеше</li>'; return; }
+  var top = goodsRows.filter(function(r){ return r.type === 'top'; });
+  var monthly = goodsRows.filter(function(r){ return r.type === 'monthly'; });
+
+  document.getElementById('goods-top').innerHTML = top.length
+    ? top.map(function(r){ return '<li><span>' + r.key + '</span><strong>' + fmtMoney(num(r.value)) + '</strong></li>'; }).join('')
+    : '<li class="error">Нет продаж</li>';
+
+  var months = monthly.map(function(r){ return r.key; }).sort();
+  var values = months.map(function(m){ var row = monthly.find(function(r){ return r.key === m; }); return row ? num(row.value) : 0; });
+  var ctx = document.getElementById('goods-chart').getContext('2d');
+  var acc = accentColor();
+  new Chart(ctx, {
+    type: 'bar',
+    data: { labels: months, datasets: [{ label: 'Товары', data: values, backgroundColor: acc, borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text3') }, grid: { display: false } },
+        y: { ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text3'), callback: function(v){ return fmt(v); } }, grid: { color: getComputedStyle(document.documentElement).getPropertyValue('--border') } }
+      }
+    }
+  });
+}
+
 /* ---- RUN ALL ---- */
 function showErr(name, e) {
   console.error(name + ':', e);
-  const d = document.createElement('div');
+  var d = document.createElement('div');
   d.style.cssText = 'background:#fee;color:#c00;padding:8px 14px;border:1px solid #fcc;border-radius:8px;margin:8px 24px;font-size:13px;font-family:monospace;';
   d.textContent = '⚠ ' + name + ': ' + (e.message || e);
-  document.querySelector('.container').prepend(d);
+  document.querySelector('main').prepend(d);
 }
-renderCEOOverview().catch(e => showErr('CEO Overview', e));
-renderFunnel().catch(e => showErr('Funnel', e));
-renderHeatmap().catch(e => showErr('Heatmap', e));
-renderTournaments().catch(e => showErr('Tournaments', e));
-renderGoods().catch(e => showErr('Goods', e));
-renderClients().catch(e => showErr('Clients', e));
+
+(async function() {
+  var t0 = performance.now();
+  try {
+    var [kpiRows, seriesRows, funnelRows, heatmapRows, goodsRows, clientsRows] = await Promise.all([
+      V7.loadCacheTab('dashboard_kpis'),
+      V7.loadCacheTab('monthly_series'),
+      V7.loadCacheTab('funnel'),
+      V7.loadCacheTab('heatmap'),
+      V7.loadCacheTab('goods'),
+      V7.loadCacheTab('clients_enriched')
+    ]);
+    if (kpiRows && kpiRows.length && seriesRows && seriesRows.length) {
+      console.log('management: cache loaded in ' + Math.round(performance.now()-t0) + 'ms');
+      renderCEOFromCache(kpiRows[0], seriesRows);
+      renderFunnelFromCache(funnelRows);
+      renderClientsFromCache(clientsRows);
+      renderHeatmapFromCache(heatmapRows);
+      renderTournaments().catch(function(e){ showErr('Tournaments', e); });
+      renderGoodsFromCache(goodsRows);
+      return;
+    }
+  } catch(e) { console.warn('management cache failed:', e); }
+  // Slow fallback — original Google Sheets loading
+  console.log('management: falling back to Google Sheets');
+  renderCEOOverview().catch(function(e){ showErr('CEO Overview', e); });
+  renderFunnel().catch(function(e){ showErr('Funnel', e); });
+  renderHeatmap().catch(function(e){ showErr('Heatmap', e); });
+  renderTournaments().catch(function(e){ showErr('Tournaments', e); });
+  renderGoods().catch(function(e){ showErr('Goods', e); });
+  renderClients().catch(function(e){ showErr('Clients', e); });
+})();
 </script>
 
 </body>

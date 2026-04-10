@@ -319,143 +319,160 @@ const state = {
 
 /* ---------- MAIN: load + enrich + render ---------- */
 (async function main() {
-  const [customers, bookings, memberships] = await Promise.all([
-    loadSheet('customers'), loadSheet('bookings'), loadSheet('memberships')
-  ]);
+  var usedCache = false;
 
-  if (!customers || !customers.length) {
-    document.getElementById('tbody').innerHTML = '<tr><td colspan="7" class="error">Нет данных customers</td></tr>';
-    return;
-  }
-
-  // ---- Real v7padel_db schema (verified via gviz audit 2026-04-09) ----
-  //  customers:   customer_id, name, phone, email, gender, age, subs_date, level, nationality
-  //  bookings:    booking_id, customer_id (⚠ EMPTY everywhere), court_id, start_ts,
-  //               end_ts, status, price
-  //  memberships: membership_id, holder, card_type, rate, payment, subs_date, paid_until,
-  //               next_fee, status, first_fee, fee
-  //
-  //  ⚠ KNOWN DATA ISSUE: bookings.customer_id is empty in 100% of rows.
-  //     Impact: cannot link a booking to a specific customer.
-  //     Funnel stages "first visit / 2-3 games / regular 4+" fall back to "—".
-  //     Active/sleeping segments fall back to membership status:
-  //       active   = has membership with status='Active'
-  //       sleeping = N/A (cannot be computed without booking linkage)
-  //       never    = no active membership
-  //     Must be fixed in ETL: backfill customer_id in bookings by matching
-  //     Matchpoint client name against customers.name.
-
-  const nameKey = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
-
-  // Staff exclusions — former employees whose bookings are work records, not client activity
-  const STAFF_NAMES = new Set(['gulcan yanar']);
-
-  // --- Memberships index by NORMALIZED HOLDER NAME ---
-  //   card_type "Club Membership" → 'Club', "V7 VIP" → 'VIP', else 'Other'
-  //   prefer an 'Active' row over any non-active row for the same holder
-  const mbByName = {};
-  if (memberships && memberships.length) {
-    memberships.forEach(m => {
-      const h = nameKey(m.holder); if (!h) return;
-      const ct = (m.card_type || '').toLowerCase();
-      let card = 'Other';
-      if (ct.indexOf('vip') >= 0) card = 'VIP';
-      else if (ct.indexOf('club') >= 0) card = 'Club';
-      const isActive = String(m.status || '').toLowerCase() === 'active';
-      const rec = {
-        card, isActive,
-        cardType: m.card_type || '',
-        status: m.status || '',
-        subsDate: m.subs_date || '',
-        paidUntil: m.paid_until || '',
-        fee: m.fee || m.first_fee || '',
-        rate: m.rate || '',
-        payment: m.payment || ''
-      };
-      const ex = mbByName[h];
-      if (!ex || (!ex.isActive && isActive)) mbByName[h] = rec;
-    });
-  }
-
-  // --- Bookings: build per-customer booking map ---
-  let totalBookings = 0, bookingsLinkable = false;
-  const bkByCustomerId = {}; // customer_id -> [{date, status}]
-  if (bookings && bookings.length) {
-    totalBookings = bookings.length;
-    bookings.forEach(b => {
-      const cid = (b.customer_id || '').toString().trim();
-      if (!cid) return;
-      bookingsLinkable = true;
-      if (!bkByCustomerId[cid]) bkByCustomerId[cid] = [];
-      bkByCustomerId[cid].push({
-        date: parseDate(b.start_ts) || parseDate(b.date),
-        status: b.status || ''
+  // === FAST PATH: load from v7padel_cache.clients_enriched ===
+  try {
+    var cached = await V7.loadCacheTab('clients_enriched');
+    if (cached && cached.length > 0) {
+      console.log('clients: using cache (' + cached.length + ' rows)');
+      usedCache = true;
+      state.bookingsLinkable = false;
+      state.totalBookings = 0;
+      state.customers = cached.map(function(c) {
+        var seg = (c.segment || 'never').toLowerCase();
+        return {
+          id: '',
+          name: c.name || '—',
+          phone: (c.phone || '—').replace(/^(\+?\d{1,4})\s+\+?\1/, '$1'),
+          email: c.email || '—',
+          source: c.source || '—',
+          level: c.level || '',
+          gender: c.gender || '',
+          age: c.age || '',
+          language: c.language || '',
+          telegram: c.telegram || '',
+          whatsapp: c.whatsapp || '',
+          birthday: c.birthday || '',
+          createdRaw: c.subs_date || '—',
+          regDate: parseDate(c.subs_date),
+          lastBk: parseDate(c.last_bk),
+          bkCount: parseInt(c.bk_count) || 0,
+          bk: [],
+          isNew: c.is_new === '1',
+          hasRecent: seg === 'active',
+          segment: seg,
+          card: c.card || '—',
+          memb: null
+        };
       });
-    });
-  }
-  state.bookingsLinkable = bookingsLinkable;
-  state.totalBookings = totalBookings;
+    }
+  } catch(e) { console.warn('clients cache failed:', e); }
 
-  // --- Enrich customers ---
-  const now = new Date();
-  const cutoff30 = new Date(now); cutoff30.setDate(cutoff30.getDate() - 30);
-  state.customers = customers
-    .filter(c => !STAFF_NAMES.has(nameKey(c.name)))
-    .map(c => {
-    const id = c.customer_id;
-    const name = c.name || '—';
-    const nKey = nameKey(name);
-    const regDate = parseDate(c.subs_date);
-    const isNew = regDate && regDate >= cutoff30;
+  // === SLOW FALLBACK: original 3-sheet loading + enrichment ===
+  if (!usedCache) {
+    console.log('clients: fallback to direct queries');
+    const [customers, bookings, memberships] = await Promise.all([
+      loadSheet('customers'), loadSheet('bookings'), loadSheet('memberships')
+    ]);
 
-    // Membership lookup by normalized name (bookings has no usable customer linkage)
-    const memb = mbByName[nKey] || null;
-    let card = '—';
-    if (memb && memb.isActive) {
-      card = memb.card === 'Other' && memb.cardType ? memb.cardType : memb.card;
+    if (!customers || !customers.length) {
+      document.getElementById('tbody').innerHTML = '<tr><td colspan="7" class="error">Нет данных customers</td></tr>';
+      return;
     }
 
-    // Booking history for this customer
-    const custBk = bkByCustomerId[id] || [];
-    const bkCount = custBk.length;
-    const sortedBk = custBk.filter(b => b.date).sort((a, b) => b.date - a.date);
-    const lastBk = sortedBk.length ? sortedBk[0].date : null;
-    const cutoff30bk = new Date(now); cutoff30bk.setDate(cutoff30bk.getDate() - 30);
-    const recentBk = sortedBk.filter(b => b.date >= cutoff30bk);
-    const hasRecent = recentBk.length > 0;
+    const nameKey = (s) => (s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+    const STAFF_NAMES = new Set(['gulcan yanar']);
 
-    // Segment: active (membership or recent play), sleeping (played but not recently), never
-    let segment;
-    if (memb && memb.isActive) segment = 'active';
-    else if (hasRecent) segment = 'active';
-    else if (bkCount > 0) segment = 'sleeping';
-    else segment = 'never';
+    const mbByName = {};
+    if (memberships && memberships.length) {
+      memberships.forEach(m => {
+        const h = nameKey(m.holder); if (!h) return;
+        const ct = (m.card_type || '').toLowerCase();
+        let card = 'Other';
+        if (ct.indexOf('vip') >= 0) card = 'VIP';
+        else if (ct.indexOf('club') >= 0) card = 'Club';
+        const isActive = String(m.status || '').toLowerCase() === 'active';
+        const rec = {
+          card, isActive,
+          cardType: m.card_type || '',
+          status: m.status || '',
+          subsDate: m.subs_date || '',
+          paidUntil: m.paid_until || '',
+          fee: m.fee || m.first_fee || '',
+          rate: m.rate || '',
+          payment: m.payment || ''
+        };
+        const ex = mbByName[h];
+        if (!ex || (!ex.isActive && isActive)) mbByName[h] = rec;
+      });
+    }
 
-    return {
-      id,
-      name,
-      phone: (c.phone || '—').replace(/^(\+?\d{1,4})\s+\+?\1/, '$1'),
-      email: c.email || '—',
-      source: c.nationality || '—',
-      level: c.level || '',
-      gender: c.gender || '',
-      age: c.age || '',
-      language: c.language || '',
-      telegram: c.telegram || '',
-      whatsapp: c.whatsapp || '',
-      birthday: c.birthday || '',
-      createdRaw: c.subs_date || '—',
-      regDate,
-      lastBk,
-      bkCount,
-      bk: custBk,
-      isNew,
-      hasRecent,
-      segment,
-      card,
-      memb
-    };
-  });
+    let totalBookings = 0, bookingsLinkable = false;
+    const bkByCustomerId = {};
+    if (bookings && bookings.length) {
+      totalBookings = bookings.length;
+      bookings.forEach(b => {
+        const cid = (b.customer_id || '').toString().trim();
+        if (!cid) return;
+        bookingsLinkable = true;
+        if (!bkByCustomerId[cid]) bkByCustomerId[cid] = [];
+        bkByCustomerId[cid].push({
+          date: parseDate(b.start_ts) || parseDate(b.date),
+          status: b.status || ''
+        });
+      });
+    }
+    state.bookingsLinkable = bookingsLinkable;
+    state.totalBookings = totalBookings;
+
+    const now = new Date();
+    const cutoff30 = new Date(now); cutoff30.setDate(cutoff30.getDate() - 30);
+    state.customers = customers
+      .filter(c => !STAFF_NAMES.has(nameKey(c.name)))
+      .map(c => {
+      const id = c.customer_id;
+      const name = c.name || '—';
+      const nKey = nameKey(name);
+      const regDate = parseDate(c.subs_date);
+      const isNew = regDate && regDate >= cutoff30;
+
+      const memb = mbByName[nKey] || null;
+      let card = '—';
+      if (memb && memb.isActive) {
+        card = memb.card === 'Other' && memb.cardType ? memb.cardType : memb.card;
+      }
+
+      const custBk = bkByCustomerId[id] || [];
+      const bkCount = custBk.length;
+      const sortedBk = custBk.filter(b => b.date).sort((a, b) => b.date - a.date);
+      const lastBk = sortedBk.length ? sortedBk[0].date : null;
+      const cutoff30bk = new Date(now); cutoff30bk.setDate(cutoff30bk.getDate() - 30);
+      const recentBk = sortedBk.filter(b => b.date >= cutoff30bk);
+      const hasRecent = recentBk.length > 0;
+
+      let segment;
+      if (memb && memb.isActive) segment = 'active';
+      else if (hasRecent) segment = 'active';
+      else if (bkCount > 0) segment = 'sleeping';
+      else segment = 'never';
+
+      return {
+        id,
+        name,
+        phone: (c.phone || '—').replace(/^(\+?\d{1,4})\s+\+?\1/, '$1'),
+        email: c.email || '—',
+        source: c.nationality || '—',
+        level: c.level || '',
+        gender: c.gender || '',
+        age: c.age || '',
+        language: c.language || '',
+        telegram: c.telegram || '',
+        whatsapp: c.whatsapp || '',
+        birthday: c.birthday || '',
+        createdRaw: c.subs_date || '—',
+        regDate,
+        lastBk,
+        bkCount,
+        bk: custBk,
+        isNew,
+        hasRecent,
+        segment,
+        card,
+        memb
+      };
+    });
+  }
 
   renderSummary();
   renderFunnel();

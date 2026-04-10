@@ -636,12 +636,300 @@ async function renderBlock5() {
     '</div>';
 }
 
+/* ========================================================================
+ * CACHE-BASED RENDER FUNCTIONS
+ * ======================================================================== */
+
+function renderBlock1FromCache(seriesRows) {
+  const tbody = document.querySelector('#pnl-table tbody');
+  const tfoot = document.querySelector('#pnl-table tfoot');
+  const months = seriesRows
+    .filter(r => (r.period_month || '') >= '2025-10')
+    .sort((a, b) => a.period_month < b.period_month ? -1 : 1);
+  if (!months.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
+
+  let prevPnl = null, sumRev = 0, sumOpex = 0, sumPnl = 0;
+  tbody.innerHTML = months.map(r => {
+    var rev = num(r.revenue), op = num(r.opex), pnl = num(r.pnl);
+    var delta = prevPnl == null ? null : pnl - prevPnl;
+    prevPnl = pnl;
+    sumRev += rev; sumOpex += op; sumPnl += pnl;
+    var pnlCls = pnl >= 0 ? 'pos' : 'neg';
+    var dCls = delta == null ? 'muted' : delta >= 0 ? 'pos' : 'neg';
+    var liveTag = r.source === 'live' ? ' <span style="color:var(--accent);font-size:11px" title="Живые данные из транзакций">⚡live</span>' : '';
+    return '<tr>' +
+      '<td>' + ymLabel(r.period_month) + liveTag + '</td>' +
+      '<td class="num">' + fmtMoney(rev) + '</td>' +
+      '<td class="num">' + fmtMoney(op) + '</td>' +
+      '<td class="num ' + pnlCls + '">' + fmtMoney(pnl) + '</td>' +
+      '<td class="num ' + dCls + '">' + (delta == null ? '—' : fmtSigned(delta)) + '</td>' +
+    '</tr>';
+  }).join('');
+  var sumCls = sumPnl >= 0 ? 'pos' : 'neg';
+  tfoot.innerHTML = '<tr>' +
+    '<td>Итого</td>' +
+    '<td class="num">' + fmtMoney(sumRev) + '</td>' +
+    '<td class="num">' + fmtMoney(sumOpex) + '</td>' +
+    '<td class="num ' + sumCls + '">' + fmtMoney(sumPnl) + '</td>' +
+    '<td></td>' +
+  '</tr>';
+
+  // Chart
+  var labels = months.map(r => r.source === 'live' ? ymLabel(r.period_month) + ' ⚡' : ymLabel(r.period_month));
+  var revs = months.map(r => num(r.revenue));
+  var opexs = months.map(r => num(r.opex));
+  var pnls = months.map(r => num(r.pnl));
+  var acc = accent();
+  var textCol = cssVar('--text3');
+  var gridCol = cssVar('--border');
+
+  new Chart(document.getElementById('pnl-chart').getContext('2d'), {
+    data: {
+      labels: labels,
+      datasets: [
+        { type: 'bar', label: 'Выручка', data: revs, backgroundColor: acc, borderRadius: 4, order: 2 },
+        { type: 'bar', label: 'OPEX',    data: opexs, backgroundColor: 'rgba(231,76,60,0.55)', borderRadius: 4, order: 2 },
+        { type: 'line', label: 'Оп. P&L', data: pnls, borderColor: '#13c296', backgroundColor: 'rgba(19,194,150,0.12)', tension: 0.3, borderWidth: 2.5, pointRadius: 4, pointBackgroundColor: '#13c296', fill: false, order: 1, segment: { borderColor: ctx => (ctx.p0.parsed.y < 0 || ctx.p1.parsed.y < 0) ? '#e74c3c' : '#13c296' } }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: textCol } }, tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + fmtMoney(ctx.parsed.y) } } },
+      scales: {
+        x: { ticks: { color: textCol }, grid: { color: gridCol } },
+        y: { ticks: { color: textCol, callback: v => fmt(v) }, grid: { color: gridCol } }
+      }
+    }
+  });
+}
+
+function renderBlock2FromCache(revCatRows) {
+  if (!revCatRows || !revCatRows.length) {
+    document.querySelector('#rev-table tbody').innerHTML = '<tr><td colspan="3" class="error">rev_by_month_cat пуст</td></tr>';
+    return;
+  }
+  var availMonths = revCatRows.map(r => r.month).filter(Boolean).sort();
+  var sel = document.getElementById('rev-month');
+  availMonths.filter(m => m >= '2025-10').forEach(function(m) {
+    var opt = document.createElement('option');
+    opt.value = m; opt.textContent = ymLabel(m);
+    sel.appendChild(opt);
+  });
+
+  function renderRevFromCache(monthFilter) {
+    var byCat = {};
+    REV_CATS.forEach(function(c) { byCat[c] = 0; });
+    var rows = monthFilter === 'all' ? revCatRows : revCatRows.filter(function(r) { return r.month === monthFilter; });
+    rows.forEach(function(r) {
+      REV_CATS.forEach(function(c) { byCat[c] += num(r[c]); });
+    });
+    var total = REV_CATS.reduce(function(s, c) { return s + byCat[c]; }, 0);
+
+    var tbody = document.querySelector('#rev-table tbody');
+    var tfoot = document.querySelector('#rev-table tfoot');
+    if (!total) {
+      tbody.innerHTML = '<tr><td colspan="3" class="empty">Нет транзакций в этом периоде</td></tr>';
+      tfoot.innerHTML = '';
+    } else {
+      tbody.innerHTML = REV_CATS.map(function(c, i) {
+        var v = byCat[c];
+        var pct = (v / total) * 100;
+        return '<tr>' +
+          '<td><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:' + REV_COLORS[i] + ';margin-right:8px;vertical-align:middle"></span>' + c + '</td>' +
+          '<td class="num">' + fmtMoney(v) + '</td>' +
+          '<td class="num muted">' + fmtPct(pct) + '</td>' +
+        '</tr>';
+      }).join('');
+      tfoot.innerHTML = '<tr><td>Итого</td><td class="num">' + fmtMoney(total) + '</td><td class="num">100%</td></tr>';
+    }
+
+    // Donut
+    var ctx = document.getElementById('rev-donut').getContext('2d');
+    if (revDonut) revDonut.destroy();
+    revDonut = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: REV_CATS,
+        datasets: [{ data: REV_CATS.map(function(c) { return byCat[c]; }), backgroundColor: REV_COLORS, borderWidth: 0 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '62%',
+        plugins: {
+          legend: { position: 'bottom', labels: { color: cssVar('--text3'), boxWidth: 10, padding: 10, font: { size: 11 } } },
+          tooltip: { callbacks: { label: ctx => ctx.label + ': ' + fmtMoney(ctx.parsed) + ' · ' + fmtPct(total ? (ctx.parsed / total) * 100 : 0) } }
+        }
+      }
+    });
+  }
+
+  sel.addEventListener('change', function() { renderRevFromCache(sel.value); });
+  renderRevFromCache('all');
+}
+
+function renderBlock3FromCache(expRows, seriesRows) {
+  // --- OPEX by category table ---
+  if (!expRows || !expRows.length) {
+    document.querySelector('#exp-table tbody').innerHTML = '<tr><td colspan="3" class="error">exp_by_cat пуст</td></tr>';
+  } else {
+    var opexRows = expRows.filter(function(r) { return num(r.opex_amount) > 0; });
+    var sortedCats = opexRows.map(function(r) { return [r.category, num(r.opex_amount)]; }).sort(function(a, b) { return b[1] - a[1]; });
+    var top = sortedCats.slice(0, 8);
+    var tail = sortedCats.slice(8);
+    var tailSum = tail.reduce(function(s, r) { return s + r[1]; }, 0);
+    if (tailSum > 0) top.push(['Прочее', tailSum]);
+    var opexTotal = top.reduce(function(s, r) { return s + r[1]; }, 0);
+
+    var opexTbody = document.querySelector('#exp-table tbody');
+    var opexTfoot = document.querySelector('#exp-table tfoot');
+    opexTbody.innerHTML = top.map(function(r) {
+      var pct = opexTotal ? (r[1] / opexTotal) * 100 : 0;
+      return '<tr><td>' + r[0] + '</td><td class="num">' + fmtMoney(r[1]) + '</td><td class="num muted">' + fmtPct(pct) + '</td></tr>';
+    }).join('');
+    opexTfoot.innerHTML = '<tr><td>Итого OPEX</td><td class="num">' + fmtMoney(opexTotal) + '</td><td class="num">100%</td></tr>';
+
+    // --- CAPEX ---
+    var capexRows = expRows.filter(function(r) { return num(r.capex_amount) > 0; });
+    var capexSorted = capexRows.map(function(r) { return [r.category, num(r.capex_amount)]; }).sort(function(a, b) { return b[1] - a[1]; });
+    var capexTotal = capexSorted.reduce(function(s, r) { return s + r[1]; }, 0);
+    var cpTbody = document.querySelector('#capex-table tbody');
+    var cpTfoot = document.querySelector('#capex-table tfoot');
+    if (!capexSorted.length) {
+      cpTbody.innerHTML = '<tr><td colspan="2" class="empty">Нет CAPEX</td></tr>';
+      cpTfoot.innerHTML = '';
+    } else {
+      cpTbody.innerHTML = capexSorted.map(function(r) { return '<tr><td>' + r[0] + '</td><td class="num">' + fmtMoney(r[1]) + '</td></tr>'; }).join('');
+      cpTfoot.innerHTML = '<tr><td>Итого CAPEX</td><td class="num">' + fmtMoney(capexTotal) + '</td></tr>';
+    }
+  }
+
+  // --- OPEX monthly chart from seriesRows ---
+  var months = (seriesRows || [])
+    .filter(function(r) { return (r.period_month || '') >= '2025-10'; })
+    .sort(function(a, b) { return a.period_month < b.period_month ? -1 : 1; });
+  var labels = months.map(function(r) { return ymLabel(r.period_month); });
+  var values = months.map(function(r) { return num(r.opex); });
+  var textCol = cssVar('--text3'); var gridCol = cssVar('--border');
+  new Chart(document.getElementById('exp-chart').getContext('2d'), {
+    type: 'line',
+    data: { labels: labels, datasets: [{ label: 'OPEX', data: values, borderColor: '#e74c3c', backgroundColor: 'rgba(231,76,60,0.14)', tension: 0.3, fill: true, borderWidth: 2.5, pointRadius: 3, pointBackgroundColor: '#e74c3c' }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtMoney(ctx.parsed.y) } } },
+      scales: {
+        x: { ticks: { color: textCol }, grid: { color: gridCol } },
+        y: { ticks: { color: textCol, callback: v => fmt(v) }, grid: { color: gridCol } }
+      }
+    }
+  });
+}
+
+function renderBlock4FromCache(cancelRows) {
+  if (!cancelRows || !cancelRows.length) {
+    document.getElementById('cn-total').textContent = '—';
+    document.getElementById('cn-money').textContent = '—';
+    document.getElementById('cn-avg').textContent = '—';
+    return;
+  }
+  var kpi = {}, monthData = [], dayData = [], hourData = [];
+  cancelRows.forEach(function(r) {
+    if (r.type === 'kpi') kpi[r.key] = r.value;
+    else if (r.type === 'month') monthData.push(r);
+    else if (r.type === 'day') dayData.push(r);
+    else if (r.type === 'hour') hourData.push(r);
+  });
+
+  // KPI
+  var totalBookings = num(kpi.total_bookings) || 0;
+  var cancelledCount = num(kpi.cancelled_count) || 0;
+  var avgCheck = num(kpi.avg_check) || 0;
+  var lostMoney = num(kpi.lost_money) || 0;
+
+  document.getElementById('cn-total').textContent = cancelledCount + ' / ' + totalBookings;
+  document.getElementById('cn-money').textContent = fmtMoney(lostMoney);
+  document.getElementById('cn-avg').textContent = fmtMoney(avgCheck);
+
+  // Monthly chart
+  var months = monthData.sort(function(a, b) { return a.key < b.key ? -1 : 1; });
+  new Chart(document.getElementById('cn-chart').getContext('2d'), {
+    type: 'bar',
+    data: { labels: months.map(function(r) { return ymLabel(r.key); }), datasets: [{ label: 'Отмены', data: months.map(function(r) { return num(r.value); }), backgroundColor: '#e74c3c', borderRadius: 4 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.parsed.y + ' отмен' } } },
+      scales: {
+        x: { ticks: { color: cssVar('--text3') }, grid: { display: false } },
+        y: { ticks: { color: cssVar('--text3') }, grid: { color: cssVar('--border') } }
+      }
+    }
+  });
+
+  // Top days
+  var topDays = dayData.sort(function(a, b) { return num(b.value) - num(a.value); }).slice(0, 5);
+  document.querySelector('#cn-top-days tbody').innerHTML = topDays.length
+    ? topDays.map(function(r) { return '<tr><td>' + r.key + '</td><td class="num">' + num(r.value) + '</td></tr>'; }).join('')
+    : '<tr><td colspan="2" class="empty">Нет данных</td></tr>';
+
+  // Top hours
+  var topHours = hourData.sort(function(a, b) { return num(b.value) - num(a.value); }).slice(0, 5);
+  document.querySelector('#cn-top-hours tbody').innerHTML = topHours.length
+    ? topHours.map(function(r) { return '<tr><td>' + r.key + ':00</td><td class="num">' + num(r.value) + '</td></tr>'; }).join('')
+    : '<tr><td colspan="2" class="empty">—</td></tr>';
+}
+
+function renderBlock5FromCache(liabRows) {
+  var host = document.getElementById('liab-host');
+  var amount = 3700000; // fallback
+  var desc = 'Кредит учредителей — долгосрочное обязательство клуба перед основателями.';
+  var status = 'outstanding';
+
+  if (liabRows && liabRows.length) {
+    var found = 0;
+    liabRows.forEach(function(row) { found += num(row.amount); });
+    if (found > 0) amount = found;
+    var r = liabRows[0];
+    if (r.description) desc = r.description;
+    if (r.status) status = r.status;
+  }
+
+  host.innerHTML =
+    '<div class="liab">' +
+      '<div>' +
+        '<div class="lbl">Кредит учредителей</div>' +
+        '<div class="big">' + fmtMoney(amount) + '</div>' +
+      '</div>' +
+      '<div class="desc">' + desc + '</div>' +
+      '<div><span class="badge">' + status + '</span></div>' +
+    '</div>';
+}
+
 /* ---- RUN ---- */
-renderBlock1().catch(e => console.error('block1', e));
-renderBlock2().catch(e => console.error('block2', e));
-renderBlock3().catch(e => console.error('block3', e));
-renderBlock4().catch(e => console.error('block4', e));
-renderBlock5().catch(e => console.error('block5', e));
+(async function() {
+  var t0 = performance.now();
+  try {
+    var [seriesRows, revCatRows, expRows, cancelRows, liabRows] = await Promise.all([
+      V7.loadCacheTab('monthly_series'),
+      V7.loadCacheTab('rev_by_month_cat'),
+      V7.loadCacheTab('exp_by_cat'),
+      V7.loadCacheTab('cancellations'),
+      V7.loadCacheTab('liabilities')
+    ]);
+    if (seriesRows && seriesRows.length) {
+      console.log('finance: cache loaded in ' + Math.round(performance.now()-t0) + 'ms');
+      renderBlock1FromCache(seriesRows);
+      renderBlock2FromCache(revCatRows);
+      renderBlock3FromCache(expRows, seriesRows);
+      renderBlock4FromCache(cancelRows);
+      renderBlock5FromCache(liabRows);
+      return;
+    }
+  } catch(e) { console.warn('finance cache failed:', e); }
+  // Slow fallback — original Google Sheets loading
+  renderBlock1().catch(e => console.error('block1', e));
+  renderBlock2().catch(e => console.error('block2', e));
+  renderBlock3().catch(e => console.error('block3', e));
+  renderBlock4().catch(e => console.error('block4', e));
+  renderBlock5().catch(e => console.error('block5', e));
+})();
 </script>
 
 </body>
