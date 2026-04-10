@@ -39,8 +39,21 @@
   .nav-title { font-size: 14px; font-weight: 500; }
   .nav-badge { margin-left: auto; font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; background: rgba(255,159,10,0.1); border: 1px solid rgba(255,159,10,0.2); color: var(--accent); }
 
+  /* SUBNAV */
+  .subnav {
+    position: fixed; top: 52px; left: 0; right: 0; z-index: 99;
+    display: flex; gap: 0; background: rgba(0,0,0,0.82); backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--border); padding: 0 32px;
+  }
+  .subnav a {
+    padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--text3);
+    text-decoration: none; border-bottom: 2px solid transparent; transition: all .2s;
+  }
+  .subnav a:hover { color: var(--text); }
+  .subnav a.active { color: var(--accent); border-bottom-color: var(--accent); }
+
   /* HERO */
-  .hero { padding: 100px 40px 60px; max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
+  .hero { padding: 132px 40px 60px; max-width: 1200px; margin: 0 auto; display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; flex-wrap: wrap; }
   .hero-eye { font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 16px; }
   .hero h1 { font-size: clamp(44px, 6vw, 72px); font-weight: 600; letter-spacing: -2px; line-height: 1.03; margin-bottom: 16px; }
   .hero-sub { font-size: 17px; font-weight: 300; color: var(--text2); max-width: 480px; line-height: 1.6; }
@@ -168,6 +181,12 @@
   <div class="nav-title">Турниры & Ивенты</div>
   <span class="nav-badge">Фаза 1</span>
 </nav>
+
+<div class="subnav">
+  <a href="tournaments.html" class="active">Обзор</a>
+  <a href="tournament-calendar.html">Календарь</a>
+  <a href="tournament-tools.html">Инструменты</a>
+</div>
 
 <div class="hero">
   <div class="hero-left">
