@@ -302,8 +302,8 @@
  * Еженедельный пульс выручки. Источник: transactions (v7padel_db).
  * ========================================================================= */
 
-// --- Цель по выручке на месяц (₺). Измените это значение под актуальный план ---
-const MONTHLY_GOAL = 1800000;
+// Цель по выручке — из единого конфига V7
+const MONTHLY_GOAL = V7.MONTHLY_GOAL;
 const WEEKLY_GOAL = Math.round(MONTHLY_GOAL / 4.33);
 
 const { loadSheet, loadCacheTab, num, fmt, fmtMoney, fmtInt, parseDate, ymKey, ymLabel, categorizeRevenue,

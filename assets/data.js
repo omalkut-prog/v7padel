@@ -31,6 +31,7 @@
   const CACHE_BASE = 'https://docs.google.com/spreadsheets/d/' + CACHE_ID + '/gviz/tq?tqx=out:csv&sheet=';
   const DEFAULT_TIMEOUT = 30000;
   const START_MONTH = '2025-10'; // первый месяц операционных данных клуба
+  const MONTHLY_GOAL = 1800000; // целевая выручка в месяц (₺)
 
   const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Товары', 'Прочее'];
   const REV_CAT_COLORS = ['#0ABAB5', '#0e8a87', '#7C3AED', '#13c296', '#f39c12', '#5ac8fa', '#8a9ba8'];
@@ -555,6 +556,7 @@
     CACHE_ID,
     NEW_PNL_SHEET_ID,
     START_MONTH,
+    MONTHLY_GOAL,
     parseCSV,
     loadSheet,
     loadPnL,
