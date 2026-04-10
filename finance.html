@@ -142,9 +142,9 @@
   <ul class="nav-links">
     <li><a href="index.html">Главная</a></li>
     <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
     <li><a href="management.html">Управление</a></li>
     <li><a href="finance.html" class="active">Финансы</a></li>
-    <li><a href="revenue.html">Выручка</a></li>
     <li><a href="clients.html">Клиенты</a></li>
     <li><a href="data.html">Данные</a></li>
     <li class="team-link"><a href="team.html">Команда</a></li>
@@ -314,16 +314,23 @@ async function renderBlock1() {
   }
   if (!Object.keys(pnlData).length) { tbody.innerHTML = '<tr><td colspan="5" class="error">PnL пуст</td></tr>'; return; }
 
-  const months = Object.keys(pnlData).filter(m => m >= '2025-10').sort();
-  if (!months.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
+  const monthsAsc = Object.keys(pnlData).filter(m => m >= '2025-10').sort();
+  if (!monthsAsc.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
 
+  // Дельта вычисляется хронологически, таблица — новые сверху
+  const deltas = {};
   let prevPnl = null;
   let sumRev = 0, sumOpex = 0, sumPnl = 0;
-  tbody.innerHTML = months.map(m => {
+  monthsAsc.forEach(m => {
     const rw = pnlData[m];
-    const delta = prevPnl == null ? null : rw.pnl - prevPnl;
+    deltas[m] = prevPnl == null ? null : rw.pnl - prevPnl;
     prevPnl = rw.pnl;
     sumRev += rw.revenue; sumOpex += rw.opex; sumPnl += rw.pnl;
+  });
+  const months = monthsAsc.slice().reverse();
+  tbody.innerHTML = months.map(m => {
+    const rw = pnlData[m];
+    const delta = deltas[m];
     const pnlCls = rw.pnl >= 0 ? 'pos' : 'neg';
     const dCls = delta == null ? 'muted' : delta >= 0 ? 'pos' : 'neg';
     const liveTag = rw.source === 'live' ? ' <span style="color:var(--accent);font-size:11px" title="Живые данные из транзакций">⚡live</span>' : '';
@@ -344,11 +351,11 @@ async function renderBlock1() {
     '<td></td>' +
   '</tr>';
 
-  // Chart
-  const labels = months.map(m => pnlData[m].source === 'live' ? ymLabel(m) + ' ⚡' : ymLabel(m));
-  const revs = months.map(m => pnlData[m].revenue);
-  const opexs = months.map(m => pnlData[m].opex);
-  const pnls = months.map(m => pnlData[m].pnl);
+  // Chart (хронологический порядок)
+  const labels = monthsAsc.map(m => pnlData[m].source === 'live' ? ymLabel(m) + ' ⚡' : ymLabel(m));
+  const revs = monthsAsc.map(m => pnlData[m].revenue);
+  const opexs = monthsAsc.map(m => pnlData[m].opex);
+  const pnls = monthsAsc.map(m => pnlData[m].pnl);
   const acc = accent();
   const textCol = cssVar('--text3');
   const gridCol = cssVar('--border');
@@ -649,17 +656,23 @@ async function renderBlock5() {
 function renderBlock1FromCache(seriesRows) {
   const tbody = document.querySelector('#pnl-table tbody');
   const tfoot = document.querySelector('#pnl-table tfoot');
-  const months = seriesRows
+  const monthsAsc = seriesRows
     .filter(r => (r.period_month || '') >= '2025-10')
     .sort((a, b) => a.period_month < b.period_month ? -1 : 1);
-  if (!months.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
+  if (!monthsAsc.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
 
-  let prevPnl = null, sumRev = 0, sumOpex = 0, sumPnl = 0;
-  tbody.innerHTML = months.map(r => {
-    var rev = num(r.revenue), op = num(r.opex), pnl = num(r.pnl);
-    var delta = prevPnl == null ? null : pnl - prevPnl;
+  // Дельта хронологически, таблица — новые сверху
+  var deltas = {}, prevPnl = null, sumRev = 0, sumOpex = 0, sumPnl = 0;
+  monthsAsc.forEach(r => {
+    var pnl = num(r.pnl);
+    deltas[r.period_month] = prevPnl == null ? null : pnl - prevPnl;
     prevPnl = pnl;
-    sumRev += rev; sumOpex += op; sumPnl += pnl;
+    sumRev += num(r.revenue); sumOpex += num(r.opex); sumPnl += pnl;
+  });
+  var monthsDesc = monthsAsc.slice().reverse();
+  tbody.innerHTML = monthsDesc.map(r => {
+    var rev = num(r.revenue), op = num(r.opex), pnl = num(r.pnl);
+    var delta = deltas[r.period_month];
     var pnlCls = pnl >= 0 ? 'pos' : 'neg';
     var dCls = delta == null ? 'muted' : delta >= 0 ? 'pos' : 'neg';
     var liveTag = r.source === 'live' ? ' <span style="color:var(--accent);font-size:11px" title="Живые данные из транзакций">⚡live</span>' : '';
@@ -680,11 +693,11 @@ function renderBlock1FromCache(seriesRows) {
     '<td></td>' +
   '</tr>';
 
-  // Chart
-  var labels = months.map(r => r.source === 'live' ? ymLabel(r.period_month) + ' ⚡' : ymLabel(r.period_month));
-  var revs = months.map(r => num(r.revenue));
-  var opexs = months.map(r => num(r.opex));
-  var pnls = months.map(r => num(r.pnl));
+  // Chart (хронологический порядок)
+  var labels = monthsAsc.map(r => r.source === 'live' ? ymLabel(r.period_month) + ' ⚡' : ymLabel(r.period_month));
+  var revs = monthsAsc.map(r => num(r.revenue));
+  var opexs = monthsAsc.map(r => num(r.opex));
+  var pnls = monthsAsc.map(r => num(r.pnl));
   var acc = accent();
   var textCol = cssVar('--text3');
   var gridCol = cssVar('--border');

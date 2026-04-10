@@ -164,9 +164,9 @@
   <ul class="nav-links">
     <li><a href="index.html">Главная</a></li>
     <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="revenue.html" class="active">Выручка</a></li>
     <li><a href="management.html">Управление</a></li>
     <li><a href="finance.html">Финансы</a></li>
-    <li><a href="revenue.html" class="active">Выручка</a></li>
     <li><a href="clients.html">Клиенты</a></li>
     <li><a href="data.html">Данные</a></li>
     <li class="team-link"><a href="team.html">Команда</a></li>
@@ -412,7 +412,7 @@ function autoNote(w, prevWk) {
 function renderWeeklyTable() {
   const curWeekKey = weekKey(new Date());
   const keysChron = [...weekKeys].reverse();
-  const keysToShow = showAll ? keysChron : keysChron.slice(-VISIBLE_WEEKS);
+  const keysDesc = showAll ? [...keysChron].reverse() : keysChron.slice(-VISIBLE_WEEKS).reverse();
   const { maxDay, maxTotal } = computeMaxes(weekKeys);
   const tbody = document.querySelector('#weekly-table tbody');
   const tfoot = document.getElementById('weekly-foot');
@@ -433,7 +433,7 @@ function renderWeeklyTable() {
       '<td colspan="3"></td></tr>';
   }
 
-  keysToShow.forEach((wk, i) => {
+  keysDesc.forEach((wk, i) => {
     const w = weekMap[wk];
     const sun = getSunday(w.mon);
     const thu = new Date(w.mon); thu.setDate(thu.getDate() + 3);
@@ -452,7 +452,8 @@ function renderWeeklyTable() {
 
     const rangeStr = fmtDate(w.mon) + ' – ' + fmtDate(sun);
     const isCurrent = wk === curWeekKey;
-    const avg = w.total / 7;
+    const daysWithRevenue = w.days.filter(d => d > 0).length || 1;
+    const avg = w.total / daysWithRevenue;
 
     const prevIdx = keysChron.indexOf(wk) - 1;
     const prevWk = prevIdx >= 0 ? weekMap[keysChron[prevIdx]] : null;
@@ -486,7 +487,7 @@ function renderWeeklyTable() {
   html += flushMonth();
   tbody.innerHTML = html;
 
-  const allKeys = showAll ? keysChron : keysChron.slice(-VISIBLE_WEEKS);
+  const allKeys = keysDesc;
   const footDow = [0,0,0,0,0,0,0];
   const footCnt = [0,0,0,0,0,0,0];
   let grandTotal = 0;
@@ -504,8 +505,9 @@ function renderWeeklyTable() {
     const avg = footCnt[d] > 0 ? footDow[d] / footCnt[d] : 0;
     footHtml += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
   }
+  var totalDaysWithRevenue = footCnt.reduce((s, c) => s + c, 0) || 1;
   footHtml += '<td class="num" style="font-weight:700">' + fmtInt(Math.round(grandTotal)) + '</td>';
-  footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / Math.max(allKeys.length * 7, 1))) + '</td>';
+  footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / totalDaysWithRevenue)) + '</td>';
   footHtml += '<td colspan="3"></td></tr>';
   tfoot.innerHTML = footHtml;
 
@@ -955,15 +957,15 @@ async function mainFromSheet() {
     renderWeeklyTable();
   });
 
-  /* ---- BLOCK 2: DOW chart ---- */
+  /* ---- BLOCK 2: DOW chart (total revenue / unique dates per weekday) ---- */
   const dowTotals = [0,0,0,0,0,0,0];
-  const dowCounts = [0,0,0,0,0,0,0];
+  const dowDates = [new Set(), new Set(), new Set(), new Set(), new Set(), new Set(), new Set()];
   txns.forEach(t => {
     const d = isoWeekDow(t.date);
     dowTotals[d] += t.total;
-    dowCounts[d]++;
+    dowDates[d].add(t.date.toISOString().slice(0, 10));
   });
-  const dowAvg = dowTotals.map((tot, i) => dowCounts[i] > 0 ? tot / dowCounts[i] : 0);
+  const dowAvg = dowTotals.map((tot, i) => dowDates[i].size > 0 ? tot / dowDates[i].size : 0);
   renderDowChart(dowAvg);
 
   /* ---- BLOCK 3: Monthly summary ---- */

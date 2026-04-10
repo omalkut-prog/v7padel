@@ -93,6 +93,12 @@ ul.nav-links { display: flex !important; list-style: none !important; margin: 0;
 .ev-t{font-size:.6rem;opacity:.65;font-weight:500}
 .ev-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+/* FILL BADGES on calendar events */
+.ev-fill{font-size:.55rem;font-weight:800;padding:1px 4px;border-radius:3px;margin-left:4px;white-space:nowrap}
+.ev-fill.full{background:rgba(231,76,60,.15);color:#c0392b}
+.ev-fill.yellow{background:rgba(243,156,18,.15);color:#d35400}
+.ev-fill.open{background:rgba(39,174,96,.15);color:#1a6630}
+
 /* STATS */
 .stats{display:flex;justify-content:center;gap:10px;padding:14px 24px;background:var(--surface);border-top:1px solid var(--border);flex-wrap:wrap}
 .stat{text-align:center;padding:8px 18px;border-radius:10px;min-width:100px}
@@ -168,9 +174,9 @@ ul.nav-links { display: flex !important; list-style: none !important; margin: 0;
   <ul class="nav-links">
     <li><a href="index.html">Главная</a></li>
     <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
     <li><a href="management.html">Управление</a></li>
     <li><a href="finance.html">Финансы</a></li>
-    <li><a href="revenue.html">Выручка</a></li>
     <li><a href="clients.html">Клиенты</a></li>
     <li><a href="data.html">Данные</a></li>
     <li class="team-link"><a href="team.html">Команда</a></li>
@@ -256,6 +262,8 @@ ul.nav-links { display: flex !important; list-style: none !important; margin: 0;
 
 <script>
 // ── RACKETID TOURNAMENTS (Google Sheets) ────────────────────────
+// Shared lookup: date (YYYY-MM-DD) → [{title, slots, count, state}]
+window._racketByDate = {};
 (function(){
   const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY/gviz/tq?tqx=out:csv&sheet=racketid_tournaments';
   const DAYS_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
@@ -360,6 +368,20 @@ ul.nav-links { display: flex !important; list-style: none !important; margin: 0;
         obj._date = dt;
         data.push(obj);
       }
+
+      // Build lookup by date for calendar grid enrichment
+      data.forEach(r => {
+        const dateKey = r._date.toISOString().slice(0, 10);
+        if (!window._racketByDate[dateKey]) window._racketByDate[dateKey] = [];
+        window._racketByDate[dateKey].push({
+          title: (r.title || '').toUpperCase().replace(/[📈🏆🌱👑👥🌙📊🔥🔀🎭⭐☕🎾🧒⛺🌟🏅🎉]/g, '').trim(),
+          slots: parseInt(r.slots) || 0,
+          count: parseInt(r.participants_count) || 0,
+          state: (r.gameplan_state || '').toLowerCase()
+        });
+      });
+      // Re-render current month to show fill data
+      if (typeof renderMonth === 'function') renderMonth(curMonth);
 
       const now = new Date();
       const past30 = new Date(now.getTime() - 30*24*60*60*1000);
@@ -624,11 +646,29 @@ function renderMonth(m){
       return at-bt;
     });
 
+    // Build date key for Racket.ID lookup (YYYY-MM-DD)
+    const dateKey = `2026-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const racketDay = window._racketByDate[dateKey] || [];
+
     dayEvs.forEach(ev=>{
       const type=evType(ev.key);
       const el=document.createElement('div');
       el.className=`ev ${evClass(type)}`;
-      el.innerHTML=`<span class="ev-t">${ev.t}</span><span class="ev-n">${ev.key}</span>`;
+
+      // Match Racket.ID data by fuzzy title
+      const evKeyUp = ev.key.toUpperCase();
+      const match = racketDay.find(r => {
+        // Match if Racket.ID title contains the calendar event key (or vice versa)
+        return r.title.includes(evKeyUp) || evKeyUp.includes(r.title.split(' ').slice(0,2).join(' '));
+      });
+
+      let fillBadge = '';
+      if (match && match.slots > 0) {
+        const fillCls = match.count >= match.slots ? 'full' : match.count >= match.slots * 0.6 ? 'yellow' : 'open';
+        fillBadge = ` <span class="ev-fill ${fillCls}">${match.count}/${match.slots}</span>`;
+      }
+
+      el.innerHTML=`<span class="ev-t">${ev.t}</span><span class="ev-n">${ev.key}${fillBadge}</span>`;
       el.onclick=()=>openModal(ev,d,dow,m);
       cell.appendChild(el);
     });

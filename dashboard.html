@@ -130,9 +130,9 @@
   <ul class="nav-links">
     <li><a href="index.html">Главная</a></li>
     <li><a href="dashboard.html" class="active">Дашборд</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
     <li><a href="management.html">Управление</a></li>
     <li><a href="finance.html">Финансы</a></li>
-    <li><a href="revenue.html">Выручка</a></li>
     <li><a href="clients.html">Клиенты</a></li>
     <li><a href="data.html">Данные</a></li>
     <li class="team-link"><a href="team.html">Команда</a></li>
@@ -147,7 +147,7 @@
 
   <!-- KPI row -->
   <div class="kpi-row" id="kpi-row">
-    <div class="kpi"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span></div>
+    <div class="kpi"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span><span class="sub" id="kpi-rev-avg"></span><span class="sub" id="kpi-rev-forecast"></span></div>
     <div class="kpi"><span class="label">OPEX (посл. месяц)</span><span class="value" id="kpi-opex">—</span><span class="sub" id="kpi-opex-mo"></span></div>
     <div class="kpi"><span class="label">Операц. P&L</span><span class="value" id="kpi-pnl">—</span><span class="sub" id="kpi-pnl-mo"></span></div>
     <div class="kpi"><span class="label">Клиентов всего</span><span class="value" id="kpi-clients">—</span><span class="sub" id="kpi-clients-sub"></span></div>
@@ -415,8 +415,23 @@ async function loadSlowPnL() {
     var last = months[months.length - 1];
     var isLive = byM[last].source === 'live';
     var tag = isLive ? ' ⚡' : '';
-    document.getElementById("kpi-rev").textContent = fmtK(byM[last].revenue) + " ₺" + tag;
+    var revVal = toNum(byM[last].revenue);
+    document.getElementById("kpi-rev").textContent = fmtK(revVal) + " ₺" + tag;
     document.getElementById("kpi-rev-mo").textContent = last + (isLive ? ' (живые данные)' : '');
+    // Среднее в день + прогноз
+    (function() {
+      var parts = last.split('-');
+      var y = +parts[0], m = +parts[1];
+      var now = new Date();
+      var daysElapsed = (now.getFullYear() === y && now.getMonth() + 1 === m) ? now.getDate() : new Date(y, m, 0).getDate();
+      var daysInMonth = new Date(y, m, 0).getDate();
+      if (daysElapsed > 0) {
+        var avg = revVal / daysElapsed;
+        var forecast = avg * daysInMonth;
+        document.getElementById("kpi-rev-avg").textContent = "ср/день: " + fmtK(avg) + " ₺";
+        document.getElementById("kpi-rev-forecast").textContent = "прогноз: " + fmtK(forecast) + " ₺";
+      }
+    })();
     document.getElementById("kpi-opex").textContent = fmtK(byM[last].opex) + " ₺" + tag;
     document.getElementById("kpi-opex-mo").textContent = last + (isLive ? ' (живые данные)' : '');
     var p = byM[last].revenue - byM[last].opex;
@@ -519,8 +534,25 @@ async function loadSlowLiabilities() {
       var kpis = cache.kpis;
 
       // ── KPI CARDS ──
-      document.getElementById("kpi-rev").textContent = fmtK(kpis.revenue_last_month) + " ₺";
+      var revLM = toNum(kpis.revenue_last_month);
+      document.getElementById("kpi-rev").textContent = fmtK(revLM) + " ₺";
       document.getElementById("kpi-rev-mo").textContent = kpis.last_month || '';
+      // Среднее в день + прогноз
+      (function() {
+        var lm = kpis.last_month || '';
+        if (!lm) return;
+        var parts = lm.split('-');
+        var y = +parts[0], m = +parts[1];
+        var now = new Date();
+        var daysElapsed = (now.getFullYear() === y && now.getMonth() + 1 === m) ? now.getDate() : new Date(y, m, 0).getDate();
+        var daysInMonth = new Date(y, m, 0).getDate();
+        if (daysElapsed > 0) {
+          var avg = revLM / daysElapsed;
+          var forecast = avg * daysInMonth;
+          document.getElementById("kpi-rev-avg").textContent = "ср/день: " + fmtK(avg) + " ₺";
+          document.getElementById("kpi-rev-forecast").textContent = "прогноз: " + fmtK(forecast) + " ₺";
+        }
+      })();
       document.getElementById("kpi-opex").textContent = fmtK(kpis.opex_last_month) + " ₺";
       document.getElementById("kpi-opex-mo").textContent = kpis.last_month || '';
       var pnlVal = kpis.pnl_last_month;
