@@ -32,18 +32,27 @@ nav{position:sticky;top:0;z-index:100;height:56px;background:var(--surface);bord
 
 main{max-width:1400px;margin:0 auto;padding:24px 20px 80px}
 h1.page-title{font-size:28px;font-weight:600;letter-spacing:-0.8px;margin-bottom:4px}
-.page-sub{font-size:13px;color:var(--text3);margin-bottom:28px}
+.page-sub{font-size:13px;color:var(--text3);margin-bottom:20px}
 .live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#27ae60;margin-right:6px;animation:pulse 2s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:28px}
+/* Date range picker */
+.date-bar{display:flex;gap:6px;align-items:center;margin-bottom:22px;flex-wrap:wrap}
+.d-btn{padding:5px 14px;font-size:12px;font-weight:600;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s}
+.d-btn:hover{border-color:var(--accent);color:var(--accent)}
+.d-btn.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.d-input{padding:5px 10px;font-size:12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:inherit}
+.d-sep{color:var(--text3);font-size:12px}
+
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px}
 .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;text-align:center;box-shadow:var(--shadow)}
 .kpi-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:8px}
 .kpi-value{font-size:24px;font-weight:700;letter-spacing:-0.5px;color:var(--text);font-variant-numeric:tabular-nums}
 .kpi-sub{font-size:11px;color:var(--text3);margin-top:4px}
 .kpi-card.good .kpi-value{color:var(--good)}
+.kpi-card.warn .kpi-value{color:#e74c3c}
 
-.tab-bar{display:flex;gap:4px;margin-bottom:20px}
+.tab-bar{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap}
 .tab-btn{padding:8px 20px;font-size:13px;font-weight:500;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);cursor:pointer;transition:all .2s}
 .tab-btn:hover{background:var(--surface2)}
 .tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
@@ -61,7 +70,6 @@ table.fin th:first-child,table.fin td:first-child{text-align:left}
 table.fin td{padding:10px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
 table.fin td:first-child{text-align:left;font-weight:500}
 table.fin tr:hover{background:var(--surface2)}
-table.fin .total-row{font-weight:700;background:var(--surface2)}
 
 table.fin th.sortable{cursor:pointer;user-select:none}
 table.fin th.sortable:hover{color:var(--accent)}
@@ -82,12 +90,10 @@ table.fin th.sortable.desc::after{content:' \u2193';opacity:1}
 
 .loading{color:var(--text3);font-size:14px;padding:20px;text-align:center}
 
-/* Clickable tournament rows */
 table.fin tr.clickable{cursor:pointer}
 table.fin tr.clickable:hover{background:var(--accent-soft)}
 table.fin tr.expanded{background:var(--surface2)}
 
-/* Participant panel */
 .participants-panel{padding:12px 16px;background:var(--bg);border-top:1px solid var(--border)}
 .participants-panel .p-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .participants-panel .p-title{font-size:13px;font-weight:600;color:var(--text)}
@@ -98,6 +104,34 @@ table.fin tr.expanded{background:var(--surface2)}
 .p-card .p-name{font-weight:500;color:var(--text)}
 .p-card .p-rating{font-size:11px;color:var(--text3);margin-left:auto;font-weight:600}
 .p-loading{font-size:12px;color:var(--text3);padding:8px 0}
+
+/* Heatmap */
+.heatmap-wrap{overflow-x:auto}
+.heatmap{border-collapse:collapse;font-size:12px;width:100%}
+.heatmap th{padding:6px 10px;font-size:11px;font-weight:600;color:var(--text3);text-align:center}
+.heatmap td{padding:8px 10px;text-align:center;border:1px solid var(--border);border-radius:4px;font-weight:600;font-size:12px;min-width:50px}
+.hm-0{background:var(--surface2);color:var(--text3)}
+.hm-1{background:rgba(39,174,96,.1);color:#27ae60}
+.hm-2{background:rgba(39,174,96,.25);color:#1a6630}
+.hm-3{background:rgba(39,174,96,.45);color:#fff}
+.hm-4{background:rgba(39,174,96,.7);color:#fff}
+.hm-5{background:#27ae60;color:#fff}
+
+/* Player modal */
+.player-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center;padding:20px}
+.player-modal.on{display:flex}
+.pm-box{background:var(--surface);border-radius:16px;max-width:700px;width:100%;max-height:80vh;overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.3);animation:pop .18s ease}
+@keyframes pop{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+.pm-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.pm-head h3{font-size:16px;font-weight:700}
+.pm-close{background:var(--surface2);border:none;width:28px;height:28px;border-radius:50%;font-size:16px;cursor:pointer;color:var(--text3);display:flex;align-items:center;justify-content:center}
+.pm-close:hover{background:var(--border-hover)}
+.pm-body{padding:16px 22px 20px}
+.pm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.pm-card{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;background:var(--surface2);font-size:13px}
+.pm-card .pm-name{font-weight:500;color:var(--text)}
+.pm-card .pm-cnt{font-size:11px;color:var(--text3);margin-left:auto;font-weight:700}
+.pm-card .pm-rat{font-size:11px;color:var(--accent);margin-left:4px;font-weight:600}
 
 @media(max-width:960px){.kpi-row{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}.tab-bar{flex-wrap:wrap}}
 @media(max-width:600px){.kpi-row{grid-template-columns:repeat(2,1fr)}main{padding:16px 12px 60px}}
@@ -131,21 +165,32 @@ table.fin tr.expanded{background:var(--surface2)}
 
 <main>
   <h1 class="page-title">Аналитика турниров</h1>
-  <p class="page-sub"><span class="live-dot"></span>Живые данные из Racket.ID · Заполняемость · Форматы · Участники</p>
+  <p class="page-sub"><span class="live-dot"></span>Живые данные из Racket.ID</p>
+
+  <div class="date-bar" id="date-bar">
+    <button class="d-btn" data-range="7" onclick="setRange(7,this)">7 дней</button>
+    <button class="d-btn active" data-range="30" onclick="setRange(30,this)">30 дней</button>
+    <button class="d-btn" data-range="90" onclick="setRange(90,this)">90 дней</button>
+    <button class="d-btn" data-range="0" onclick="setRange(0,this)">Всё время</button>
+    <span class="d-sep">|</span>
+    <input type="date" class="d-input" id="date-from" onchange="setCustomRange()">
+    <span class="d-sep">—</span>
+    <input type="date" class="d-input" id="date-to" onchange="setCustomRange()">
+  </div>
 
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-label">Всего турниров</div>
+      <div class="kpi-label">Турниров</div>
       <div class="kpi-value" id="kpi-total">--</div>
       <div class="kpi-sub" id="kpi-total-sub">загрузка...</div>
     </div>
     <div class="kpi-card good">
-      <div class="kpi-label">Средняя заполняемость</div>
+      <div class="kpi-label">Ср. заполняемость</div>
       <div class="kpi-value" id="kpi-fill">--</div>
       <div class="kpi-sub" id="kpi-fill-sub"></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Уникальных участников</div>
+      <div class="kpi-label">Уникальных игроков</div>
       <div class="kpi-value" id="kpi-players">--</div>
       <div class="kpi-sub" id="kpi-players-sub"></div>
     </div>
@@ -155,20 +200,21 @@ table.fin tr.expanded{background:var(--surface2)}
       <div class="kpi-sub" id="kpi-participations-sub"></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Ср. турниров на игрока</div>
-      <div class="kpi-value" id="kpi-avg">--</div>
-      <div class="kpi-sub" id="kpi-avg-sub"></div>
-    </div>
-    <div class="kpi-card">
       <div class="kpi-label">Retention (2+)</div>
       <div class="kpi-value" id="kpi-ret">--</div>
       <div class="kpi-sub" id="kpi-ret-sub"></div>
     </div>
+    <div class="kpi-card warn">
+      <div class="kpi-label">Отменённых</div>
+      <div class="kpi-value" id="kpi-cancel">--</div>
+      <div class="kpi-sub" id="kpi-cancel-sub"></div>
+    </div>
   </div>
 
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="list">Список турниров</button>
+    <button class="tab-btn active" data-tab="list">Список</button>
     <button class="tab-btn" data-tab="formats">Форматы</button>
+    <button class="tab-btn" data-tab="heatmap">День×Время</button>
     <button class="tab-btn" data-tab="trends">Динамика</button>
     <button class="tab-btn" data-tab="players">Участники</button>
   </div>
@@ -204,17 +250,29 @@ table.fin tr.expanded{background:var(--surface2)}
         <div class="chart-box"><canvas id="chart-format-count"></canvas></div>
       </div>
       <div class="panel">
-        <div class="panel-title">Средняя заполняемость по формату</div>
-        <div class="chart-box"><canvas id="chart-format-fill"></canvas></div>
+        <div class="panel-title">Скорость набора (дней до полного набора)</div>
+        <div class="chart-box"><canvas id="chart-velocity"></canvas></div>
       </div>
     </div>
     <div class="panel" style="margin-top:14px">
       <table class="fin" id="formats-table">
         <thead><tr>
-          <th>Формат</th><th>Тип</th><th>Турниров</th><th>Всего участн.</th><th>Ср. участн.</th><th>Ср. слотов</th><th>Ср. заполн.</th><th>Макс</th>
+          <th>Формат</th><th>Тип</th><th>Провед.</th><th>Отменён.</th><th>% отмен</th><th>Всего уч.</th><th>Ср. уч.</th><th>Ср. заполн.</th><th>Ср. набор</th>
         </tr></thead>
         <tbody></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- Tab: Heatmap -->
+  <div class="tab-content" id="tab-heatmap">
+    <div class="panel">
+      <div class="panel-title">Хитмап: заполняемость по дню недели и времени</div>
+      <div class="heatmap-wrap" id="heatmap-wrap"></div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <div class="panel-title">Хитмап: количество турниров по дню и времени</div>
+      <div class="heatmap-wrap" id="heatmap-count-wrap"></div>
     </div>
   </div>
 
@@ -255,33 +313,107 @@ table.fin tr.expanded{background:var(--surface2)}
       </div>
     </div>
     <div class="panel" style="margin-top:14px">
-      <div class="panel-title">Распределение: сколько турниров на игрока</div>
+      <div class="panel-title">Распределение: сколько турниров на игрока <span style="font-size:11px;color:var(--text3)">(кликни на столбец чтобы увидеть список)</span></div>
       <div style="max-width:600px;margin:0 auto"><div class="chart-box"><canvas id="chart-freq"></canvas></div></div>
     </div>
   </div>
 </main>
 
-<script>
-(async function() {
-  const DAYS_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-  const MONTH_N = ['','Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+<!-- Player list modal -->
+<div class="player-modal" id="player-modal" onclick="if(event.target===this)closePlayerModal()">
+  <div class="pm-box">
+    <div class="pm-head">
+      <h3 id="pm-title">Игроки</h3>
+      <button class="pm-close" onclick="closePlayerModal()">&times;</button>
+    </div>
+    <div class="pm-body" id="pm-body"><div class="p-loading">Загрузка...</div></div>
+  </div>
+</div>
 
-  // Tab switching
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+<script>
+const DAYS_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+const DAYS_RU_FULL = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+const MONTH_N = ['','Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+const TIME_SLOTS = ['09-11','11-13','13-15','15-17','17-19','19-21'];
+
+let allItems = [];
+let allPlayerMap = {};
+let dateFrom = null, dateTo = null;
+let currentRange = 30;
+let charts = {};
+
+// ── Date range ──
+function setRange(days, btn) {
+  currentRange = days;
+  document.querySelectorAll('.d-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const now = new Date(); now.setHours(23,59,59,999);
+  dateTo = now;
+  dateFrom = days > 0 ? new Date(now.getTime() - days * 864e5) : null;
+  document.getElementById('date-from').value = dateFrom ? dateFrom.toISOString().slice(0,10) : '';
+  document.getElementById('date-to').value = dateTo.toISOString().slice(0,10);
+  rebuild();
+}
+
+function setCustomRange() {
+  const f = document.getElementById('date-from').value;
+  const t = document.getElementById('date-to').value;
+  if (f) dateFrom = new Date(f + 'T00:00:00');
+  if (t) dateTo = new Date(t + 'T23:59:59');
+  document.querySelectorAll('.d-btn').forEach(b => b.classList.remove('active'));
+  rebuild();
+}
+
+function filtered() {
+  return allItems.filter(t => {
+    if (dateFrom && t.date < dateFrom) return false;
+    if (dateTo && t.date > dateTo) return false;
+    return true;
+  });
+}
+
+function isCancelled(t) {
+  const now = new Date();
+  return t.date < now && (t.participants === 0 || (t.state !== 'ended' && t.state !== 'started'));
+}
+
+// ── Tab switching ──
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Init ──
+(async function() {
+  allItems = await RacketID.loadTournaments();
+
+  // Build global player map
+  allItems.forEach(t => {
+    t.participantIds.forEach(uid => {
+      if (!allPlayerMap[uid]) allPlayerMap[uid] = [];
+      allPlayerMap[uid].push({ id: t.id, date: t.date, title: t.title });
     });
   });
 
-  // ── Load LIVE data from Firestore ──
-  const items = await RacketID.loadTournaments();
+  // Set initial date range (30 days)
+  setRange(30, document.querySelector('.d-btn[data-range="30"]'));
+})();
 
-  // Collect all participant IDs
-  const playerMap = {}; // userId → Set of tournamentIds
-  items.forEach(t => {
+// ── Rebuild all ──
+function rebuild() {
+  const items = filtered();
+  const ended = items.filter(i => i.state === 'ended');
+  const cancelled = items.filter(i => isCancelled(i));
+  const played = items.filter(i => !isCancelled(i));
+  const withSlots = played.filter(i => i.slots > 0);
+
+  // Player map for period
+  const playerMap = {};
+  played.forEach(t => {
     t.participantIds.forEach(uid => {
       if (!playerMap[uid]) playerMap[uid] = new Set();
       playerMap[uid].add(t.id);
@@ -289,167 +421,258 @@ table.fin tr.expanded{background:var(--surface2)}
   });
 
   const uniquePlayers = Object.keys(playerMap).length;
-  const totalP = items.reduce((s, t) => s + t.participants, 0);
-  const avgPerPlayer = uniquePlayers > 0 ? (totalP / uniquePlayers).toFixed(1) : 0;
+  const totalP = played.reduce((s, t) => s + t.participants, 0);
+  const avgFill = withSlots.length ? Math.round(withSlots.reduce((s, i) => s + i.fillPct, 0) / withSlots.length) : 0;
   const returning = Object.values(playerMap).filter(s => s.size >= 2).length;
   const retPct = uniquePlayers > 0 ? Math.round(returning / uniquePlayers * 100) : 0;
 
-  const ended = items.filter(i => i.state === 'ended');
-  const withSlots = items.filter(i => i.slots > 0);
-  const avgFill = withSlots.length ? Math.round(withSlots.reduce((s, i) => s + i.fillPct, 0) / withSlots.length) : 0;
-
-  // ── KPIs ──
-  document.getElementById('kpi-total').textContent = ended.length;
-  document.getElementById('kpi-total-sub').textContent = items.length + ' всего (вкл. будущие)';
+  // KPIs
+  document.getElementById('kpi-total').textContent = played.length;
+  document.getElementById('kpi-total-sub').textContent = cancelled.length + ' отменено';
   document.getElementById('kpi-fill').textContent = avgFill + '%';
   document.getElementById('kpi-fill-sub').textContent = withSlots.length + ' со слотами';
   document.getElementById('kpi-players').textContent = uniquePlayers;
-  document.getElementById('kpi-players-sub').textContent = 'уникальных';
+  document.getElementById('kpi-players-sub').textContent = totalP + ' участий';
   document.getElementById('kpi-participations').textContent = totalP.toLocaleString('ru-RU');
-  document.getElementById('kpi-participations-sub').textContent = 'регистраций';
-  document.getElementById('kpi-avg').textContent = avgPerPlayer;
-  document.getElementById('kpi-avg-sub').textContent = 'на человека';
+  document.getElementById('kpi-participations-sub').textContent = uniquePlayers > 0 ? (totalP / uniquePlayers).toFixed(1) + ' на чел.' : '';
   document.getElementById('kpi-ret').textContent = retPct + '%';
   document.getElementById('kpi-ret-sub').textContent = returning + ' из ' + uniquePlayers;
+  document.getElementById('kpi-cancel').textContent = cancelled.length;
+  document.getElementById('kpi-cancel-sub').textContent = items.length > 0 ? Math.round(cancelled.length / items.length * 100) + '% от всех' : '';
 
-  // ── Helpers ──
-  function fillColor(p) { return p >= 90 ? 'red' : p >= 60 ? 'yellow' : 'green'; }
-  function stateLabel(s) {
-    if (s === 'ended') return '<span style="color:var(--text3)">Завершён</span>';
-    if (s === 'signup') return '<span style="color:var(--good)">Регистрация</span>';
-    if (s === 'started') return '<span style="color:var(--accent)">Идёт</span>';
-    return s || '—';
-  }
-  function typeLabel(t) {
-    if (t === 'rated') return '<span class="badge rated">Ranked</span>';
-    if (t === 'special') return '<span class="badge special">Special</span>';
-    return '<span class="badge nonrated">Non-ranked</span>';
-  }
-  function shortName(s) { return s.length > 24 ? s.slice(0, 22) + '...' : s; }
+  renderList(played);
+  renderFormats(items, cancelled);
+  renderHeatmap(played);
+  renderTrends(played);
+  renderPlayers(played, playerMap);
+}
 
-  // ── Tab: List (clickable → participants) ──
-  const listBody = document.querySelector('#list-table tbody');
-  let expandedId = null;
+// ── Helpers ──
+function fillColor(p) { return p >= 90 ? 'red' : p >= 60 ? 'yellow' : 'green'; }
+function stateLabel(s, t) {
+  if (isCancelled(t)) return '<span style="color:#e74c3c">Отменён</span>';
+  if (s === 'ended') return '<span style="color:var(--text3)">Завершён</span>';
+  if (s === 'signup') return '<span style="color:var(--good)">Регистрация</span>';
+  if (s === 'started') return '<span style="color:var(--accent)">Идёт</span>';
+  return s || '—';
+}
+function typeLabel(t) {
+  if (t === 'rated') return '<span class="badge rated">Ranked</span>';
+  if (t === 'special') return '<span class="badge special">Special</span>';
+  return '<span class="badge nonrated">Non-ranked</span>';
+}
+function shortName(s) { return s.length > 24 ? s.slice(0, 22) + '...' : s; }
 
-  function renderList(data) {
-    if (!data.length) { listBody.innerHTML = '<tr><td colspan="8" class="loading">Нет данных</td></tr>'; return; }
-    listBody.innerHTML = '';
-    data.forEach(i => {
-      const dd = String(i.date.getDate()).padStart(2,'0') + '.' + String(i.date.getMonth()+1).padStart(2,'0') + '.' + i.date.getFullYear();
-      const tr = document.createElement('tr');
-      tr.className = 'clickable' + (expandedId === i.id ? ' expanded' : '');
-      tr.innerHTML = `
-        <td>${dd}</td>
-        <td>${DAYS_RU[i.date.getDay()]}</td>
-        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${i.title}</td>
-        <td>${typeLabel(i.type)}</td>
-        <td><div class="fill-bar"><div class="fill-bg"><div class="fill-fg ${fillColor(i.fillPct)}" style="width:${Math.min(i.fillPct,100)}%"></div></div><span class="fill-pct">${i.fillPct}%</span></div></td>
-        <td>${i.participants}</td>
-        <td>${i.slots || '—'}</td>
-        <td>${stateLabel(i.state)}</td>`;
-      tr.addEventListener('click', () => toggleParticipants(i, tr));
-      listBody.appendChild(tr);
+// ── Tab: List ──
+const listBody = () => document.querySelector('#list-table tbody');
+let expandedId = null;
+let currentSorted = null;
 
-      // If this one is expanded, show panel
-      if (expandedId === i.id) {
-        const panelTr = document.createElement('tr');
-        panelTr.innerHTML = '<td colspan="8"><div class="participants-panel" id="pp-' + i.id + '"><div class="p-loading">Загрузка участников...</div></div></td>';
-        listBody.appendChild(panelTr);
-        loadParticipantsPanel(i);
-      }
-    });
-  }
-
-  async function toggleParticipants(tournament, tr) {
-    if (expandedId === tournament.id) {
-      expandedId = null;
-    } else {
-      expandedId = tournament.id;
+function renderList(data) {
+  const tb = listBody();
+  if (!data.length) { tb.innerHTML = '<tr><td colspan="8" class="loading">Нет данных</td></tr>'; return; }
+  currentSorted = data;
+  tb.innerHTML = '';
+  data.forEach(i => {
+    const dd = String(i.date.getDate()).padStart(2,'0') + '.' + String(i.date.getMonth()+1).padStart(2,'0') + '.' + i.date.getFullYear();
+    const tr = document.createElement('tr');
+    tr.className = 'clickable' + (expandedId === i.id ? ' expanded' : '');
+    tr.innerHTML = `
+      <td>${dd}</td>
+      <td>${DAYS_RU[i.date.getDay()]}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${i.title}</td>
+      <td>${typeLabel(i.type)}</td>
+      <td><div class="fill-bar"><div class="fill-bg"><div class="fill-fg ${fillColor(i.fillPct)}" style="width:${Math.min(i.fillPct,100)}%"></div></div><span class="fill-pct">${i.fillPct}%</span></div></td>
+      <td>${i.participants}</td>
+      <td>${i.slots || '—'}</td>
+      <td>${stateLabel(i.state, i)}</td>`;
+    tr.addEventListener('click', () => { expandedId = expandedId === i.id ? null : i.id; renderList(currentSorted); });
+    tb.appendChild(tr);
+    if (expandedId === i.id) {
+      const panelTr = document.createElement('tr');
+      panelTr.innerHTML = '<td colspan="8"><div class="participants-panel" id="pp-' + i.id + '"><div class="p-loading">Загрузка участников...</div></div></td>';
+      tb.appendChild(panelTr);
+      loadParticipantsPanel(i);
     }
-    renderList(currentSorted || items);
-  }
-
-  async function loadParticipantsPanel(tournament) {
-    const panel = document.getElementById('pp-' + tournament.id);
-    if (!panel) return;
-    if (!tournament.participantIds.length) {
-      panel.innerHTML = '<div class="p-header"><span class="p-title">Нет участников</span><a class="p-link" href="' + RacketID.tournamentUrl(tournament.id) + '" target="_blank">Открыть в Racket.ID &rarr;</a></div>';
-      return;
-    }
-    panel.innerHTML = '<div class="p-header"><span class="p-title">Загрузка ' + tournament.participantIds.length + ' участников...</span><a class="p-link" href="' + RacketID.tournamentUrl(tournament.id) + '" target="_blank">Открыть в Racket.ID &rarr;</a></div><div class="p-loading">...</div>';
-
-    const profiles = await RacketID.loadProfiles(tournament.participantIds);
-    panel.innerHTML = '<div class="p-header"><span class="p-title">' + profiles.length + ' участников</span><a class="p-link" href="' + RacketID.tournamentUrl(tournament.id) + '" target="_blank">Открыть в Racket.ID &rarr;</a></div>' +
-      '<div class="p-grid">' + profiles.map(p =>
-        '<div class="p-card"><span class="p-name">' + (p.name || p.user_id) + '</span>' +
-        (p.rating ? '<span class="p-rating">' + Math.round(p.rating) + '</span>' : '') +
-        '</div>'
-      ).join('') + '</div>';
-  }
-
-  let currentSorted = null;
-  renderList(items);
-
-  // Sortable headers
-  document.querySelectorAll('#list-table th.sortable').forEach(th => {
-    th.addEventListener('click', () => {
-      const key = th.dataset.sort;
-      const wasAsc = th.classList.contains('asc');
-      document.querySelectorAll('#list-table th.sortable').forEach(h => h.classList.remove('asc','desc'));
-      const asc = !wasAsc;
-      th.classList.add(asc ? 'asc' : 'desc');
-      currentSorted = [...items].sort((a, b) => {
-        let va = a[key], vb = b[key];
-        if (key === 'date') { va = a.date.getTime(); vb = b.date.getTime(); }
-        if (typeof va === 'string') return asc ? va.localeCompare(vb) : vb.localeCompare(va);
-        return asc ? va - vb : vb - va;
-      });
-      renderList(currentSorted);
-    });
   });
+}
 
-  // ── Tab: Formats ──
+async function loadParticipantsPanel(tournament) {
+  const panel = document.getElementById('pp-' + tournament.id);
+  if (!panel) return;
+  if (!tournament.participantIds.length) {
+    panel.innerHTML = '<div class="p-header"><span class="p-title">Нет участников</span><a class="p-link" href="' + RacketID.tournamentUrl(tournament.id) + '" target="_blank">Racket.ID &rarr;</a></div>';
+    return;
+  }
+  panel.innerHTML = '<div class="p-header"><span class="p-title">Загрузка ' + tournament.participantIds.length + '...</span><a class="p-link" href="' + RacketID.tournamentUrl(tournament.id) + '" target="_blank">Racket.ID &rarr;</a></div>';
+  const profiles = await RacketID.loadProfiles(tournament.participantIds);
+  panel.innerHTML = '<div class="p-header"><span class="p-title">' + profiles.length + ' участников</span><a class="p-link" href="' + RacketID.tournamentUrl(tournament.id) + '" target="_blank">Racket.ID &rarr;</a></div>' +
+    '<div class="p-grid">' + profiles.map(p =>
+      '<div class="p-card"><span class="p-name">' + (p.name || p.user_id) + '</span>' +
+      (p.rating ? '<span class="p-rating">' + Math.round(p.rating) + '</span>' : '') + '</div>'
+    ).join('') + '</div>';
+}
+
+// Sortable headers
+document.querySelectorAll('#list-table th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    const wasAsc = th.classList.contains('asc');
+    document.querySelectorAll('#list-table th.sortable').forEach(h => h.classList.remove('asc','desc'));
+    const asc = !wasAsc;
+    th.classList.add(asc ? 'asc' : 'desc');
+    currentSorted = [...(currentSorted || [])].sort((a, b) => {
+      let va = a[key], vb = b[key];
+      if (key === 'date') { va = a.date.getTime(); vb = b.date.getTime(); }
+      if (typeof va === 'string') return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+      return asc ? va - vb : vb - va;
+    });
+    renderList(currentSorted);
+  });
+});
+
+// ── Tab: Formats ──
+function renderFormats(items, cancelled) {
   const fmtStats = {};
   items.forEach(i => {
     const k = i.title;
-    if (!fmtStats[k]) fmtStats[k] = { title: k, type: i.type, count: 0, totalP: 0, totalSlots: 0, fills: [], maxFill: 0 };
+    if (!fmtStats[k]) fmtStats[k] = { title: k, type: i.type, count: 0, cancelled: 0, totalP: 0, fills: [], velocities: [] };
     const f = fmtStats[k];
-    f.count++; f.totalP += i.participants; f.totalSlots += i.slots;
-    if (i.slots > 0) f.fills.push(i.fillPct);
-    if (i.fillPct > f.maxFill) f.maxFill = i.fillPct;
+    if (isCancelled(i)) { f.cancelled++; }
+    else {
+      f.count++; f.totalP += i.participants;
+      if (i.slots > 0) f.fills.push(i.fillPct);
+      // Registration velocity: avg days between joinDate and tournament date
+      if (i.hasRegDates && i.registrations) {
+        const regDates = Object.values(i.registrations);
+        if (regDates.length) {
+          const avgDaysBefore = regDates.reduce((s, rd) => {
+            const diff = (i.date - rd) / 864e5; // days before tournament
+            return s + Math.max(0, diff);
+          }, 0) / regDates.length;
+          f.velocities.push(avgDaysBefore);
+        }
+      }
+    }
   });
   const formats = Object.values(fmtStats).sort((a, b) => b.count - a.count);
 
+  function fmtVelocity(days) {
+    if (days < 1) return '<1д';
+    if (days < 2) return Math.round(days * 24) + 'ч';
+    return Math.round(days) + 'д';
+  }
+
   document.querySelector('#formats-table tbody').innerHTML = formats.map(f => {
     const af = f.fills.length ? Math.round(f.fills.reduce((s, v) => s + v, 0) / f.fills.length) : 0;
+    const total = f.count + f.cancelled;
+    const cancelPct = total > 0 ? Math.round(f.cancelled / total * 100) : 0;
+    const avgVel = f.velocities.length ? f.velocities.reduce((s,v) => s+v, 0) / f.velocities.length : null;
+    const velColor = avgVel === null ? 'var(--text3)' : avgVel >= 3 ? '#27ae60' : avgVel >= 1 ? '#f39c12' : '#e74c3c';
     return `<tr>
       <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${f.title}</td>
-      <td>${typeLabel(f.type)}</td><td>${f.count}</td><td>${f.totalP}</td>
-      <td>${(f.totalP/f.count).toFixed(1)}</td><td>${f.count ? (f.totalSlots/f.count).toFixed(0) : 0}</td>
+      <td>${typeLabel(f.type)}</td><td>${f.count}</td>
+      <td style="color:${f.cancelled ? '#e74c3c' : 'var(--text3)'}">${f.cancelled}</td>
+      <td style="color:${cancelPct > 20 ? '#e74c3c' : 'var(--text3)'}">${cancelPct}%</td>
+      <td>${f.totalP}</td>
+      <td>${f.count ? (f.totalP/f.count).toFixed(1) : '—'}</td>
       <td><div class="fill-bar"><div class="fill-bg"><div class="fill-fg ${fillColor(af)}" style="width:${Math.min(af,100)}%"></div></div><span class="fill-pct">${af}%</span></div></td>
-      <td>${f.maxFill}%</td></tr>`;
+      <td style="color:${velColor};font-weight:700">${avgVel !== null ? fmtVelocity(avgVel) : '—'}</td></tr>`;
   }).join('');
 
-  const top10 = formats.slice(0, 10);
-  new Chart(document.getElementById('chart-format-count'), {
+  const top10 = formats.filter(f => f.count >= 2).slice(0, 10);
+  destroyChart('chart-format-count');
+  charts['chart-format-count'] = new Chart(document.getElementById('chart-format-count'), {
     type: 'bar',
     data: { labels: top10.map(f => shortName(f.title)), datasets: [{ label: 'Турниров', data: top10.map(f => f.count), backgroundColor: top10.map(f => f.type === 'rated' ? 'rgba(39,174,96,.7)' : f.type === 'special' ? 'rgba(142,68,173,.7)' : 'rgba(230,126,34,.7)') }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(128,128,128,.1)' } }, y: { ticks: { font: { size: 11 } } } } },
   });
-  new Chart(document.getElementById('chart-format-fill'), {
+
+  // Velocity chart — avg days before tournament that people register
+  const velFormats = formats.filter(f => f.velocities.length >= 2).slice(0, 10);
+  destroyChart('chart-velocity');
+  charts['chart-velocity'] = new Chart(document.getElementById('chart-velocity'), {
     type: 'bar',
-    data: { labels: top10.map(f => shortName(f.title)), datasets: [{ label: '%', data: top10.map(f => f.fills.length ? Math.round(f.fills.reduce((s, v) => s + v, 0) / f.fills.length) : 0), backgroundColor: top10.map(f => { const a = f.fills.length ? f.fills.reduce((s,v)=>s+v,0)/f.fills.length : 0; return a >= 80 ? 'rgba(39,174,96,.7)' : a >= 50 ? 'rgba(243,156,18,.7)' : 'rgba(231,76,60,.7)'; }) }] },
-    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { max: 100, grid: { color: 'rgba(128,128,128,.1)' }, ticks: { callback: v => v + '%' } }, y: { ticks: { font: { size: 11 } } } } },
+    data: {
+      labels: velFormats.map(f => shortName(f.title)),
+      datasets: [{
+        label: 'Дней до турнира',
+        data: velFormats.map(f => +(f.velocities.reduce((s,v)=>s+v,0)/f.velocities.length).toFixed(1)),
+        backgroundColor: velFormats.map(f => {
+          const avg = f.velocities.reduce((s,v)=>s+v,0)/f.velocities.length;
+          return avg >= 3 ? 'rgba(39,174,96,.7)' : avg >= 1 ? 'rgba(243,156,18,.7)' : 'rgba(231,76,60,.7)';
+        })
+      }]
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ctx.raw + ' дней до турнира' } } },
+      scales: { x: { grid: { color: 'rgba(128,128,128,.1)' }, title: { display: true, text: 'Дней', font: { size: 11 } } }, y: { ticks: { font: { size: 11 } } } }
+    },
+  });
+}
+
+// ── Tab: Heatmap ──
+function renderHeatmap(items) {
+  const dayNames = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+  // Heatmap 1: avg fill
+  const grid = {}; // "dow-slot" → {total, count}
+  const countGrid = {};
+  items.forEach(t => {
+    const dow = (t.date.getDay() + 6) % 7; // Mon=0
+    const h = t.date.getHours();
+    let slot = TIME_SLOTS.findIndex(s => { const [a] = s.split('-').map(Number); return h >= a && h < a + 2; });
+    if (slot < 0) slot = h < 9 ? 0 : TIME_SLOTS.length - 1;
+    const key = dow + '-' + slot;
+    if (!grid[key]) grid[key] = { fill: 0, count: 0 };
+    grid[key].count++;
+    if (t.slots > 0) grid[key].fill += t.fillPct;
+    if (!countGrid[key]) countGrid[key] = 0;
+    countGrid[key]++;
   });
 
-  // ── Tab: Trends ──
-  function isoWeek(d) {
-    const dt = new Date(d); dt.setHours(0,0,0,0);
-    dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
-    const w1 = new Date(dt.getFullYear(), 0, 4);
-    return dt.getFullYear() + '-W' + String(1 + Math.round(((dt - w1) / 864e5 - 3 + (w1.getDay() + 6) % 7) / 7)).padStart(2, '0');
-  }
+  // Render fill heatmap
+  let maxCount = Math.max(...Object.values(countGrid), 1);
+  document.getElementById('heatmap-wrap').innerHTML = buildHeatmapHTML(dayNames, TIME_SLOTS, grid, 'fill');
+  document.getElementById('heatmap-count-wrap').innerHTML = buildHeatmapHTML(dayNames, TIME_SLOTS, countGrid, 'count', maxCount);
+}
 
+function buildHeatmapHTML(days, slots, grid, mode, maxVal) {
+  let html = '<table class="heatmap"><thead><tr><th></th>';
+  slots.forEach(s => html += '<th>' + s + '</th>');
+  html += '</tr></thead><tbody>';
+  for (let d = 0; d < 7; d++) {
+    html += '<tr><th>' + days[d] + '</th>';
+    for (let s = 0; s < slots.length; s++) {
+      const key = d + '-' + s;
+      if (mode === 'fill') {
+        const g = grid[key];
+        if (!g || !g.count) { html += '<td class="hm-0">—</td>'; continue; }
+        const avg = Math.round(g.fill / g.count);
+        const level = avg >= 90 ? 5 : avg >= 75 ? 4 : avg >= 60 ? 3 : avg >= 40 ? 2 : avg > 0 ? 1 : 0;
+        html += '<td class="hm-' + level + '">' + avg + '%<br><span style="font-size:10px;opacity:.7">' + g.count + ' т.</span></td>';
+      } else {
+        const cnt = grid[key] || 0;
+        const level = !cnt ? 0 : cnt >= maxVal * 0.8 ? 5 : cnt >= maxVal * 0.6 ? 4 : cnt >= maxVal * 0.4 ? 3 : cnt >= maxVal * 0.2 ? 2 : 1;
+        html += '<td class="hm-' + level + '">' + (cnt || '—') + '</td>';
+      }
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  return html;
+}
+
+// ── Tab: Trends ──
+function isoWeek(d) {
+  const dt = new Date(d); dt.setHours(0,0,0,0);
+  dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
+  const w1 = new Date(dt.getFullYear(), 0, 4);
+  return dt.getFullYear() + '-W' + String(1 + Math.round(((dt - w1) / 864e5 - 3 + (w1.getDay() + 6) % 7) / 7)).padStart(2, '0');
+}
+
+function renderTrends(items) {
+  const ended = items.filter(i => i.state === 'ended');
   const byWeek = {};
   ended.forEach(i => {
     const w = isoWeek(i.date);
@@ -461,32 +684,34 @@ table.fin tr.expanded{background:var(--surface2)}
 
   const chartOpt = (extra) => ({ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { x: { ticks: { font: { size: 10 }, maxRotation: 45 }, grid: { display: false } }, y: { grid: { color: 'rgba(128,128,128,.1)' }, ...extra } } });
 
-  new Chart(document.getElementById('chart-fill-trend'), { type: 'line', data: { labels: weeks, datasets: [{ label: 'Ср. заполняемость %', data: weeks.map(w => byWeek[w].ws ? Math.round(byWeek[w].fill / byWeek[w].ws) : null), borderColor: '#27ae60', backgroundColor: 'rgba(39,174,96,.1)', fill: true, tension: .3, pointRadius: 3 }] }, options: { ...chartOpt({ max: 100, ticks: { callback: v => v + '%' } }) } });
-  new Chart(document.getElementById('chart-count-trend'), { type: 'bar', data: { labels: weeks, datasets: [{ label: 'Турниров', data: weeks.map(w => byWeek[w].count), backgroundColor: 'rgba(52,152,219,.7)' }] }, options: chartOpt() });
-  new Chart(document.getElementById('chart-part-trend'), { type: 'bar', data: { labels: weeks, datasets: [{ label: 'Участников', data: weeks.map(w => byWeek[w].p), backgroundColor: 'rgba(142,68,173,.7)' }] }, options: chartOpt() });
+  destroyChart('chart-fill-trend');
+  charts['chart-fill-trend'] = new Chart(document.getElementById('chart-fill-trend'), { type: 'line', data: { labels: weeks, datasets: [{ label: 'Ср. заполняемость %', data: weeks.map(w => byWeek[w].ws ? Math.round(byWeek[w].fill / byWeek[w].ws) : null), borderColor: '#27ae60', backgroundColor: 'rgba(39,174,96,.1)', fill: true, tension: .3, pointRadius: 3 }] }, options: { ...chartOpt({ max: 100, ticks: { callback: v => v + '%' } }) } });
+  destroyChart('chart-count-trend');
+  charts['chart-count-trend'] = new Chart(document.getElementById('chart-count-trend'), { type: 'bar', data: { labels: weeks, datasets: [{ label: 'Турниров', data: weeks.map(w => byWeek[w].count), backgroundColor: 'rgba(52,152,219,.7)' }] }, options: chartOpt() });
+  destroyChart('chart-part-trend');
+  charts['chart-part-trend'] = new Chart(document.getElementById('chart-part-trend'), { type: 'bar', data: { labels: weeks, datasets: [{ label: 'Участников', data: weeks.map(w => byWeek[w].p), backgroundColor: 'rgba(142,68,173,.7)' }] }, options: chartOpt() });
 
   // Plan vs Fact
   const byMonth = {};
   ended.forEach(i => { const m = i.dateStr.slice(0, 7); if (!byMonth[m]) byMonth[m] = { s: 0, p: 0 }; byMonth[m].s += i.slots; byMonth[m].p += i.participants; });
   const months = Object.keys(byMonth).sort();
-  new Chart(document.getElementById('chart-plan-fact'), { type: 'bar', data: { labels: months.map(m => { const p = m.split('-'); return MONTH_N[+p[1]] + ' ' + p[0]; }), datasets: [{ label: 'План (слоты)', data: months.map(m => byMonth[m].s), backgroundColor: 'rgba(52,152,219,.4)', borderColor: '#3498db', borderWidth: 1 }, { label: 'Факт', data: months.map(m => byMonth[m].p), backgroundColor: 'rgba(39,174,96,.7)', borderColor: '#27ae60', borderWidth: 1 }] }, options: chartOpt() });
+  destroyChart('chart-plan-fact');
+  charts['chart-plan-fact'] = new Chart(document.getElementById('chart-plan-fact'), { type: 'bar', data: { labels: months.map(m => { const p = m.split('-'); return MONTH_N[+p[1]] + ' ' + p[0]; }), datasets: [{ label: 'План (слоты)', data: months.map(m => byMonth[m].s), backgroundColor: 'rgba(52,152,219,.4)', borderColor: '#3498db', borderWidth: 1 }, { label: 'Факт', data: months.map(m => byMonth[m].p), backgroundColor: 'rgba(39,174,96,.7)', borderColor: '#27ae60', borderWidth: 1 }] }, options: chartOpt() });
+}
 
-  // ── Tab: Players ──
+// ── Tab: Players ──
+async function renderPlayers(items, playerMap) {
   const playerCounts = {};
   items.forEach(t => t.participantIds.forEach(uid => { playerCounts[uid] = (playerCounts[uid] || 0) + 1; }));
   const topPlayerIds = Object.entries(playerCounts).sort((a, b) => b[1] - a[1]).slice(0, 20);
 
-  // Load top player names
   const topProfiles = await RacketID.loadProfiles(topPlayerIds.map(([id]) => id));
   const topProfileMap = {};
   topProfiles.forEach(p => topProfileMap[p.user_id] = p);
+  const topData = topPlayerIds.map(([uid, count]) => ({ name: (topProfileMap[uid] && topProfileMap[uid].name) || uid, count }));
 
-  const topData = topPlayerIds.map(([uid, count]) => ({
-    name: (topProfileMap[uid] && topProfileMap[uid].name) || uid,
-    count
-  }));
-
-  new Chart(document.getElementById('chart-top-players'), {
+  destroyChart('chart-top-players');
+  charts['chart-top-players'] = new Chart(document.getElementById('chart-top-players'), {
     type: 'bar',
     data: { labels: topData.map(p => shortName(p.name)), datasets: [{ label: 'Турниров', data: topData.map(p => p.count), backgroundColor: 'rgba(39,174,96,.7)' }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(128,128,128,.1)' } }, y: { ticks: { font: { size: 11 } } } } },
@@ -507,18 +732,76 @@ table.fin tr.expanded{background:var(--surface2)}
     });
   });
   const pMonths = Object.keys(pmData).sort();
-  new Chart(document.getElementById('chart-new-ret'), { type: 'bar', data: { labels: pMonths.map(m => { const p = m.split('-'); return MONTH_N[+p[1]] + ' ' + p[0]; }), datasets: [{ label: 'Новые', data: pMonths.map(m => pmData[m].n.size), backgroundColor: 'rgba(52,152,219,.7)' }, { label: 'Повторные', data: pMonths.map(m => pmData[m].r.size), backgroundColor: 'rgba(39,174,96,.7)' }] }, options: { ...chartOpt(), scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: 'rgba(128,128,128,.1)' } } } } });
+  destroyChart('chart-new-ret');
+  charts['chart-new-ret'] = new Chart(document.getElementById('chart-new-ret'), { type: 'bar', data: { labels: pMonths.map(m => { const p = m.split('-'); return MONTH_N[+p[1]] + ' ' + p[0]; }), datasets: [{ label: 'Новые', data: pMonths.map(m => pmData[m].n.size), backgroundColor: 'rgba(52,152,219,.7)' }, { label: 'Повторные', data: pMonths.map(m => pmData[m].r.size), backgroundColor: 'rgba(39,174,96,.7)' }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: 'rgba(128,128,128,.1)' } } } } });
 
-  // Frequency
+  // Frequency distribution — CLICKABLE
   const freqDist = {};
-  Object.values(playerCounts).forEach(c => {
+  const freqPlayers = {}; // bucket → [userId]
+  const bk = ['1','2','3-4','5-9','10-19','20+'];
+  Object.entries(playerCounts).forEach(([uid, c]) => {
     const b = c >= 20 ? '20+' : c >= 10 ? '10-19' : c >= 5 ? '5-9' : c >= 3 ? '3-4' : c === 2 ? '2' : '1';
     freqDist[b] = (freqDist[b] || 0) + 1;
+    if (!freqPlayers[b]) freqPlayers[b] = [];
+    freqPlayers[b].push({ uid, count: c });
   });
-  const bk = ['1','2','3-4','5-9','10-19','20+'];
-  new Chart(document.getElementById('chart-freq'), { type: 'bar', data: { labels: ['1 турнир','2','3-4','5-9','10-19','20+'], datasets: [{ label: 'Игроков', data: bk.map(b => freqDist[b] || 0), backgroundColor: ['rgba(231,76,60,.7)','rgba(243,156,18,.7)','rgba(52,152,219,.7)','rgba(39,174,96,.7)','rgba(142,68,173,.7)','rgba(44,62,80,.7)'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(128,128,128,.1)' } }, x: { grid: { display: false } } } } });
 
-})();
+  // Store for click handler
+  window._freqPlayers = freqPlayers;
+  window._playerCounts = playerCounts;
+
+  destroyChart('chart-freq');
+  charts['chart-freq'] = new Chart(document.getElementById('chart-freq'), {
+    type: 'bar',
+    data: { labels: ['1 турнир','2','3-4','5-9','10-19','20+'], datasets: [{ label: 'Игроков', data: bk.map(b => freqDist[b] || 0), backgroundColor: ['rgba(231,76,60,.7)','rgba(243,156,18,.7)','rgba(52,152,219,.7)','rgba(39,174,96,.7)','rgba(142,68,173,.7)','rgba(44,62,80,.7)'] }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { grid: { color: 'rgba(128,128,128,.1)' } }, x: { grid: { display: false } } },
+      onClick: (evt, elems) => {
+        if (elems.length) {
+          const idx = elems[0].index;
+          const bucket = bk[idx];
+          const label = ['1 турнир','2 турнира','3-4 турнира','5-9 турниров','10-19 турниров','20+ турниров'][idx];
+          showPlayerModal(bucket, label);
+        }
+      }
+    }
+  });
+}
+
+// ── Player modal (clickable frequency bars) ──
+async function showPlayerModal(bucket, label) {
+  const players = (window._freqPlayers[bucket] || []).sort((a, b) => b.count - a.count);
+  if (!players.length) return;
+
+  document.getElementById('pm-title').textContent = label + ' (' + players.length + ' игроков)';
+  document.getElementById('pm-body').innerHTML = '<div class="p-loading">Загрузка профилей...</div>';
+  document.getElementById('player-modal').classList.add('on');
+
+  const profiles = await RacketID.loadProfiles(players.map(p => p.uid));
+  const profileMap = {};
+  profiles.forEach(p => profileMap[p.user_id] = p);
+
+  document.getElementById('pm-body').innerHTML = '<div class="pm-grid">' +
+    players.map(p => {
+      const prof = profileMap[p.uid] || {};
+      return '<div class="pm-card">' +
+        '<span class="pm-name">' + (prof.name || p.uid) + '</span>' +
+        '<span class="pm-cnt">' + p.count + ' т.</span>' +
+        (prof.rating ? '<span class="pm-rat">' + Math.round(prof.rating) + '</span>' : '') +
+        '</div>';
+    }).join('') + '</div>';
+}
+
+function closePlayerModal() {
+  document.getElementById('player-modal').classList.remove('on');
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayerModal(); });
+
+function destroyChart(id) {
+  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+}
 </script>
 <script src="assets/nav.js"></script>
 </body>

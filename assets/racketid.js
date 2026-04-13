@@ -83,8 +83,29 @@ window.RacketID = (function() {
       const slots = parseInt(fval(f, 'slots')) || 0;
       const clubName = fval(f, 'clubName');
 
-      // Participants: from users map or _users array
-      let participantIds = Object.keys(fmap(f, 'users'));
+      // Participants: from users map (with joinDate from registration) or _users array
+      const usersMap = fmap(f, 'users');
+      let participantIds = Object.keys(usersMap);
+      const registrations = {}; // userId → Date (joinDate)
+      participantIds.forEach(uid => {
+        const val = usersMap[uid];
+        // Structure: user → mapValue.fields.registration → mapValue.fields.{id} → mapValue.fields.joinDate
+        if (val && val.mapValue && val.mapValue.fields) {
+          const regField = val.mapValue.fields.registration;
+          if (regField && regField.mapValue && regField.mapValue.fields) {
+            const regEntries = regField.mapValue.fields;
+            // Take first registration entry (there's usually one with a random ID)
+            const firstKey = Object.keys(regEntries)[0];
+            if (firstKey) {
+              const entry = regEntries[firstKey];
+              if (entry && entry.mapValue && entry.mapValue.fields && entry.mapValue.fields.joinDate) {
+                const jd = entry.mapValue.fields.joinDate.stringValue;
+                if (jd) { const d = new Date(jd.replace(' ', 'T')); if (!isNaN(d)) registrations[uid] = d; }
+              }
+            }
+          }
+        }
+      });
       if (!participantIds.length) {
         participantIds = farray(f, '_users');
       }
@@ -120,6 +141,8 @@ window.RacketID = (function() {
         slots,
         participants: participantIds.length,
         participantIds,
+        registrations, // userId → Date (if available from Firestore)
+        hasRegDates: Object.keys(registrations).length > 0,
         fillPct: slots > 0 ? Math.round(participantIds.length / slots * 100) : 0,
         state: (gpState || '').toLowerCase(),
       });
