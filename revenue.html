@@ -154,6 +154,19 @@
   .tab-pane { display: none; }
   .tab-pane.active { display: block; }
 
+  /* Period filter */
+  .period-filter {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  }
+  .pf-label { font-size: 12px; color: var(--text3); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+  .pf-btn {
+    appearance: none; border: 1px solid var(--border); background: var(--surface);
+    color: var(--text2); font-size: 12px; font-family: inherit; font-weight: 500;
+    padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: all .2s;
+  }
+  .pf-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .pf-btn.active { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); font-weight: 600; }
+
   @media (max-width: 960px) {
     .kpi-row { grid-template-columns: repeat(3, 1fr); }
     .two-col { grid-template-columns: 1fr; }
@@ -209,10 +222,21 @@
     <div class="sum-bar" id="sum-bar"></div>
   </div>
 
+  <!-- PERIOD FILTER -->
+  <div class="period-filter" id="period-filter">
+    <span class="pf-label">Период:</span>
+    <button class="pf-btn active" data-months="1">1М</button>
+    <button class="pf-btn" data-months="3">3М</button>
+    <button class="pf-btn" data-months="6">6М</button>
+    <button class="pf-btn" data-months="0">Всё</button>
+  </div>
+
   <!-- TAB SWITCHER -->
   <div class="rev-tabs">
     <button class="rev-tab active" data-tab="income">Доход</button>
     <button class="rev-tab" data-tab="goods">Доп. продажи</button>
+    <button class="rev-tab" data-tab="margins">Маржинальность</button>
+    <button class="rev-tab" data-tab="utilization">Загрузка</button>
   </div>
 
   <!-- ═══════════════════ TAB: INCOME ═══════════════════ -->
@@ -411,19 +435,204 @@
   <section class="section">
     <div class="section-head">
       <h2>4 &middot; Топ товаров</h2>
-      <span class="hint">топ-10 по subcategory</span>
+      <span class="hint">топ-10 по subcategory &middot; маржинальность из PnL</span>
     </div>
     <div class="panel">
       <table class="fin" id="goods-table">
         <thead>
-          <tr><th>Товар / подкатегория</th><th>Кол-во</th><th>Выручка</th><th style="min-width:100px">Тренд (8 нед.)</th></tr>
+          <tr><th>Товар / подкатегория</th><th>Кол-во</th><th>Выручка</th><th>Себ-ть</th><th>Маржа</th><th>Нац.%</th><th style="min-width:100px">Тренд (8 нед.)</th></tr>
         </thead>
-        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
+        <tbody><tr><td colspan="7" class="loading">Загрузка…</td></tr></tbody>
       </table>
     </div>
   </section>
 
   </div><!-- /pane-goods -->
+
+  <!-- ═══════════════════ TAB: MARGINS ═══════════════════ -->
+  <div class="tab-pane" id="pane-margins">
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Выручка товаров (всё время)</div>
+      <div class="kpi-value" id="mrg-kpi-revenue">—</div>
+      <div class="kpi-delta muted" id="mrg-kpi-revenue-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Себестоимость</div>
+      <div class="kpi-value" id="mrg-kpi-cost">—</div>
+      <div class="kpi-delta muted" id="mrg-kpi-cost-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Маржа</div>
+      <div class="kpi-value" id="mrg-kpi-margin">—</div>
+      <div class="kpi-delta" id="mrg-kpi-margin-pct"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Средняя наценка</div>
+      <div class="kpi-value" id="mrg-kpi-markup">—</div>
+      <div class="kpi-delta muted" id="mrg-kpi-markup-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Товаров в PnL</div>
+      <div class="kpi-value" id="mrg-kpi-matched">—</div>
+      <div class="kpi-delta muted" id="mrg-kpi-matched-hint"></div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>1 &middot; Маржинальность по товарам</h2>
+      <span class="hint">все проданные товары &middot; данные себестоимости из PnL</span>
+    </div>
+    <div class="panel" style="overflow-x:auto">
+      <div style="margin-bottom:10px">
+        <input type="text" id="mrg-search" placeholder="Поиск товара…" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);width:280px;">
+      </div>
+      <table class="fin" id="mrg-table">
+        <thead>
+          <tr>
+            <th style="cursor:pointer" data-sort="name">Товар ↕</th>
+            <th style="cursor:pointer" data-sort="count">Кол-во ↕</th>
+            <th style="cursor:pointer" data-sort="revenue">Выручка ↕</th>
+            <th style="cursor:pointer" data-sort="cost">Себ-ть ↕</th>
+            <th style="cursor:pointer" data-sort="margin">Маржа ↕</th>
+            <th style="cursor:pointer" data-sort="markup">Нац.% ↕</th>
+            <th style="cursor:pointer" data-sort="marginpct">Маржа% ↕</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="7" class="loading">Загрузка…</td></tr></tbody>
+        <tfoot id="mrg-table-foot"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>2 &middot; Маржа по категориям</h2>
+      <span class="hint">Расходники vs Оборудование vs Мерч</span>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <div class="chart-box"><canvas id="mrg-cat-chart"></canvas></div>
+      </div>
+      <div class="panel">
+        <table class="fin" id="mrg-cat-table">
+          <thead><tr><th>Категория</th><th>Выручка</th><th>Себ-ть</th><th>Маржа</th><th>Маржа%</th></tr></thead>
+          <tbody><tr><td colspan="5" class="loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>3 &middot; Ходовые и залежалые товары</h2>
+      <span class="hint">топ продаж vs товары без движения (последние 30 дней)</span>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <h3>Ходовые (топ-10)</h3>
+        <table class="fin" id="mrg-hot-table">
+          <thead><tr><th>Товар</th><th>Продаж</th><th>Маржа</th></tr></thead>
+          <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Залежалые (0 продаж за 30 дн.)</h3>
+        <table class="fin" id="mrg-stale-table">
+          <thead><tr><th>Товар</th><th>Посл. продажа</th><th>Наценка%</th></tr></thead>
+          <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  </div><!-- /pane-margins -->
+
+  <!-- ═══════════════════ TAB: UTILIZATION ═══════════════════ -->
+  <div class="tab-pane" id="pane-utilization">
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label" id="utl-kpi-hours-label">Корто-часов (тек. месяц)</div>
+      <div class="kpi-value" id="utl-kpi-hours">—</div>
+      <div class="kpi-delta" id="utl-kpi-hours-delta"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Выручка / корто-час</div>
+      <div class="kpi-value" id="utl-kpi-rev-hour">—</div>
+      <div class="kpi-delta muted" id="utl-kpi-rev-hour-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Средняя загрузка</div>
+      <div class="kpi-value" id="utl-kpi-load-pct">—</div>
+      <div class="kpi-delta muted" id="utl-kpi-load-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Букингов (тек. месяц)</div>
+      <div class="kpi-value" id="utl-kpi-bookings">—</div>
+      <div class="kpi-delta muted" id="utl-kpi-bookings-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Людей / день</div>
+      <div class="kpi-value" id="utl-kpi-people">—</div>
+      <div class="kpi-delta muted" id="utl-kpi-people-hint"></div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>1 &middot; Загрузка по кортам</h2>
+      <span class="hint">часов в месяц по каждому корту</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box"><canvas id="utl-courts-chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <table class="fin" id="utl-courts-table">
+        <thead>
+          <tr><th>Корт</th><th>Тип</th><th>Часов (тек.)</th><th>Букингов</th><th>Загрузка%</th><th>Ср. длит.</th></tr>
+        </thead>
+        <tbody><tr><td colspan="6" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>2 &middot; Корто-часы по месяцам</h2>
+      <span class="hint">динамика загрузки</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box"><canvas id="utl-monthly-chart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>3 &middot; Загрузка по дням недели</h2>
+      <span class="hint">среднее кол-во часов и букингов</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box short"><canvas id="utl-dow-chart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>4 &middot; Пиковые часы</h2>
+      <span class="hint">тепловая карта: час × день недели</span>
+    </div>
+    <div class="panel" style="overflow-x:auto">
+      <table class="fin" id="utl-heatmap-table">
+        <thead><tr><th></th></tr></thead>
+        <tbody><tr><td class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  </div><!-- /pane-utilization -->
 
 </main>
 
@@ -452,14 +661,66 @@ function isIncome(cat) { return INCOME_CATS.has(categorizeRevenue(cat)); }
 function isGoods(cat) { return categorizeRevenue(cat) === 'Товары'; }
 
 /* ---- Tab switcher ---- */
+var _marginsRendered = false;
+var _utilizationRendered = false;
+var _periodMonths = 1; // default: current month
+
+/* ---- Period filter ---- */
+document.querySelectorAll('.pf-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.pf-btn').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    _periodMonths = parseInt(btn.dataset.months) || 0;
+    // Re-render weekly tables with period filter
+    renderWeeklyTable('inc');
+    renderWeeklyTable('gds');
+  });
+});
+var _allGoodsTxns = null; // set by mainFromSheet or lazy-loaded
+
 document.querySelectorAll('.rev-tab').forEach(function(btn) {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.rev-tab').forEach(function(b) { b.classList.remove('active'); });
     document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
     btn.classList.add('active');
     document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
+    // Lazy-load margins tab on first click
+    if (btn.dataset.tab === 'margins' && !_marginsRendered) {
+      _marginsRendered = true;
+      lazyLoadMargins();
+    }
+    // Lazy-load utilization tab on first click
+    if (btn.dataset.tab === 'utilization' && !_utilizationRendered) {
+      _utilizationRendered = true;
+      lazyLoadUtilization();
+    }
   });
 });
+
+async function lazyLoadMargins() {
+  await loadMargins();
+  if (_allGoodsTxns) {
+    renderMarginsTab(_allGoodsTxns);
+    return;
+  }
+  // Need raw transactions — load from sheet
+  try {
+    var rows = await loadSheet('transactions');
+    var txns = [];
+    rows.forEach(function(r) {
+      var d = parseDate(r.date);
+      if (!d) return;
+      var total = num(r.total);
+      if (!total) return;
+      if (!isGoods(r.category || '')) return;
+      txns.push({ date: d, total: total, category: r.category || '', subcategory: r.subcategory || '' });
+    });
+    _allGoodsTxns = txns;
+    renderMarginsTab(txns);
+  } catch (err) {
+    document.querySelector('#pane-margins').innerHTML = '<div class="panel"><div class="error">Не удалось загрузить: ' + err.message + '</div></div>';
+  }
+}
 
 /* ---- Date helpers ---- */
 function getMonday(d) {
@@ -563,7 +824,15 @@ function renderWeeklyTable(prefix) {
   var td = tabData[prefix === 'inc' ? 'income' : 'goods'];
   var wMap = td.weekMap, wKeys = td.weekKeys;
   const curWeekKey = weekKey(new Date());
-  const keysChron = [...wKeys].reverse();
+  var keysChron = [...wKeys].reverse();
+  // Apply period filter
+  if (_periodMonths > 0) {
+    var cutoff = new Date();
+    cutoff.setMonth(cutoff.getMonth() - _periodMonths);
+    cutoff.setDate(1); cutoff.setHours(0,0,0,0);
+    var cutoffStr = cutoff.toISOString().slice(0,10);
+    keysChron = keysChron.filter(function(wk) { return wk >= cutoffStr; });
+  }
   const keysDesc = td.showAll ? [...keysChron].reverse() : keysChron.slice(-VISIBLE_WEEKS).reverse();
   const { maxDay, maxTotal } = computeMaxes(wMap, wKeys);
   const tbody = document.querySelector('#' + prefix + '-weekly-table tbody');
@@ -756,6 +1025,30 @@ function renderDowChart(canvasId, dowAvg) {
           ticks: { color: chartTextColor() },
           grid: { display: false }
         }
+      }
+    }
+  });
+}
+
+function renderDowChartDual(canvasId, dowAvgNoZero, dowAvgWithZero) {
+  new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: {
+      labels: DOW_NAMES,
+      datasets: [
+        { label: 'Без нулевых дней', data: dowAvgNoZero, backgroundColor: accent() || '#0ABAB5', borderRadius: 6, maxBarThickness: 48 },
+        { label: 'С нулями (все дни)', data: dowAvgWithZero, backgroundColor: cssVar('--text3') || '#8a9ba8', borderRadius: 6, maxBarThickness: 48 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'top', labels: { color: chartTextColor(), padding: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { title: function(items) { return DOW_FULL[items[0].dataIndex]; }, label: function(item) { return item.dataset.label + ': ' + fmtInt(Math.round(item.raw)) + ' ₺'; } } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return fmt(v) + ' ₺'; } }, grid: { color: chartGridColor() } },
+        x: { ticks: { color: chartTextColor() }, grid: { display: false } }
       }
     }
   });
@@ -990,6 +1283,326 @@ function renderStackedChart(txns) {
   });
 }
 
+/* ---- Utilization tab: court hours ---- */
+// Court types: P1,P2,P3 = крытый (indoor), P4 = открытый (outdoor)
+var COURT_TYPE = { P1: 'Крытый', P2: 'Крытый', P3: 'Крытый', P4: 'Открытый' };
+var COURT_COLORS = { P1: '#3498db', P2: '#2ecc71', P3: '#9b59b6', P4: '#e74c3c' };
+// Operating hours: 8:00-23:00 = 15 hours per court per day
+var OPERATING_HOURS = 15; // 8:00-23:00
+
+async function lazyLoadUtilization() {
+  try {
+    var rows = await loadSheet('bookings');
+    renderUtilizationTab(rows);
+  } catch (err) {
+    document.querySelector('#pane-utilization').innerHTML = '<div class="panel"><div class="error">Не удалось загрузить букинги: ' + err.message + '</div></div>';
+  }
+}
+
+function renderUtilizationTab(bookings) {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var curMonth = today.getMonth(), curYear = today.getFullYear();
+  var prevM = curMonth === 0 ? 11 : curMonth - 1;
+  var prevY = curMonth === 0 ? curYear - 1 : curYear;
+  var completedDays = Math.max(today.getDate() - 1, 1);
+
+  // Parse bookings
+  var parsed = [];
+  bookings.forEach(function(b) {
+    if ((b.status || '').trim().toLowerCase() !== 'active') return;
+    var start = parseDate(b.start_ts);
+    var end = parseDate(b.end_ts);
+    if (!start || !end) return;
+    var court = (b.court_id || '').trim();
+    if (!court) return;
+    var hours = (end - start) / 3600000;
+    if (hours <= 0 || hours > 16) return; // allow tournament bookings up to 16h, skip bad data
+    var cid = (b.customer_id || '').trim();
+    parsed.push({ start: start, end: end, court: court, hours: hours, cid: cid, price: num(b.price) });
+  });
+
+  // Current month stats — split past (for load%) vs future (for forecast)
+  var pastHours = 0, pastBookings = 0, pastPeople = new Set();
+  var futureHours = 0, futureBookings = 0;
+  var curMonthHours = 0, curMonthBookings = 0, curMonthPeople = new Set();
+  var prevMonthHours = 0;
+  var courtCur = { P1: { hours: 0, bookings: 0, durSum: 0, pastH: 0 }, P2: { hours: 0, bookings: 0, durSum: 0, pastH: 0 }, P3: { hours: 0, bookings: 0, durSum: 0, pastH: 0 }, P4: { hours: 0, bookings: 0, durSum: 0, pastH: 0 } };
+
+  parsed.forEach(function(b) {
+    var m = b.start.getMonth(), y = b.start.getFullYear();
+    if (m === curMonth && y === curYear) {
+      var isPast = b.start < today;
+      curMonthHours += b.hours;
+      curMonthBookings++;
+      if (b.cid) curMonthPeople.add(b.cid);
+      if (isPast) {
+        pastHours += b.hours;
+        pastBookings++;
+        if (b.cid) pastPeople.add(b.cid);
+      } else {
+        futureHours += b.hours;
+        futureBookings++;
+      }
+      if (courtCur[b.court]) {
+        courtCur[b.court].hours += b.hours;
+        courtCur[b.court].bookings++;
+        courtCur[b.court].durSum += b.hours;
+        if (isPast) courtCur[b.court].pastH += b.hours;
+      }
+    }
+    if (m === prevM && y === prevY) {
+      prevMonthHours += b.hours;
+    }
+  });
+
+  // Revenue from income tab (current month) for rev/hour
+  var incMonthRev = 0;
+  if (tabData.income && tabData.income.weekMap) {
+    Object.values(tabData.income.weekMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd.getMonth() === curMonth && dd.getFullYear() === curYear) incMonthRev += w.days[d];
+      }
+    });
+  }
+
+  // Max possible hours by type
+  var indoorCourts = Object.keys(COURT_TYPE).filter(function(c) { return COURT_TYPE[c] === 'Крытый'; }).length; // 3
+  var outdoorCourts = Object.keys(COURT_TYPE).filter(function(c) { return COURT_TYPE[c] === 'Открытый'; }).length; // 1
+  var totalCourts = indoorCourts + outdoorCourts;
+  // Load% based on PAST days only (no future bookings in denominator)
+  var maxHours = totalCourts * OPERATING_HOURS * completedDays;
+  var maxIndoor = indoorCourts * OPERATING_HOURS * completedDays;
+  var maxOutdoor = outdoorCourts * OPERATING_HOURS * completedDays;
+  var loadPct = maxHours > 0 ? (pastHours / maxHours * 100) : 0;
+
+  // Indoor/outdoor split — past only for load%
+  var indoorPastH = 0, outdoorPastH = 0;
+  var indoorAllH = 0, outdoorAllH = 0;
+  parsed.forEach(function(b) {
+    var m = b.start.getMonth(), y = b.start.getFullYear();
+    if (m !== curMonth || y !== curYear) return;
+    var isIndoor = COURT_TYPE[b.court] !== 'Открытый';
+    if (isIndoor) indoorAllH += b.hours; else outdoorAllH += b.hours;
+    if (b.start < today) {
+      if (isIndoor) indoorPastH += b.hours; else outdoorPastH += b.hours;
+    }
+  });
+  var indoorPct = maxIndoor > 0 ? (indoorPastH / maxIndoor * 100) : 0;
+  var outdoorPct = maxOutdoor > 0 ? (outdoorPastH / maxOutdoor * 100) : 0;
+
+  // Forecast: project month-end based on past pace
+  var dim = daysInMonth(curYear, curMonth);
+  var forecastHours = completedDays > 0 ? Math.round(pastHours / completedDays * dim) : 0;
+  var maxMonthHours = totalCourts * OPERATING_HOURS * dim;
+  var forecastPct = maxMonthHours > 0 ? (forecastHours / maxMonthHours * 100).toFixed(0) : 0;
+
+  // KPIs
+  document.getElementById('utl-kpi-hours').textContent = Math.round(pastHours) + ' ч.';
+  document.getElementById('utl-kpi-hours').title = 'Прошедшие дни. Будущие брони: +' + Math.round(futureHours) + 'ч.';
+  if (prevMonthHours > 0) {
+    var prevPace = (prevMonthHours / daysInMonth(prevY, prevM)) * completedDays;
+    var delta = prevPace > 0 ? ((pastHours - prevPace) / prevPace * 100) : 0;
+    document.getElementById('utl-kpi-hours-delta').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%';
+    document.getElementById('utl-kpi-hours-delta').className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
+  }
+
+  var revPerHour = pastHours > 0 ? incMonthRev / pastHours : 0;
+  document.getElementById('utl-kpi-rev-hour').textContent = fmtMoney(revPerHour);
+  document.getElementById('utl-kpi-rev-hour-hint').textContent = 'доход / корто-час (цель ~2K)';
+
+  document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
+  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '% · Прогноз ' + forecastPct + '% (' + forecastHours + '/' + maxMonthHours + 'ч)';
+
+  document.getElementById('utl-kpi-bookings').textContent = pastBookings + (futureBookings > 0 ? ' +' + futureBookings : '');
+  document.getElementById('utl-kpi-bookings-hint').textContent = pastBookings + ' факт за ' + completedDays + ' дн.' + (futureBookings > 0 ? ' + ' + futureBookings + ' будущих' : '');
+
+  var peoplePerDay = completedDays > 0 ? pastPeople.size / completedDays : 0;
+  document.getElementById('utl-kpi-people').textContent = peoplePerDay.toFixed(1);
+  document.getElementById('utl-kpi-people-hint').textContent = curMonthPeople.size + ' уникальных за месяц';
+
+  // Courts table
+  var courtsTbody = document.querySelector('#utl-courts-table tbody');
+  var cHtml = '';
+  ['P1','P2','P3','P4'].forEach(function(court) {
+    var c = courtCur[court];
+    var maxC = OPERATING_HOURS * completedDays;
+    var pct = maxC > 0 ? (c.pastH / maxC * 100).toFixed(1) : '0';
+    var avgDur = c.bookings > 0 ? (c.durSum / c.bookings).toFixed(1) : '0';
+    cHtml += '<tr>';
+    cHtml += '<td style="font-weight:600"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + COURT_COLORS[court] + ';margin-right:8px;vertical-align:middle"></span>' + court + '</td>';
+    cHtml += '<td>' + COURT_TYPE[court] + '</td>';
+    cHtml += '<td class="num">' + Math.round(c.hours) + ' ч.</td>';
+    cHtml += '<td class="num">' + c.bookings + '</td>';
+    cHtml += '<td class="num">' + pct + '%</td>';
+    cHtml += '<td class="num">' + avgDur + ' ч.</td>';
+    cHtml += '</tr>';
+  });
+  courtsTbody.innerHTML = cHtml;
+
+  // Courts stacked chart by month
+  var monthCourts = {};
+  parsed.forEach(function(b) {
+    var ym = ymKey(b.start);
+    if (!monthCourts[ym]) monthCourts[ym] = { P1: 0, P2: 0, P3: 0, P4: 0 };
+    if (monthCourts[ym][b.court] !== undefined) monthCourts[ym][b.court] += b.hours;
+  });
+  var mcKeys = Object.keys(monthCourts).sort().slice(-8);
+  var courtDatasets = ['P1','P2','P3','P4'].map(function(court) {
+    return { label: court + ' (' + COURT_TYPE[court] + ')', data: mcKeys.map(function(ym) { return Math.round(monthCourts[ym][court] || 0); }), backgroundColor: COURT_COLORS[court], borderRadius: 4 };
+  });
+  new Chart(document.getElementById('utl-courts-chart'), {
+    type: 'bar', data: { labels: mcKeys.map(ymLabel), datasets: courtDatasets },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: chartTextColor(), padding: 12 } },
+        tooltip: { callbacks: { label: function(it) { return it.dataset.label + ': ' + it.raw + ' ч.'; } } } },
+      scales: { x: { stacked: true, ticks: { color: chartTextColor() }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return v + ' ч.'; } }, grid: { color: chartGridColor() } } }
+    }
+  });
+
+  // Monthly total hours chart
+  var monthTotalHours = mcKeys.map(function(ym) {
+    var c = monthCourts[ym];
+    return Math.round((c.P1||0) + (c.P2||0) + (c.P3||0) + (c.P4||0));
+  });
+  new Chart(document.getElementById('utl-monthly-chart'), {
+    type: 'line', data: { labels: mcKeys.map(ymLabel), datasets: [{ label: 'Корто-часов', data: monthTotalHours, borderColor: accent() || '#0ABAB5', backgroundColor: 'rgba(10,186,181,0.1)', fill: true, tension: 0.3, pointRadius: 5 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(it) { return it.raw + ' часов'; } } } },
+      scales: { y: { beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return v + ' ч.'; } }, grid: { color: chartGridColor() } }, x: { ticks: { color: chartTextColor() }, grid: { display: false } } }
+    }
+  });
+
+  // DOW chart
+  var dowHours = [0,0,0,0,0,0,0], dowCnt = [new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
+  parsed.forEach(function(b) {
+    var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1; // Mon=0
+    dowHours[dow] += b.hours;
+    dowCnt[dow].add(b.start.toISOString().slice(0,10));
+  });
+  var dowAvgH = dowHours.map(function(t, i) { return dowCnt[i].size > 0 ? t / dowCnt[i].size : 0; });
+  var bestDow = dowAvgH.indexOf(Math.max.apply(null, dowAvgH));
+  new Chart(document.getElementById('utl-dow-chart'), {
+    type: 'bar', data: { labels: DOW_NAMES, datasets: [{ data: dowAvgH.map(function(v) { return Math.round(v * 10) / 10; }), backgroundColor: dowAvgH.map(function(_, i) { return i === bestDow ? (accent() || '#0ABAB5') : (cssVar('--text3') || '#8a9ba8'); }), borderRadius: 6, maxBarThickness: 64 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { title: function(items) { return DOW_FULL[items[0].dataIndex]; }, label: function(it) { return it.raw + ' ч. в среднем'; } } } },
+      scales: { y: { beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return v + ' ч.'; } }, grid: { color: chartGridColor() } }, x: { ticks: { color: chartTextColor() }, grid: { display: false } } }
+    }
+  });
+
+  // Heatmap: hour x weekday
+  var hours = []; for (var h = 8; h <= 22; h++) hours.push(h); // 8:00-22:00 (last slot starts at 22)
+  var heatGrid = []; for (var dw = 0; dw < 7; dw++) { heatGrid.push([]); for (var hi = 0; hi < hours.length; hi++) heatGrid[dw].push(0); }
+  parsed.forEach(function(b) {
+    var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1;
+    var h = b.start.getHours();
+    if (h >= 8 && h <= 22) heatGrid[dow][h - 8]++;
+  });
+  var maxHeat = 0;
+  heatGrid.forEach(function(row) { row.forEach(function(v) { if (v > maxHeat) maxHeat = v; }); });
+
+  var hmTable = document.getElementById('utl-heatmap-table');
+  var hmHead = '<tr><th></th>';
+  hours.forEach(function(h) { hmHead += '<th style="font-size:10px;padding:4px 6px">' + h + ':00</th>'; });
+  hmHead += '</tr>';
+  hmTable.querySelector('thead').innerHTML = hmHead;
+  var hmBody = '';
+  DOW_NAMES.forEach(function(dayName, dw) {
+    hmBody += '<tr><td style="font-weight:600;white-space:nowrap">' + dayName + '</td>';
+    heatGrid[dw].forEach(function(v) {
+      var bg = v > 0 ? heatColor(v, maxHeat) : 'transparent';
+      hmBody += '<td class="heat num" style="background:' + bg + ';padding:6px 8px;text-align:center;font-size:11px">' + (v > 0 ? v : '') + '</td>';
+    });
+    hmBody += '</tr>';
+  });
+  hmTable.querySelector('tbody').innerHTML = hmBody;
+}
+
+/* ---- Load margins from PnL spreadsheet ---- */
+var _marginsMap = {}; // normalized product name → { cost, markup }
+
+async function loadMargins() {
+  var PNL_ID = '1wLvhEUAsS08K6LvxSKAx5-soh5NxayMpU3brvd4rQ54';
+  var GID = '1678767385';
+  var url = 'https://docs.google.com/spreadsheets/d/' + PNL_ID + '/gviz/tq?tqx=out:csv&gid=' + GID;
+  try {
+    var resp = await fetch(url);
+    var text = await resp.text();
+    var lines = text.split('\n');
+    // Skip header
+    for (var i = 1; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      // Parse CSV: split by "," between quoted fields
+      var cols = line.match(/("(?:[^"]|"")*"|[^,]*)/g) || [];
+      cols = cols.filter(function(_, idx) { return idx % 2 === 0; }); // take every other match (skip comma positions)
+      // Actually simpler: just use split with awareness of quotes
+      cols = [];
+      var raw = line + ',';
+      var field = '', inQ = false;
+      for (var ci = 0; ci < raw.length; ci++) {
+        var ch = raw[ci];
+        if (inQ) {
+          if (ch === '"') { if (raw[ci+1] === '"') { field += '"'; ci++; } else { inQ = false; } }
+          else { field += ch; }
+        } else {
+          if (ch === '"') { inQ = true; }
+          else if (ch === ',') { cols.push(field); field = ''; }
+          else { field += ch; }
+        }
+      }
+      var product = (cols[1] || '').trim();
+      var costStr = (cols[3] || '').replace(',', '.').replace(/\s/g, '');
+      var markupStr = (cols[4] || '').replace(',', '.').replace('%', '').replace(/\s/g, '');
+      var cost = parseFloat(costStr);
+      var markup = parseFloat(markupStr);
+      if (!product || isNaN(cost)) continue;
+      var key = product.toLowerCase().replace(/\s+/g, ' ').replace(/[\u2018\u2019\u2032\u0060]/g, "'");
+      _marginsMap[key] = { cost: cost, markup: isNaN(markup) ? 0 : markup };
+    }
+    console.log('[revenue] margins loaded:', Object.keys(_marginsMap).length, 'products');
+  } catch (err) {
+    console.warn('[revenue] failed to load margins:', err);
+  }
+}
+
+function findMargin(subcategory) {
+  if (!subcategory) return null;
+  // Extract product name after " / " if present (e.g. "Padel Balls / Dunlop" → "Dunlop")
+  var parts = subcategory.split(' / ');
+  var name = (parts.length > 1 ? parts[parts.length - 1] : subcategory).trim();
+  var key = name.toLowerCase().replace(/\s+/g, ' ').replace(/[\u2018\u2019\u2032\u0060]/g, "'");
+  // Exact match
+  if (_marginsMap[key]) return _marginsMap[key];
+  // Substring match
+  var keys = Object.keys(_marginsMap);
+  for (var i = 0; i < keys.length; i++) {
+    if (key.indexOf(keys[i]) >= 0 || keys[i].indexOf(key) >= 0) return _marginsMap[keys[i]];
+  }
+  // Generic names: match by category keyword (e.g. "men's" → any Men's T-shirt)
+  var genericKW = ['men\'s', 'women\'s', 'hoodie', 'towel', 't-shirt'];
+  for (var g = 0; g < genericKW.length; g++) {
+    if (key.indexOf(genericKW[g]) >= 0) {
+      for (var k = 0; k < keys.length; k++) {
+        if (keys[k].indexOf(genericKW[g]) >= 0) return _marginsMap[keys[k]];
+      }
+    }
+  }
+  // Word overlap: find best match by shared significant words (>3 chars)
+  var words = key.split(/\s+/).filter(function(w) { return w.length > 3; });
+  if (words.length < 2) return null;
+  var bestMatch = null, bestScore = 0;
+  for (var j = 0; j < keys.length; j++) {
+    var score = 0;
+    for (var w = 0; w < words.length; w++) {
+      if (keys[j].indexOf(words[w]) >= 0) score++;
+    }
+    if (score > bestScore && score >= 2) { bestScore = score; bestMatch = _marginsMap[keys[j]]; }
+  }
+  return bestMatch;
+}
+
 /* ---- Goods: group into consumables vs equipment ---- */
 function renderGoodsGrouped(goodsItems, weeklyValues) {
   var consumables = [], equipment = [];
@@ -1010,13 +1623,27 @@ function renderGoodsGrouped(goodsItems, weeklyValues) {
     if (!items.length) return '';
     var groupTotal = items.reduce(function(s, i) { return s + i.total; }, 0);
     var groupCount = items.reduce(function(s, i) { return s + i.count; }, 0);
-    var h = '<tr class="month-subtotal"><td colspan="4" style="font-weight:700;text-transform:uppercase;letter-spacing:.5px">' + title + ' (' + fmtInt(groupCount) + ' шт. / ' + fmtInt(Math.round(groupTotal)) + ' ₺)</td></tr>';
+    var groupCost = 0, groupMargin = 0, hasAnyMargin = false;
+    items.forEach(function(item) {
+      var mg = findMargin(item.sub);
+      if (mg) { groupCost += mg.cost * item.count; hasAnyMargin = true; }
+    });
+    groupMargin = groupTotal - groupCost;
+    var marginInfo = hasAnyMargin ? ' · маржа ' + fmtInt(Math.round(groupMargin)) + ' ₺' : '';
+    var h = '<tr class="month-subtotal"><td colspan="7" style="font-weight:700;text-transform:uppercase;letter-spacing:.5px">' + title + ' (' + fmtInt(groupCount) + ' шт. / ' + fmtInt(Math.round(groupTotal)) + ' ₺' + marginInfo + ')</td></tr>';
     items.forEach(function(item, idx) {
       var sparkId = 'spark-' + title.slice(0,3) + '-' + idx;
+      var mg = findMargin(item.sub);
+      var costTotal = mg ? mg.cost * item.count : 0;
+      var marginTotal = mg ? item.total - costTotal : 0;
+      var markupPct = mg ? mg.markup : 0;
       h += '<tr>';
       h += '<td style="font-weight:500;padding-left:20px">' + item.sub + '</td>';
       h += '<td class="num">' + item.count + '</td>';
       h += '<td class="num">' + fmtInt(Math.round(item.total)) + ' ₺</td>';
+      h += '<td class="num">' + (mg ? fmtInt(Math.round(costTotal)) + ' ₺' : '<span class="muted">—</span>') + '</td>';
+      h += '<td class="num ' + (marginTotal >= 0 ? 'pos' : 'neg') + '">' + (mg ? fmtInt(Math.round(marginTotal)) + ' ₺' : '<span class="muted">—</span>') + '</td>';
+      h += '<td class="num">' + (mg ? markupPct.toFixed(0) + '%' : '<span class="muted">—</span>') + '</td>';
       h += '<td><div class="sparkline-cell"><canvas id="' + sparkId + '" width="100" height="28"></canvas></div></td>';
       h += '</tr>';
     });
@@ -1025,7 +1652,26 @@ function renderGoodsGrouped(goodsItems, weeklyValues) {
 
   html += renderGroup('Расходники', consumables, conVals);
   html += renderGroup('Оборудование', equipment, eqVals);
-  if (!html) html = '<tr><td colspan="4" class="muted" style="text-align:center">Нет товарных продаж</td></tr>';
+  if (!html) html = '<tr><td colspan="7" class="muted" style="text-align:center">Нет товарных продаж</td></tr>';
+
+  // Grand total with margin
+  var grandTotal = goodsItems.reduce(function(s, i) { return s + i.total; }, 0);
+  var grandCost = 0, grandMatched = 0;
+  goodsItems.forEach(function(item) {
+    var mg = findMargin(item.sub);
+    if (mg) { grandCost += mg.cost * item.count; grandMatched++; }
+  });
+  var grandMargin = grandTotal - grandCost;
+  var marginPct = grandTotal > 0 ? (grandMargin / grandTotal * 100).toFixed(1) : 0;
+  if (grandMatched > 0) {
+    html += '<tr class="month-subtotal"><td style="font-weight:700">ИТОГО</td>';
+    html += '<td class="num">' + goodsItems.reduce(function(s,i){return s+i.count},0) + '</td>';
+    html += '<td class="num">' + fmtInt(Math.round(grandTotal)) + ' ₺</td>';
+    html += '<td class="num">' + fmtInt(Math.round(grandCost)) + ' ₺</td>';
+    html += '<td class="num pos" style="font-weight:700">' + fmtInt(Math.round(grandMargin)) + ' ₺ (' + marginPct + '%)</td>';
+    html += '<td colspan="2"></td></tr>';
+  }
+
   tbody.innerHTML = html;
 
   // Draw sparklines for both groups
@@ -1060,12 +1706,490 @@ function renderGoodsGrouped(goodsItems, weeklyValues) {
   drawSparklines('Обо', equipment, eqVals);
 }
 
+/* ---- Margins tab: category mapping for PnL categories ---- */
+var MARGIN_CATS = {
+  'rackets': 'Оборудование', 'overgrip': 'Расходники', 'balls': 'Расходники',
+  'drinks': 'Расходники', 'protein bars': 'Расходники', 'merchandise': 'Мерч',
+  'caps': 'Мерч'
+};
+
+function pnlCatToGroup(pnlCat) {
+  return MARGIN_CATS[(pnlCat || '').toLowerCase()] || 'Прочее';
+}
+
+/* ---- Margins tab: full render from goods transactions ---- */
+var _mrgAllItems = []; // for sorting
+var _mrgSortCol = 'revenue';
+var _mrgSortAsc = false;
+var _mrgSearch = '';
+
+function renderMarginsTab(goodsTxns) {
+  // Aggregate by subcategory — ALL TIME
+  var byProduct = {};
+  var last30 = new Date(); last30.setDate(last30.getDate() - 30);
+  goodsTxns.forEach(function(t) {
+    var sub = t.subcategory || t.category || 'Без названия';
+    if (!byProduct[sub]) byProduct[sub] = { name: sub, count: 0, revenue: 0, lastDate: null, recent30: 0 };
+    byProduct[sub].count++;
+    byProduct[sub].revenue += t.total;
+    if (!byProduct[sub].lastDate || t.date > byProduct[sub].lastDate) byProduct[sub].lastDate = t.date;
+    if (t.date >= last30) byProduct[sub].recent30++;
+  });
+
+  var items = Object.values(byProduct);
+  var totalRevenue = 0, totalCost = 0, totalMargin = 0, matched = 0, totalCount = 0;
+  items.forEach(function(item) {
+    var mg = findMargin(item.name);
+    item.cost = mg ? mg.cost * item.count : 0;
+    item.margin = item.revenue - item.cost;
+    item.markup = mg ? mg.markup : null;
+    item.marginPct = item.revenue > 0 ? (item.margin / item.revenue * 100) : 0;
+    item.hasMargin = !!mg;
+    totalRevenue += item.revenue;
+    totalCost += item.cost;
+    totalCount += item.count;
+    if (mg) { totalMargin += item.margin; matched++; }
+  });
+  totalMargin = totalRevenue - totalCost;
+
+  // KPIs
+  document.getElementById('mrg-kpi-revenue').textContent = fmtMoney(totalRevenue);
+  document.getElementById('mrg-kpi-revenue-hint').textContent = totalCount + ' позиций продано';
+  document.getElementById('mrg-kpi-cost').textContent = fmtMoney(totalCost);
+  document.getElementById('mrg-kpi-cost-hint').textContent = matched + ' из ' + items.length + ' с себестоимостью';
+  document.getElementById('mrg-kpi-margin').textContent = fmtMoney(totalMargin);
+  var marginPct = totalRevenue > 0 ? (totalMargin / totalRevenue * 100).toFixed(1) : 0;
+  document.getElementById('mrg-kpi-margin-pct').textContent = marginPct + '% маржинальность';
+  document.getElementById('mrg-kpi-margin-pct').className = 'kpi-delta pos';
+  var avgMarkup = matched > 0 ? items.filter(function(i){return i.hasMargin;}).reduce(function(s,i){return s+i.markup;},0) / matched : 0;
+  document.getElementById('mrg-kpi-markup').textContent = avgMarkup.toFixed(0) + '%';
+  document.getElementById('mrg-kpi-markup-hint').textContent = 'средневзвешенная по PnL';
+  document.getElementById('mrg-kpi-matched').textContent = matched + '/' + items.length;
+  document.getElementById('mrg-kpi-matched-hint').textContent = 'сопоставлено с PnL';
+
+  _mrgAllItems = items;
+  renderMarginsTable();
+
+  // Category chart
+  var catData = {};
+  items.forEach(function(item) {
+    var lower = item.name.toLowerCase();
+    var cat;
+    var EQUIP_KW2 = ['racket', 'raket', 'bag', 'shoe', 'backpack'];
+    var CONSUMABLE_KW = ['ball', 'overgrip', 'grip', 'tecnifibre', 'kuikma'];
+    var DRINK_KW = ['cola', 'fanta', 'sprite', 'monster', 'burn', 'fusetea', 'powerade'];
+    var FOOD_KW = ['protein', 'bar', 'bigjoy', 'granio', 'fit bites', 'crumby'];
+    var MERCH_KW = ['t-shirt', 'hoodie', 'towel', 'shirt', 'şapka', 'cap'];
+    if (EQUIP_KW2.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Оборудование';
+    else if (CONSUMABLE_KW.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Расходники';
+    else if (DRINK_KW.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Напитки';
+    else if (FOOD_KW.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Снеки';
+    else if (MERCH_KW.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Мерч';
+    else cat = 'Прочее';
+
+    if (!catData[cat]) catData[cat] = { revenue: 0, cost: 0, margin: 0 };
+    catData[cat].revenue += item.revenue;
+    catData[cat].cost += item.cost;
+    catData[cat].margin += item.margin;
+  });
+
+  var catOrder = ['Оборудование','Расходники','Напитки','Снеки','Мерч','Прочее'];
+  var catColorsM = ['#3498db','#0ABAB5','#e67e22','#9b59b6','#e74c3c','#95a5a6'];
+  var catLabels = [], catValues = [], catBgColors = [];
+  catOrder.forEach(function(c, i) {
+    if (catData[c] && catData[c].margin > 0) {
+      catLabels.push(c);
+      catValues.push(catData[c].margin);
+      catBgColors.push(catColorsM[i]);
+    }
+  });
+
+  if (catValues.length) {
+    new Chart(document.getElementById('mrg-cat-chart'), {
+      type: 'doughnut',
+      data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: catBgColors, borderWidth: 0, hoverOffset: 6 }] },
+      options: { responsive: true, maintainAspectRatio: false, cutout: '55%',
+        plugins: { legend: { position: 'bottom', labels: { color: chartTextColor(), padding: 16 } },
+          tooltip: { callbacks: { label: function(it) { return it.label + ': ' + fmtInt(Math.round(it.raw)) + ' ₺'; } } } }
+      }
+    });
+  }
+
+  // Category table
+  var catTbody = document.querySelector('#mrg-cat-table tbody');
+  var catHtml = '';
+  catOrder.forEach(function(c, i) {
+    var d = catData[c];
+    if (!d || d.revenue <= 0) return;
+    var mpct = d.revenue > 0 ? (d.margin / d.revenue * 100).toFixed(1) : '0';
+    catHtml += '<tr>';
+    catHtml += '<td style="font-weight:500"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + catColorsM[i] + ';margin-right:8px;vertical-align:middle"></span>' + c + '</td>';
+    catHtml += '<td class="num">' + fmtInt(Math.round(d.revenue)) + ' ₺</td>';
+    catHtml += '<td class="num">' + fmtInt(Math.round(d.cost)) + ' ₺</td>';
+    catHtml += '<td class="num pos">' + fmtInt(Math.round(d.margin)) + ' ₺</td>';
+    catHtml += '<td class="num">' + mpct + '%</td>';
+    catHtml += '</tr>';
+  });
+  catTbody.innerHTML = catHtml || '<tr><td colspan="5" class="muted">Нет данных</td></tr>';
+
+  // Hot & stale tables
+  var sorted30 = items.filter(function(i){return i.recent30 > 0;}).sort(function(a,b){return b.recent30 - a.recent30;});
+  var hotTbody = document.querySelector('#mrg-hot-table tbody');
+  var hotHtml = '';
+  sorted30.slice(0, 10).forEach(function(item) {
+    hotHtml += '<tr><td style="font-weight:500">' + item.name + '</td>';
+    hotHtml += '<td class="num">' + item.recent30 + '</td>';
+    hotHtml += '<td class="num pos">' + (item.hasMargin ? fmtInt(Math.round(item.margin * item.recent30 / item.count)) + ' ₺' : '—') + '</td></tr>';
+  });
+  hotTbody.innerHTML = hotHtml || '<tr><td colspan="3" class="muted">Нет продаж за 30 дн.</td></tr>';
+
+  var stale = items.filter(function(i){return i.recent30 === 0;}).sort(function(a,b){ return (a.lastDate||0) - (b.lastDate||0); });
+  var staleTbody = document.querySelector('#mrg-stale-table tbody');
+  var staleHtml = '';
+  stale.forEach(function(item) {
+    var lastStr = item.lastDate ? fmtDateFull(item.lastDate) : 'никогда';
+    staleHtml += '<tr><td style="font-weight:500">' + item.name + '</td>';
+    staleHtml += '<td class="num">' + lastStr + '</td>';
+    staleHtml += '<td class="num">' + (item.markup !== null ? item.markup.toFixed(0) + '%' : '—') + '</td></tr>';
+  });
+  staleTbody.innerHTML = staleHtml || '<tr><td colspan="3" class="muted">Все товары активны</td></tr>';
+
+  // Search
+  document.getElementById('mrg-search').addEventListener('input', function() {
+    _mrgSearch = this.value.toLowerCase();
+    renderMarginsTable();
+  });
+
+  // Sort by clicking headers
+  document.querySelectorAll('#mrg-table th[data-sort]').forEach(function(th) {
+    th.addEventListener('click', function() {
+      var col = this.getAttribute('data-sort');
+      if (_mrgSortCol === col) _mrgSortAsc = !_mrgSortAsc;
+      else { _mrgSortCol = col; _mrgSortAsc = false; }
+      renderMarginsTable();
+    });
+  });
+}
+
+function renderMarginsTable() {
+  var items = _mrgAllItems.slice();
+  if (_mrgSearch) {
+    items = items.filter(function(i) { return i.name.toLowerCase().indexOf(_mrgSearch) >= 0; });
+  }
+  items.sort(function(a, b) {
+    var va, vb;
+    switch (_mrgSortCol) {
+      case 'name': va = a.name.toLowerCase(); vb = b.name.toLowerCase(); return _mrgSortAsc ? (va < vb ? -1 : 1) : (vb < va ? -1 : 1);
+      case 'count': va = a.count; vb = b.count; break;
+      case 'revenue': va = a.revenue; vb = b.revenue; break;
+      case 'cost': va = a.cost; vb = b.cost; break;
+      case 'margin': va = a.margin; vb = b.margin; break;
+      case 'markup': va = a.markup || 0; vb = b.markup || 0; break;
+      case 'marginpct': va = a.marginPct; vb = b.marginPct; break;
+      default: va = a.revenue; vb = b.revenue;
+    }
+    return _mrgSortAsc ? va - vb : vb - va;
+  });
+
+  var tbody = document.querySelector('#mrg-table tbody');
+  var html = '';
+  var grandRev = 0, grandCost = 0, grandMargin = 0, grandCount = 0;
+  items.forEach(function(item) {
+    grandRev += item.revenue; grandCost += item.cost; grandMargin += item.margin; grandCount += item.count;
+    html += '<tr>';
+    html += '<td style="font-weight:500">' + item.name + '</td>';
+    html += '<td class="num">' + item.count + '</td>';
+    html += '<td class="num">' + fmtInt(Math.round(item.revenue)) + ' ₺</td>';
+    html += '<td class="num">' + (item.hasMargin ? fmtInt(Math.round(item.cost)) + ' ₺' : '<span class="muted">—</span>') + '</td>';
+    html += '<td class="num ' + (item.margin >= 0 ? 'pos' : 'neg') + '">' + (item.hasMargin ? fmtInt(Math.round(item.margin)) + ' ₺' : '<span class="muted">—</span>') + '</td>';
+    html += '<td class="num">' + (item.markup !== null ? item.markup.toFixed(0) + '%' : '<span class="muted">—</span>') + '</td>';
+    html += '<td class="num">' + (item.hasMargin ? item.marginPct.toFixed(1) + '%' : '<span class="muted">—</span>') + '</td>';
+    html += '</tr>';
+  });
+  if (!html) html = '<tr><td colspan="7" class="muted" style="text-align:center">Ничего не найдено</td></tr>';
+  tbody.innerHTML = html;
+
+  var tfoot = document.getElementById('mrg-table-foot');
+  var mpct = grandRev > 0 ? (grandMargin / grandRev * 100).toFixed(1) : '0';
+  tfoot.innerHTML = '<tr><td style="font-weight:700">ИТОГО</td><td class="num">' + grandCount + '</td>' +
+    '<td class="num">' + fmtInt(Math.round(grandRev)) + ' ₺</td>' +
+    '<td class="num">' + fmtInt(Math.round(grandCost)) + ' ₺</td>' +
+    '<td class="num pos" style="font-weight:700">' + fmtInt(Math.round(grandMargin)) + ' ₺</td>' +
+    '<td></td><td class="num">' + mpct + '%</td></tr>';
+}
+
 /* =========================================================================
- * MAIN FROM CACHE — skip, always use sheet for per-category split
- * Cache doesn't separate income/goods weekly data. Use sheet directly.
+ * MAIN FROM CACHE — uses split weekly tabs + existing cache tabs
+ * Falls back to sheet for category donut/stacked (need raw tx data)
  * ========================================================================= */
 async function mainFromCache() {
-  throw new Error('skip cache: need per-category data');
+  // Load split weekly data
+  var incWeekly, gdsWeekly, revDow, revMonthly, revMC, goodsWeeklyData;
+  try {
+    [incWeekly, gdsWeekly, revDow, revMonthly, revMC, goodsWeeklyData] = await Promise.all([
+      loadCacheTab('rev_weekly_income'),
+      loadCacheTab('rev_weekly_goods'),
+      loadCacheTab('rev_dow_avg'),
+      loadCacheTab('rev_monthly_tx'),
+      loadCacheTab('rev_by_month_cat'),
+      loadCacheTab('rev_goods_weekly')
+    ]);
+  } catch (e) { throw new Error('cache tabs missing: ' + e.message); }
+
+  if (!incWeekly || !incWeekly.length) throw new Error('no rev_weekly_income data');
+
+  // Build weekly maps from cache
+  function buildWeekMapFromCache(rows) {
+    var wMap = {}, wKeys = [];
+    rows.forEach(function(r) {
+      var wk = r.week_mon;
+      var days = [num(r.d0),num(r.d1),num(r.d2),num(r.d3),num(r.d4),num(r.d5),num(r.d6)];
+      var total = num(r.total);
+      var mon = new Date(wk + 'T00:00:00');
+      wMap[wk] = { mon: mon, days: days, total: total };
+      wKeys.push(wk);
+    });
+    wKeys.sort().reverse();
+    return { weekMap: wMap, weekKeys: wKeys };
+  }
+
+  var incData = buildWeekMapFromCache(incWeekly);
+  tabData.income.weekMap = incData.weekMap;
+  tabData.income.weekKeys = incData.weekKeys;
+
+  var gdsData = buildWeekMapFromCache(gdsWeekly);
+  tabData.goods.weekMap = gdsData.weekMap;
+  tabData.goods.weekKeys = gdsData.weekKeys;
+
+  // KPIs from weekly data
+  function kpiFromWeekly(prefix, wMap) {
+    var today = new Date(); today.setHours(0,0,0,0);
+    var curMonth = today.getMonth(), curYear = today.getFullYear();
+    var dimCur = daysInMonth(curYear, curMonth);
+    var completedDays = Math.max(today.getDate() - 1, 1);
+    var monthSoFar = 0, txCount = 0;
+    var prevM = curMonth === 0 ? 11 : curMonth - 1;
+    var prevY = curMonth === 0 ? curYear - 1 : curYear;
+    var prevMonthFull = 0;
+
+    // Sum days in current/prev month from weekly data
+    Object.values(wMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dayDate = new Date(w.mon);
+        dayDate.setDate(dayDate.getDate() + d);
+        if (dayDate.getMonth() === curMonth && dayDate.getFullYear() === curYear) {
+          monthSoFar += w.days[d];
+          if (w.days[d] > 0) txCount++;
+        }
+        if (dayDate.getMonth() === prevM && dayDate.getFullYear() === prevY) {
+          prevMonthFull += w.days[d];
+        }
+      }
+    });
+
+    var prevDim = daysInMonth(prevY, prevM);
+    var prevMonthPace = prevDim > 0 ? (prevMonthFull / prevDim) * completedDays : 0;
+
+    // Goal from monthly data
+    var curYM = ymKey(today);
+    var monthTotals = {};
+    Object.values(wMap).forEach(function(w) {
+      var thu = new Date(w.mon); thu.setDate(thu.getDate() + 3);
+      var ym = ymKey(thu);
+      if (ym >= '2026-03' && ym < curYM) {
+        monthTotals[ym] = (monthTotals[ym] || 0) + w.total;
+      }
+    });
+    var vals = Object.values(monthTotals);
+    var goal = 0;
+    if (vals.length) {
+      var last3 = vals.slice(-3);
+      goal = Math.round(last3.reduce(function(s,v){return s+v;},0) / last3.length * 1.15);
+    }
+
+    var tabName = prefix === 'inc' ? 'income' : 'goods';
+    _goals[tabName] = goal;
+    tabData[tabName].weeklyGoal = goal > 0 ? Math.round(goal / 4.33) : 0;
+
+    renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, txCount, goal);
+  }
+
+  kpiFromWeekly('inc', incData.weekMap);
+  renderWeeklyTable('inc');
+  document.getElementById('inc-toggle-weeks').addEventListener('click', function() {
+    tabData.income.showAll = !tabData.income.showAll;
+    renderWeeklyTable('inc');
+  });
+
+  // DOW chart from cache (dual: with and without zeros)
+  if (revDow && revDow.length) {
+    var dowAvgNoZero = revDow.map(function(r) { return num(r.avg); });
+    // Compute avg WITH zeros from weekly data
+    var dowTotals = [0,0,0,0,0,0,0], dowCalDays = [0,0,0,0,0,0,0];
+    var allWeeks = Object.keys(incData.weekMap).sort();
+    if (allWeeks.length) {
+      var firstMon = new Date(allWeeks[0] + 'T00:00:00');
+      var lastMon = new Date(allWeeks[allWeeks.length - 1] + 'T00:00:00');
+      var lastSun = new Date(lastMon); lastSun.setDate(lastSun.getDate() + 6);
+      var cur = new Date(firstMon);
+      while (cur <= lastSun) { var dw = cur.getDay(); dw = dw === 0 ? 6 : dw - 1; dowCalDays[dw]++; cur.setDate(cur.getDate() + 1); }
+    }
+    allWeeks.forEach(function(wk) {
+      var w = incData.weekMap[wk];
+      for (var d = 0; d < 7; d++) dowTotals[d] += w.days[d];
+    });
+    var dowAvgAll = dowTotals.map(function(t, i) { return dowCalDays[i] > 0 ? t / dowCalDays[i] : 0; });
+    renderDowChartDual('inc-dow-chart', dowAvgNoZero, dowAvgAll);
+  }
+
+  // Monthly chart from cache
+  if (revMonthly && revMonthly.length) {
+    var mKeys = revMonthly.map(function(r) { return r.month; });
+    var mTotals = revMonthly.map(function(r) { return num(r.total); });
+    renderMonthlyChart('inc-monthly-chart', mKeys.slice(-8), mTotals.slice(-8));
+    // Monthly table
+    var tbody = document.querySelector('#inc-monthly-table tbody');
+    var html = '';
+    revMonthly.slice(-8).forEach(function(r) {
+      html += '<tr><td style="font-weight:500">' + ymLabel(r.month) + '</td>';
+      html += '<td class="num">' + fmtInt(Math.round(num(r.total))) + ' ₺</td>';
+      var ndays = num(r.days_count) || 1;
+      html += '<td class="num">' + fmtInt(Math.round(num(r.total)/ndays)) + ' ₺</td>';
+      html += '<td class="num">—</td><td class="num">—</td></tr>';
+    });
+    tbody.innerHTML = html;
+  }
+
+  // Category donut — use rev_by_month_cat for current month
+  var today = new Date(); today.setHours(0,0,0,0);
+  var curYM = ymKey(today);
+  if (revMC && revMC.length) {
+    var incCatMap = {}, incCatTotal = 0;
+    revMC.forEach(function(r) {
+      if (r.month !== curYM) return;
+      var cat = r.category;
+      if (cat === 'Товары') return;
+      var v = num(r.total);
+      incCatMap[cat] = (incCatMap[cat] || 0) + v;
+      incCatTotal += v;
+    });
+    renderCatBlock('inc-cat-donut', 'inc-cat-table', incCatMap, incCatTotal);
+    renderCatMinibar(incCatMap);
+
+    // Stacked chart from rev_by_month_cat
+    var monthCats = {};
+    revMC.forEach(function(r) {
+      var cat = r.category;
+      if (cat === 'Товары') return;
+      if (!monthCats[r.month]) monthCats[r.month] = {};
+      monthCats[r.month][cat] = (monthCats[r.month][cat] || 0) + num(r.total);
+    });
+    var stackKeys = Object.keys(monthCats).sort().slice(-8);
+    var stackCatOrder = REV_CAT_ORDER.filter(function(c) { return c !== 'Товары'; });
+    var stackColors = [];
+    REV_CAT_ORDER.forEach(function(c, i) { if (c !== 'Товары') stackColors.push(REV_CAT_COLORS[i]); });
+    var stackDatasets = stackCatOrder.map(function(cat, ci) {
+      return { label: cat, data: stackKeys.map(function(ym) { return (monthCats[ym] || {})[cat] || 0; }), backgroundColor: stackColors[ci], borderRadius: 4 };
+    });
+    new Chart(document.getElementById('inc-stacked-chart'), {
+      type: 'bar', data: { labels: stackKeys.map(ymLabel), datasets: stackDatasets },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: chartTextColor(), padding: 12, font: { size: 11 } } },
+          tooltip: { callbacks: { label: function(item) { return item.dataset.label + ': ' + fmtInt(Math.round(item.raw)) + ' ₺'; } } } },
+        scales: { x: { stacked: true, ticks: { color: chartTextColor() }, grid: { display: false } },
+          y: { stacked: true, beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return fmt(v) + ' ₺'; } }, grid: { color: chartGridColor() } } }
+      }
+    });
+  }
+
+  /* ═══ GOODS TAB ═══ */
+  await loadMargins();
+  kpiFromWeekly('gds', gdsData.weekMap);
+  renderWeeklyTable('gds');
+  document.getElementById('gds-toggle-weeks').addEventListener('click', function() {
+    tabData.goods.showAll = !tabData.goods.showAll;
+    renderWeeklyTable('gds');
+  });
+
+  // Goods DOW — compute from goods weekly cache
+  if (gdsWeekly && gdsWeekly.length) {
+    var gdsDow = [0,0,0,0,0,0,0], gdsDowCnt = [0,0,0,0,0,0,0];
+    gdsWeekly.forEach(function(r) {
+      for (var d = 0; d < 7; d++) {
+        var v = num(r['d'+d]);
+        gdsDow[d] += v;
+        if (v > 0) gdsDowCnt[d]++;
+      }
+    });
+    var gdsDowAvg = gdsDow.map(function(t,i) { return gdsDowCnt[i] > 0 ? t / gdsDowCnt[i] : 0; });
+    var gdsCalDays = [0,0,0,0,0,0,0];
+    var gdsAllWeeks = Object.keys(gdsData.weekMap).sort();
+    if (gdsAllWeeks.length) {
+      var gFirst = new Date(gdsAllWeeks[0] + 'T00:00:00');
+      var gLastMon = new Date(gdsAllWeeks[gdsAllWeeks.length - 1] + 'T00:00:00');
+      var gLastSun = new Date(gLastMon); gLastSun.setDate(gLastSun.getDate() + 6);
+      var gc = new Date(gFirst);
+      while (gc <= gLastSun) { var gdw = gc.getDay(); gdw = gdw === 0 ? 6 : gdw - 1; gdsCalDays[gdw]++; gc.setDate(gc.getDate() + 1); }
+    }
+    var gdsDowAvgAll = gdsDow.map(function(t, i) { return gdsCalDays[i] > 0 ? t / gdsCalDays[i] : 0; });
+    renderDowChartDual('gds-dow-chart', gdsDowAvg, gdsDowAvgAll);
+  }
+
+  // Goods monthly from goods weekly
+  if (gdsWeekly && gdsWeekly.length) {
+    var gdsMonthMap = {};
+    gdsWeekly.forEach(function(r) {
+      var mon = new Date(r.week_mon + 'T00:00:00');
+      var thu = new Date(mon); thu.setDate(thu.getDate() + 3);
+      var ym = ymKey(thu);
+      if (!gdsMonthMap[ym]) gdsMonthMap[ym] = 0;
+      gdsMonthMap[ym] += num(r.total);
+    });
+    var gmKeys = Object.keys(gdsMonthMap).sort().slice(-8);
+    var gmTotals = gmKeys.map(function(ym) { return gdsMonthMap[ym]; });
+    renderMonthlyChart('gds-monthly-chart', gmKeys, gmTotals);
+    var gmTbody = document.querySelector('#gds-monthly-table tbody');
+    var gmHtml = '';
+    gmKeys.forEach(function(ym) {
+      gmHtml += '<tr><td style="font-weight:500">' + ymLabel(ym) + '</td>';
+      gmHtml += '<td class="num">' + fmtInt(Math.round(gdsMonthMap[ym])) + ' ₺</td>';
+      gmHtml += '<td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>';
+    });
+    gmTbody.innerHTML = gmHtml;
+  }
+
+  // Goods items table from rev_goods_weekly
+  if (goodsWeeklyData && goodsWeeklyData.length) {
+    var goodsItems = [];
+    var goodsWV = [];
+    goodsWeeklyData.forEach(function(r) {
+      goodsItems.push({ sub: r.name, count: parseInt(r.count) || 0, total: num(r.total) });
+      var wvals = [];
+      for (var wi = 0; ; wi++) {
+        if (r['w'+wi] === undefined) break;
+        wvals.push(num(r['w'+wi]));
+      }
+      goodsWV.push(wvals);
+    });
+    renderGoodsGrouped(goodsItems, goodsWV);
+  }
+
+  // Summary header
+  var today2 = new Date(); today2.setHours(0,0,0,0);
+  var incMonthTotal = 0, gdsMonthTotal = 0;
+  Object.values(incData.weekMap).forEach(function(w) {
+    for (var d = 0; d < 7; d++) {
+      var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+      if (dd.getMonth() === today2.getMonth() && dd.getFullYear() === today2.getFullYear()) incMonthTotal += w.days[d];
+    }
+  });
+  Object.values(gdsData.weekMap).forEach(function(w) {
+    for (var d = 0; d < 7; d++) {
+      var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+      if (dd.getMonth() === today2.getMonth() && dd.getFullYear() === today2.getFullYear()) gdsMonthTotal += w.days[d];
+    }
+  });
+  renderSummaryHeader(incMonthTotal, gdsMonthTotal);
 }
 
 /* =========================================================================
@@ -1117,7 +2241,25 @@ function renderTabDow(canvasId, txns) {
     dowDates[d].add(t.date.toISOString().slice(0, 10));
   });
   var dowAvg = dowTotals.map(function(tot, i) { return dowDates[i].size > 0 ? tot / dowDates[i].size : 0; });
-  renderDowChart(canvasId, dowAvg);
+
+  // Count ALL calendar days (including zeros) from first to last transaction date
+  var allDates = [];
+  txns.forEach(function(t) { allDates.push(t.date); });
+  allDates.sort(function(a,b) { return a - b; });
+  var totalCalDays = [0,0,0,0,0,0,0];
+  if (allDates.length > 0) {
+    var first = new Date(allDates[0]); first.setHours(0,0,0,0);
+    var last = new Date(allDates[allDates.length - 1]); last.setHours(0,0,0,0);
+    var cur = new Date(first);
+    while (cur <= last) {
+      var dow = cur.getDay(); dow = dow === 0 ? 6 : dow - 1;
+      totalCalDays[dow]++;
+      cur.setDate(cur.getDate() + 1);
+    }
+  }
+  var dowAvgAll = dowTotals.map(function(tot, i) { return totalCalDays[i] > 0 ? tot / totalCalDays[i] : 0; });
+
+  renderDowChartDual(canvasId, dowAvg, dowAvgAll);
 }
 
 function renderTabMonthly(prefix, txns) {
@@ -1190,6 +2332,7 @@ async function mainFromSheet() {
   /* ---- Split into income & goods ---- */
   var incomeTxns = txns.filter(function(t) { return isIncome(t.category); });
   var goodsTxns  = txns.filter(function(t) { return isGoods(t.category); });
+  _allGoodsTxns = goodsTxns; // save for margins tab
 
   /* ═══ INCOME TAB ═══ */
   buildTabData('income', incomeTxns);
@@ -1218,6 +2361,7 @@ async function mainFromSheet() {
   renderStackedChart(txns);
 
   /* ═══ GOODS TAB ═══ */
+  await loadMargins();
   buildTabData('goods', goodsTxns);
   renderTabKPIs('gds', goodsTxns);
   renderWeeklyTable('gds');
