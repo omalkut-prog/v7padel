@@ -218,6 +218,7 @@
     <div class="sum-split">
       <span class="sum-part"><span class="sum-dot" style="background:var(--accent)"></span>Доход <strong id="sum-income-pct">—</strong></span>
       <span class="sum-part"><span class="sum-dot" style="background:#f39c12"></span>Товары <strong id="sum-goods-pct">—</strong></span>
+      <span class="sum-part" id="sum-utl-part" style="display:none"><span class="sum-dot" style="background:#0ABAB5"></span>Загрузка <strong id="sum-utl-info">—</strong></span>
     </div>
     <div class="sum-bar" id="sum-bar"></div>
   </div>
@@ -270,6 +271,11 @@
       <div class="progress-bar"><div class="fill" id="inc-kpi-goal-bar" style="width:0%"></div></div>
       <div class="kpi-delta muted" id="inc-kpi-goal-hint"></div>
     </div>
+    <div class="kpi-card">
+      <div class="kpi-label">₺ / корто-час</div>
+      <div class="kpi-value" id="inc-kpi-rev-hour">—</div>
+      <div class="kpi-delta muted" id="inc-kpi-rev-hour-delta"></div>
+    </div>
   </div>
 
   <section class="section">
@@ -283,7 +289,7 @@
           <tr>
             <th>#</th><th>Период</th>
             <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
-            <th>Тотал</th><th>Ср/день</th><th>Рост</th><th>% цели</th><th>Примечания</th>
+            <th>Тотал</th><th>Ср/день</th><th>Часов</th><th>₺/час</th><th>Рост</th><th>% цели</th>
           </tr>
         </thead>
         <tbody><tr><td colspan="14" class="loading">Загрузка данных…</td></tr></tbody>
@@ -321,9 +327,19 @@
     </div>
   </section>
 
+  <section class="section" id="sec-rev-per-hour">
+    <div class="section-head">
+      <h2>4 &middot; Эффективность: ₺ / корто-час по месяцам</h2>
+      <span class="hint">выручка / часы загрузки из Matchpoint</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box short"><canvas id="inc-rev-hour-chart"></canvas></div>
+    </div>
+  </section>
+
   <section class="section">
     <div class="section-head">
-      <h2>4 &middot; Доход по категориям (текущий месяц)</h2>
+      <h2>5 &middot; Доход по категориям (текущий месяц)</h2>
     </div>
     <div class="two-col">
       <div class="panel">
@@ -341,7 +357,7 @@
 
   <section class="section">
     <div class="section-head">
-      <h2>5 &middot; Тренд категорий по месяцам</h2>
+      <h2>6 &middot; Тренд категорий по месяцам</h2>
       <span class="hint">stacked bar — видно рост/падение каждой категории</span>
     </div>
     <div class="panel">
@@ -629,7 +645,7 @@
     <div class="panel">
       <table class="fin" id="utl-days-table">
         <thead>
-          <tr><th>Дата</th><th>День</th><th>Часов</th><th>%</th><th>Чел.</th><th>Резерв</th><th>Партиды</th><th>Классы</th><th>Прочее</th></tr>
+          <tr><th>Дата</th><th>День</th><th>Часов</th><th>%</th><th>Чел.</th><th>Резерв</th><th>Матчи</th><th>Классы</th><th>Прочее</th></tr>
         </thead>
         <tbody><tr><td colspan="9" class="loading">Загрузка…</td></tr></tbody>
       </table>
@@ -777,7 +793,7 @@ function recalcUtilizationKPIs() {
   document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + maxDayHours + ' возможных · ' + totalDays + ' дн.';
 
   document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
-  var typeHint = 'резерв ' + Math.round(typeHours.reserva) + ' · партиды ' + Math.round(typeHours.partida) + ' · классы ' + Math.round(typeHours.clases) + ' · актив. ' + Math.round(typeHours.actividades) + ' · центр ' + Math.round(typeHours.centro);
+  var typeHint = 'резерв ' + Math.round(typeHours.reserva) + ' · матчи ' + Math.round(typeHours.partida) + ' · классы ' + Math.round(typeHours.clases) + ' · актив. ' + Math.round(typeHours.actividades) + ' · центр ' + Math.round(typeHours.centro);
   document.getElementById('utl-kpi-load-hint').textContent = typeHint;
 
   // Rev/hour
@@ -1061,6 +1077,13 @@ function renderWeeklyTable(prefix) {
   var wMap = td.weekMap, wKeys = td.weekKeys;
   const curWeekKey = weekKey(new Date());
   var keysChron = [...wKeys].reverse();
+
+  // Build occupancy lookup for income tab (hours per week)
+  var utlDayMap = {};
+  var isIncome = prefix === 'inc';
+  if (isIncome && window._utlParsed) {
+    window._utlParsed.forEach(function(r) { if (r.hours > 0) utlDayMap[r.date] = r.hours; });
+  }
   // Apply period filter
   if (_periodMonths > 0) {
     var cutoff = new Date();
@@ -1079,9 +1102,10 @@ function renderWeeklyTable(prefix) {
   function flushMonth() {
     if (!monthName) return '';
     const avgPerDay = monthAvgDays > 0 ? monthTotal / monthAvgDays : 0;
+    var extraCols = isIncome ? '<td colspan="2"></td>' : '';
     return '<tr class="month-subtotal"><td></td><td>Итого ' + monthName + '</td>' +
       '<td colspan="7"></td><td class="num">' + fmtInt(Math.round(monthTotal)) + '</td>' +
-      '<td class="num">' + fmtInt(Math.round(avgPerDay)) + '</td><td colspan="3"></td></tr>';
+      '<td class="num">' + fmtInt(Math.round(avgPerDay)) + '</td>' + extraCols + '<td colspan="2"></td></tr>';
   }
 
   keysDesc.forEach(wk => {
@@ -1117,15 +1141,29 @@ function renderWeeklyTable(prefix) {
     html += '<tr' + (isCurrent ? ' class="current-week"' : '') + '>';
     html += '<td class="muted">' + weekNum + '</td>';
     html += '<td style="white-space:nowrap;font-weight:500">' + rangeStr + '</td>';
+    var bestDayVal = Math.max.apply(null, w.days);
     for (let d = 0; d < 7; d++) {
       const val = w.days[d];
-      html += '<td class="heat num" style="background:' + heatColor(val, maxDay[d]) + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">0</span>') + '</td>';
+      var isBest = val > 0 && val === bestDayVal;
+      var bestStyle = isBest ? ';border-bottom:2px solid var(--accent);font-weight:700' : '';
+      html += '<td class="heat num" style="background:' + heatColor(val, maxDay[d]) + bestStyle + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">0</span>') + '</td>';
     }
     html += '<td class="num" style="font-weight:700;background:' + heatColor(w.total, maxTotal) + '">' + fmtInt(Math.round(w.total)) + '</td>';
     html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
+    // Hours + ₺/hour (income tab only)
+    if (isIncome) {
+      var weekHours = 0;
+      for (var dh = 0; dh < 7; dh++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + dh);
+        var dk = dd.toISOString().slice(0, 10);
+        weekHours += (utlDayMap[dk] || 0);
+      }
+      var revPerH = weekHours > 0 ? w.total / weekHours : 0;
+      html += '<td class="num">' + (weekHours > 0 ? weekHours.toFixed(0) : '—') + '</td>';
+      html += '<td class="num" style="font-weight:600">' + (revPerH > 0 ? fmtInt(Math.round(revPerH)) : '—') + '</td>';
+    }
     html += '<td class="' + deltaCls + '">' + deltaStr + '</td>';
     html += '<td class="num">' + goalPctWeek + '</td>';
-    html += '<td class="note" title="' + note.replace(/"/g,'&quot;') + '">' + note + '</td>';
     html += '</tr>';
   });
 
@@ -1143,7 +1181,20 @@ function renderWeeklyTable(prefix) {
   var totalDaysWithRevenue = footCnt.reduce((s, c) => s + c, 0) || 1;
   footHtml += '<td class="num" style="font-weight:700">' + fmtInt(Math.round(grandTotal)) + '</td>';
   footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / totalDaysWithRevenue)) + '</td>';
-  footHtml += '<td colspan="3"></td></tr>';
+  if (isIncome) {
+    var totalUtlH = 0;
+    keysDesc.forEach(function(wk) {
+      var w = wMap[wk];
+      for (var dh = 0; dh < 7; dh++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + dh);
+        totalUtlH += (utlDayMap[dd.toISOString().slice(0,10)] || 0);
+      }
+    });
+    var avgRevH = totalUtlH > 0 ? grandTotal / totalUtlH : 0;
+    footHtml += '<td class="num">' + (totalUtlH > 0 ? Math.round(totalUtlH) : '—') + '</td>';
+    footHtml += '<td class="num" style="font-weight:700">' + (avgRevH > 0 ? fmtInt(Math.round(avgRevH)) : '—') + '</td>';
+  }
+  footHtml += '<td colspan="2"></td></tr>';
   tfoot.innerHTML = footHtml;
 
   const btn = document.getElementById(prefix + '-toggle-weeks');
@@ -1222,6 +1273,24 @@ function renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, tx
   } else {
     $('kpi-goal-pct').textContent = '—';
     $('kpi-goal-hint').textContent = 'мало данных для цели';
+  }
+
+  // KPI 6: ₺/корто-час (only on income tab)
+  if (prefix === 'inc') {
+    var utl = window._utlParsed;
+    var revHourEl = document.getElementById('inc-kpi-rev-hour');
+    var revHourDelta = document.getElementById('inc-kpi-rev-hour-delta');
+    if (utl && utl.length) {
+      var today2 = new Date(); today2.setHours(0,0,0,0);
+      var cm = today2.getMonth(), cy = today2.getFullYear();
+      var curHours = utl.filter(function(r) { return r.dt.getMonth() === cm && r.dt.getFullYear() === cy && r.hours > 0; }).reduce(function(s,r){return s+r.hours},0);
+      var revPerH = curHours > 0 ? monthSoFar / curHours : 0;
+      revHourEl.textContent = fmtInt(Math.round(revPerH)) + ' ₺';
+      revHourDelta.textContent = curHours > 0 ? Math.round(curHours) + ' ч. загрузки' : 'нет данных загрузки';
+    } else {
+      revHourEl.textContent = '—';
+      revHourDelta.textContent = 'загрузите вкладку Загрузка';
+    }
   }
 }
 
@@ -1363,6 +1432,20 @@ function renderSummaryHeader(incomeTotal, goodsTotal) {
     '<div class="sum-bar-seg" style="width:' + incPct + '%;background:var(--accent)"></div>' +
     '<div class="sum-bar-seg" style="width:' + gdsPct + '%;background:#f39c12"></div>';
   document.getElementById('summary-header').style.display = '';
+
+  // Utilization info in summary
+  var utl = window._utlParsed;
+  if (utl && utl.length) {
+    var t = new Date(); t.setHours(0,0,0,0);
+    var cm = t.getMonth(), cy = t.getFullYear();
+    var curDays = utl.filter(function(r) { return r.dt.getMonth() === cm && r.dt.getFullYear() === cy && r.hours > 0; });
+    if (curDays.length > 0) {
+      var avgH = curDays.reduce(function(s,r){return s+r.hours},0) / curDays.length;
+      var avgPct = curDays.reduce(function(s,r){return s+r.pct},0) / curDays.length;
+      document.getElementById('sum-utl-info').textContent = avgH.toFixed(1) + ' ч/день (' + avgPct.toFixed(0) + '%)';
+      document.getElementById('sum-utl-part').style.display = '';
+    }
+  }
 }
 
 /* ---- Mini category bar under Income KPI ---- */
@@ -1438,6 +1521,11 @@ var OPERATING_HOURS = 15; // 8:00-23:00
 
 async function lazyLoadUtilization() {
   try {
+    // If already pre-loaded by mainFromSheet, just render the KPIs and charts
+    if (window._utlParsed && window._utlParsed.length) {
+      renderUtilizationTabFromParsed(window._utlParsed);
+      return;
+    }
     var rows = await loadSheet('occupancy_daily');
     renderUtilizationTab(rows);
   } catch (err) {
@@ -1550,7 +1638,7 @@ async function renderUtilizationTab(occRows) {
   document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + maxDayHours + ' возможных · ' + effectiveDays + ' дн.';
 
   document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
-  var typeHint = 'резерв ' + Math.round(typeHours.reserva) + ' · партиды ' + Math.round(typeHours.partida) + ' · классы ' + Math.round(typeHours.clases) + ' · актив. ' + Math.round(typeHours.actividades) + ' · центр ' + Math.round(typeHours.centro);
+  var typeHint = 'резерв ' + Math.round(typeHours.reserva) + ' · матчи ' + Math.round(typeHours.partida) + ' · классы ' + Math.round(typeHours.clases) + ' · актив. ' + Math.round(typeHours.actividades) + ' · центр ' + Math.round(typeHours.centro);
   document.getElementById('utl-kpi-load-hint').textContent = typeHint;
 
   // Rev/hour
@@ -1566,6 +1654,75 @@ async function renderUtilizationTab(occRows) {
   window._utlParsed = parsed;
 
   // Render all charts/tables
+  _renderUtilizationCharts();
+}
+
+function renderUtilizationTabFromParsed(parsed) {
+  // Same as renderUtilizationTab but uses already-parsed data
+  var now = new Date();
+  var today = new Date(); today.setHours(0,0,0,0);
+  var curMonth = today.getMonth(), curYear = today.getFullYear();
+  var prevM = curMonth === 0 ? 11 : curMonth - 1;
+  var prevY = curMonth === 0 ? curYear - 1 : curYear;
+  var totalCourts = Object.keys(COURT_TYPE).length;
+  var maxDayHours = totalCourts * OPERATING_HOURS;
+
+  var curMonthDays = parsed.filter(function(r) { return r.dt.getMonth() === curMonth && r.dt.getFullYear() === curYear && r.dt <= today; });
+  var prevMonthDays = parsed.filter(function(r) { return r.dt.getMonth() === prevM && r.dt.getFullYear() === prevY; });
+
+  var pastHours = curMonthDays.reduce(function(s, r) { return s + r.hours; }, 0);
+  var pastPersons = curMonthDays.reduce(function(s, r) { return s + r.persons; }, 0);
+  var effectiveDays = curMonthDays.length || 1;
+  var prevMonthHours = prevMonthDays.reduce(function(s, r) { return s + r.hours; }, 0);
+  var maxHours = maxDayHours * effectiveDays;
+  var loadPct = maxHours > 0 ? (pastHours / maxHours * 100) : 0;
+
+  var incMonthRev = 0;
+  if (tabData.income && tabData.income.weekMap) {
+    Object.values(tabData.income.weekMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd.getMonth() === curMonth && dd.getFullYear() === curYear) incMonthRev += w.days[d];
+      }
+    });
+  }
+
+  var avgHoursPerDay = effectiveDays > 0 ? (pastHours / effectiveDays) : 0;
+  document.getElementById('utl-kpi-hours').textContent = Math.round(pastHours) + ' ч.';
+  if (prevMonthHours > 0) {
+    var prevPace = (prevMonthHours / daysInMonth(prevY, prevM)) * effectiveDays;
+    var delta = prevPace > 0 ? ((pastHours - prevPace) / prevPace * 100) : 0;
+    document.getElementById('utl-kpi-hours-delta').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%';
+    document.getElementById('utl-kpi-hours-delta').className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
+  }
+  document.getElementById('utl-kpi-avg-day').textContent = avgHoursPerDay.toFixed(1) + ' ч.';
+  document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + maxDayHours + ' возможных · ' + effectiveDays + ' дн.';
+  document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
+
+  var typeHours = { reserva: 0, partida: 0, clases: 0, actividades: 0, centro: 0 };
+  curMonthDays.forEach(function(r) {
+    typeHours.reserva += r.h_reserva; typeHours.partida += r.h_partida;
+    typeHours.clases += r.h_clases; typeHours.actividades += r.h_actividades; typeHours.centro += r.h_centro;
+  });
+  document.getElementById('utl-kpi-load-hint').textContent = 'резерв ' + Math.round(typeHours.reserva) + ' · матчи ' + Math.round(typeHours.partida) + ' · классы ' + Math.round(typeHours.clases) + ' · актив. ' + Math.round(typeHours.actividades) + ' · центр ' + Math.round(typeHours.centro);
+
+  var revPerHourAll = pastHours > 0 ? incMonthRev / pastHours : 0;
+  document.getElementById('utl-kpi-rev-hour').textContent = fmtInt(Math.round(revPerHourAll)) + ' ₺';
+  document.getElementById('utl-kpi-rev-hour-hint').textContent = 'все доходы / корто-час';
+
+  // Courts rev
+  (async function() {
+    var courtRevOnly = 0;
+    try {
+      var revMCData = window._utlRevMC || await V7.loadCacheTab('rev_by_month_cat');
+      window._utlRevMC = revMCData;
+      if (revMCData) revMCData.forEach(function(r) { if (r.month === ymKey(today)) courtRevOnly += num(r['Корты'] || 0); });
+    } catch(e) {}
+    var revPerHourCourts = pastHours > 0 ? courtRevOnly / pastHours : 0;
+    document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revPerHourCourts)) + ' ₺';
+    document.getElementById('utl-kpi-rev-hour-courts-hint').textContent = 'только аренда кортов';
+  })();
+
   _renderUtilizationCharts();
 }
 
@@ -1689,7 +1846,7 @@ function _renderUtilizationCharts() {
   dtBody.innerHTML = dtHtml;
 
   // ═══ 2. Type breakdown stacked chart by month ═══
-  var TYPE_LABELS = ['Резерв', 'Партиды', 'Классы', 'Актив.+Центр'];
+  var TYPE_LABELS = ['Резерв', 'Матчи', 'Классы', 'Актив.+Центр'];
   var TYPE_COLORS = ['#0ABAB5', '#3498db', '#9b59b6', '#f39c12'];
   var monthTypes = {};
   filtered.forEach(function(r) {
@@ -1711,7 +1868,7 @@ function _renderUtilizationCharts() {
   var cHtml = '';
   var typeData = [
     { label: 'Бронирования', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_reserva},0), color: TYPE_COLORS[0] },
-    { label: 'Партиды', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_partida},0), color: TYPE_COLORS[1] },
+    { label: 'Матчи', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_partida},0), color: TYPE_COLORS[1] },
     { label: 'Классы', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_clases},0), color: TYPE_COLORS[2] },
     { label: 'Активности+Центр', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_actividades+r.h_centro},0), color: TYPE_COLORS[3] },
   ];
@@ -1736,7 +1893,7 @@ function _renderUtilizationCharts() {
   // Stacked chart by month (types)
   var typeDatasets = [
     { label: 'Резерв', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].reserva); }), backgroundColor: TYPE_COLORS[0], borderRadius: 4 },
-    { label: 'Партиды', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].partida); }), backgroundColor: TYPE_COLORS[1], borderRadius: 4 },
+    { label: 'Матчи', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].partida); }), backgroundColor: TYPE_COLORS[1], borderRadius: 4 },
     { label: 'Классы', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].clases); }), backgroundColor: TYPE_COLORS[2], borderRadius: 4 },
     { label: 'Актив.+Центр', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].other); }), backgroundColor: TYPE_COLORS[3], borderRadius: 4 },
   ];
@@ -2312,17 +2469,40 @@ function _renderPeriodCharts(prefix) {
 }
 
 async function mainFromCache() {
-  // Load split weekly data
+  // Load cache tabs + occupancy in parallel
+  var occParsed = [];
   var incWeekly, gdsWeekly, revDow, revMonthly, revMC, goodsWeeklyData;
   try {
-    [incWeekly, gdsWeekly, revDow, revMonthly, revMC, goodsWeeklyData] = await Promise.all([
+    var results = await Promise.all([
       loadCacheTab('rev_weekly_income'),
       loadCacheTab('rev_weekly_goods'),
       loadCacheTab('rev_dow_avg'),
       loadCacheTab('rev_monthly_tx'),
       loadCacheTab('rev_by_month_cat'),
-      loadCacheTab('rev_goods_weekly')
+      loadCacheTab('rev_goods_weekly'),
+      loadSheet('occupancy_daily').catch(function() { return []; }),
     ]);
+    incWeekly = results[0]; gdsWeekly = results[1]; revDow = results[2];
+    revMonthly = results[3]; revMC = results[4]; goodsWeeklyData = results[5];
+    var occRows = results[6] || [];
+    occRows.forEach(function(r) {
+      var d = (r.date || '').trim();
+      if (!d || d.length < 10) return;
+      var dt = new Date(d + 'T00:00:00');
+      if (isNaN(dt)) return;
+      var hourly = {};
+      try { hourly = JSON.parse(r.hourly_json || '{}'); } catch(e) {}
+      occParsed.push({
+        date: d, dt: dt, weekday: (r.weekday || '').trim(),
+        hours: num(r.hours), pct: num(r.pct), persons: parseInt(r.persons) || 0,
+        h_reserva: num(r.h_reserva), h_partida: num(r.h_partida),
+        h_clases: num(r.h_clases), h_actividades: num(r.h_actividades),
+        h_centro: num(r.h_centro), hourly: hourly,
+      });
+    });
+    occParsed.sort(function(a, b) { return a.date < b.date ? -1 : 1; });
+    window._utlParsed = occParsed;
+    console.log('[revenue] occupancy pre-loaded:', occParsed.length, 'days');
   } catch (e) { throw new Error('cache tabs missing: ' + e.message); }
 
   if (!incWeekly || !incWeekly.length) throw new Error('no rev_weekly_income data');
@@ -2447,6 +2627,9 @@ async function mainFromCache() {
       html += '<td class="num">—</td><td class="num">—</td></tr>';
     });
     tbody.innerHTML = html;
+
+    // ₺/hour trend chart (from revMonthly + occupancy)
+    renderRevPerHourChartFromCache(revMonthly);
   }
 
   // Category donut — rev_by_month_cat is WIDE format: {month, Корты, Тренировки, ...}
@@ -2604,6 +2787,87 @@ function buildTabData(tabName, txns) {
   td.weekKeys = Object.keys(td.weekMap).sort().reverse();
 }
 
+function renderRevPerHourChartFromCache(revMonthly) {
+  var canvas = document.getElementById('inc-rev-hour-chart');
+  if (!canvas) return;
+  var utl = window._utlParsed;
+  if (!utl || !utl.length) {
+    canvas.parentElement.innerHTML = '<div class="muted" style="text-align:center;padding:20px">Данные загрузки ещё не загружены</div>';
+    return;
+  }
+  var monthRev = {};
+  revMonthly.forEach(function(r) { monthRev[r.month] = num(r.total); });
+  var monthHours = {};
+  utl.forEach(function(r) { if (r.hours <= 0) return; var ym = r.date.slice(0,7); monthHours[ym] = (monthHours[ym] || 0) + r.hours; });
+  var allMonths = Object.keys(monthRev).filter(function(ym) { return ym >= V7.START_MONTH && monthHours[ym] > 0; }).sort();
+  var labels = allMonths.map(ymLabel);
+  var data = allMonths.map(function(ym) { return Math.round(monthRev[ym] / monthHours[ym]); });
+  var best = Math.max.apply(null, data);
+  var colors = data.map(function(v) { return v === best ? (accent() || '#0ABAB5') : (cssVar('--text3') || '#8a9ba8'); });
+  createChart('inc-rev-hour-chart', {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderRadius: 6, maxBarThickness: 64 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: function(it) { var ym = allMonths[it.dataIndex]; return it.raw + ' ₺/ч · ' + fmtMoney(monthRev[ym]) + ' / ' + Math.round(monthHours[ym]) + 'ч'; } } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return fmtInt(v) + ' ₺'; } }, grid: { color: chartGridColor() } },
+        x: { ticks: { color: chartTextColor() }, grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderRevPerHourChart(txns) {
+  var canvas = document.getElementById('inc-rev-hour-chart');
+  if (!canvas) return;
+  var utl = window._utlParsed;
+  if (!utl || !utl.length) {
+    canvas.parentElement.innerHTML = '<div class="muted" style="text-align:center;padding:20px">Данные загрузки ещё не загружены — откройте вкладку Загрузка</div>';
+    return;
+  }
+
+  // Monthly revenue
+  var monthRev = {};
+  txns.forEach(function(t) {
+    var ym = ymKey(t.date);
+    monthRev[ym] = (monthRev[ym] || 0) + t.total;
+  });
+
+  // Monthly hours (only real days — hours > 0)
+  var monthHours = {};
+  utl.forEach(function(r) {
+    if (r.hours <= 0) return;
+    var ym = r.date.slice(0, 7);
+    monthHours[ym] = (monthHours[ym] || 0) + r.hours;
+  });
+
+  // Combine — only months with both revenue and hours
+  var allMonths = Object.keys(monthRev).filter(function(ym) { return ym >= V7.START_MONTH && monthHours[ym] > 0; }).sort();
+  var labels = allMonths.map(ymLabel);
+  var data = allMonths.map(function(ym) { return Math.round(monthRev[ym] / monthHours[ym]); });
+
+  var best = Math.max.apply(null, data);
+  var colors = data.map(function(v) { return v === best ? (accent() || '#0ABAB5') : (cssVar('--text3') || '#8a9ba8'); });
+
+  createChart('inc-rev-hour-chart', {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ data: data, backgroundColor: colors, borderRadius: 6, maxBarThickness: 64 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: function(it) { var ym = allMonths[it.dataIndex]; return it.raw + ' ₺/ч · ' + fmtMoney(monthRev[ym]) + ' / ' + Math.round(monthHours[ym]) + 'ч'; } } }
+      },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return fmtInt(v) + ' ₺'; } }, grid: { color: chartGridColor() } },
+        x: { ticks: { color: chartTextColor() }, grid: { display: false } }
+      }
+    }
+  });
+}
+
 function renderTabKPIs(prefix, txns) {
   var today = new Date(); today.setHours(0,0,0,0);
   var curMonth = today.getMonth(), curYear = today.getFullYear();
@@ -2699,8 +2963,32 @@ function renderTabMonthly(prefix, txns) {
 
 async function mainFromSheet() {
   let rows;
+  // Load transactions and occupancy in parallel
+  var occPromise = loadSheet('occupancy_daily').then(function(occRows) {
+    // Pre-parse occupancy for use in income tab
+    var parsed = [];
+    occRows.forEach(function(r) {
+      var d = (r.date || '').trim();
+      if (!d || d.length < 10) return;
+      var dt = new Date(d + 'T00:00:00');
+      if (isNaN(dt)) return;
+      var hourly = {};
+      try { hourly = JSON.parse(r.hourly_json || '{}'); } catch(e) {}
+      parsed.push({
+        date: d, dt: dt, weekday: (r.weekday || '').trim(),
+        hours: num(r.hours), pct: num(r.pct), persons: parseInt(r.persons) || 0,
+        h_reserva: num(r.h_reserva), h_partida: num(r.h_partida),
+        h_clases: num(r.h_clases), h_actividades: num(r.h_actividades),
+        h_centro: num(r.h_centro), hourly: hourly,
+      });
+    });
+    parsed.sort(function(a, b) { return a.date < b.date ? -1 : 1; });
+    window._utlParsed = parsed;
+    console.log('[revenue] occupancy pre-loaded:', parsed.length, 'days');
+  }).catch(function(e) { console.warn('[revenue] occupancy pre-load failed:', e); });
+
   try {
-    rows = await loadSheet('transactions');
+    rows = await Promise.all([loadSheet('transactions'), occPromise]).then(function(r) { return r[0]; });
   } catch (err) {
     document.querySelector('main').innerHTML =
       '<div class="panel" style="margin-top:40px"><div class="error">Не удалось загрузить данные: ' + (err.message || err) + '</div></div>';
@@ -2739,6 +3027,7 @@ async function mainFromSheet() {
   });
   renderTabDow('inc-dow-chart', incomeTxns);
   renderTabMonthly('inc', incomeTxns);
+  renderRevPerHourChart(incomeTxns);
 
   // Income category donut
   var today = new Date(); today.setHours(0,0,0,0);
