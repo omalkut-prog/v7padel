@@ -1480,13 +1480,10 @@ async function renderUtilizationTab(bookings) {
   });
 
   // Detect maintenance/block bookings:
-  // 1) Long block: price=0 AND hours >= 4 → maintenance
-  // 2) All-courts block: all 4 courts at same start, all price=0, same duration → maintenance
+  // Block detection: only all-4-courts simultaneous price=0 bookings = maintenance
+  // (price=0 на одном корте — это часто реальные игроки: comp, staff, бесплатные)
   parsed.forEach(function(b) {
     if (b.price > 0) return;
-    // Rule 1: Single long block (4+ hours) with price=0
-    if (b.hours >= 4) { b.isBlock = true; return; }
-    // Rule 2: All courts (P1-P4) at exact same start time, all price=0
     var startKey = b.start.toISOString().slice(0, 16);
     var group = activeByStartKey[startKey];
     if (group) {
@@ -1495,7 +1492,6 @@ async function renderUtilizationTab(bookings) {
         if (g.price === 0) zeroPriceCourts[g.court] = true;
       });
       if (zeroPriceCourts.P1 && zeroPriceCourts.P2 && zeroPriceCourts.P3 && zeroPriceCourts.P4) {
-        // Mark all zero-price entries in this group as blocks
         group.forEach(function(g) { if (g.price === 0) g.isBlock = true; });
       }
     }
@@ -1521,8 +1517,8 @@ async function renderUtilizationTab(bookings) {
     var noticeEl = document.getElementById('utl-data-notice');
     noticeEl.style.display = 'block';
     document.getElementById('utl-notice-text').textContent =
-      'Исключено ' + blockCount + ' блоков/ТО (' + totalBlockHours.toFixed(1) + ' ч.) — бронирования price=0 длительностью ≥4ч или одновременная блокировка всех кортов. ' +
-      'Источник данных: Google Sheet (синхронизация из Matchpoint может быть неполной).';
+      'Исключено ' + blockCount + ' блоков/ТО (' + totalBlockHours.toFixed(1) + ' ч.) — одновременная блокировка всех 4 кортов с price=0. ' +
+      'Букинги price=0 на отдельных кортах считаются как реальные (comp/staff).';
   }
 
   // Current month stats — split past (for load%) vs future (for forecast)
