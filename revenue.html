@@ -1870,7 +1870,7 @@ function _renderUtilizationCharts() {
     { label: 'Бронирования', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_reserva},0), color: TYPE_COLORS[0] },
     { label: 'Матчи', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_partida},0), color: TYPE_COLORS[1] },
     { label: 'Классы', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_clases},0), color: TYPE_COLORS[2] },
-    { label: 'Активности+Центр', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_actividades+r.h_centro},0), color: TYPE_COLORS[3] },
+    { label: 'Актив.+Центр', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_actividades+r.h_centro},0), color: TYPE_COLORS[3] },
   ];
   typeData.forEach(function(t) {
     var pct = periodTotal > 0 ? (t.hours / periodTotal * 100).toFixed(1) : '0';
