@@ -81,7 +81,7 @@
 
 <main>
   <h1 class="page-title">V7 Padel Brain</h1>
-  <p class="page-sub">8 разделов правил + реальная спецификация колонок v7padel_db · обновлено 2026-04-09</p>
+  <p class="page-sub">10 разделов правил + спецификация v7padel_db · обновлено 2026-04-13</p>
 
   <!-- 1. ЯЗЫКИ -->
   <div class="section">
@@ -311,6 +311,79 @@
     <div class="rule"><span class="num">5</span><div class="text"><strong>Простота важнее полноты</strong> — если можно проще, делай проще.</div></div>
     <div class="rule"><span class="num">6</span><div class="text">Каждое решение проверяется: <strong>работает ли это в сети из 10 клубов?</strong></div></div>
     <div class="rule"><span class="num">7</span><div class="text">Всё измеряется. Если метрику нельзя посчитать — фича не считается готовой.</div></div>
+  </div>
+  <!-- 9. РАБОТА С ИИ (CLAUDE) -->
+  <div class="section">
+    <h2>9 · Работа с ИИ (Claude Code)</h2>
+    <p>Проект разрабатывается с помощью <strong>Claude Code</strong> (CLI). Для продолжения контекста ИИ использует файлы <code>CLAUDE.md</code> и <code>V7_Padel_Brain.md</code>.</p>
+
+    <h3>Как запустить Claude Code</h3>
+    <ol>
+      <li>Терминал (PowerShell или cmd): <code>cd C:\Users\volod\v7padel\site</code></li>
+      <li>Запуск: <code>claude</code> (или <code>claude --dangerously-skip-permissions</code> для автоматического режима)</li>
+      <li>Описать задачу на русском. Давать конкретные числа для проверки.</li>
+    </ol>
+
+    <h3>Правила взаимодействия</h3>
+    <div class="rule"><span class="num">9.1</span><div class="text"><strong>Все ответы на русском.</strong> Без английских вставок в тексте.</div></div>
+    <div class="rule"><span class="num">9.2</span><div class="text"><strong>Одна задача за раз.</strong> Не смешивать 1-минутную правку с 10-часовой фичей.</div></div>
+    <div class="rule"><span class="num">9.3</span><div class="text"><strong>Сначала доделай, потом переходи к следующему.</strong></div></div>
+    <div class="rule"><span class="num">9.4</span><div class="text"><strong>Не дублируй данные.</strong> Если данные уже есть на другой вкладке — сообщи.</div></div>
+    <div class="rule"><span class="num">9.5</span><div class="text"><strong>Метрики:</strong> выручка/корто-час важнее tx/день. Цели = скользящий тренд +15%.</div></div>
+    <div class="rule"><span class="num">9.6</span><div class="text"><strong>Приоритет задач:</strong> приоритет + тип + длительность + исполнитель.</div></div>
+
+    <h3>Файлы контекста</h3>
+    <table class="schema">
+      <thead><tr><th>Файл</th><th>Назначение</th></tr></thead>
+      <tbody>
+        <tr><td><code>CLAUDE.md</code></td><td>Технические правила: ID таблиц, маппинг категорий, архитектура, ETL</td></tr>
+        <tr><td><code>V7_Padel_Brain.md</code></td><td>Бизнес-правила и спецификация данных (markdown-версия этой страницы)</td></tr>
+        <tr><td><code>.claude/</code></td><td>Настройки Claude Code: launch.json (превью-сервер), memory</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 10. ССЫЛКИ И РЕСУРСЫ -->
+  <div class="section">
+    <h2>10 · Ссылки и ресурсы</h2>
+    <table class="schema">
+      <thead><tr><th>Ресурс</th><th>Ссылка / ID</th><th>Описание</th></tr></thead>
+      <tbody>
+        <tr><td>Matchpoint</td><td><code>app-v7padel-tur.matchpoint.com.es</code></td><td>CRM: бронирования, клиенты, транзакции</td></tr>
+        <tr><td>v7padel_db</td><td><code>1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY</code></td><td>Основная Google Sheet (bookings, customers, occupancy...)</td></tr>
+        <tr><td>PnL бухгалтера</td><td><code>1wLvhEUAsS08K6LvxSKAx5-soh5NxayMpU3brvd4rQ54</code></td><td>P&amp;L отчёты (источник правды для финансов)</td></tr>
+        <tr><td>GitHub</td><td><code>omalkut-prog/v7padel</code></td><td>Репозиторий сайта</td></tr>
+        <tr><td>Racket.ID</td><td>Firestore (публичный)</td><td>Рейтинги, турниры, участники</td></tr>
+        <tr><td>Сайт (превью)</td><td><code>localhost:8765</code></td><td>Локальный Python HTTP сервер</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Структура сайта</h3>
+    <table class="schema">
+      <thead><tr><th>Страница</th><th>Файл</th><th>Что показывает</th></tr></thead>
+      <tbody>
+        <tr><td>Главная</td><td><code>index.html</code></td><td>Обзор с навигацией</td></tr>
+        <tr><td>Выручка</td><td><code>revenue.html</code></td><td>Доход + Доп.продажи + Маржинальность + Загрузка кортов</td></tr>
+        <tr><td>Дашборд</td><td><code>dashboard.html</code></td><td>Сводка KPI</td></tr>
+        <tr><td>Управление</td><td><code>management.html</code></td><td>Операционные метрики</td></tr>
+        <tr><td>Финансы</td><td><code>finance.html</code></td><td>P&amp;L, расходы</td></tr>
+        <tr><td>Клиенты</td><td><code>clients.html</code></td><td>База клиентов, удержание</td></tr>
+        <tr><td>Данные</td><td><code>data.html</code></td><td>Сырые данные из таблиц</td></tr>
+        <tr><td>Brain</td><td><code>brain.html</code></td><td>Эта страница — база знаний</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Корты</h3>
+    <table class="schema">
+      <thead><tr><th>ID</th><th>Название</th><th>Тип</th></tr></thead>
+      <tbody>
+        <tr><td>P1</td><td>Pista 1</td><td>Крытый</td></tr>
+        <tr><td>P2</td><td>Pista 2</td><td>Крытый</td></tr>
+        <tr><td>P3</td><td>Pista 3</td><td>Крытый</td></tr>
+        <tr><td>P4</td><td>Pista 4</td><td>Открытый</td></tr>
+      </tbody>
+    </table>
+    <p>Режим работы: <strong>8:00–23:00</strong> (15 часов). Макс. корто-часов/день = 60 ч (4 × 15).</p>
   </div>
 </main>
 

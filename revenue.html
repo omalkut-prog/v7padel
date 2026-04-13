@@ -673,6 +673,24 @@
 
   <section class="section">
     <div class="section-head">
+      <h2>2b &middot; Загрузка по кортам</h2>
+      <span class="hint">P1-P3 крытые · P4 открытый · из bookings</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box"><canvas id="utl-percourt-chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <table class="fin" id="utl-percourt-table">
+        <thead>
+          <tr><th>Корт</th><th>Тип</th><th>Часов (факт)</th><th>Ср. ч/день</th><th>Загрузка%</th><th>Ср. длит.</th></tr>
+        </thead>
+        <tbody><tr><td colspan="6" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
       <h2>3 &middot; Корто-часы по месяцам</h2>
       <span class="hint">динамика загрузки</span>
     </div>
@@ -751,7 +769,7 @@ document.querySelectorAll('#period-filter .pf-btn').forEach(function(btn) {
     // Recalc margins if data loaded
     if (window._allGoodsTxnsRaw) _renderMarginsData(window._allGoodsTxnsRaw);
     // Recalc utilization KPIs + all charts/tables
-    if (window._utlParsed) { recalcUtilizationKPIs(); _renderUtilizationCharts(); }
+    if (window._utlParsed) { recalcUtilizationKPIs(); _renderUtilizationCharts(); loadPerCourtData(); }
   });
 });
 
@@ -1673,6 +1691,7 @@ async function renderUtilizationTab(occRows) {
 
   // Render all charts/tables
   _renderUtilizationCharts();
+  loadPerCourtData();
 }
 
 function renderUtilizationTabFromParsed(parsed) {
@@ -1744,6 +1763,7 @@ function renderUtilizationTabFromParsed(parsed) {
   document.getElementById('utl-kpi-rev-hour-courts-hint').textContent = '+ доп. продажи / корто-час';
 
   _renderUtilizationCharts();
+  loadPerCourtData();
 }
 
 /* ---- Period-aware utilization charts/tables (Matchpoint source) ---- */
@@ -2008,6 +2028,153 @@ function _renderUtilizationCharts() {
   var grandAvgPct = Math.round(grandSum / grandCnt);
   hmBody += '<td class="num" style="font-weight:700;padding:6px 8px;font-size:12px">' + grandAvgPct + '%</td></tr>';
   hmTable.querySelector('tbody').innerHTML = hmBody;
+}
+
+/* ---- Per-court utilization from bookings (scaled to occupancy totals) ---- */
+async function loadPerCourtData() {
+  try {
+    var rows = await loadSheet('bookings');
+    if (!rows || !rows.length) return;
+    var now = new Date();
+    var today = new Date(); today.setHours(0,0,0,0);
+    var cutoff = getPeriodCutoff();
+    var courts = ['P1','P2','P3','P4'];
+    var parsed = window._utlParsed || [];
+
+    // Build occupancy hours per month from occupancy_daily (source of truth)
+    var occByMonth = {};
+    var occTotal = 0;
+    parsed.forEach(function(r) {
+      if (r.dt >= now) return;
+      if (cutoff && r.dt < cutoff) return;
+      var ym = ymKey(r.dt);
+      occByMonth[ym] = (occByMonth[ym] || 0) + r.hours;
+      occTotal += r.hours;
+    });
+
+    // Detect maintenance blocks: all 4 courts at same start_ts with price=0
+    var slotKey = function(r) { return (r.start_ts || '').trim(); };
+    var slotCourts = {};
+    rows.forEach(function(r) {
+      var price = parseFloat(r.price) || 0;
+      if (price > 0) return;
+      var sk = slotKey(r);
+      if (!slotCourts[sk]) slotCourts[sk] = new Set();
+      slotCourts[sk].add((r.court_id || '').trim().toUpperCase());
+    });
+    var blockSlots = new Set();
+    Object.keys(slotCourts).forEach(function(sk) {
+      var s = slotCourts[sk];
+      if (s.has('P1') && s.has('P2') && s.has('P3') && s.has('P4')) blockSlots.add(sk);
+    });
+
+    // Count raw bookings hours per court per month
+    var courtRaw = {};   // { ym: { P1: h, P2: h, ... } }
+    var courtBooks = {};  // { court: bookings count }
+    courts.forEach(function(c) { courtBooks[c] = 0; });
+
+    rows.forEach(function(r) {
+      var cid = (r.court_id || '').trim().toUpperCase();
+      if (courts.indexOf(cid) < 0) return;
+      var start = new Date(r.start_ts);
+      var end = new Date(r.end_ts);
+      if (isNaN(start) || isNaN(end)) return;
+      if (start >= now) return;
+      if (cutoff && start < cutoff) return;
+      var hours = (end - start) / 3600000;
+      if (hours <= 0 || hours > 15) return;
+      // Skip maintenance blocks (all 4 courts same time, price=0)
+      if (blockSlots.has(slotKey(r)) && (parseFloat(r.price) || 0) === 0) return;
+      var ym = ymKey(start);
+      if (!courtRaw[ym]) { courtRaw[ym] = {}; courts.forEach(function(c) { courtRaw[ym][c] = 0; }); }
+      courtRaw[ym][cid] += hours;
+      courtBooks[cid]++;
+    });
+
+    // Scale per-court hours proportionally so monthly totals match occupancy
+    var courtScaled = {};
+    courts.forEach(function(c) { courtScaled[c] = 0; });
+    var monthCourtsScaled = {};
+
+    Object.keys(courtRaw).forEach(function(ym) {
+      var raw = courtRaw[ym];
+      var rawTotal = courts.reduce(function(s, c) { return s + raw[c]; }, 0);
+      var occH = occByMonth[ym] || 0;
+      var scale = rawTotal > 0 ? occH / rawTotal : 0;
+      monthCourtsScaled[ym] = {};
+      courts.forEach(function(c) {
+        var scaled = raw[c] * scale;
+        courtScaled[c] += scaled;
+        monthCourtsScaled[ym][c] = scaled;
+      });
+    });
+
+    var effDays = Object.keys(occByMonth).reduce(function(s, ym) {
+      return s + parsed.filter(function(r) { return ymKey(r.dt) === ym && r.dt < now && (!cutoff || r.dt >= cutoff) && r.hours > 0; }).length;
+    }, 0) || 1;
+
+    // Render per-court table
+    var tbody = document.querySelector('#utl-percourt-table tbody');
+    var html = '';
+    var totalH = 0;
+    courts.forEach(function(court) {
+      var h = courtScaled[court];
+      totalH += h;
+      var maxC = OPERATING_HOURS * effDays;
+      var pct = maxC > 0 ? (h / maxC * 100).toFixed(1) : '0';
+      var avgDay = (h / effDays).toFixed(1);
+      var avgDur = courtBooks[court] > 0 ? (h / courtBooks[court]).toFixed(1) : '—';
+      html += '<tr>';
+      html += '<td style="font-weight:600"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + COURT_COLORS[court] + ';margin-right:8px;vertical-align:middle"></span>' + court + '</td>';
+      html += '<td>' + COURT_TYPE[court] + '</td>';
+      html += '<td class="num">' + h.toFixed(1) + ' ч.</td>';
+      html += '<td class="num" style="font-weight:600">' + avgDay + ' ч.</td>';
+      html += '<td class="num">' + pct + '%</td>';
+      html += '<td class="num">' + avgDur + ' ч.</td>';
+      html += '</tr>';
+    });
+    var maxAll = OPERATING_HOURS * effDays * courts.length;
+    var totalPct = maxAll > 0 ? (totalH / maxAll * 100).toFixed(1) : '0';
+    var totalAvgDay = (totalH / effDays).toFixed(1);
+    html += '<tr class="month-subtotal"><td style="font-weight:700">ИТОГО</td><td></td>';
+    html += '<td class="num" style="font-weight:700">' + totalH.toFixed(1) + ' ч.</td>';
+    html += '<td class="num" style="font-weight:700">' + totalAvgDay + ' ч.</td>';
+    html += '<td class="num" style="font-weight:700">' + totalPct + '%</td>';
+    html += '<td class="num"></td></tr>';
+
+    // Indoor vs outdoor
+    var indoorH = courtScaled.P1 + courtScaled.P2 + courtScaled.P3;
+    var outdoorH = courtScaled.P4;
+    var indoorMax = OPERATING_HOURS * effDays * 3;
+    var outdoorMax = OPERATING_HOURS * effDays;
+    var indoorPct = indoorMax > 0 ? (indoorH / indoorMax * 100).toFixed(0) : '0';
+    var outdoorPct = outdoorMax > 0 ? (outdoorH / outdoorMax * 100).toFixed(0) : '0';
+    html += '<tr class="muted"><td colspan="2" style="padding-top:6px">Крытые (P1-P3): ' + indoorPct + '% · Открытый (P4): ' + outdoorPct + '%</td><td colspan="4"></td></tr>';
+    tbody.innerHTML = html;
+
+    // Stacked chart by month
+    var mcKeys = Object.keys(monthCourtsScaled).sort().slice(-12);
+    var courtDatasets = courts.map(function(court) {
+      return { label: court + ' (' + COURT_TYPE[court] + ')', data: mcKeys.map(function(ym) { return Math.round(monthCourtsScaled[ym] ? (monthCourtsScaled[ym][court] || 0) : 0); }), backgroundColor: COURT_COLORS[court], borderRadius: 4 };
+    });
+    createChart('utl-percourt-chart', {
+      type: 'bar', data: { labels: mcKeys.map(ymLabel), datasets: courtDatasets },
+      options: { responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: chartTextColor(), padding: 12 } },
+          tooltip: { callbacks: { label: function(it) { return it.dataset.label + ': ' + it.raw + ' ч.'; } } } },
+        scales: { x: { stacked: true, ticks: { color: chartTextColor() }, grid: { display: false } },
+          y: { stacked: true, beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return v + ' ч.'; } }, grid: { color: chartGridColor() } } }
+      }
+    });
+
+    // Update load hint with indoor/outdoor
+    var loadHint = document.getElementById('utl-kpi-load-hint');
+    if (loadHint) {
+      loadHint.textContent += ' · крытые ' + indoorPct + '% · откр. ' + outdoorPct + '%';
+    }
+  } catch(e) {
+    console.warn('[per-court] error:', e);
+  }
 }
 
 /* ---- Load margins from PnL spreadsheet ---- */
