@@ -554,6 +554,11 @@
       <div class="kpi-delta" id="utl-kpi-hours-delta"></div>
     </div>
     <div class="kpi-card">
+      <div class="kpi-label">Ср. часов / день</div>
+      <div class="kpi-value" id="utl-kpi-avg-day">—</div>
+      <div class="kpi-delta muted" id="utl-kpi-avg-day-hint"></div>
+    </div>
+    <div class="kpi-card">
       <div class="kpi-label">Загрузка %</div>
       <div class="kpi-value" id="utl-kpi-load-pct">—</div>
       <div class="kpi-delta muted" id="utl-kpi-load-hint"></div>
@@ -653,9 +658,6 @@
  * Два таба: Доход (Income) и Доп. продажи (Товары).
  * ========================================================================= */
 
-const MONTHLY_GOAL = V7.MONTHLY_GOAL;
-const WEEKLY_GOAL = Math.round(MONTHLY_GOAL / 4.33);
-
 const { loadSheet, loadCacheTab, num, fmt, fmtMoney, fmtInt, parseDate, ymKey, ymLabel, categorizeRevenue,
         REV_CAT_ORDER, REV_CAT_COLORS, accent, cssVar, renderReloadNotice } = V7;
 
@@ -683,10 +685,84 @@ document.querySelectorAll('#period-filter .pf-btn').forEach(function(btn) {
     renderWeeklyTable('gds');
     recalcKPIs('inc');
     recalcKPIs('gds');
-    // Re-render DOW charts if available
-    if (typeof _lastDowData !== 'undefined' && _lastDowData) renderDowFiltered();
+    // Recalc utilization KPIs if data loaded
+    if (window._utlParsed) recalcUtilizationKPIs();
   });
 });
+
+/* ---- Recalculate utilization KPIs based on period ---- */
+function recalcUtilizationKPIs() {
+  var parsed = window._utlParsed;
+  if (!parsed || !parsed.length) return;
+  var cutoff = getPeriodCutoff();
+  var today = new Date(); today.setHours(0,0,0,0);
+
+  var totalHours = 0, daySet = new Set();
+  var indoorH = 0, outdoorH = 0;
+  var courtH = { P1: 0, P2: 0, P3: 0, P4: 0 };
+  parsed.forEach(function(b) {
+    if (b.start >= today) return; // skip future
+    if (cutoff && b.start < cutoff) return; // skip before period
+    totalHours += b.hours;
+    daySet.add(b.start.toISOString().slice(0,10));
+    if (COURT_TYPE[b.court] === 'Открытый') outdoorH += b.hours; else indoorH += b.hours;
+    if (courtH[b.court] !== undefined) courtH[b.court] += b.hours;
+  });
+
+  var totalDays = daySet.size || 1;
+  var indoorCourts = Object.keys(COURT_TYPE).filter(function(c) { return COURT_TYPE[c] === 'Крытый'; }).length;
+  var outdoorCourts = Object.keys(COURT_TYPE).filter(function(c) { return COURT_TYPE[c] === 'Открытый'; }).length;
+  var totalCourts = indoorCourts + outdoorCourts;
+  var maxH = totalCourts * OPERATING_HOURS * totalDays;
+  var maxIndoor = indoorCourts * OPERATING_HOURS * totalDays;
+  var maxOutdoor = outdoorCourts * OPERATING_HOURS * totalDays;
+
+  var avgPerDay = totalHours / totalDays;
+  var loadPct = maxH > 0 ? (totalHours / maxH * 100) : 0;
+  var indoorPct = maxIndoor > 0 ? (indoorH / maxIndoor * 100) : 0;
+  var outdoorPct = maxOutdoor > 0 ? (outdoorH / maxOutdoor * 100) : 0;
+
+  document.getElementById('utl-kpi-hours').textContent = Math.round(totalHours) + ' ч.';
+  document.getElementById('utl-kpi-hours-delta').textContent = totalDays + ' дн.';
+  document.getElementById('utl-kpi-hours-delta').className = 'kpi-delta muted';
+
+  document.getElementById('utl-kpi-avg-day').textContent = avgPerDay.toFixed(1) + ' ч.';
+  document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + (totalCourts * OPERATING_HOURS) + ' возможных · ' + totalDays + ' дн.';
+
+  document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
+  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%';
+
+  // Rev/hour needs income data recalculated for same period
+  var incRev = 0;
+  var courtRev = 0;
+  if (tabData.income && tabData.income.weekMap) {
+    Object.values(tabData.income.weekMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd >= today) continue;
+        if (cutoff && dd < cutoff) continue;
+        incRev += w.days[d];
+      }
+    });
+  }
+  // Courts-only revenue from cache
+  try {
+    var revMCData = window._utlRevMC;
+    if (revMCData && revMCData.length) {
+      revMCData.forEach(function(r) {
+        var ym = r.month;
+        var ymDate = new Date(ym + '-01');
+        if (cutoff && ymDate < cutoff) return;
+        courtRev += parseFloat(r['Корты'] || 0);
+      });
+    }
+  } catch(e) {}
+
+  var revAll = totalHours > 0 ? incRev / totalHours : 0;
+  var revCourts = totalHours > 0 ? courtRev / totalHours : 0;
+  document.getElementById('utl-kpi-rev-hour').textContent = fmtInt(Math.round(revAll)) + ' ₺';
+  document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revCourts)) + ' ₺';
+}
 
 /* ---- Recalculate KPIs based on period filter ---- */
 function getPeriodCutoff() {
@@ -780,7 +856,6 @@ function recalcKPIs(prefix) {
     $('kpi-goal-hint').textContent = 'цель: ' + fmtMoney(goal);
   }
 }
-var _goals = {};
 var _allGoodsTxns = null; // set by mainFromSheet or lazy-loaded
 
 document.querySelectorAll('.rev-tab').forEach(function(btn) {
@@ -1094,47 +1169,6 @@ function renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, tx
   }
 }
 
-function renderDowChart(canvasId, dowAvg) {
-  const bestDow = dowAvg.indexOf(Math.max(...dowAvg));
-  const dowColors = dowAvg.map((_, i) => i === bestDow ? (accent() || '#0ABAB5') : (cssVar('--text3') || '#8a9ba8'));
-
-  new Chart(document.getElementById(canvasId), {
-    type: 'bar',
-    data: {
-      labels: DOW_NAMES,
-      datasets: [{
-        data: dowAvg,
-        backgroundColor: dowColors,
-        borderRadius: 6,
-        maxBarThickness: 64
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: (items) => DOW_FULL[items[0].dataIndex],
-            label: (item) => fmtInt(Math.round(item.raw)) + ' ₺ в среднем'
-          }
-        }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: { color: chartTextColor(), callback: v => fmt(v) + ' ₺' },
-          grid: { color: chartGridColor() }
-        },
-        x: {
-          ticks: { color: chartTextColor() },
-          grid: { display: false }
-        }
-      }
-    }
-  });
-}
-
 function renderDowChartDual(canvasId, dowAvgNoZero, dowAvgWithZero) {
   new Chart(document.getElementById(canvasId), {
     type: 'bar',
@@ -1255,59 +1289,6 @@ function renderCatBlock(donutId, tableId, catMap, catTotal) {
   });
   if (!html) html = '<tr><td colspan="3" class="muted" style="text-align:center">Нет данных</td></tr>';
   tbody.innerHTML = html;
-}
-
-function renderGoodsBlock(goodsItems, weeklyValues) {
-  // goodsItems = [{ sub, count, total }], weeklyValues = [[v0..v7], ...]
-  const tbody = document.querySelector('#goods-table tbody');
-  let html = '';
-  if (!goodsItems.length) {
-    html = '<tr><td colspan="4" class="muted" style="text-align:center">Нет товарных продаж</td></tr>';
-  } else {
-    goodsItems.forEach((item, idx) => {
-      const sparkId = 'spark-' + idx;
-      html += '<tr>';
-      html += '<td style="font-weight:500">' + item.sub + '</td>';
-      html += '<td class="num">' + item.count + '</td>';
-      html += '<td class="num">' + fmtInt(Math.round(item.total)) + ' ₺</td>';
-      html += '<td><div class="sparkline-cell"><canvas id="' + sparkId + '" width="100" height="28"></canvas></div></td>';
-      html += '</tr>';
-    });
-  }
-  tbody.innerHTML = html;
-
-  // Draw sparklines
-  goodsItems.forEach((item, idx) => {
-    const canvas = document.getElementById('spark-' + idx);
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const values = weeklyValues[idx];
-    const maxV = Math.max(...values, 1);
-    const w = canvas.width;
-    const h = canvas.height;
-    const padding = 2;
-    const step = (w - padding * 2) / Math.max(values.length - 1, 1);
-
-    ctx.clearRect(0, 0, w, h);
-    ctx.strokeStyle = accent() || '#0ABAB5';
-    ctx.lineWidth = 1.5;
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    values.forEach((v, i) => {
-      const x = padding + i * step;
-      const y = h - padding - (v / maxV) * (h - padding * 2);
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-
-    ctx.lineTo(padding + (values.length - 1) * step, h - padding);
-    ctx.lineTo(padding, h - padding);
-    ctx.closePath();
-    const [r, g, b] = getAccentRGB();
-    ctx.fillStyle = `rgba(${r},${g},${b},0.1)`;
-    ctx.fill();
-  });
 }
 
 /* ---- Summary header (total across both tabs) ---- */
@@ -1489,16 +1470,11 @@ async function renderUtilizationTab(bookings) {
   var indoorPct = maxIndoor > 0 ? (indoorPastH / maxIndoor * 100) : 0;
   var outdoorPct = maxOutdoor > 0 ? (outdoorPastH / maxOutdoor * 100) : 0;
 
-  // Courts-only revenue (without goods) for second KPI
-  var courtOnlyRev = 0;
-  if (tabData.income && tabData.income.weekMap) {
-    // incMonthRev already has total income — we need courts-only from rev_by_month_cat
-    // For now use incMonthRev as total; courtOnly needs category data
-  }
   // Try to get courts-only from cached rev_by_month_cat
   var courtRevOnly = 0;
   try {
     var revMCData = await V7.loadCacheTab('rev_by_month_cat');
+    window._utlRevMC = revMCData; // save for period recalc
     if (revMCData && revMCData.length) {
       revMCData.forEach(function(r) {
         if (r.month !== ymKey(today)) return;
@@ -1518,8 +1494,11 @@ async function renderUtilizationTab(bookings) {
     document.getElementById('utl-kpi-hours-delta').className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
   }
 
+  document.getElementById('utl-kpi-avg-day').textContent = avgHoursPerDay.toFixed(1) + ' ч.';
+  document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + (totalCourts * OPERATING_HOURS) + ' возможных · ' + completedDays + ' дн.';
+
   document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
-  document.getElementById('utl-kpi-load-hint').textContent = 'ср. ' + avgHoursPerDay.toFixed(1) + ' ч/день · Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%';
+  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%';
 
   // Rev/hour — exact, no rounding to K
   var revPerHourAll = pastHours > 0 ? incMonthRev / pastHours : 0;
@@ -1529,6 +1508,9 @@ async function renderUtilizationTab(bookings) {
   var revPerHourCourts = pastHours > 0 ? courtRevOnly / pastHours : 0;
   document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revPerHourCourts)) + ' ₺';
   document.getElementById('utl-kpi-rev-hour-courts-hint').textContent = 'только аренда кортов';
+
+  // Save parsed data for period recalculation
+  window._utlParsed = parsed;
 
   // ═══ 1. Days of month — bar chart + table ═══
   var dayMap = {}; // date -> { total, P1, P2, P3, P4 }
@@ -1847,120 +1829,6 @@ function findMargin(subcategory) {
     if (score > bestScore && score >= 2) { bestScore = score; bestMatch = _marginsMap[keys[j]]; }
   }
   return bestMatch;
-}
-
-/* ---- Goods: group into consumables vs equipment ---- */
-function renderGoodsGrouped(goodsItems, weeklyValues) {
-  var consumables = [], equipment = [];
-  var conVals = [], eqVals = [];
-  var EQUIP_KW = ['racket', 'raket', 'bag', 'shoe', 'backpack', 'overgrip', 'grip'];
-
-  goodsItems.forEach(function(item, idx) {
-    var lower = item.sub.toLowerCase();
-    var isEquip = EQUIP_KW.some(function(kw) { return lower.indexOf(kw) >= 0; });
-    if (isEquip) { equipment.push(item); eqVals.push(weeklyValues[idx]); }
-    else { consumables.push(item); conVals.push(weeklyValues[idx]); }
-  });
-
-  var tbody = document.querySelector('#goods-table tbody');
-  var html = '';
-
-  function renderGroup(title, items, vals) {
-    if (!items.length) return '';
-    var groupTotal = items.reduce(function(s, i) { return s + i.total; }, 0);
-    var groupCount = items.reduce(function(s, i) { return s + i.count; }, 0);
-    var groupCost = 0, groupMargin = 0, hasAnyMargin = false;
-    items.forEach(function(item) {
-      var mg = findMargin(item.sub);
-      if (mg) { groupCost += mg.cost * item.count; hasAnyMargin = true; }
-    });
-    groupMargin = groupTotal - groupCost;
-    var marginInfo = hasAnyMargin ? ' · маржа ' + fmtInt(Math.round(groupMargin)) + ' ₺' : '';
-    var h = '<tr class="month-subtotal"><td colspan="7" style="font-weight:700;text-transform:uppercase;letter-spacing:.5px">' + title + ' (' + fmtInt(groupCount) + ' шт. / ' + fmtInt(Math.round(groupTotal)) + ' ₺' + marginInfo + ')</td></tr>';
-    items.forEach(function(item, idx) {
-      var sparkId = 'spark-' + title.slice(0,3) + '-' + idx;
-      var mg = findMargin(item.sub);
-      var costTotal = mg ? mg.cost * item.count : 0;
-      var marginTotal = mg ? item.total - costTotal : 0;
-      var markupPct = mg ? mg.markup : 0;
-      h += '<tr>';
-      h += '<td style="font-weight:500;padding-left:20px">' + item.sub + '</td>';
-      h += '<td class="num">' + item.count + '</td>';
-      h += '<td class="num">' + fmtInt(Math.round(item.total)) + ' ₺</td>';
-      h += '<td class="num">' + (mg ? fmtInt(Math.round(costTotal)) + ' ₺' : '<span class="muted">—</span>') + '</td>';
-      h += '<td class="num ' + (marginTotal >= 0 ? 'pos' : 'neg') + '">' + (mg ? fmtInt(Math.round(marginTotal)) + ' ₺' : '<span class="muted">—</span>') + '</td>';
-      h += '<td class="num">' + (mg ? markupPct.toFixed(0) + '%' : '<span class="muted">—</span>') + '</td>';
-      h += '<td><div class="sparkline-cell"><canvas id="' + sparkId + '" width="100" height="28"></canvas></div></td>';
-      h += '</tr>';
-    });
-    return h;
-  }
-
-  html += renderGroup('Расходники', consumables, conVals);
-  html += renderGroup('Оборудование', equipment, eqVals);
-  if (!html) html = '<tr><td colspan="7" class="muted" style="text-align:center">Нет товарных продаж</td></tr>';
-
-  // Grand total with margin
-  var grandTotal = goodsItems.reduce(function(s, i) { return s + i.total; }, 0);
-  var grandCost = 0, grandMatched = 0;
-  goodsItems.forEach(function(item) {
-    var mg = findMargin(item.sub);
-    if (mg) { grandCost += mg.cost * item.count; grandMatched++; }
-  });
-  var grandMargin = grandTotal - grandCost;
-  var marginPct = grandTotal > 0 ? (grandMargin / grandTotal * 100).toFixed(1) : 0;
-  if (grandMatched > 0) {
-    html += '<tr class="month-subtotal"><td style="font-weight:700">ИТОГО</td>';
-    html += '<td class="num">' + goodsItems.reduce(function(s,i){return s+i.count},0) + '</td>';
-    html += '<td class="num">' + fmtInt(Math.round(grandTotal)) + ' ₺</td>';
-    html += '<td class="num">' + fmtInt(Math.round(grandCost)) + ' ₺</td>';
-    html += '<td class="num pos" style="font-weight:700">' + fmtInt(Math.round(grandMargin)) + ' ₺ (' + marginPct + '%)</td>';
-    html += '<td colspan="2"></td></tr>';
-  }
-
-  tbody.innerHTML = html;
-
-  // Draw sparklines for both groups
-  function drawSparklines(prefix, items, vals) {
-    items.forEach(function(item, idx) {
-      var canvas = document.getElementById('spark-' + prefix + '-' + idx);
-      if (!canvas) return;
-      var ctx = canvas.getContext('2d');
-      var values = vals[idx];
-      var maxV = Math.max.apply(null, values.concat([1]));
-      var w = canvas.width, h = canvas.height, padding = 2;
-      var step = (w - padding * 2) / Math.max(values.length - 1, 1);
-      ctx.clearRect(0, 0, w, h);
-      ctx.strokeStyle = accent() || '#0ABAB5';
-      ctx.lineWidth = 1.5; ctx.lineJoin = 'round';
-      ctx.beginPath();
-      values.forEach(function(v, i) {
-        var x = padding + i * step;
-        var y = h - padding - (v / maxV) * (h - padding * 2);
-        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-      ctx.lineTo(padding + (values.length - 1) * step, h - padding);
-      ctx.lineTo(padding, h - padding);
-      ctx.closePath();
-      var rgb = getAccentRGB();
-      ctx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.1)';
-      ctx.fill();
-    });
-  }
-  drawSparklines('Рас', consumables, conVals);
-  drawSparklines('Обо', equipment, eqVals);
-}
-
-/* ---- Margins tab: category mapping for PnL categories ---- */
-var MARGIN_CATS = {
-  'rackets': 'Оборудование', 'overgrip': 'Расходники', 'balls': 'Расходники',
-  'drinks': 'Расходники', 'protein bars': 'Расходники', 'merchandise': 'Мерч',
-  'caps': 'Мерч'
-};
-
-function pnlCatToGroup(pnlCat) {
-  return MARGIN_CATS[(pnlCat || '').toLowerCase()] || 'Прочее';
 }
 
 /* ---- Margins tab: full render from goods transactions ---- */
