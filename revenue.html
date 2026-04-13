@@ -53,7 +53,7 @@
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
   /* KPI row */
-  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 28px; }
   .kpi-card {
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 22px 24px; box-shadow: var(--shadow);
@@ -119,6 +119,25 @@
   }
   footer em { color: var(--accent); font-style: normal; }
 
+  /* Summary header */
+  .summary-header {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 24px; margin-bottom: 20px; box-shadow: var(--shadow);
+  }
+  .sum-total { display: flex; flex-direction: column; gap: 2px; }
+  .sum-label { font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); font-weight: 500; }
+  .sum-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; color: var(--text); font-variant-numeric: tabular-nums; }
+  .sum-split { display: flex; gap: 16px; margin-left: auto; }
+  .sum-part { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+  .sum-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .sum-bar { width: 100%; height: 6px; border-radius: 3px; overflow: hidden; display: flex; background: var(--surface2); }
+  .sum-bar-seg { height: 100%; transition: width .4s ease; }
+
+  /* Category mini-bar under KPI */
+  .kpi-cat-bar { display: flex; height: 4px; border-radius: 2px; overflow: hidden; margin-top: 8px; background: var(--surface2); }
+  .kpi-cat-seg { height: 100%; }
+
   /* Tab switcher */
   .rev-tabs {
     display: flex; gap: 0; margin-bottom: 24px;
@@ -136,7 +155,7 @@
   .tab-pane.active { display: block; }
 
   @media (max-width: 960px) {
-    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
     .two-col { grid-template-columns: 1fr; }
     table.weekly { font-size: 11px; }
     table.weekly td, table.weekly th { padding: 6px 5px; }
@@ -175,7 +194,20 @@
 
 <main>
   <h1 class="page-title">Пульс выручки</h1>
-  <p class="page-sub">Источник: v7padel_db &middot; transactions. Переключайте табы для анализа дохода и доп. продаж отдельно.</p>
+  <p class="page-sub">Источник: v7padel_db &middot; transactions.</p>
+
+  <!-- SUMMARY HEADER -->
+  <div class="summary-header" id="summary-header" style="display:none">
+    <div class="sum-total">
+      <span class="sum-label">Всего за <span id="sum-month-name">месяц</span></span>
+      <span class="sum-value" id="sum-total">—</span>
+    </div>
+    <div class="sum-split">
+      <span class="sum-part"><span class="sum-dot" style="background:var(--accent)"></span>Доход <strong id="sum-income-pct">—</strong></span>
+      <span class="sum-part"><span class="sum-dot" style="background:#f39c12"></span>Товары <strong id="sum-goods-pct">—</strong></span>
+    </div>
+    <div class="sum-bar" id="sum-bar"></div>
+  </div>
 
   <!-- TAB SWITCHER -->
   <div class="rev-tabs">
@@ -191,6 +223,7 @@
       <div class="kpi-label" id="inc-kpi-month-label">Доход за месяц</div>
       <div class="kpi-value" id="inc-kpi-month-total">—</div>
       <div class="kpi-delta" id="inc-kpi-month-delta"></div>
+      <div class="kpi-cat-bar" id="inc-cat-minibar"></div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label" id="inc-kpi-avg-label">Средняя в день</div>
@@ -207,6 +240,12 @@
       <div class="kpi-value" id="inc-kpi-forecast">—</div>
       <div class="kpi-delta muted" id="inc-kpi-forecast-hint"></div>
     </div>
+    <div class="kpi-card">
+      <div class="kpi-label">% от цели</div>
+      <div class="kpi-value" id="inc-kpi-goal-pct">—</div>
+      <div class="progress-bar"><div class="fill" id="inc-kpi-goal-bar" style="width:0%"></div></div>
+      <div class="kpi-delta muted" id="inc-kpi-goal-hint"></div>
+    </div>
   </div>
 
   <section class="section">
@@ -220,10 +259,10 @@
           <tr>
             <th>#</th><th>Период</th>
             <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
-            <th>Тотал</th><th>Ср/день</th><th>Рост</th><th>Примечания</th>
+            <th>Тотал</th><th>Ср/день</th><th>Рост</th><th>% цели</th><th>Примечания</th>
           </tr>
         </thead>
-        <tbody><tr><td colspan="13" class="loading">Загрузка данных…</td></tr></tbody>
+        <tbody><tr><td colspan="14" class="loading">Загрузка данных…</td></tr></tbody>
         <tfoot id="inc-weekly-foot"></tfoot>
       </table>
       <button class="toggle-btn" id="inc-toggle-weeks" style="display:none">Показать все</button>
@@ -276,6 +315,16 @@
     </div>
   </section>
 
+  <section class="section">
+    <div class="section-head">
+      <h2>5 &middot; Тренд категорий по месяцам</h2>
+      <span class="hint">stacked bar — видно рост/падение каждой категории</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box"><canvas id="inc-stacked-chart"></canvas></div>
+    </div>
+  </section>
+
   </div><!-- /pane-income -->
 
   <!-- ═══════════════════ TAB: GOODS ═══════════════════ -->
@@ -302,6 +351,12 @@
       <div class="kpi-value" id="gds-kpi-forecast">—</div>
       <div class="kpi-delta muted" id="gds-kpi-forecast-hint"></div>
     </div>
+    <div class="kpi-card">
+      <div class="kpi-label">% от цели</div>
+      <div class="kpi-value" id="gds-kpi-goal-pct">—</div>
+      <div class="progress-bar"><div class="fill" id="gds-kpi-goal-bar" style="width:0%"></div></div>
+      <div class="kpi-delta muted" id="gds-kpi-goal-hint"></div>
+    </div>
   </div>
 
   <section class="section">
@@ -315,10 +370,10 @@
           <tr>
             <th>#</th><th>Период</th>
             <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
-            <th>Тотал</th><th>Ср/день</th><th>Рост</th><th>Примечания</th>
+            <th>Тотал</th><th>Ср/день</th><th>Рост</th><th>% цели</th><th>Примечания</th>
           </tr>
         </thead>
-        <tbody><tr><td colspan="13" class="loading">Загрузка данных…</td></tr></tbody>
+        <tbody><tr><td colspan="14" class="loading">Загрузка данных…</td></tr></tbody>
         <tfoot id="gds-weekly-foot"></tfoot>
       </table>
       <button class="toggle-btn" id="gds-toggle-weeks" style="display:none">Показать все</button>
@@ -521,7 +576,7 @@ function renderWeeklyTable(prefix) {
     const avgPerDay = monthAvgDays > 0 ? monthTotal / monthAvgDays : 0;
     return '<tr class="month-subtotal"><td></td><td>Итого ' + monthName + '</td>' +
       '<td colspan="7"></td><td class="num">' + fmtInt(Math.round(monthTotal)) + '</td>' +
-      '<td class="num">' + fmtInt(Math.round(avgPerDay)) + '</td><td colspan="2"></td></tr>';
+      '<td class="num">' + fmtInt(Math.round(avgPerDay)) + '</td><td colspan="3"></td></tr>';
   }
 
   keysDesc.forEach(wk => {
@@ -551,6 +606,8 @@ function renderWeeklyTable(prefix) {
     }
     const note = autoNote(w);
     const weekNum = keysChron.indexOf(wk) + 1;
+    const wGoal = td.weeklyGoal || 0;
+    const goalPctWeek = wGoal > 0 ? (w.total / wGoal * 100).toFixed(0) + '%' : '—';
 
     html += '<tr' + (isCurrent ? ' class="current-week"' : '') + '>';
     html += '<td class="muted">' + weekNum + '</td>';
@@ -562,6 +619,7 @@ function renderWeeklyTable(prefix) {
     html += '<td class="num" style="font-weight:700;background:' + heatColor(w.total, maxTotal) + '">' + fmtInt(Math.round(w.total)) + '</td>';
     html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
     html += '<td class="' + deltaCls + '">' + deltaStr + '</td>';
+    html += '<td class="num">' + goalPctWeek + '</td>';
     html += '<td class="note" title="' + note.replace(/"/g,'&quot;') + '">' + note + '</td>';
     html += '</tr>';
   });
@@ -580,7 +638,7 @@ function renderWeeklyTable(prefix) {
   var totalDaysWithRevenue = footCnt.reduce((s, c) => s + c, 0) || 1;
   footHtml += '<td class="num" style="font-weight:700">' + fmtInt(Math.round(grandTotal)) + '</td>';
   footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / totalDaysWithRevenue)) + '</td>';
-  footHtml += '<td colspan="2"></td></tr>';
+  footHtml += '<td colspan="3"></td></tr>';
   tfoot.innerHTML = footHtml;
 
   const btn = document.getElementById(prefix + '-toggle-weeks');
@@ -592,7 +650,29 @@ function renderWeeklyTable(prefix) {
   }
 }
 
-function renderKPIs(prefix, monthSoFar, dayOfMonth, dimCur, prevMonthPace, txCount) {
+/* ---- Goals: sliding trend (avg of available months starting March 2026) + 15% ---- */
+var _goals = { income: 0, goods: 0 };
+
+function computeGoal(txns) {
+  // Monthly totals for months before current
+  var today = new Date(); today.setHours(0,0,0,0);
+  var curYM = ymKey(today);
+  var monthTotals = {};
+  txns.forEach(function(t) {
+    var ym = ymKey(t.date);
+    if (ym >= '2026-03' && ym < curYM) {
+      monthTotals[ym] = (monthTotals[ym] || 0) + t.total;
+    }
+  });
+  var vals = Object.values(monthTotals);
+  if (!vals.length) return 0;
+  // Use last 3 months max (or whatever is available)
+  var last3 = vals.slice(-3);
+  var avg = last3.reduce(function(s, v) { return s + v; }, 0) / last3.length;
+  return Math.round(avg * 1.15);
+}
+
+function renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, txCount, goal) {
   const today = new Date(); today.setHours(0,0,0,0);
   const curMonth = today.getMonth();
   const monthName = MONTH_NAMES_RU[curMonth].toLowerCase();
@@ -604,7 +684,7 @@ function renderKPIs(prefix, monthSoFar, dayOfMonth, dimCur, prevMonthPace, txCou
   $('kpi-month-total').textContent = fmtMoney(monthSoFar);
   $('kpi-month-label').textContent = (prefix === 'inc' ? 'Доход' : 'Продажи') + ' за ' + monthName;
 
-  if (prevMonthPace > 0 && dayOfMonth > 0) {
+  if (prevMonthPace > 0 && completedDays > 0) {
     var delta = ((monthSoFar - prevMonthPace) / prevMonthPace * 100);
     $('kpi-month-delta').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '% к ' + prevMonthDat;
     $('kpi-month-delta').className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
@@ -613,20 +693,31 @@ function renderKPIs(prefix, monthSoFar, dayOfMonth, dimCur, prevMonthPace, txCou
   }
 
   // KPI 2: Average per day
-  var avgDay = dayOfMonth > 0 ? monthSoFar / dayOfMonth : 0;
+  var avgDay = completedDays > 0 ? monthSoFar / completedDays : 0;
   $('kpi-avg-day').textContent = fmtMoney(avgDay);
   $('kpi-avg-label').textContent = 'Средняя в день (' + monthName + ')';
-  $('kpi-avg-hint').textContent = 'за ' + dayOfMonth + ' дн. из ' + dimCur;
+  $('kpi-avg-hint').textContent = 'за ' + completedDays + ' дн. из ' + dimCur;
 
-  // KPI 3: Average check per day (revenue / number of transactions)
+  // KPI 3: Average check per transaction
   var avgCheck = txCount > 0 ? monthSoFar / txCount : 0;
   $('kpi-check').textContent = fmtMoney(avgCheck);
-  $('kpi-check-hint').textContent = txCount + ' транзакций за ' + dayOfMonth + ' дн.';
+  $('kpi-check-hint').textContent = txCount + ' транзакций за ' + completedDays + ' дн.';
 
   // KPI 4: Forecast
-  var forecast = dayOfMonth > 0 ? (monthSoFar / dayOfMonth) * dimCur : 0;
+  var forecast = completedDays > 0 ? (monthSoFar / completedDays) * dimCur : 0;
   $('kpi-forecast').textContent = fmtMoney(forecast);
-  $('kpi-forecast-hint').textContent = 'факт ' + fmtMoney(monthSoFar) + ' за ' + dayOfMonth + ' дн.';
+  $('kpi-forecast-hint').textContent = 'факт ' + fmtMoney(monthSoFar) + ' за ' + completedDays + ' дн.';
+
+  // KPI 5: % of goal
+  if (goal > 0) {
+    var goalPct = (monthSoFar / goal * 100);
+    $('kpi-goal-pct').textContent = goalPct.toFixed(1) + '%';
+    $('kpi-goal-bar').style.width = Math.min(goalPct, 100) + '%';
+    $('kpi-goal-hint').textContent = 'цель: ' + fmtMoney(goal) + ' (тренд +15%)';
+  } else {
+    $('kpi-goal-pct').textContent = '—';
+    $('kpi-goal-hint').textContent = 'мало данных для цели';
+  }
 }
 
 function renderDowChart(canvasId, dowAvg) {
@@ -821,6 +912,154 @@ function renderGoodsBlock(goodsItems, weeklyValues) {
   });
 }
 
+/* ---- Summary header (total across both tabs) ---- */
+function renderSummaryHeader(incomeTotal, goodsTotal) {
+  var total = incomeTotal + goodsTotal;
+  if (total <= 0) return;
+  var today = new Date();
+  var monthName = MONTH_NAMES_RU[today.getMonth()].toLowerCase();
+  document.getElementById('sum-month-name').textContent = monthName;
+  document.getElementById('sum-total').textContent = fmtMoney(total);
+  var incPct = (incomeTotal / total * 100).toFixed(0);
+  var gdsPct = (goodsTotal / total * 100).toFixed(0);
+  document.getElementById('sum-income-pct').textContent = fmtMoney(incomeTotal) + ' (' + incPct + '%)';
+  document.getElementById('sum-goods-pct').textContent = fmtMoney(goodsTotal) + ' (' + gdsPct + '%)';
+  document.getElementById('sum-bar').innerHTML =
+    '<div class="sum-bar-seg" style="width:' + incPct + '%;background:var(--accent)"></div>' +
+    '<div class="sum-bar-seg" style="width:' + gdsPct + '%;background:#f39c12"></div>';
+  document.getElementById('summary-header').style.display = '';
+}
+
+/* ---- Mini category bar under Income KPI ---- */
+function renderCatMinibar(catMap) {
+  var catOrder = REV_CAT_ORDER;
+  var catColors = REV_CAT_COLORS;
+  var total = 0;
+  catOrder.forEach(function(c) { total += (catMap[c] || 0); });
+  if (total <= 0) return;
+  var bar = document.getElementById('inc-cat-minibar');
+  if (!bar) return;
+  var html = '';
+  catOrder.forEach(function(c, i) {
+    var v = catMap[c] || 0;
+    if (v <= 0) return;
+    var pct = (v / total * 100).toFixed(1);
+    html += '<div class="kpi-cat-seg" style="width:' + pct + '%;background:' + catColors[i] + '" title="' + c + ': ' + pct + '%"></div>';
+  });
+  bar.innerHTML = html;
+}
+
+/* ---- Stacked bar chart: income categories by month ---- */
+function renderStackedChart(txns) {
+  var catOrder = REV_CAT_ORDER.filter(function(c) { return c !== 'Товары'; });
+  var catColors = [];
+  REV_CAT_ORDER.forEach(function(c, i) { if (c !== 'Товары') catColors.push(REV_CAT_COLORS[i]); });
+
+  var monthCats = {};
+  txns.forEach(function(t) {
+    var ym = ymKey(t.date);
+    var cat = categorizeRevenue(t.category);
+    if (!cat || cat === 'Товары') return;
+    if (!monthCats[ym]) monthCats[ym] = {};
+    monthCats[ym][cat] = (monthCats[ym][cat] || 0) + t.total;
+  });
+  var mKeys = Object.keys(monthCats).sort().slice(-8);
+  var datasets = catOrder.map(function(cat, ci) {
+    return {
+      label: cat,
+      data: mKeys.map(function(ym) { return monthCats[ym][cat] || 0; }),
+      backgroundColor: catColors[ci],
+      borderRadius: 4
+    };
+  });
+
+  new Chart(document.getElementById('inc-stacked-chart'), {
+    type: 'bar',
+    data: { labels: mKeys.map(ymLabel), datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: chartTextColor(), padding: 12, font: { size: 11 } } },
+        tooltip: { callbacks: { label: function(item) { return item.dataset.label + ': ' + fmtInt(Math.round(item.raw)) + ' ₺'; } } }
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: chartTextColor() }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return fmt(v) + ' ₺'; } }, grid: { color: chartGridColor() } }
+      }
+    }
+  });
+}
+
+/* ---- Goods: group into consumables vs equipment ---- */
+function renderGoodsGrouped(goodsItems, weeklyValues) {
+  var consumables = [], equipment = [];
+  var conVals = [], eqVals = [];
+  var EQUIP_KW = ['racket', 'raket', 'bag', 'shoe', 'backpack', 'overgrip', 'grip'];
+
+  goodsItems.forEach(function(item, idx) {
+    var lower = item.sub.toLowerCase();
+    var isEquip = EQUIP_KW.some(function(kw) { return lower.indexOf(kw) >= 0; });
+    if (isEquip) { equipment.push(item); eqVals.push(weeklyValues[idx]); }
+    else { consumables.push(item); conVals.push(weeklyValues[idx]); }
+  });
+
+  var tbody = document.querySelector('#goods-table tbody');
+  var html = '';
+
+  function renderGroup(title, items, vals) {
+    if (!items.length) return '';
+    var groupTotal = items.reduce(function(s, i) { return s + i.total; }, 0);
+    var groupCount = items.reduce(function(s, i) { return s + i.count; }, 0);
+    var h = '<tr class="month-subtotal"><td colspan="4" style="font-weight:700;text-transform:uppercase;letter-spacing:.5px">' + title + ' (' + fmtInt(groupCount) + ' шт. / ' + fmtInt(Math.round(groupTotal)) + ' ₺)</td></tr>';
+    items.forEach(function(item, idx) {
+      var sparkId = 'spark-' + title.slice(0,3) + '-' + idx;
+      h += '<tr>';
+      h += '<td style="font-weight:500;padding-left:20px">' + item.sub + '</td>';
+      h += '<td class="num">' + item.count + '</td>';
+      h += '<td class="num">' + fmtInt(Math.round(item.total)) + ' ₺</td>';
+      h += '<td><div class="sparkline-cell"><canvas id="' + sparkId + '" width="100" height="28"></canvas></div></td>';
+      h += '</tr>';
+    });
+    return h;
+  }
+
+  html += renderGroup('Расходники', consumables, conVals);
+  html += renderGroup('Оборудование', equipment, eqVals);
+  if (!html) html = '<tr><td colspan="4" class="muted" style="text-align:center">Нет товарных продаж</td></tr>';
+  tbody.innerHTML = html;
+
+  // Draw sparklines for both groups
+  function drawSparklines(prefix, items, vals) {
+    items.forEach(function(item, idx) {
+      var canvas = document.getElementById('spark-' + prefix + '-' + idx);
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      var values = vals[idx];
+      var maxV = Math.max.apply(null, values.concat([1]));
+      var w = canvas.width, h = canvas.height, padding = 2;
+      var step = (w - padding * 2) / Math.max(values.length - 1, 1);
+      ctx.clearRect(0, 0, w, h);
+      ctx.strokeStyle = accent() || '#0ABAB5';
+      ctx.lineWidth = 1.5; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      values.forEach(function(v, i) {
+        var x = padding + i * step;
+        var y = h - padding - (v / maxV) * (h - padding * 2);
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.lineTo(padding + (values.length - 1) * step, h - padding);
+      ctx.lineTo(padding, h - padding);
+      ctx.closePath();
+      var rgb = getAccentRGB();
+      ctx.fillStyle = 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',0.1)';
+      ctx.fill();
+    });
+  }
+  drawSparklines('Рас', consumables, conVals);
+  drawSparklines('Обо', equipment, eqVals);
+}
+
 /* =========================================================================
  * MAIN FROM CACHE — skip, always use sheet for per-category split
  * Cache doesn't separate income/goods weekly data. Use sheet directly.
@@ -861,7 +1100,12 @@ function renderTabKPIs(prefix, txns) {
   });
   var prevDim = daysInMonth(prevY, prevM);
   var prevMonthPace = prevDim > 0 ? (prevMonthFull / prevDim) * completedDays : 0;
-  renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, txCount);
+  var goal = computeGoal(txns);
+  var tabName = prefix === 'inc' ? 'income' : 'goods';
+  _goals[tabName] = goal;
+  var weeklyGoal = goal > 0 ? Math.round(goal / 4.33) : 0;
+  tabData[tabName].weeklyGoal = weeklyGoal;
+  renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, txCount, goal);
 }
 
 function renderTabDow(canvasId, txns) {
@@ -970,6 +1214,8 @@ async function mainFromSheet() {
     incCatTotal += t.total;
   });
   renderCatBlock('inc-cat-donut', 'inc-cat-table', incCatMap, incCatTotal);
+  renderCatMinibar(incCatMap);
+  renderStackedChart(txns);
 
   /* ═══ GOODS TAB ═══ */
   buildTabData('goods', goodsTxns);
@@ -1000,7 +1246,19 @@ async function mainFromSheet() {
   var goodsWeeklyVals = goodsItemsList.map(function(item) {
     return last8Weeks.map(function(wk) { return item.weeklyTotals[wk] || 0; });
   });
-  renderGoodsBlock(goodsItemsList, goodsWeeklyVals);
+  renderGoodsGrouped(goodsItemsList, goodsWeeklyVals);
+
+  /* ═══ SUMMARY HEADER ═══ */
+  var today2 = new Date(); today2.setHours(0,0,0,0);
+  var curMonth2 = today2.getMonth(), curYear2 = today2.getFullYear();
+  var incMonthTotal = 0, gdsMonthTotal = 0;
+  incomeTxns.forEach(function(t) {
+    if (t.date.getMonth() === curMonth2 && t.date.getFullYear() === curYear2) incMonthTotal += t.total;
+  });
+  goodsTxns.forEach(function(t) {
+    if (t.date.getMonth() === curMonth2 && t.date.getFullYear() === curYear2) gdsMonthTotal += t.total;
+  });
+  renderSummaryHeader(incMonthTotal, gdsMonthTotal);
 }
 
 /* =========================================================================
