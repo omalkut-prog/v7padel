@@ -506,27 +506,56 @@ function renderKPIs(monthSoFar, dayOfMonth, dimCur) {
   const today = new Date(); today.setHours(0,0,0,0);
   const curWeekKey = weekKey(today);
   const currentMonday = getMonday(today);
-  const curWeek = weekMap[curWeekKey] || { mon: currentMonday, days: [0,0,0,0,0,0,0], total: 0 };
-  const curWeekTotal = curWeek.total;
-  const daysElapsedWeek = isoWeekDow(today) + 1;
+  const curWeekRaw = weekMap[curWeekKey];
 
-  const prevMonday = new Date(currentMonday);
-  prevMonday.setDate(prevMonday.getDate() - 7);
-  const prevWeekKey = weekKey(prevMonday);
-  const prevWeek = weekMap[prevWeekKey];
-  const prevWeekTotal = prevWeek ? prevWeek.total : 0;
-
-  document.getElementById('kpi-week-total').textContent = fmtMoney(curWeekTotal);
-  if (prevWeekTotal > 0) {
-    const delta = ((curWeekTotal - prevWeekTotal) / prevWeekTotal * 100);
-    const el = document.getElementById('kpi-week-delta');
-    el.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '% к прошлой неделе';
-    el.className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
+  // If current week has no data yet (e.g. Monday morning before first transaction),
+  // show last available week instead of zeros
+  var showWeek, showWeekTotal, showDaysElapsed, compWeekTotal, showLabel;
+  if (!curWeekRaw || curWeekRaw.total === 0) {
+    // Fall back to last available week
+    var lastKey = weekKeys.length ? weekKeys[0] : null; // weekKeys sorted desc
+    showWeek = lastKey ? weekMap[lastKey] : { mon: currentMonday, days: [0,0,0,0,0,0,0], total: 0 };
+    showWeekTotal = showWeek.total;
+    showDaysElapsed = 7; // full week
+    showLabel = 'прошлая неделя';
+    // Compare with the week before that
+    var prevKey = weekKeys.length > 1 ? weekKeys[1] : null;
+    compWeekTotal = prevKey ? weekMap[prevKey].total : 0;
+  } else {
+    showWeek = curWeekRaw;
+    showWeekTotal = curWeekRaw.total;
+    showDaysElapsed = isoWeekDow(today) + 1;
+    showLabel = null; // current week, no extra label
+    var prevMonday = new Date(currentMonday);
+    prevMonday.setDate(prevMonday.getDate() - 7);
+    var prevWeekKey = weekKey(prevMonday);
+    var prevWeek = weekMap[prevWeekKey];
+    compWeekTotal = prevWeek ? prevWeek.total : 0;
   }
 
-  const avgDay = daysElapsedWeek > 0 ? curWeekTotal / daysElapsedWeek : 0;
+  document.getElementById('kpi-week-total').textContent = fmtMoney(showWeekTotal);
+  if (showLabel) {
+    // Indicate that we're showing last week, not current
+    var labelEl = document.getElementById('kpi-week-total');
+    if (labelEl && labelEl.parentElement) {
+      var kpiLabel = labelEl.parentElement.querySelector('.kpi-label');
+      if (kpiLabel) kpiLabel.textContent = 'Выручка прошлой недели';
+    }
+  }
+  if (compWeekTotal > 0) {
+    const delta = ((showWeekTotal - compWeekTotal) / compWeekTotal * 100);
+    const el = document.getElementById('kpi-week-delta');
+    el.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '% к пред. неделе';
+    el.className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
+  } else {
+    document.getElementById('kpi-week-delta').textContent = '';
+  }
+
+  const avgDay = showDaysElapsed > 0 ? showWeekTotal / showDaysElapsed : 0;
   document.getElementById('kpi-avg-day').textContent = fmtMoney(avgDay);
-  document.getElementById('kpi-avg-hint').textContent = 'за ' + daysElapsedWeek + ' дн. текущей недели';
+  document.getElementById('kpi-avg-hint').textContent = showLabel
+    ? 'за 7 дн. прошлой недели'
+    : 'за ' + showDaysElapsed + ' дн. текущей недели';
 
   const forecast = dayOfMonth > 0 ? (monthSoFar / dayOfMonth) * dimCur : 0;
   document.getElementById('kpi-month-forecast').textContent = fmtMoney(forecast);
