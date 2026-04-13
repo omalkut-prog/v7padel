@@ -74,6 +74,7 @@ tbody tr{cursor:pointer}
 .t-state.ended{background:var(--surface2);color:var(--text3)}
 .t-state.open{background:rgba(39,174,96,.12);color:#27ae60}
 .t-state.full{background:rgba(231,76,60,.12);color:#e74c3c}
+.t-state.cancelled{background:rgba(231,76,60,.08);color:#95a5a6;text-decoration:line-through}
 
 .fill-bar{display:flex;align-items:center;gap:8px}
 .fill-bg{background:var(--surface2);height:6px;border-radius:3px;overflow:hidden;width:60px}
@@ -142,6 +143,7 @@ tbody tr{cursor:pointer}
   <div class="tabs" id="tabs">
     <div class="tab active" data-tab="upcoming" onclick="switchTab('upcoming')">Предстоящие <span class="cnt" id="cnt-upcoming">—</span></div>
     <div class="tab" data-tab="past" onclick="switchTab('past')">Прошедшие <span class="cnt" id="cnt-past">—</span></div>
+    <div class="tab" data-tab="cancelled" onclick="switchTab('cancelled')">Отменённые / Пустые <span class="cnt" id="cnt-cancelled">—</span></div>
   </div>
 
   <div class="filter-bar">
@@ -199,18 +201,26 @@ let selectedId = null;
   }
 })();
 
+function isCancelled(t) {
+  // Past tournament with 0 participants or state not 'ended' (was never played)
+  const now = new Date();
+  return t.date < now && (t.participants === 0 || (t.state !== 'ended' && t.state !== 'started'));
+}
+
 function updateCounts() {
   const now = new Date();
-  const upcoming = allTournaments.filter(t => t.date >= now || t.state !== 'ended');
-  const past = allTournaments.filter(t => t.date < now && t.state === 'ended');
+  now.setHours(0,0,0,0);
+  const cancelled = allTournaments.filter(t => isCancelled(t));
+  const past = allTournaments.filter(t => t.date < now && !isCancelled(t));
+  const upcoming = allTournaments.filter(t => t.date >= now);
   document.getElementById('cnt-upcoming').textContent = upcoming.length;
   document.getElementById('cnt-past').textContent = past.length;
+  document.getElementById('cnt-cancelled').textContent = cancelled.length;
 }
 
 function switchTab(tab) {
   currentTab = tab;
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
-  // Reset sort to date desc for past, date asc for upcoming
   sortCol = 'date';
   sortAsc = tab === 'upcoming';
   applyFilters();
@@ -238,11 +248,14 @@ function applyFilters() {
   const now = new Date();
   const search = (document.getElementById('search').value || '').toLowerCase();
 
+  now.setHours(0,0,0,0);
   let list;
   if (currentTab === 'upcoming') {
-    list = allTournaments.filter(t => t.date >= now || t.state !== 'ended');
+    list = allTournaments.filter(t => t.date >= now);
+  } else if (currentTab === 'cancelled') {
+    list = allTournaments.filter(t => isCancelled(t));
   } else {
-    list = allTournaments.filter(t => t.date < now && t.state === 'ended');
+    list = allTournaments.filter(t => t.date < now && !isCancelled(t));
   }
 
   if (currentType !== 'all') {
@@ -289,8 +302,9 @@ function renderTable(list) {
   tbody.innerHTML = list.map(t => {
     const fillPct = t.slots > 0 ? Math.round(t.participants / t.slots * 100) : 0;
     const fillCls = fillPct >= 100 ? 'red' : fillPct >= 60 ? 'yellow' : 'green';
-    const stCls = t.state === 'ended' ? 'ended' : (t.participants >= t.slots && t.slots > 0) ? 'full' : 'open';
-    const stLabel = t.state === 'ended' ? 'Завершён' : stCls === 'full' ? 'Полный' : 'Открыт';
+    const cancelled = isCancelled(t);
+    const stCls = cancelled ? 'cancelled' : t.state === 'ended' ? 'ended' : (t.participants >= t.slots && t.slots > 0) ? 'full' : 'open';
+    const stLabel = cancelled ? 'Отменён' : t.state === 'ended' ? 'Завершён' : stCls === 'full' ? 'Полный' : 'Открыт';
     return `<tr onclick="selectTournament('${t.id}')" class="${selectedId === t.id ? 'selected' : ''}">
       <td>${fmtDate(t.date)}</td>
       <td class="t-name">${t.title}</td>
