@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Аудит платежей</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px;
+  }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links li { list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; gap: 16px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+  .section-head .hint { font-size: 11px; color: var(--text3); }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .panel + .panel { margin-top: 14px; }
+
+  /* KPI row */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .kpi-card .kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); margin-bottom: 8px; }
+  .kpi-card .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi-card .kpi-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+  .kpi-card.danger .kpi-value { color: var(--bad); }
+  .kpi-card.good .kpi-value { color: var(--good); }
+
+  /* Tables */
+  table.fin { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.fin th {
+    text-align: right; padding: 10px 10px; color: var(--text3);
+    font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+    background: var(--surface2); border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  table.fin th:first-child, table.fin td:first-child { text-align: left; }
+  table.fin td {
+    padding: 10px 10px; border-bottom: 1px solid var(--border);
+    text-align: right; white-space: nowrap;
+  }
+  table.fin td:first-child { text-align: left; font-weight: 500; }
+  table.fin tr:hover { background: var(--surface2); }
+  table.fin .total-row { font-weight: 700; background: var(--surface2); }
+  table.fin .neg { color: var(--bad); }
+  table.fin .pos { color: var(--good); }
+
+  .chart-box { position: relative; height: 300px; }
+  .loading { color: var(--text3); font-size: 14px; padding: 20px; text-align: center; }
+  .err-msg { color: var(--bad); font-size: 13px; padding: 16px; text-align: center; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  /* Badge */
+  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
+  .badge.red { background: rgba(231,76,60,0.15); color: var(--bad); }
+  .badge.green { background: rgba(46,204,113,0.15); color: var(--good); }
+  .badge.grey { background: var(--surface2); color: var(--text3); }
+
+  /* Tabs */
+  .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; }
+  .tab-btn { padding: 8px 20px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text2); cursor: pointer; transition: all .2s; }
+  .tab-btn:hover { background: var(--surface2); }
+  .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  @media (max-width: 960px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+    .tab-bar { flex-wrap: wrap; }
+  }
+  @media (max-width: 600px) {
+    .kpi-row { grid-template-columns: 1fr; }
+    main { padding: 16px 12px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li><a href="tournaments.html">Турниры</a></li>
+    <li><a href="audit.html" class="active">Аудит</a></li>
+    <li><a href="brain.html">Brain</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
+</nav>
+
+<main>
+  <h1 class="page-title">Аудит платежей</h1>
+  <p class="page-sub">Должники · Балансы · Движения по балансу · из Matchpoint API</p>
+
+  <!-- KPI cards -->
+  <div class="kpi-row">
+    <div class="kpi-card danger" id="kpi-debt">
+      <div class="kpi-label">Общий долг</div>
+      <div class="kpi-value" id="kpi-debt-val">—</div>
+      <div class="kpi-sub" id="kpi-debt-sub">загрузка...</div>
+    </div>
+    <div class="kpi-card" id="kpi-debtors">
+      <div class="kpi-label">Должников</div>
+      <div class="kpi-value" id="kpi-debtors-val">—</div>
+      <div class="kpi-sub" id="kpi-debtors-sub">клиентов с задолженностью</div>
+    </div>
+    <div class="kpi-card good" id="kpi-surplus">
+      <div class="kpi-label">Профицит балансов</div>
+      <div class="kpi-value" id="kpi-surplus-val">—</div>
+      <div class="kpi-sub" id="kpi-surplus-sub">клиентов с положительным балансом</div>
+    </div>
+    <div class="kpi-card" id="kpi-movements">
+      <div class="kpi-label">Движений баланса</div>
+      <div class="kpi-value" id="kpi-movements-val">—</div>
+      <div class="kpi-sub" id="kpi-movements-sub">записей в логе</div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="debtors">Должники</button>
+    <button class="tab-btn" data-tab="surplus">Профицит</button>
+    <button class="tab-btn" data-tab="movements">Движения баланса</button>
+    <button class="tab-btn" data-tab="chart">Графики</button>
+  </div>
+
+  <!-- Tab: Debtors -->
+  <div class="tab-content active" id="tab-debtors">
+    <section class="section">
+      <div class="section-head">
+        <h2>Должники</h2>
+        <span class="hint" id="debtors-hint">клиенты с неоплаченными бронями</span>
+      </div>
+      <div class="panel">
+        <table class="fin" id="debtors-table">
+          <thead>
+            <tr>
+              <th>Клиент</th>
+              <th>Брони</th>
+              <th>Свет</th>
+              <th>Баланс</th>
+              <th>NET долг</th>
+              <th>Неопл.</th>
+              <th>Всего</th>
+              <th>Посл. бронь</th>
+              <th>Корт</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="9" class="loading">Загрузка данных...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Tab: Surplus -->
+  <div class="tab-content" id="tab-surplus">
+    <section class="section">
+      <div class="section-head">
+        <h2>Клиенты с профицитом</h2>
+        <span class="hint">отрицательный «другие долги» = предоплата / кредит</span>
+      </div>
+      <div class="panel">
+        <table class="fin" id="surplus-table">
+          <thead>
+            <tr>
+              <th>Клиент</th>
+              <th>Долг (брони)</th>
+              <th>Кредит на балансе</th>
+              <th>NET профицит</th>
+              <th>Всего броней</th>
+              <th>Посл. бронь</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="6" class="loading">Загрузка данных...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Tab: Balance Movements -->
+  <div class="tab-content" id="tab-movements">
+    <section class="section">
+      <div class="section-head">
+        <h2>Движения по балансу</h2>
+        <span class="hint" id="movements-hint">из ListadoMovimientosSaldo</span>
+      </div>
+      <div class="panel">
+        <table class="fin" id="movements-table">
+          <thead>
+            <tr>
+              <th>Дата</th>
+              <th>Тип</th>
+              <th>Клиент</th>
+              <th>Сумма</th>
+              <th>Баланс до</th>
+              <th>Баланс после</th>
+              <th>Описание</th>
+              <th>Админ</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="8" class="loading">Загрузка данных...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- Tab: Charts -->
+  <div class="tab-content" id="tab-chart">
+    <section class="section">
+      <div class="two-col">
+        <div class="panel">
+          <h3 style="font-size:14px; font-weight:600; margin-bottom:14px;">Топ должников</h3>
+          <div class="chart-box"><canvas id="debt-chart"></canvas></div>
+        </div>
+        <div class="panel">
+          <h3 style="font-size:14px; font-weight:600; margin-bottom:14px;">Движения баланса (по дням)</h3>
+          <div class="chart-box"><canvas id="movements-chart"></canvas></div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+</main>
+
+<script>
+(async function() {
+  const { loadSheet } = V7;
+  const fmt = v => {
+    if (v == null || isNaN(v)) return '—';
+    return Number(v).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' TRY';
+  };
+
+  // ── Tab switching ──
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ── Load data ──
+  let debts = [], movements = [];
+  try {
+    [debts, movements] = await Promise.all([
+      loadSheet('debts').catch(() => []),
+      loadSheet('balance_log').catch(() => []),
+    ]);
+  } catch (e) {
+    console.error('Data load error:', e);
+  }
+
+  // ── Process debts ──
+  // NET = debt_reservas + debt_luz + debt_other
+  // debt_other < 0 means client has credit (prepaid balance)
+  // debt_other > 0 means client has additional debts beyond bookings
+  // NET > 0 = real debtor, NET < 0 = surplus (credit exceeds debt)
+  const TEST_NAMES = ['test', 'prueba', 'demo'];
+  const isTest = name => TEST_NAMES.some(t => name.toLowerCase().includes(t));
+
+  const debtors = [];
+  const surplusClients = [];
+
+  debts.forEach(r => {
+    const name = r.client_name || r.client_id || '?';
+    if (isTest(name)) return; // skip test accounts
+
+    const debtRes = parseFloat(r.debt_reservas) || 0;
+    const debtOther = parseFloat(r.debt_other) || 0;
+    const debtLuz = parseFloat(r.debt_luz) || 0;
+    const net = debtRes + debtLuz + debtOther; // real balance: positive=owes, negative=credit
+
+    const rec = {
+      name,
+      clientId: r.client_id,
+      debtRes,
+      debtLuz,
+      debtOther,
+      net,
+      unpaid: parseInt(r.bookings_unpaid) || 0,
+      totalBookings: parseInt(r.bookings_total) || 0,
+      lastBooking: r.last_booking || '',
+      lastCourt: r.last_court || '',
+    };
+
+    if (net > 10) {
+      debtors.push(rec);
+    }
+    if (net < -10) {
+      surplusClients.push(rec);
+    }
+  });
+
+  debtors.sort((a, b) => b.net - a.net);
+  surplusClients.sort((a, b) => a.net - b.net); // most negative first = biggest credit
+
+  const totalDebt = debtors.reduce((s, d) => s + d.net, 0);
+  const totalSurplus = surplusClients.reduce((s, d) => s + Math.abs(d.net), 0);
+
+  // ── KPIs ──
+  document.getElementById('kpi-debt-val').textContent = fmt(totalDebt);
+  document.getElementById('kpi-debt-sub').textContent = debtors.length + ' клиентов';
+  document.getElementById('kpi-debtors-val').textContent = debtors.length;
+  document.getElementById('kpi-debtors-sub').textContent = 'с неоплаченными бронями';
+  document.getElementById('kpi-surplus-val').textContent = fmt(totalSurplus);
+  document.getElementById('kpi-surplus-sub').textContent = surplusClients.length + ' клиентов с кредитом';
+  document.getElementById('kpi-movements-val').textContent = movements.length;
+  document.getElementById('kpi-movements-sub').textContent = 'записей в логе';
+
+  // ── Debtors table ──
+  const dtBody = document.querySelector('#debtors-table tbody');
+  if (!debtors.length) {
+    dtBody.innerHTML = '<tr><td colspan="9" class="loading">Нет должников</td></tr>';
+  } else {
+    dtBody.innerHTML = debtors.map(d => `<tr>
+      <td>${d.name}</td>
+      <td>${fmt(d.debtRes)}</td>
+      <td>${d.debtLuz ? fmt(d.debtLuz) : '—'}</td>
+      <td class="${d.debtOther > 0 ? 'neg' : d.debtOther < 0 ? 'pos' : ''}">${fmt(d.debtOther)}</td>
+      <td class="neg" style="font-weight:700">${fmt(d.net)}</td>
+      <td>${d.unpaid}</td>
+      <td>${d.totalBookings}</td>
+      <td>${d.lastBooking}</td>
+      <td>${d.lastCourt}</td>
+    </tr>`).join('') + `<tr class="total-row">
+      <td>ИТОГО</td>
+      <td>${fmt(debtors.reduce((s,d) => s+d.debtRes, 0))}</td>
+      <td>${fmt(debtors.reduce((s,d) => s+d.debtLuz, 0))}</td>
+      <td>${fmt(debtors.reduce((s,d) => s+d.debtOther, 0))}</td>
+      <td class="neg" style="font-weight:700">${fmt(totalDebt)}</td>
+      <td>${debtors.reduce((s,d) => s+d.unpaid, 0)}</td>
+      <td>${debtors.reduce((s,d) => s+d.totalBookings, 0)}</td>
+      <td colspan="2"></td>
+    </tr>`;
+    document.getElementById('debtors-hint').textContent = debtors.length + ' клиентов · ' + fmt(totalDebt);
+  }
+
+  // ── Surplus table ──
+  const sBody = document.querySelector('#surplus-table tbody');
+  if (!surplusClients.length) {
+    sBody.innerHTML = '<tr><td colspan="6" class="loading">Нет клиентов с профицитом</td></tr>';
+  } else {
+    sBody.innerHTML = surplusClients.map(d => {
+      const credit = Math.abs(d.net);
+      return `<tr>
+        <td>${d.name}</td>
+        <td>${fmt(d.debtRes)}</td>
+        <td class="pos">${fmt(Math.abs(d.debtOther))}</td>
+        <td class="pos" style="font-weight:700">${fmt(credit)}</td>
+        <td>${d.totalBookings}</td>
+        <td>${d.lastBooking}</td>
+      </tr>`;
+    }).join('') + `<tr class="total-row">
+      <td>ИТОГО</td>
+      <td>${fmt(surplusClients.reduce((s,d) => s+d.debtRes, 0))}</td>
+      <td class="pos">${fmt(surplusClients.reduce((s,d) => s+Math.abs(d.debtOther), 0))}</td>
+      <td class="pos" style="font-weight:700">${fmt(totalSurplus)}</td>
+      <td>${surplusClients.reduce((s,d) => s+d.totalBookings, 0)}</td>
+      <td></td>
+    </tr>`;
+  }
+
+  // ── Movements table ──
+  const mBody = document.querySelector('#movements-table tbody');
+  if (!movements.length) {
+    mBody.innerHTML = '<tr><td colspan="8" class="loading">Нет данных о движениях</td></tr>';
+  } else {
+    mBody.innerHTML = movements.map(m => {
+      const amt = parseFloat(m.amount_num || m.amount || 0);
+      return `<tr>
+        <td>${m.date || ''}</td>
+        <td>${m.type || ''}</td>
+        <td>${m.client || ''}</td>
+        <td class="${amt > 0 ? 'pos' : amt < 0 ? 'neg' : ''}">${amt ? fmt(amt) : '—'}</td>
+        <td>${m.balance_before || ''}</td>
+        <td>${m.balance_after || ''}</td>
+        <td style="white-space:normal; max-width:200px; font-size:12px;">${m.description || ''}</td>
+        <td style="font-size:12px;">${m.admin || ''}</td>
+      </tr>`;
+    }).join('');
+    document.getElementById('movements-hint').textContent = movements.length + ' записей';
+  }
+
+  // ── Charts ──
+  // Top debtors bar chart
+  if (debtors.length) {
+    const top = debtors.slice(0, 15);
+    new Chart(document.getElementById('debt-chart'), {
+      type: 'bar',
+      data: {
+        labels: top.map(d => d.name.length > 20 ? d.name.slice(0, 18) + '...' : d.name),
+        datasets: [{
+          label: 'NET долг',
+          data: top.map(d => d.net),
+          backgroundColor: 'rgba(231, 76, 60, 0.7)',
+        }],
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { callback: v => (v/1000).toFixed(0) + 'k' }, grid: { color: 'rgba(128,128,128,0.1)' } },
+          y: { ticks: { font: { size: 11 } } },
+        },
+      },
+    });
+  }
+
+  // Balance movements timeline
+  if (movements.length) {
+    // Group by date
+    const byDate = {};
+    movements.forEach(m => {
+      const d = m.date || '?';
+      if (!byDate[d]) byDate[d] = { pos: 0, neg: 0 };
+      const amt = parseFloat(m.amount_num || m.amount || 0);
+      if (amt > 0) byDate[d].pos += amt;
+      else byDate[d].neg += amt;
+    });
+    const dates = Object.keys(byDate).sort();
+    new Chart(document.getElementById('movements-chart'), {
+      type: 'bar',
+      data: {
+        labels: dates,
+        datasets: [{
+          label: 'Пополнения',
+          data: dates.map(d => byDate[d].pos),
+          backgroundColor: 'rgba(46, 204, 113, 0.7)',
+        }, {
+          label: 'Списания',
+          data: dates.map(d => byDate[d].neg),
+          backgroundColor: 'rgba(231, 76, 60, 0.7)',
+        }],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
+        scales: {
+          x: { stacked: true, ticks: { font: { size: 10 }, maxRotation: 45 }, grid: { display: false } },
+          y: { stacked: true, ticks: { callback: v => (v/1000).toFixed(1) + 'k' }, grid: { color: 'rgba(128,128,128,0.1)' } },
+        },
+      },
+    });
+  }
+
+  // ── No data state ──
+  if (!debts.length && !movements.length) {
+    document.querySelector('.tab-bar').insertAdjacentHTML('afterend',
+      '<div class="panel" style="text-align:center; padding:40px; margin-bottom:20px;">' +
+      '<p style="font-size:16px; font-weight:500; margin-bottom:8px;">Данные ещё не загружены</p>' +
+      '<p style="font-size:13px; color:var(--text3);">Запустите ETL: <code>python etl/scrape_debts.py --write --days 60</code></p>' +
+      '</div>'
+    );
+  }
+
+})();
+</script>
+
+</body>
+</html>

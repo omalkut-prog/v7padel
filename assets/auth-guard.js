@@ -21,6 +21,7 @@
     'data.html':                 ['admin'],
     'team.html':                 ['admin'],
     'brain.html':                ['admin'],
+    'audit.html':                ['admin'],
     'staff.html':                ['admin'],
     'marketing.html':            ['admin'],
     'tournaments.html':          ['admin', 'manager', 'coach', 'administrator'],
