@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Список турниров</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/racketid.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+
+nav{position:sticky;top:0;z-index:100;height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:0}
+.nav-logo{font-size:16px;font-weight:600;color:var(--text);text-decoration:none;margin-right:auto}
+.nav-logo em{color:var(--accent);font-style:normal}
+.nav-links li{list-style:none}
+.nav-links a{display:block;padding:0 14px;font-size:13px;color:var(--text2);text-decoration:none;line-height:56px;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-links a.active{color:var(--accent)}
+.nav-pill{background:var(--accent-soft);border:1px solid var(--accent-border);color:var(--accent);font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;letter-spacing:.3px;margin-right:12px}
+
+.subnav{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px}
+.subnav a{padding:10px 18px;font-size:13px;font-weight:500;color:var(--text3);text-decoration:none;border-bottom:2px solid transparent;transition:all .2s}
+.subnav a:hover{color:var(--text)}
+.subnav a.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+main{max-width:1400px;margin:0 auto;padding:24px 20px 80px}
+h1.page-title{font-size:28px;font-weight:600;letter-spacing:-0.8px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--text3);margin-bottom:28px}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#27ae60;margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--border);margin-bottom:20px}
+.tab{padding:10px 22px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab .cnt{background:var(--surface2);color:var(--text3);font-size:11px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px}
+.tab.active .cnt{background:var(--accent-soft);color:var(--accent)}
+
+/* Filter bar */
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.f-btn{padding:5px 14px;font-size:12px;font-weight:600;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--text2);cursor:pointer;transition:all .15s}
+.f-btn:hover{border-color:var(--accent);color:var(--accent)}
+.f-btn.active{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.f-search{padding:6px 14px;font-size:12px;border:1px solid var(--border);border-radius:20px;background:var(--surface);color:var(--text);outline:none;min-width:200px}
+.f-search:focus{border-color:var(--accent)}
+
+/* Table */
+.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:10px 14px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);border-bottom:2px solid var(--border);cursor:pointer;user-select:none;white-space:nowrap}
+thead th:hover{color:var(--text)}
+thead th.sorted-asc::after{content:" \u2191";color:var(--accent)}
+thead th.sorted-desc::after{content:" \u2193";color:var(--accent)}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody tr{cursor:pointer}
+
+.t-name{font-weight:600;color:var(--text)}
+.t-badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.t-badge.rated{background:rgba(39,174,96,.12);color:#27ae60}
+.t-badge.nonrated{background:rgba(230,126,34,.12);color:#e67e22}
+.t-badge.special{background:rgba(142,68,173,.12);color:#8e44ad}
+.t-badge.camp{background:rgba(243,156,18,.12);color:#f39c12}
+
+.t-state{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
+.t-state.ended{background:var(--surface2);color:var(--text3)}
+.t-state.open{background:rgba(39,174,96,.12);color:#27ae60}
+.t-state.full{background:rgba(231,76,60,.12);color:#e74c3c}
+
+.fill-bar{display:flex;align-items:center;gap:8px}
+.fill-bg{background:var(--surface2);height:6px;border-radius:3px;overflow:hidden;width:60px}
+.fill-fg{height:100%;border-radius:3px}
+.fill-fg.green{background:#27ae60}
+.fill-fg.yellow{background:#f39c12}
+.fill-fg.red{background:#e74c3c}
+.fill-txt{font-size:12px;font-weight:700;white-space:nowrap}
+
+/* Participants panel */
+.p-panel{margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:none}
+.p-panel.on{display:block}
+.p-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.p-head .p-title{font-size:14px;font-weight:700}
+.p-head .p-link{font-size:12px;color:var(--accent);text-decoration:none;font-weight:600}
+.p-head .p-link:hover{text-decoration:underline}
+.p-close{background:var(--surface2);border:none;width:26px;height:26px;border-radius:50%;font-size:14px;cursor:pointer;color:var(--text3);display:flex;align-items:center;justify-content:center;margin-left:12px}
+.p-close:hover{background:var(--border-hover)}
+.p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:4px;padding:12px 18px 16px}
+.p-card{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:var(--surface2);font-size:13px}
+.p-card .p-name{font-weight:500;color:var(--text)}
+.p-card .p-rat{font-size:12px;color:var(--text3);margin-left:auto;font-weight:700}
+.p-loading{padding:16px 18px;font-size:13px;color:var(--text3)}
+
+.empty-msg{padding:40px 20px;text-align:center;color:var(--text3);font-size:14px}
+
+@media(max-width:860px){
+  main{padding:12px 8px 60px}
+  .f-search{min-width:140px}
+  .p-grid{grid-template-columns:1fr}
+  table{font-size:12px}
+  thead th,tbody td{padding:7px 8px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li class="team-link"><a href="team.html">Команда</a></li>
+    <li><a href="tournament-analytics.html" class="active">Турниры</a></li>
+    <li><a href="audit.html">Аудит</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
+</nav>
+
+<div class="subnav">
+  <a href="tournament-analytics.html">Дашборд</a>
+  <a href="tournament-list.html" class="active">Список</a>
+  <a href="tournament-calendar.html">Календарь</a>
+  <a href="tournament-tools.html">Инструменты</a>
+</div>
+
+<main>
+  <h1 class="page-title"><span class="live-dot"></span>Список турниров</h1>
+  <p class="page-sub">Живые данные из Racket.ID Firestore</p>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-tab="upcoming" onclick="switchTab('upcoming')">Предстоящие <span class="cnt" id="cnt-upcoming">—</span></div>
+    <div class="tab" data-tab="past" onclick="switchTab('past')">Прошедшие <span class="cnt" id="cnt-past">—</span></div>
+  </div>
+
+  <div class="filter-bar">
+    <button class="f-btn active" data-type="all" onclick="setFilter('all',this)">Все</button>
+    <button class="f-btn" data-type="rated" onclick="setFilter('rated',this)">Рейтинговые</button>
+    <button class="f-btn" data-type="nonrated" onclick="setFilter('nonrated',this)">Нерейтинговые</button>
+    <button class="f-btn" data-type="special" onclick="setFilter('special',this)">Спецсобытия</button>
+    <input class="f-search" type="text" placeholder="Поиск по названию..." id="search" oninput="applyFilters()">
+  </div>
+
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th data-col="date" onclick="sortBy('date')">Дата</th>
+          <th data-col="title" onclick="sortBy('title')">Турнир</th>
+          <th data-col="type" onclick="sortBy('type')">Тип</th>
+          <th data-col="fill" onclick="sortBy('fill')">Заполняемость</th>
+          <th data-col="state" onclick="sortBy('state')">Статус</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="p-panel" id="p-panel">
+    <div class="p-head">
+      <span class="p-title" id="p-title">Участники</span>
+      <span style="display:flex;align-items:center">
+        <a class="p-link" id="p-link" href="#" target="_blank">Racket.ID &rarr;</a>
+        <button class="p-close" onclick="closePanel()">&times;</button>
+      </span>
+    </div>
+    <div id="p-body"><div class="p-loading">Загрузка...</div></div>
+  </div>
+</main>
+
+<script>
+let allTournaments = [];
+let currentTab = 'upcoming';
+let currentType = 'all';
+let sortCol = 'date';
+let sortAsc = true;
+let selectedId = null;
+
+(async function init() {
+  try {
+    const data = await RacketID.loadTournaments();
+    allTournaments = data;
+    updateCounts();
+    applyFilters();
+  } catch(e) {
+    document.getElementById('tbody').innerHTML = '<tr><td colspan="5" class="empty-msg">Ошибка загрузки данных</td></tr>';
+    console.error(e);
+  }
+})();
+
+function updateCounts() {
+  const now = new Date();
+  const upcoming = allTournaments.filter(t => t.date >= now || t.state !== 'ended');
+  const past = allTournaments.filter(t => t.date < now && t.state === 'ended');
+  document.getElementById('cnt-upcoming').textContent = upcoming.length;
+  document.getElementById('cnt-past').textContent = past.length;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+  // Reset sort to date desc for past, date asc for upcoming
+  sortCol = 'date';
+  sortAsc = tab === 'upcoming';
+  applyFilters();
+}
+
+function setFilter(type, btn) {
+  currentType = type;
+  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortAsc = !sortAsc;
+  else { sortCol = col; sortAsc = col === 'title'; }
+  // Update header classes
+  document.querySelectorAll('thead th').forEach(th => {
+    th.classList.remove('sorted-asc', 'sorted-desc');
+    if (th.dataset.col === col) th.classList.add(sortAsc ? 'sorted-asc' : 'sorted-desc');
+  });
+  applyFilters();
+}
+
+function applyFilters() {
+  const now = new Date();
+  const search = (document.getElementById('search').value || '').toLowerCase();
+
+  let list;
+  if (currentTab === 'upcoming') {
+    list = allTournaments.filter(t => t.date >= now || t.state !== 'ended');
+  } else {
+    list = allTournaments.filter(t => t.date < now && t.state === 'ended');
+  }
+
+  if (currentType !== 'all') {
+    list = list.filter(t => t.type === currentType);
+  }
+
+  if (search) {
+    list = list.filter(t => t.title.toLowerCase().includes(search));
+  }
+
+  // Sort
+  list.sort((a, b) => {
+    let va, vb;
+    switch(sortCol) {
+      case 'date': va = a.date; vb = b.date; break;
+      case 'title': va = a.title.toLowerCase(); vb = b.title.toLowerCase(); break;
+      case 'type': va = a.type; vb = b.type; break;
+      case 'fill': va = a.fillPct; vb = b.fillPct; break;
+      case 'state': va = a.state; vb = b.state; break;
+      default: va = a.date; vb = b.date;
+    }
+    if (va < vb) return sortAsc ? -1 : 1;
+    if (va > vb) return sortAsc ? 1 : -1;
+    return 0;
+  });
+
+  renderTable(list);
+}
+
+const typeLabels = {rated:'Рейтинговый',nonrated:'Нерейтинговый',special:'Спецсобытие',camp:'Camp'};
+const WDAYS_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+const MONTHS_RU = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+
+function fmtDate(d) {
+  return `${d.getDate()} ${MONTHS_RU[d.getMonth()]} ${d.getFullYear()}, ${WDAYS_RU[d.getDay()]}`;
+}
+
+function renderTable(list) {
+  const tbody = document.getElementById('tbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="empty-msg">Нет турниров</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(t => {
+    const fillPct = t.slots > 0 ? Math.round(t.participants / t.slots * 100) : 0;
+    const fillCls = fillPct >= 100 ? 'red' : fillPct >= 60 ? 'yellow' : 'green';
+    const stCls = t.state === 'ended' ? 'ended' : (t.participants >= t.slots && t.slots > 0) ? 'full' : 'open';
+    const stLabel = t.state === 'ended' ? 'Завершён' : stCls === 'full' ? 'Полный' : 'Открыт';
+    return `<tr onclick="selectTournament('${t.id}')" class="${selectedId === t.id ? 'selected' : ''}">
+      <td>${fmtDate(t.date)}</td>
+      <td class="t-name">${t.title}</td>
+      <td><span class="t-badge ${t.type}">${typeLabels[t.type] || t.type}</span></td>
+      <td><div class="fill-bar"><div class="fill-bg"><div class="fill-fg ${fillCls}" style="width:${Math.min(fillPct,100)}%"></div></div><span class="fill-txt">${t.participants}/${t.slots}</span></div></td>
+      <td><span class="t-state ${stCls}">${stLabel}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+async function selectTournament(id) {
+  selectedId = id;
+  const t = allTournaments.find(x => x.id === id);
+  if (!t) return;
+
+  const panel = document.getElementById('p-panel');
+  panel.classList.add('on');
+  document.getElementById('p-title').textContent = `${t.title} — ${t.participants} участников`;
+  document.getElementById('p-link').href = RacketID.tournamentUrl(t.id);
+  document.getElementById('p-body').innerHTML = '<div class="p-loading">Загрузка профилей...</div>';
+
+  // Scroll to panel
+  panel.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+
+  if (!t.participantIds.length) {
+    document.getElementById('p-body').innerHTML = '<div class="p-loading">Нет зарегистрированных участников</div>';
+    return;
+  }
+
+  try {
+    const profiles = await RacketID.loadProfiles(t.participantIds);
+    document.getElementById('p-body').innerHTML = '<div class="p-grid">' + profiles.map(p =>
+      `<div class="p-card"><span class="p-name">${p.name || p.user_id}</span>${p.rating ? `<span class="p-rat">${Math.round(p.rating)}</span>` : ''}</div>`
+    ).join('') + '</div>';
+  } catch(e) {
+    document.getElementById('p-body').innerHTML = '<div class="p-loading">Ошибка загрузки профилей</div>';
+  }
+}
+
+function closePanel() {
+  document.getElementById('p-panel').classList.remove('on');
+  selectedId = null;
+}
+</script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
 <script src="assets/data.js"></script>
+<script src="assets/racketid.js"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <style>
 /* Variables from theme.css :root */
@@ -50,8 +51,11 @@ nav {
 
 /* LEGEND */
 .legend{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap}
-.leg{display:flex;align-items:center;gap:8px;padding:9px 18px;font-size:.76rem;font-weight:700;border-right:1px solid var(--border);letter-spacing:.3px;color:inherit}
+.leg{display:flex;align-items:center;gap:8px;padding:9px 18px;font-size:.76rem;font-weight:700;border-right:1px solid var(--border);letter-spacing:.3px;color:inherit;cursor:pointer;user-select:none;transition:opacity .2s}
 .leg:last-child{border-right:none}
+.leg:hover{background:var(--surface2)}
+.leg.off{opacity:.3}
+.leg.off .ldot{background:var(--text3)!important}
 .ldot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
 .lr{background:#27ae60}.ln{background:#e67e22}.ls{background:#8e44ad}.lc{background:#e67e22;background:linear-gradient(135deg,#e8a000,#f39c12)}
 
@@ -121,6 +125,15 @@ nav {
 .mico{font-size:1rem;width:22px;text-align:center;flex-shrink:0;margin-top:1px}
 .mval{line-height:1.45}.mval strong{color:var(--text)}
 .mdesc{background:var(--surface2);border-radius:9px;padding:11px 13px;font-size:.8rem;color:var(--text2);line-height:1.6;border-left:3px solid var(--accent);margin-top:2px}
+.m-participants{margin-top:8px;padding-top:10px;border-top:1px solid var(--border)}
+.m-participants .mp-title{font-size:.78rem;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.m-participants .mp-link{font-size:.72rem;color:var(--accent);text-decoration:none;font-weight:600}
+.m-participants .mp-link:hover{text-decoration:underline}
+.mp-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.mp-card{display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:5px;background:var(--surface2);font-size:.75rem}
+.mp-card .mp-name{font-weight:500;color:var(--text)}
+.mp-card .mp-rat{font-size:.68rem;color:var(--text3);margin-left:auto;font-weight:700}
+.mp-loading{font-size:.75rem;color:var(--text3);padding:6px 0}
 
 /* DASHBOARD */
 .dashboard{padding:16px 24px;max-width:1600px;margin:0 auto}
@@ -186,6 +199,7 @@ nav {
 
 <div class="subnav">
   <a href="tournament-analytics.html">Дашборд</a>
+  <a href="tournament-list.html">Список</a>
   <a href="tournament-calendar.html" class="active">Календарь</a>
   <a href="tournament-tools.html">Инструменты</a>
 </div>
@@ -221,19 +235,19 @@ nav {
   <div class="m-tab" onclick="setMonth(7)" id="tab7">July</div>
 </div>
 
-<div class="legend">
-  <div class="leg"><div class="ldot lr"></div>Rated Tournament</div>
-  <div class="leg"><div class="ldot ln"></div>Non-Rated Tournament</div>
-  <div class="leg"><div class="ldot ls"></div>Special Event</div>
-  <div class="leg"><div class="ldot" style="background:#f39c12"></div>Bob's Camp Week</div>
+<div class="legend" id="legend">
+  <div class="leg" data-type="rated" onclick="toggleFilter(this)"><div class="ldot lr"></div>Рейтинговые</div>
+  <div class="leg" data-type="nonrated" onclick="toggleFilter(this)"><div class="ldot ln"></div>Нерейтинговые</div>
+  <div class="leg" data-type="special" onclick="toggleFilter(this)"><div class="ldot ls"></div>Спецсобытия</div>
+  <div class="leg" data-type="camp" onclick="toggleFilter(this)"><div class="ldot" style="background:#f39c12"></div>Camp</div>
 </div>
 
 <div class="main">
   <div class="cal-wrap">
     <div class="day-names">
-      <div class="dn">Monday</div><div class="dn">Tuesday</div><div class="dn">Wednesday</div>
-      <div class="dn">Thursday</div><div class="dn">Friday</div>
-      <div class="dn wk">Saturday</div><div class="dn wk">Sunday</div>
+      <div class="dn">Пн</div><div class="dn">Вт</div><div class="dn">Ср</div>
+      <div class="dn">Чт</div><div class="dn">Пт</div>
+      <div class="dn wk">Сб</div><div class="dn wk">Вс</div>
     </div>
     <div class="cal-grid" id="grid"></div>
   </div>
@@ -253,261 +267,40 @@ nav {
 </div>
 
 <script>
-// ── RACKETID TOURNAMENTS (Google Sheets) ────────────────────────
-// Shared lookup: date (YYYY-MM-DD) → [{title, slots, count, state}]
+// ── RACKETID TOURNAMENTS (Live Firestore) ────────────────────────
 window._racketByDate = {};
-(function(){
-  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY/gviz/tq?tqx=out:csv&sheet=racketid_tournaments';
-  const DAYS_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-
-  function parseCSV(text){
-    const rows=[];
-    const lines=text.split('\n');
-    for(let i=0;i<lines.length;i++){
-      const row=[];
-      let cur='', inQ=false;
-      for(let j=0;j<lines[i].length;j++){
-        const ch=lines[i][j];
-        if(inQ){
-          if(ch==='"'&&lines[i][j+1]==='"'){cur+='"';j++;}
-          else if(ch==='"'){inQ=false;}
-          else{cur+=ch;}
-        } else {
-          if(ch==='"'){inQ=true;}
-          else if(ch===','){row.push(cur.trim());cur='';}
-          else{cur+=ch;}
-        }
-      }
-      row.push(cur.trim());
-      rows.push(row);
-    }
-    return rows;
-  }
-
-  function parseDate(s){
-    if(!s) return null;
-    // Safari fix: replace space with T
-    const d = new Date(s.replace(' ','T'));
-    return isNaN(d.getTime()) ? null : d;
-  }
-
-  function extractTime(s){
-    if(!s) return '';
-    const m = s.match(/(\d{2}:\d{2})/);
-    return m ? m[1] : '';
-  }
-
-  function fillColor(pct){
-    if(pct>=90) return 'red';
-    if(pct>=60) return 'yellow';
-    return 'green';
-  }
-
-  function badge(row, isFuture){
-    if(!isFuture) return '<span class="tl-badge ended">Завершён</span>';
-    const slots = parseInt(row.slots)||0;
-    const count = parseInt(row.participants_count)||0;
-    if(slots>0 && count>slots) return '<span class="tl-badge wait">Вейт-лист</span>';
-    if(slots>0 && count>=slots) return '<span class="tl-badge full">Заполнен</span>';
-    return '<span class="tl-badge open">Открыт</span>';
-  }
-
-  // Revenue by date from transactions (populated async)
-  window._txRevByDate = {}; // date (YYYY-MM-DD) → total revenue (₺)
-
-  function fmtRev(n){ return n >= 1000 ? Math.round(n/1000)+'K' : n > 0 ? n.toLocaleString('ru-RU') : '—'; }
-
-  function renderTable(items, container, isPast){
-    if(!items.length){
-      container.innerHTML = '<div class="tl-empty">Нет данных</div>';
-      return;
-    }
-    var hasRevData = Object.keys(window._txRevByDate).length > 0;
-    var revHeader = isPast && hasRevData ? '<th>Выручка</th>' : '';
-    let html='<table class="tl-table"><thead><tr><th>Дата</th><th>День</th><th>Время</th><th>Формат</th><th>Заполненность</th>'+revHeader+'<th>Статус</th></tr></thead><tbody>';
-    items.forEach(r=>{
-      const dt = r._date;
-      const dateKey = dt.toISOString().slice(0,10);
-      const dd = String(dt.getDate()).padStart(2,'0')+'.'+String(dt.getMonth()+1).padStart(2,'0');
-      const dayName = DAYS_RU[dt.getDay()];
-      const time = extractTime(r.date);
-      const slots = parseInt(r.slots)||0;
-      const count = parseInt(r.participants_count)||0;
-      const pct = slots>0 ? Math.round(count/slots*100) : 0;
-      const fillCls = fillColor(pct);
-      const trCls = isPast ? ' class="past"' : '';
-      var revCell = '';
-      if(isPast && hasRevData){
-        var dayRev = window._txRevByDate[dateKey] || 0;
-        revCell = '<td style="text-align:right;font-variant-numeric:tabular-nums">' + (dayRev > 0 ? fmtRev(dayRev)+' ₺' : '<span style="color:var(--text3)">—</span>') + '</td>';
-      }
-      html+=`<tr${trCls}>
-        <td>${dd}</td>
-        <td>${dayName}</td>
-        <td>${time}</td>
-        <td>${r.title||'—'}</td>
-        <td><div style="display:flex;align-items:center;gap:8px"><div class="tl-fill-bg"><div class="tl-fill ${fillCls}" style="width:${pct}%"></div></div><span>${count}/${slots}</span></div></td>
-        ${revCell}
-        <td>${badge(r, !isPast)}</td>
-      </tr>`;
-    });
-    html+='</tbody></table>';
-    container.innerHTML=html;
-  }
-
-  fetch(SHEET_URL)
-    .then(r=>r.text())
-    .then(text=>{
-      const rows = parseCSV(text);
-      if(rows.length<2) return;
-      const headers = rows[0].map(h=>h.replace(/"/g,'').trim());
-      const data = [];
-      for(let i=1;i<rows.length;i++){
-        if(rows[i].length<2) continue;
-        const obj={};
-        headers.forEach((h,idx)=>{ obj[h]=rows[i][idx]||''; });
-        // Skip templates
-        if(obj.status==='program') continue;
-        if(!obj.date) continue;
-        const dt = parseDate(obj.date);
-        if(!dt) continue;
-        obj._date = dt;
-        data.push(obj);
-      }
-
-      // Build lookup by date for calendar grid enrichment
-      data.forEach(r => {
-        const dateKey = r._date.toISOString().slice(0, 10);
-        if (!window._racketByDate[dateKey]) window._racketByDate[dateKey] = [];
-        window._racketByDate[dateKey].push({
-          title: (r.title || '').toUpperCase().replace(/[📈🏆🌱👑👥🌙📊🔥🔀🎭⭐☕🎾🧒⛺🌟🏅🎉]/g, '').trim(),
-          slots: parseInt(r.slots) || 0,
-          count: parseInt(r.participants_count) || 0,
-          state: (r.gameplan_state || '').toLowerCase()
-        });
+(async function(){
+  try {
+    const data = await RacketID.loadTournaments();
+    // Build lookup by date for calendar grid fill badges
+    data.forEach(t => {
+      if (!window._racketByDate[t.dateStr]) window._racketByDate[t.dateStr] = [];
+      window._racketByDate[t.dateStr].push({
+        title: t.title.toUpperCase(),
+        slots: t.slots,
+        count: t.participants,
+        state: t.state
       });
-      // Re-render current month to show fill data
-      if (typeof renderMonth === 'function') renderMonth(curMonth);
-
-      const now = new Date();
-      const past30 = new Date(now.getTime() - 30*24*60*60*1000);
-      const future28 = new Date(now.getTime() + 28*24*60*60*1000);
-
-      const pastItems = data.filter(r=> r._date >= past30 && r._date < now).sort((a,b)=> b._date - a._date);
-      const futureItems = data.filter(r=> r._date >= now && r._date <= future28).sort((a,b)=> a._date - b._date);
-
-      // KPIs from past 30 days
-      const kpiTotal = pastItems.length;
-      document.getElementById('kpi-total').textContent = kpiTotal;
-
-      const withSlots = pastItems.filter(r=> parseInt(r.slots)>0);
-      if(withSlots.length){
-        const avgFill = withSlots.reduce((s,r)=>{
-          return s + (parseInt(r.participants_count)||0)/(parseInt(r.slots)) * 100;
-        },0) / withSlots.length;
-        document.getElementById('kpi-fill').textContent = Math.round(avgFill)+'%';
-      } else {
-        document.getElementById('kpi-fill').textContent = '—';
-      }
-
-      // Most popular format (title)
-      if(pastItems.length){
-        const freq={};
-        pastItems.forEach(r=>{ freq[r.title]=(freq[r.title]||0)+1; });
-        const top = Object.entries(freq).sort((a,b)=>b[1]-a[1])[0];
-        document.getElementById('kpi-popular').textContent = top ? top[0] : '—';
-      }
-
-      // Revenue: load real data from transactions (async, doesn't block tables)
-      (async function(){
-        try {
-          var txRows = await V7.loadSheet('transactions');
-          var tourTx = txRows.filter(function(r){ return (r.category||'').indexOf('Tournament') >= 0; });
-          // Group by date
-          tourTx.forEach(function(r){
-            var d = (r.date||'').slice(0,10);
-            if(!d) return;
-            window._txRevByDate[d] = (window._txRevByDate[d]||0) + V7.num(r.total);
-          });
-          // KPI: real revenue for past 30 days
-          var rev30d = 0;
-          pastItems.forEach(function(r){
-            var dk = r._date.toISOString().slice(0,10);
-            if(window._txRevByDate[dk]) rev30d += window._txRevByDate[dk];
-          });
-          // Deduplicate: count unique dates, not per-tournament
-          var seen = {};
-          var realRev30d = 0;
-          pastItems.forEach(function(r){
-            var dk = r._date.toISOString().slice(0,10);
-            if(!seen[dk] && window._txRevByDate[dk]){
-              realRev30d += window._txRevByDate[dk];
-              seen[dk] = true;
-            }
-          });
-          if(realRev30d > 0){
-            var revStr = realRev30d >= 1000000 ? (realRev30d/1000000).toFixed(1)+'M' : realRev30d >= 1000 ? Math.round(realRev30d/1000)+'K' : realRev30d;
-            document.getElementById('kpi-revenue').textContent = revStr + ' ₺';
-            document.getElementById('kpi-revenue').closest('.kpi-card').querySelector('.kpi-hint').textContent = 'источник: transactions';
-          }
-          // Re-render past tables with revenue column
-          renderTable(pastItems, document.getElementById('tl-past'), true);
-          // Re-render archive if active
-          var archEl = document.getElementById('tl-archive');
-          if(archEl && archEl.querySelector('table')){
-            var filterEl = document.getElementById('archive-filter');
-            if(filterEl && filterEl._render) filterEl._render(filterEl.querySelector('.arch-btn.active')?.dataset.month || 'all');
-          }
-        } catch(e){
-          console.warn('Tournament revenue load failed:', e);
-        }
-      })();
-
-      // Render tables
-      renderTable(futureItems, document.getElementById('tl-future'), false);
-      if(!futureItems.length) document.getElementById('tl-no-future').style.display='block';
-      renderTable(pastItems, document.getElementById('tl-past'), true);
-
-      // ── ARCHIVE: all past tournaments with month filter ──
-      var allPast = data.filter(r=> r._date < now).sort((a,b)=> b._date - a._date);
-      if(allPast.length){
-        // Collect unique months (YYYY-MM)
-        var monthSet = {};
-        allPast.forEach(function(r){ monthSet[r._date.toISOString().slice(0,7)] = true; });
-        var archiveMonths = Object.keys(monthSet).sort().reverse();
-        var MONTH_NAMES = ['','Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
-
-        var filterEl = document.getElementById('archive-filter');
-        var archiveEl = document.getElementById('tl-archive');
-        var activeArchMonth = 'all';
-
-        function renderArchive(filterMonth){
-          activeArchMonth = filterMonth;
-          var items = filterMonth === 'all' ? allPast : allPast.filter(function(r){ return r._date.toISOString().slice(0,7) === filterMonth; });
-          renderTable(items, archiveEl, true);
-          // Update button states
-          filterEl.querySelectorAll('.arch-btn').forEach(function(b){
-            b.classList.toggle('active', b.dataset.month === filterMonth);
-          });
-        }
-
-        // Build filter buttons
-        var btnAll = '<button class="arch-btn active" data-month="all" onclick="this.parentElement._render(\'all\')">Все ('+allPast.length+')</button>';
-        var btnMonths = archiveMonths.map(function(ym){
-          var parts = ym.split('-');
-          var label = MONTH_NAMES[+parts[1]] + ' ' + parts[0];
-          var cnt = allPast.filter(function(r){ return r._date.toISOString().slice(0,7) === ym; }).length;
-          return '<button class="arch-btn" data-month="'+ym+'" onclick="this.parentElement._render(\''+ym+'\')">'+label+' ('+cnt+')</button>';
-        }).join('');
-        filterEl.innerHTML = btnAll + btnMonths;
-        filterEl._render = renderArchive;
-
-        renderArchive('all');
-      }
-    })
-    .catch(err=>{
-      console.warn('Ошибка загрузки турниров из Google Sheets:', err);
     });
+    // Re-render to show live fill data
+    if (typeof renderMonth === 'function') renderMonth(curMonth);
+
+    // KPIs
+    const now = new Date();
+    const past30 = new Date(now.getTime() - 30*864e5);
+    const past = data.filter(t => t.date >= past30 && t.date < now);
+    document.getElementById('kpi-total').textContent = past.length;
+    const ws = past.filter(t => t.slots > 0);
+    document.getElementById('kpi-fill').textContent = ws.length
+      ? Math.round(ws.reduce((s, t) => s + t.fillPct, 0) / ws.length) + '%' : '—';
+    if (past.length) {
+      const freq = {};
+      past.forEach(t => { freq[t.title] = (freq[t.title]||0) + 1; });
+      document.getElementById('kpi-popular').textContent = Object.entries(freq).sort((a,b) => b[1]-a[1])[0][0];
+    }
+  } catch(e) {
+    console.warn('Firestore load error:', e);
+  }
 })();
 </script>
 
@@ -737,6 +530,7 @@ function renderMonth(m){
 
     dayEvs.forEach(ev=>{
       const type=evType(ev.key);
+      if (hiddenTypes.has(type)) return; // filter
       const el=document.createElement('div');
       el.className=`ev ${evClass(type)}`;
 
@@ -788,23 +582,72 @@ function setMonth(m){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+// ── Legend filter ──
+const hiddenTypes = new Set();
+function toggleFilter(el) {
+  const type = el.dataset.type;
+  if (hiddenTypes.has(type)) { hiddenTypes.delete(type); el.classList.remove('off'); }
+  else { hiddenTypes.add(type); el.classList.add('off'); }
+  renderMonth(curMonth);
+}
+
 function openModal(ev,day,dow,month){
   const info=T[ev.key]||{};
   const type=evType(ev.key);
-  const labels={rated:'✅ Rated Tournament',nonrated:'⚪ Non-Rated Tournament',special:'⭐ Special Event',camp:'⛺ Camp Event'};
-  const monthNames={4:'April',5:'May',6:'June',7:'July'};
+  const labels={rated:'Рейтинговый',nonrated:'Нерейтинговый',special:'Спецсобытие',camp:'Camp'};
+  const monthNames={4:'Апрель',5:'Май',6:'Июнь',7:'Июль'};
+  const WDAYS_RU=["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"];
   document.getElementById('mbadge').className=`mbadge mb-${type==='camp'?'camp':type}`;
   document.getElementById('mbadge').textContent=labels[type]||'Event';
   document.getElementById('mtitle').innerHTML=`${info.icon||'🎾'} ${ev.key}`;
+
+  // Find matching Racket.ID tournament
+  const dateKey = `2026-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  const racketDay = window._racketByDate[dateKey] || [];
+  const evKeyUp = ev.key.toUpperCase();
+  const match = racketDay.find(r => r.title.includes(evKeyUp) || evKeyUp.includes(r.title.split(' ').slice(0,2).join(' ')));
+  const fillInfo = match ? `<div class="mrow"><span class="mico">📊</span><div class="mval"><strong>${match.count}/${match.slots}</strong> участников</div></div>` : '';
+
   document.getElementById('mbody').innerHTML=`
-    <div class="mrow"><span class="mico">📅</span><div class="mval"><strong>${monthNames[month]} ${day}, 2026</strong> — ${WDAYS[dow]}</div></div>
+    <div class="mrow"><span class="mico">📅</span><div class="mval"><strong>${day} ${monthNames[month]} 2026</strong> — ${WDAYS_RU[dow]}</div></div>
     <div class="mrow"><span class="mico">🕐</span><div class="mval"><strong>${ev.t}</strong></div></div>
-    ${info.days?`<div class="mrow"><span class="mico">🗓</span><div class="mval">${info.days}</div></div>`:''}
+    ${fillInfo}
     ${info.format?`<div class="mrow"><span class="mico">👥</span><div class="mval">${info.format}</div></div>`:''}
     ${info.price?`<div class="mrow"><span class="mico">💰</span><div class="mval">${info.price}</div></div>`:''}
     ${info.desc?`<div class="mdesc">${info.desc}</div>`:''}
+    <div class="m-participants" id="m-part"><div class="mp-loading">Загрузка участников...</div></div>
   `;
   document.getElementById('overlay').classList.add('on');
+
+  // Load participants from Firestore
+  loadModalParticipants(dateKey, ev.key);
+}
+
+async function loadModalParticipants(dateKey, evKey) {
+  const panel = document.getElementById('m-part');
+  if (!panel) return;
+  try {
+    const tournaments = await RacketID.loadTournaments();
+    const evKeyUp = evKey.toUpperCase();
+    const match = tournaments.find(t => {
+      if (t.dateStr !== dateKey) return false;
+      const tUp = t.title.toUpperCase();
+      return tUp.includes(evKeyUp) || evKeyUp.includes(tUp.split(' ').slice(0,2).join(' '));
+    });
+    if (!match || !match.participantIds.length) {
+      panel.innerHTML = '<div class="mp-title"><span>Нет данных об участниках</span></div>';
+      return;
+    }
+    panel.innerHTML = '<div class="mp-title"><span>' + match.participants + ' участников</span><a class="mp-link" href="' + RacketID.tournamentUrl(match.id) + '" target="_blank">Racket.ID &rarr;</a></div><div class="mp-loading">Загрузка профилей...</div>';
+    const profiles = await RacketID.loadProfiles(match.participantIds);
+    panel.innerHTML = '<div class="mp-title"><span>' + profiles.length + ' участников</span><a class="mp-link" href="' + RacketID.tournamentUrl(match.id) + '" target="_blank">Racket.ID &rarr;</a></div>' +
+      '<div class="mp-grid">' + profiles.map(p =>
+        '<div class="mp-card"><span class="mp-name">' + (p.name || p.user_id) + '</span>' +
+        (p.rating ? '<span class="mp-rat">' + Math.round(p.rating) + '</span>' : '') + '</div>'
+      ).join('') + '</div>';
+  } catch(e) {
+    panel.innerHTML = '<div class="mp-loading">Ошибка загрузки</div>';
+  }
 }
 
 function closeModal(){document.getElementById('overlay').classList.remove('on')}
