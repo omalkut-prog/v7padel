@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Аналитика турниров</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="assets/theme.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/racketid.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',-apple-system,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+
+nav{position:sticky;top:0;z-index:100;height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px}
+.nav-logo{font-size:16px;font-weight:600;color:var(--text);text-decoration:none;margin-right:auto}
+.nav-logo em{color:var(--accent);font-style:normal}
+.nav-links li{list-style:none}
+.nav-links a{display:block;padding:0 14px;font-size:13px;color:var(--text2);text-decoration:none;line-height:56px;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-links a.active{color:var(--accent)}
+.nav-pill{background:var(--accent-soft);border:1px solid var(--accent-border);color:var(--accent);font-size:11px;font-weight:600;padding:4px 12px;border-radius:20px;margin-right:12px}
+
+.subnav{display:flex;gap:0;background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px}
+.subnav a{padding:10px 18px;font-size:13px;font-weight:500;color:var(--text3);text-decoration:none;border-bottom:2px solid transparent;transition:all .2s}
+.subnav a:hover{color:var(--text)}
+.subnav a.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+main{max-width:1400px;margin:0 auto;padding:24px 20px 80px}
+h1.page-title{font-size:28px;font-weight:600;letter-spacing:-0.8px;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--text3);margin-bottom:28px}
+.live-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#27ae60;margin-right:6px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.kpi-row{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;margin-bottom:28px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;text-align:center;box-shadow:var(--shadow)}
+.kpi-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);margin-bottom:8px}
+.kpi-value{font-size:24px;font-weight:700;letter-spacing:-0.5px;color:var(--text);font-variant-numeric:tabular-nums}
+.kpi-sub{font-size:11px;color:var(--text3);margin-top:4px}
+.kpi-card.good .kpi-value{color:var(--good)}
+
+.tab-bar{display:flex;gap:4px;margin-bottom:20px}
+.tab-btn{padding:8px 20px;font-size:13px;font-weight:500;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text2);cursor:pointer;transition:all .2s}
+.tab-btn:hover{background:var(--surface2)}
+.tab-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:14px}
+.panel-title{font-size:14px;font-weight:600;margin-bottom:14px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.chart-box{position:relative;height:300px}
+
+table.fin{width:100%;border-collapse:collapse;font-size:13px}
+table.fin th{text-align:right;padding:10px 10px;color:var(--text3);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap}
+table.fin th:first-child,table.fin td:first-child{text-align:left}
+table.fin td{padding:10px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+table.fin td:first-child{text-align:left;font-weight:500}
+table.fin tr:hover{background:var(--surface2)}
+table.fin .total-row{font-weight:700;background:var(--surface2)}
+
+table.fin th.sortable{cursor:pointer;user-select:none}
+table.fin th.sortable:hover{color:var(--accent)}
+table.fin th.sortable::after{content:' \u21C5';font-size:10px;opacity:.4}
+table.fin th.sortable.asc::after{content:' \u2191';opacity:1}
+table.fin th.sortable.desc::after{content:' \u2193';opacity:1}
+
+.fill-bar{display:flex;align-items:center;gap:8px}
+.fill-bg{background:var(--surface2);height:6px;border-radius:3px;overflow:hidden;min-width:60px;flex:1}
+.fill-fg{height:100%;border-radius:3px}
+.fill-fg.green{background:#27ae60}.fill-fg.yellow{background:#f39c12}.fill-fg.red{background:#e74c3c}
+.fill-pct{font-size:12px;font-weight:600;min-width:36px;text-align:right}
+
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;text-transform:uppercase}
+.badge.rated{background:rgba(39,174,96,.12);color:#27ae60}
+.badge.nonrated{background:rgba(230,126,34,.12);color:#e67e22}
+.badge.special{background:rgba(142,68,173,.12);color:#8e44ad}
+
+.loading{color:var(--text3);font-size:14px;padding:20px;text-align:center}
+
+/* Clickable tournament rows */
+table.fin tr.clickable{cursor:pointer}
+table.fin tr.clickable:hover{background:var(--accent-soft)}
+table.fin tr.expanded{background:var(--surface2)}
+
+/* Participant panel */
+.participants-panel{padding:12px 16px;background:var(--bg);border-top:1px solid var(--border)}
+.participants-panel .p-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.participants-panel .p-title{font-size:13px;font-weight:600;color:var(--text)}
+.participants-panel .p-link{font-size:12px;color:var(--accent);text-decoration:none;font-weight:500}
+.participants-panel .p-link:hover{text-decoration:underline}
+.participants-panel .p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.p-card{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;background:var(--surface);border:1px solid var(--border);font-size:12px}
+.p-card .p-name{font-weight:500;color:var(--text)}
+.p-card .p-rating{font-size:11px;color:var(--text3);margin-left:auto;font-weight:600}
+.p-loading{font-size:12px;color:var(--text3);padding:8px 0}
+
+@media(max-width:960px){.kpi-row{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}.tab-bar{flex-wrap:wrap}}
+@media(max-width:600px){.kpi-row{grid-template-columns:repeat(2,1fr)}main{padding:16px 12px 60px}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li><a href="tournament-analytics.html" class="active">Турниры</a></li>
+    <li><a href="audit.html">Аудит</a></li>
+    <li><a href="brain.html">Brain</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
+</nav>
+
+<div class="subnav">
+  <a href="tournament-analytics.html" class="active">Дашборд</a>
+  <a href="tournament-calendar.html">Календарь</a>
+  <a href="tournament-tools.html">Инструменты</a>
+</div>
+
+<main>
+  <h1 class="page-title">Аналитика турниров</h1>
+  <p class="page-sub"><span class="live-dot"></span>Живые данные из Racket.ID · Заполняемость · Форматы · Участники</p>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Всего турниров</div>
+      <div class="kpi-value" id="kpi-total">--</div>
+      <div class="kpi-sub" id="kpi-total-sub">загрузка...</div>
+    </div>
+    <div class="kpi-card good">
+      <div class="kpi-label">Средняя заполняемость</div>
+      <div class="kpi-value" id="kpi-fill">--</div>
+      <div class="kpi-sub" id="kpi-fill-sub"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Уникальных участников</div>
+      <div class="kpi-value" id="kpi-players">--</div>
+      <div class="kpi-sub" id="kpi-players-sub"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Всего участий</div>
+      <div class="kpi-value" id="kpi-participations">--</div>
+      <div class="kpi-sub" id="kpi-participations-sub"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Ср. турниров на игрока</div>
+      <div class="kpi-value" id="kpi-avg">--</div>
+      <div class="kpi-sub" id="kpi-avg-sub"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Retention (2+)</div>
+      <div class="kpi-value" id="kpi-ret">--</div>
+      <div class="kpi-sub" id="kpi-ret-sub"></div>
+    </div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="list">Список турниров</button>
+    <button class="tab-btn" data-tab="formats">Форматы</button>
+    <button class="tab-btn" data-tab="trends">Динамика</button>
+    <button class="tab-btn" data-tab="players">Участники</button>
+  </div>
+
+  <!-- Tab: List -->
+  <div class="tab-content active" id="tab-list">
+    <div class="panel" style="padding:0;overflow:hidden">
+      <table class="fin" id="list-table">
+        <thead>
+          <tr>
+            <th class="sortable" data-sort="date">Дата</th>
+            <th>День</th>
+            <th class="sortable" data-sort="title">Формат</th>
+            <th>Тип</th>
+            <th class="sortable desc" data-sort="fillPct">Заполняемость</th>
+            <th class="sortable" data-sort="participants">Участники</th>
+            <th class="sortable" data-sort="slots">Слоты</th>
+            <th class="sortable" data-sort="state">Статус</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="8" class="loading">Загрузка из Racket.ID...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Formats -->
+  <div class="tab-content" id="tab-formats">
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Популярность форматов</div>
+        <div class="chart-box"><canvas id="chart-format-count"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Средняя заполняемость по формату</div>
+        <div class="chart-box"><canvas id="chart-format-fill"></canvas></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <table class="fin" id="formats-table">
+        <thead><tr>
+          <th>Формат</th><th>Тип</th><th>Турниров</th><th>Всего участн.</th><th>Ср. участн.</th><th>Ср. слотов</th><th>Ср. заполн.</th><th>Макс</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Tab: Trends -->
+  <div class="tab-content" id="tab-trends">
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Заполняемость по неделям</div>
+        <div class="chart-box"><canvas id="chart-fill-trend"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Турниров в неделю</div>
+        <div class="chart-box"><canvas id="chart-count-trend"></canvas></div>
+      </div>
+    </div>
+    <div class="two-col" style="margin-top:14px">
+      <div class="panel">
+        <div class="panel-title">Участников в неделю</div>
+        <div class="chart-box"><canvas id="chart-part-trend"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">План vs Факт (слоты vs участники)</div>
+        <div class="chart-box"><canvas id="chart-plan-fact"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Players -->
+  <div class="tab-content" id="tab-players">
+    <div class="two-col">
+      <div class="panel">
+        <div class="panel-title">Топ-20 игроков</div>
+        <div class="chart-box" style="height:400px"><canvas id="chart-top-players"></canvas></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Новые vs повторные (по месяцам)</div>
+        <div class="chart-box"><canvas id="chart-new-ret"></canvas></div>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <div class="panel-title">Распределение: сколько турниров на игрока</div>
+      <div style="max-width:600px;margin:0 auto"><div class="chart-box"><canvas id="chart-freq"></canvas></div></div>
+    </div>
+  </div>
+</main>
+
+<script>
+(async function() {
+  const DAYS_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  const MONTH_N = ['','Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
+
+  // Tab switching
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+  });
+
+  // ── Load LIVE data from Firestore ──
+  const items = await RacketID.loadTournaments();
+
+  // Collect all participant IDs
+  const playerMap = {}; // userId → Set of tournamentIds
+  items.forEach(t => {
+    t.participantIds.forEach(uid => {
+      if (!playerMap[uid]) playerMap[uid] = new Set();
+      playerMap[uid].add(t.id);
+    });
+  });
+
+  const uniquePlayers = Object.keys(playerMap).length;
+  const totalP = items.reduce((s, t) => s + t.participants, 0);
+  const avgPerPlayer = uniquePlayers > 0 ? (totalP / uniquePlayers).toFixed(1) : 0;
+  const returning = Object.values(playerMap).filter(s => s.size >= 2).length;
+  const retPct = uniquePlayers > 0 ? Math.round(returning / uniquePlayers * 100) : 0;
+
+  const ended = items.filter(i => i.state === 'ended');
+  const withSlots = items.filter(i => i.slots > 0);
+  const avgFill = withSlots.length ? Math.round(withSlots.reduce((s, i) => s + i.fillPct, 0) / withSlots.length) : 0;
+
+  // ── KPIs ──
+  document.getElementById('kpi-total').textContent = ended.length;
+  document.getElementById('kpi-total-sub').textContent = items.length + ' всего (вкл. будущие)';
+  document.getElementById('kpi-fill').textContent = avgFill + '%';
+  document.getElementById('kpi-fill-sub').textContent = withSlots.length + ' со слотами';
+  document.getElementById('kpi-players').textContent = uniquePlayers;
+  document.getElementById('kpi-players-sub').textContent = 'уникальных';
+  document.getElementById('kpi-participations').textContent = totalP.toLocaleString('ru-RU');
+  document.getElementById('kpi-participations-sub').textContent = 'регистраций';
+  document.getElementById('kpi-avg').textContent = avgPerPlayer;
+  document.getElementById('kpi-avg-sub').textContent = 'на человека';
+  document.getElementById('kpi-ret').textContent = retPct + '%';
+  document.getElementById('kpi-ret-sub').textContent = returning + ' из ' + uniquePlayers;
+
+  // ── Helpers ──
+  function fillColor(p) { return p >= 90 ? 'red' : p >= 60 ? 'yellow' : 'green'; }
+  function stateLabel(s) {
+    if (s === 'ended') return '<span style="color:var(--text3)">Завершён</span>';
+    if (s === 'signup') return '<span style="color:var(--good)">Регистрация</span>';
+    if (s === 'started') return '<span style="color:var(--accent)">Идёт</span>';
+    return s || '—';
+  }
+  function typeLabel(t) {
+    if (t === 'rated') return '<span class="badge rated">Ranked</span>';
+    if (t === 'special') return '<span class="badge special">Special</span>';
+    return '<span class="badge nonrated">Non-ranked</span>';
+  }
+  function shortName(s) { return s.length > 24 ? s.slice(0, 22) + '...' : s; }
+
+  // ── Tab: List (clickable → participants) ──
+  const listBody = document.querySelector('#list-table tbody');
+  let expandedId = null;
+
+  function renderList(data) {
+    if (!data.length) { listBody.innerHTML = '<tr><td colspan="8" class="loading">Нет данных</td></tr>'; return; }
+    listBody.innerHTML = '';
+    data.forEach(i => {
+      const dd = String(i.date.getDate()).padStart(2,'0') + '.' + String(i.date.getMonth()+1).padStart(2,'0') + '.' + i.date.getFullYear();
+      const tr = document.createElement('tr');
+      tr.className = 'clickable' + (expandedId === i.id ? ' expanded' : '');
+      tr.innerHTML = `
+        <td>${dd}</td>
+        <td>${DAYS_RU[i.date.getDay()]}</td>
+        <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${i.title}</td>
+        <td>${typeLabel(i.type)}</td>
+        <td><div class="fill-bar"><div class="fill-bg"><div class="fill-fg ${fillColor(i.fillPct)}" style="width:${Math.min(i.fillPct,100)}%"></div></div><span class="fill-pct">${i.fillPct}%</span></div></td>
+        <td>${i.participants}</td>
+        <td>${i.slots || '—'}</td>
+        <td>${stateLabel(i.state)}</td>`;
+      tr.addEventListener('click', () => toggleParticipants(i, tr));
+      listBody.appendChild(tr);
+
+      // If this one is expanded, show panel
+      if (expandedId === i.id) {
+        const panelTr = document.createElement('tr');
+        panelTr.innerHTML = '<td colspan="8"><div class="participants-panel" id="pp-' + i.id + '"><div class="p-loading">Загрузка участников...</div></div></td>';
+        listBody.appendChild(panelTr);
+        loadParticipantsPanel(i);
+      }
+    });
+  }
+
+  async function toggleParticipants(tournament, tr) {
+    if (expandedId === tournament.id) {
+      expandedId = null;
+    } else {
+      expandedId = tournament.id;
+    }
+    renderList(currentSorted || items);
+  }
+
+  async function loadParticipantsPanel(tournament) {
+    const panel = document.getElementById('pp-' + tournament.id);
+    if (!panel) return;
+    if (!tournament.participantIds.length) {
+      panel.innerHTML = '<div class="p-header"><span class="p-title">Нет участников</span><a class="p-link" href="' + RacketID.tournamentUrl(tournament.id) + '" target="_blank">Открыть в Racket.ID &rarr;</a></div>';
+      return;
+    }
+    panel.innerHTML = '<div class="p-header"><span class="p-title">Загрузка ' + tournament.participantIds.length + ' участников...</span><a class="p-link" href="' + RacketID.tournamentUrl(tournament.id) + '" target="_blank">Открыть в Racket.ID &rarr;</a></div><div class="p-loading">...</div>';
+
+    const profiles = await RacketID.loadProfiles(tournament.participantIds);
+    panel.innerHTML = '<div class="p-header"><span class="p-title">' + profiles.length + ' участников</span><a class="p-link" href="' + RacketID.tournamentUrl(tournament.id) + '" target="_blank">Открыть в Racket.ID &rarr;</a></div>' +
+      '<div class="p-grid">' + profiles.map(p =>
+        '<div class="p-card"><span class="p-name">' + (p.name || p.user_id) + '</span>' +
+        (p.rating ? '<span class="p-rating">' + Math.round(p.rating) + '</span>' : '') +
+        '</div>'
+      ).join('') + '</div>';
+  }
+
+  let currentSorted = null;
+  renderList(items);
+
+  // Sortable headers
+  document.querySelectorAll('#list-table th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      const wasAsc = th.classList.contains('asc');
+      document.querySelectorAll('#list-table th.sortable').forEach(h => h.classList.remove('asc','desc'));
+      const asc = !wasAsc;
+      th.classList.add(asc ? 'asc' : 'desc');
+      currentSorted = [...items].sort((a, b) => {
+        let va = a[key], vb = b[key];
+        if (key === 'date') { va = a.date.getTime(); vb = b.date.getTime(); }
+        if (typeof va === 'string') return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+        return asc ? va - vb : vb - va;
+      });
+      renderList(currentSorted);
+    });
+  });
+
+  // ── Tab: Formats ──
+  const fmtStats = {};
+  items.forEach(i => {
+    const k = i.title;
+    if (!fmtStats[k]) fmtStats[k] = { title: k, type: i.type, count: 0, totalP: 0, totalSlots: 0, fills: [], maxFill: 0 };
+    const f = fmtStats[k];
+    f.count++; f.totalP += i.participants; f.totalSlots += i.slots;
+    if (i.slots > 0) f.fills.push(i.fillPct);
+    if (i.fillPct > f.maxFill) f.maxFill = i.fillPct;
+  });
+  const formats = Object.values(fmtStats).sort((a, b) => b.count - a.count);
+
+  document.querySelector('#formats-table tbody').innerHTML = formats.map(f => {
+    const af = f.fills.length ? Math.round(f.fills.reduce((s, v) => s + v, 0) / f.fills.length) : 0;
+    return `<tr>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis">${f.title}</td>
+      <td>${typeLabel(f.type)}</td><td>${f.count}</td><td>${f.totalP}</td>
+      <td>${(f.totalP/f.count).toFixed(1)}</td><td>${f.count ? (f.totalSlots/f.count).toFixed(0) : 0}</td>
+      <td><div class="fill-bar"><div class="fill-bg"><div class="fill-fg ${fillColor(af)}" style="width:${Math.min(af,100)}%"></div></div><span class="fill-pct">${af}%</span></div></td>
+      <td>${f.maxFill}%</td></tr>`;
+  }).join('');
+
+  const top10 = formats.slice(0, 10);
+  new Chart(document.getElementById('chart-format-count'), {
+    type: 'bar',
+    data: { labels: top10.map(f => shortName(f.title)), datasets: [{ label: 'Турниров', data: top10.map(f => f.count), backgroundColor: top10.map(f => f.type === 'rated' ? 'rgba(39,174,96,.7)' : f.type === 'special' ? 'rgba(142,68,173,.7)' : 'rgba(230,126,34,.7)') }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(128,128,128,.1)' } }, y: { ticks: { font: { size: 11 } } } } },
+  });
+  new Chart(document.getElementById('chart-format-fill'), {
+    type: 'bar',
+    data: { labels: top10.map(f => shortName(f.title)), datasets: [{ label: '%', data: top10.map(f => f.fills.length ? Math.round(f.fills.reduce((s, v) => s + v, 0) / f.fills.length) : 0), backgroundColor: top10.map(f => { const a = f.fills.length ? f.fills.reduce((s,v)=>s+v,0)/f.fills.length : 0; return a >= 80 ? 'rgba(39,174,96,.7)' : a >= 50 ? 'rgba(243,156,18,.7)' : 'rgba(231,76,60,.7)'; }) }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { max: 100, grid: { color: 'rgba(128,128,128,.1)' }, ticks: { callback: v => v + '%' } }, y: { ticks: { font: { size: 11 } } } } },
+  });
+
+  // ── Tab: Trends ──
+  function isoWeek(d) {
+    const dt = new Date(d); dt.setHours(0,0,0,0);
+    dt.setDate(dt.getDate() + 3 - (dt.getDay() + 6) % 7);
+    const w1 = new Date(dt.getFullYear(), 0, 4);
+    return dt.getFullYear() + '-W' + String(1 + Math.round(((dt - w1) / 864e5 - 3 + (w1.getDay() + 6) % 7) / 7)).padStart(2, '0');
+  }
+
+  const byWeek = {};
+  ended.forEach(i => {
+    const w = isoWeek(i.date);
+    if (!byWeek[w]) byWeek[w] = { count: 0, fill: 0, ws: 0, p: 0 };
+    byWeek[w].count++; byWeek[w].p += i.participants;
+    if (i.slots > 0) { byWeek[w].fill += i.fillPct; byWeek[w].ws++; }
+  });
+  const weeks = Object.keys(byWeek).sort();
+
+  const chartOpt = (extra) => ({ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } }, scales: { x: { ticks: { font: { size: 10 }, maxRotation: 45 }, grid: { display: false } }, y: { grid: { color: 'rgba(128,128,128,.1)' }, ...extra } } });
+
+  new Chart(document.getElementById('chart-fill-trend'), { type: 'line', data: { labels: weeks, datasets: [{ label: 'Ср. заполняемость %', data: weeks.map(w => byWeek[w].ws ? Math.round(byWeek[w].fill / byWeek[w].ws) : null), borderColor: '#27ae60', backgroundColor: 'rgba(39,174,96,.1)', fill: true, tension: .3, pointRadius: 3 }] }, options: { ...chartOpt({ max: 100, ticks: { callback: v => v + '%' } }) } });
+  new Chart(document.getElementById('chart-count-trend'), { type: 'bar', data: { labels: weeks, datasets: [{ label: 'Турниров', data: weeks.map(w => byWeek[w].count), backgroundColor: 'rgba(52,152,219,.7)' }] }, options: chartOpt() });
+  new Chart(document.getElementById('chart-part-trend'), { type: 'bar', data: { labels: weeks, datasets: [{ label: 'Участников', data: weeks.map(w => byWeek[w].p), backgroundColor: 'rgba(142,68,173,.7)' }] }, options: chartOpt() });
+
+  // Plan vs Fact
+  const byMonth = {};
+  ended.forEach(i => { const m = i.dateStr.slice(0, 7); if (!byMonth[m]) byMonth[m] = { s: 0, p: 0 }; byMonth[m].s += i.slots; byMonth[m].p += i.participants; });
+  const months = Object.keys(byMonth).sort();
+  new Chart(document.getElementById('chart-plan-fact'), { type: 'bar', data: { labels: months.map(m => { const p = m.split('-'); return MONTH_N[+p[1]] + ' ' + p[0]; }), datasets: [{ label: 'План (слоты)', data: months.map(m => byMonth[m].s), backgroundColor: 'rgba(52,152,219,.4)', borderColor: '#3498db', borderWidth: 1 }, { label: 'Факт', data: months.map(m => byMonth[m].p), backgroundColor: 'rgba(39,174,96,.7)', borderColor: '#27ae60', borderWidth: 1 }] }, options: chartOpt() });
+
+  // ── Tab: Players ──
+  const playerCounts = {};
+  items.forEach(t => t.participantIds.forEach(uid => { playerCounts[uid] = (playerCounts[uid] || 0) + 1; }));
+  const topPlayerIds = Object.entries(playerCounts).sort((a, b) => b[1] - a[1]).slice(0, 20);
+
+  // Load top player names
+  const topProfiles = await RacketID.loadProfiles(topPlayerIds.map(([id]) => id));
+  const topProfileMap = {};
+  topProfiles.forEach(p => topProfileMap[p.user_id] = p);
+
+  const topData = topPlayerIds.map(([uid, count]) => ({
+    name: (topProfileMap[uid] && topProfileMap[uid].name) || uid,
+    count
+  }));
+
+  new Chart(document.getElementById('chart-top-players'), {
+    type: 'bar',
+    data: { labels: topData.map(p => shortName(p.name)), datasets: [{ label: 'Турниров', data: topData.map(p => p.count), backgroundColor: 'rgba(39,174,96,.7)' }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(128,128,128,.1)' } }, y: { ticks: { font: { size: 11 } } } } },
+  });
+
+  // New vs returning by month
+  const playerFirst = {};
+  items.forEach(t => t.participantIds.forEach(uid => {
+    const m = t.dateStr.slice(0, 7);
+    if (!playerFirst[uid] || m < playerFirst[uid]) playerFirst[uid] = m;
+  }));
+  const pmData = {};
+  items.forEach(t => {
+    const m = t.dateStr.slice(0, 7);
+    if (!pmData[m]) pmData[m] = { n: new Set(), r: new Set() };
+    t.participantIds.forEach(uid => {
+      if (playerFirst[uid] === m) pmData[m].n.add(uid); else pmData[m].r.add(uid);
+    });
+  });
+  const pMonths = Object.keys(pmData).sort();
+  new Chart(document.getElementById('chart-new-ret'), { type: 'bar', data: { labels: pMonths.map(m => { const p = m.split('-'); return MONTH_N[+p[1]] + ' ' + p[0]; }), datasets: [{ label: 'Новые', data: pMonths.map(m => pmData[m].n.size), backgroundColor: 'rgba(52,152,219,.7)' }, { label: 'Повторные', data: pMonths.map(m => pmData[m].r.size), backgroundColor: 'rgba(39,174,96,.7)' }] }, options: { ...chartOpt(), scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, grid: { color: 'rgba(128,128,128,.1)' } } } } });
+
+  // Frequency
+  const freqDist = {};
+  Object.values(playerCounts).forEach(c => {
+    const b = c >= 20 ? '20+' : c >= 10 ? '10-19' : c >= 5 ? '5-9' : c >= 3 ? '3-4' : c === 2 ? '2' : '1';
+    freqDist[b] = (freqDist[b] || 0) + 1;
+  });
+  const bk = ['1','2','3-4','5-9','10-19','20+'];
+  new Chart(document.getElementById('chart-freq'), { type: 'bar', data: { labels: ['1 турнир','2','3-4','5-9','10-19','20+'], datasets: [{ label: 'Игроков', data: bk.map(b => freqDist[b] || 0), backgroundColor: ['rgba(231,76,60,.7)','rgba(243,156,18,.7)','rgba(52,152,219,.7)','rgba(39,174,96,.7)','rgba(142,68,173,.7)','rgba(44,62,80,.7)'] }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(128,128,128,.1)' } }, x: { grid: { display: false } } } } });
+
+})();
+</script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

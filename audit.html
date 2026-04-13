@@ -129,7 +129,7 @@
     <li><a href="finance.html">Финансы</a></li>
     <li><a href="clients.html">Клиенты</a></li>
     <li><a href="data.html">Данные</a></li>
-    <li><a href="tournaments.html">Турниры</a></li>
+    <li><a href="tournament-analytics.html">Турниры</a></li>
     <li><a href="audit.html" class="active">Аудит</a></li>
     <li><a href="brain.html">Brain</a></li>
   </ul>
@@ -143,7 +143,7 @@
   <!-- KPI cards -->
   <div class="kpi-row">
     <div class="kpi-card danger" id="kpi-debt">
-      <div class="kpi-label">Общий долг</div>
+      <div class="kpi-label">Чистый долг (debt − balance)</div>
       <div class="kpi-value" id="kpi-debt-val">—</div>
       <div class="kpi-sub" id="kpi-debt-sub">загрузка...</div>
     </div>
@@ -186,12 +186,12 @@
               <th class="sortable" data-sort="name">Клиент</th>
               <th class="sortable" data-sort="pendRes">Брони</th>
               <th>Свет</th>
-              <th class="sortable" data-sort="debtOther">Баланс</th>
-              <th class="sortable desc" data-sort="realDebt">Долг</th>
+              <th class="sortable" data-sort="debtOther">Прочее</th>
+              <th class="sortable" data-sort="realDebt">Долг (gross)</th>
+              <th class="sortable" data-sort="balance">Баланс</th>
+              <th class="sortable desc" data-sort="netDebt">Чистый долг</th>
               <th class="sortable" data-sort="unpaid">Неопл.</th>
-              <th>Всего</th>
               <th class="sortable" data-sort="lastBooking">Посл. бронь</th>
-              <th>Корт</th>
             </tr>
           </thead>
           <tbody>
@@ -207,7 +207,7 @@
     <section class="section">
       <div class="section-head">
         <h2>Клиенты с балансом</h2>
-        <span class="hint">из Matchpoint «Clients with Balance»</span>
+        <span class="hint">из Matchpoint API (FichaCliente)</span>
       </div>
       <div class="panel">
         <table class="fin" id="surplus-table">
@@ -215,8 +215,8 @@
             <tr>
               <th>Клиент</th>
               <th>Баланс</th>
-              <th>Email</th>
-              <th>Телефон</th>
+              <th>Долг</th>
+              <th>Нетто</th>
             </tr>
           </thead>
           <tbody>
@@ -312,11 +312,15 @@
 
   const debtors = [];
 
+  const allClients = [];
+
   debts.forEach(r => {
     const name = r.client_name || r.client_id || '?';
     if (isTest(name)) return;
 
     const realDebt = parseFloat(r.real_debt) || 0;
+    const balance = parseFloat(r.balance) || 0;
+    const netDebt = parseFloat(r.net_debt) || (realDebt - balance);
     const pendRes = parseFloat(r.pending_res_latest) || 0;
     const debtOther = parseFloat(r.debt_other) || 0;
     const debtLuz = parseFloat(r.debt_luz) || 0;
@@ -325,6 +329,8 @@
       name,
       clientId: r.client_id,
       realDebt,
+      balance,
+      netDebt,
       pendRes,
       debtOther,
       debtLuz,
@@ -334,32 +340,26 @@
       lastCourt: r.last_court || '',
     };
 
-    if (realDebt > 10) {
+    allClients.push(rec);
+    if (netDebt > 10) {
       debtors.push(rec);
     }
-    // surplus now comes from client_balances tab (Matchpoint export)
   });
 
-  debtors.sort((a, b) => b.realDebt - a.realDebt);
+  debtors.sort((a, b) => b.netDebt - a.netDebt);
 
-  // Surplus from Matchpoint "Clients with Balance" export
-  const surplusClients = balances
-    .filter(r => parseFloat(r.balance) > 0)
-    .map(r => ({
-      name: r.name || '?',
-      clientId: r.client_id,
-      balance: parseFloat(r.balance) || 0,
-      email: r.email || '',
-      mobile: r.mobile || '',
-    }))
+  // Surplus: clients with balance > 0 (from API, no manual export needed)
+  const surplusClients = allClients
+    .filter(c => c.balance > 0)
     .sort((a, b) => b.balance - a.balance);
 
-  const totalDebt = debtors.reduce((s, d) => s + d.realDebt, 0);
+  const totalDebt = debtors.reduce((s, d) => s + d.netDebt, 0);
+  const totalGross = debtors.reduce((s, d) => s + d.realDebt, 0);
   const totalSurplus = surplusClients.reduce((s, d) => s + d.balance, 0);
 
   // ── KPIs ──
   document.getElementById('kpi-debt-val').textContent = fmt(totalDebt);
-  document.getElementById('kpi-debt-sub').textContent = debtors.length + ' клиентов';
+  document.getElementById('kpi-debt-sub').textContent = debtors.length + ' клиентов (gross ' + fmt(totalGross) + ')';
   document.getElementById('kpi-debtors-val').textContent = debtors.length;
   document.getElementById('kpi-debtors-sub').textContent = 'с неоплаченными бронями';
   document.getElementById('kpi-surplus-val').textContent = fmt(totalSurplus);
@@ -369,53 +369,38 @@
 
   // ── Debtors table ──
   const dtBody = document.querySelector('#debtors-table tbody');
-  if (!debtors.length) {
-    dtBody.innerHTML = '<tr><td colspan="9" class="loading">Нет должников</td></tr>';
-  } else {
-    dtBody.innerHTML = debtors.map(d => `<tr>
+  const renderRow = d => `<tr>
       <td>${d.name}</td>
       <td>${fmt(d.pendRes)}</td>
       <td>${d.debtLuz ? fmt(d.debtLuz) : '—'}</td>
-      <td class="${d.debtOther > 0 ? 'neg' : d.debtOther < 0 ? 'pos' : ''}">${fmt(d.debtOther)}</td>
-      <td class="neg" style="font-weight:700">${fmt(d.realDebt)}</td>
+      <td>${fmt(d.debtOther)}</td>
+      <td>${fmt(d.realDebt)}</td>
+      <td class="${d.balance > 0 ? 'pos' : ''}">${d.balance ? fmt(d.balance) : '—'}</td>
+      <td class="neg" style="font-weight:700">${fmt(d.netDebt)}</td>
       <td>${d.unpaid}</td>
-      <td>${d.totalBookings}</td>
       <td>${d.lastBooking}</td>
-      <td>${d.lastCourt}</td>
-    </tr>`).join('') + `<tr class="total-row">
-      <td>ИТОГО</td>
-      <td>${fmt(debtors.reduce((s,d) => s+d.pendRes, 0))}</td>
-      <td>${fmt(debtors.reduce((s,d) => s+d.debtLuz, 0))}</td>
-      <td>${fmt(debtors.reduce((s,d) => s+d.debtOther, 0))}</td>
-      <td class="neg" style="font-weight:700">${fmt(totalDebt)}</td>
-      <td>${debtors.reduce((s,d) => s+d.unpaid, 0)}</td>
-      <td>${debtors.reduce((s,d) => s+d.totalBookings, 0)}</td>
-      <td colspan="2"></td>
     </tr>`;
-    document.getElementById('debtors-hint').textContent = debtors.length + ' клиентов · ' + fmt(totalDebt);
+  const totalRow = (arr) => `<tr class="total-row">
+      <td>ИТОГО (${arr.length})</td>
+      <td>${fmt(arr.reduce((s,d) => s+d.pendRes, 0))}</td>
+      <td>${fmt(arr.reduce((s,d) => s+d.debtLuz, 0))}</td>
+      <td>${fmt(arr.reduce((s,d) => s+d.debtOther, 0))}</td>
+      <td>${fmt(arr.reduce((s,d) => s+d.realDebt, 0))}</td>
+      <td class="pos">${fmt(arr.reduce((s,d) => s+d.balance, 0))}</td>
+      <td class="neg" style="font-weight:700">${fmt(totalDebt)}</td>
+      <td>${arr.reduce((s,d) => s+d.unpaid, 0)}</td>
+      <td></td>
+    </tr>`;
+
+  if (!debtors.length) {
+    dtBody.innerHTML = '<tr><td colspan="9" class="loading">Нет должников</td></tr>';
+  } else {
+    dtBody.innerHTML = debtors.map(renderRow).join('') + totalRow(debtors);
+    document.getElementById('debtors-hint').textContent = debtors.length + ' клиентов · чистый долг ' + fmt(totalDebt);
 
     // ── Sortable headers ──
     const renderDebtors = (sorted) => {
-      dtBody.innerHTML = sorted.map(d => `<tr>
-        <td>${d.name}</td>
-        <td>${fmt(d.pendRes)}</td>
-        <td>${d.debtLuz ? fmt(d.debtLuz) : '—'}</td>
-        <td class="${d.debtOther > 0 ? 'neg' : d.debtOther < 0 ? 'pos' : ''}">${fmt(d.debtOther)}</td>
-        <td class="neg" style="font-weight:700">${fmt(d.realDebt)}</td>
-        <td>${d.unpaid}</td>
-        <td>${d.totalBookings}</td>
-        <td>${d.lastBooking}</td>
-        <td>${d.lastCourt}</td>
-      </tr>`).join('') + `<tr class="total-row">
-        <td>ИТОГО</td>
-        <td>${fmt(sorted.reduce((s,d) => s+d.pendRes, 0))}</td>
-        <td>${fmt(sorted.reduce((s,d) => s+d.debtLuz, 0))}</td>
-        <td>${fmt(sorted.reduce((s,d) => s+d.debtOther, 0))}</td>
-        <td class="neg" style="font-weight:700">${fmt(totalDebt)}</td>
-        <td>${sorted.reduce((s,d) => s+d.unpaid, 0)}</td>
-        <td>${sorted.reduce((s,d) => s+d.totalBookings, 0)}</td>
-        <td colspan="2"></td>
-      </tr>`;
+      dtBody.innerHTML = sorted.map(renderRow).join('') + totalRow(sorted);
     };
 
     document.querySelectorAll('#debtors-table th.sortable').forEach(th => {
@@ -443,8 +428,8 @@
     sBody.innerHTML = surplusClients.map(d => `<tr>
       <td>${d.name}</td>
       <td class="pos" style="font-weight:700">${fmt(d.balance)}</td>
-      <td style="font-size:12px">${d.email}</td>
-      <td style="font-size:12px">${d.mobile}</td>
+      <td>${d.realDebt > 0 ? fmt(d.realDebt) : '—'}</td>
+      <td>${d.netDebt < 0 ? '<span class="pos">переплата ' + fmt(Math.abs(d.netDebt)) + '</span>' : d.netDebt > 0 ? '<span class="neg">' + fmt(d.netDebt) + '</span>' : '—'}</td>
     </tr>`).join('') + `<tr class="total-row">
       <td>ИТОГО (${surplusClients.length} клиентов)</td>
       <td class="pos" style="font-weight:700">${fmt(totalSurplus)}</td>
@@ -483,7 +468,7 @@
         labels: top.map(d => d.name.length > 20 ? d.name.slice(0, 18) + '...' : d.name),
         datasets: [{
           label: 'Долг',
-          data: top.map(d => d.realDebt),
+          data: top.map(d => d.netDebt),
           backgroundColor: 'rgba(231, 76, 60, 0.7)',
         }],
       },

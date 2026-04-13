@@ -27,6 +27,7 @@
     'tournaments.html':          ['admin', 'manager', 'coach', 'administrator'],
     'tournament-calendar.html':  ['admin', 'manager', 'coach', 'administrator'],
     'tournament-tools.html':     ['admin', 'manager', 'coach', 'administrator'],
+    'tournament-analytics.html': ['admin', 'manager', 'coach', 'administrator'],
     'schedule-builder.html':     ['admin', 'manager', 'coach', 'administrator'],
     'knowledge.html':            ['admin', 'manager', 'coach', 'administrator'],
     'club-coach-calculator.html':['admin', 'manager', 'coach', 'administrator'],
