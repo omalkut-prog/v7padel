@@ -1508,6 +1508,7 @@ async function renderUtilizationTab(bookings) {
   } catch(e) {}
 
   // KPIs — exact numbers, no rounding
+  var avgHoursPerDay = completedDays > 0 ? (pastHours / completedDays) : 0;
   document.getElementById('utl-kpi-hours').textContent = Math.round(pastHours) + ' ч.';
   document.getElementById('utl-kpi-hours').title = 'Факт за ' + completedDays + ' дн. Будущие брони: +' + Math.round(futureHours) + 'ч.';
   if (prevMonthHours > 0) {
@@ -1518,7 +1519,7 @@ async function renderUtilizationTab(bookings) {
   }
 
   document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
-  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%';
+  document.getElementById('utl-kpi-load-hint').textContent = 'ср. ' + avgHoursPerDay.toFixed(1) + ' ч/день · Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%';
 
   // Rev/hour — exact, no rounding to K
   var revPerHourAll = pastHours > 0 ? incMonthRev / pastHours : 0;
@@ -1696,35 +1697,41 @@ async function renderUtilizationTab(bookings) {
     }
   });
 
-  // ═══ 5. Heatmap — fill ALL hours of booking, not just start ═══
+  // ═══ 5. Heatmap — % загрузки по часам (0-100%) ═══
   var hours = []; for (var h = 8; h <= 22; h++) hours.push(h);
   var heatGrid = []; for (var dw = 0; dw < 7; dw++) { heatGrid.push([]); for (var hi = 0; hi < hours.length; hi++) heatGrid[dw].push(0); }
-  var heatDaysCount = [0,0,0,0,0,0,0]; // count unique days per DOW for averaging
   var heatDaysSet = [new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
   parsed.forEach(function(b) {
     var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1;
     heatDaysSet[dow].add(b.start.toISOString().slice(0,10));
     // Fill every hour the booking occupies
     var startH = b.start.getHours();
-    var endH = b.end.getHours() + (b.end.getMinutes() > 0 ? 1 : 0); // round up
+    var endH = b.end.getHours() + (b.end.getMinutes() > 0 ? 1 : 0);
     for (var hh = startH; hh < endH; hh++) {
       if (hh >= 8 && hh <= 22) heatGrid[dow][hh - 8]++;
     }
   });
-  // Count unique days
-  for (var dw = 0; dw < 7; dw++) heatDaysCount[dw] = Math.max(heatDaysSet[dw].size, 1);
 
-  // Average per day (not raw count)
-  var heatAvg = [];
+  // Convert to % of capacity: (avg courts occupied / total courts) * 100
+  var heatPct = [];
   for (var dw = 0; dw < 7; dw++) {
-    heatAvg.push([]);
+    heatPct.push([]);
+    var dayCount = Math.max(heatDaysSet[dw].size, 1);
     for (var hi = 0; hi < hours.length; hi++) {
-      heatAvg[dw].push(Math.round(heatGrid[dw][hi] / heatDaysCount[dw] * 10) / 10);
+      var avgCourts = heatGrid[dw][hi] / dayCount;
+      heatPct[dw].push(Math.round(avgCourts / totalCourts * 100));
     }
   }
 
-  // Max for color scaling (max courts = 4 = 100% slot)
-  var maxSlot = totalCourts; // 4 courts = max possible per hour slot
+  function heatCellStyle(pct) {
+    var bg, color, fw;
+    if (pct === 0)      { bg = 'rgba(231,76,60,0.15)'; color = '#aaa'; fw = '400'; }
+    else if (pct < 25)  { bg = 'rgba(231,76,60,0.3)';  color = '#c0392b'; fw = '400'; }
+    else if (pct < 50)  { bg = 'rgba(243,156,18,0.25)'; color = '#d35400'; fw = '400'; }
+    else if (pct < 75)  { bg = 'rgba(10,186,181,0.25)'; color = 'var(--text)'; fw = '500'; }
+    else                { bg = 'rgba(10,186,181,0.5)';   color = '#0e8a87'; fw = '700'; }
+    return 'background:' + bg + ';color:' + color + ';font-weight:' + fw + ';padding:6px 8px;text-align:center;font-size:11px';
+  }
 
   var hmTable = document.getElementById('utl-heatmap-table');
   var hmHead = '<tr><th></th>';
@@ -1734,33 +1741,27 @@ async function renderUtilizationTab(bookings) {
   var hmBody = '';
   DOW_NAMES.forEach(function(dayName, dw) {
     hmBody += '<tr><td style="font-weight:600;white-space:nowrap">' + dayName + '</td>';
-    var rowSum = 0, rowCnt = 0;
-    heatAvg[dw].forEach(function(v) {
-      rowSum += v; rowCnt++;
-      // Color: blue = high occupancy (good), red = low (gap), neutral = medium
-      var pct = v / maxSlot; // 0..1+
-      var bg, color;
-      if (v === 0) { bg = 'rgba(231,76,60,0.15)'; color = '#999'; }
-      else if (pct < 0.25) { bg = 'rgba(231,76,60,0.3)'; color = '#c0392b'; }
-      else if (pct < 0.5) { bg = 'rgba(243,156,18,0.2)'; color = '#e67e22'; }
-      else if (pct < 0.75) { bg = 'rgba(10,186,181,0.2)'; color = 'var(--text)'; }
-      else { bg = 'rgba(10,186,181,0.45)'; color = '#0e8a87'; }
-      hmBody += '<td class="heat num" style="background:' + bg + ';color:' + color + ';padding:6px 8px;text-align:center;font-size:11px;font-weight:' + (pct >= 0.75 ? '700' : '400') + '">' + (v > 0 ? v.toFixed(1) : '·') + '</td>';
+    var rowSum = 0;
+    heatPct[dw].forEach(function(p) {
+      rowSum += p;
+      hmBody += '<td class="heat num" style="' + heatCellStyle(p) + '">' + (p > 0 ? p + '%' : '·') + '</td>';
     });
-    var rowAvg = rowCnt > 0 ? rowSum / rowCnt : 0;
-    hmBody += '<td class="num" style="font-weight:700;padding:6px 8px;font-size:11px">' + rowAvg.toFixed(1) + '</td>';
+    var rowAvg = Math.round(rowSum / hours.length);
+    hmBody += '<td class="num" style="font-weight:700;padding:6px 8px;font-size:11px;' + heatCellStyle(rowAvg).split(';').filter(function(s){return s.indexOf('background')>=0||s.indexOf('color:')>=0;}).join(';') + '">' + rowAvg + '%</td>';
     hmBody += '</tr>';
   });
-  // Column averages row
+  // Column averages
   hmBody += '<tr style="font-weight:700"><td>Ср.</td>';
   for (var hi = 0; hi < hours.length; hi++) {
-    var colSum = 0; for (var dw = 0; dw < 7; dw++) colSum += heatAvg[dw][hi];
-    var colAvg = colSum / 7;
-    var pct = colAvg / maxSlot;
-    var bg = pct < 0.25 ? 'rgba(231,76,60,0.2)' : pct < 0.5 ? 'rgba(243,156,18,0.15)' : pct < 0.75 ? 'rgba(10,186,181,0.15)' : 'rgba(10,186,181,0.35)';
-    hmBody += '<td class="num" style="background:' + bg + ';padding:6px 8px;font-size:11px">' + colAvg.toFixed(1) + '</td>';
+    var colSum = 0; for (var dw = 0; dw < 7; dw++) colSum += heatPct[dw][hi];
+    var colAvg = Math.round(colSum / 7);
+    hmBody += '<td class="num" style="' + heatCellStyle(colAvg) + '">' + colAvg + '%</td>';
   }
-  hmBody += '<td></td></tr>';
+  // Grand average
+  var grandSum = 0, grandCnt = 0;
+  for (var dw = 0; dw < 7; dw++) for (var hi = 0; hi < hours.length; hi++) { grandSum += heatPct[dw][hi]; grandCnt++; }
+  var grandAvgPct = Math.round(grandSum / grandCnt);
+  hmBody += '<td class="num" style="font-weight:700;padding:6px 8px;font-size:12px">' + grandAvgPct + '%</td></tr>';
   hmTable.querySelector('tbody').innerHTML = hmBody;
 }
 
