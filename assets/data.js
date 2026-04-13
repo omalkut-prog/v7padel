@@ -33,8 +33,8 @@
   const START_MONTH = '2025-10'; // первый месяц операционных данных клуба
   const MONTHLY_GOAL = 1800000; // целевая выручка в месяц (₺)
 
-  const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Товары', 'Прочее'];
-  const REV_CAT_COLORS = ['#0ABAB5', '#0e8a87', '#7C3AED', '#13c296', '#f39c12', '#5ac8fa', '#8a9ba8'];
+  const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Спонсоры', 'Товары', 'Прочее'];
+  const REV_CAT_COLORS = ['#0ABAB5', '#0e8a87', '#7C3AED', '#13c296', '#f39c12', '#e74c3c', '#5ac8fa', '#8a9ba8'];
 
   /* -------------------------------------------------------------------------
    * CSV parsing (RFC 4180 minimal: handles quoted fields + "" escaping + CRLF)
@@ -452,6 +452,7 @@
         s.indexOf('children') >= 0 || s.indexOf('kids') >= 0 || s.indexOf('adult') >= 0) return 'Тренировки';
     if (s.indexOf('sale of goods') >= 0 || s.indexOf('inventory') >= 0 ||
         s.indexOf('giftbox') >= 0 || s.indexOf('accessor') >= 0) return 'Товары';
+    if (s.indexOf('sponsor') >= 0 || s.indexOf('спонсор') >= 0 || s.indexOf('mini cooper') >= 0) return 'Спонсоры';
     if (s.indexOf('internal') >= 0 || s.indexOf('deposit') >= 0) return null; // skip internal movements
     return 'Прочее';
   }

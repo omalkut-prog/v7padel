@@ -1284,10 +1284,28 @@ function renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, tx
     if (utl && utl.length) {
       var today2 = new Date(); today2.setHours(0,0,0,0);
       var cm = today2.getMonth(), cy = today2.getFullYear();
-      var curHours = utl.filter(function(r) { return r.dt.getMonth() === cm && r.dt.getFullYear() === cy && r.hours > 0; }).reduce(function(s,r){return s+r.hours},0);
-      var revPerH = curHours > 0 ? monthSoFar / curHours : 0;
+      // Current month hours
+      var curMonthHours = utl.filter(function(r) { return r.dt.getMonth() === cm && r.dt.getFullYear() === cy && r.hours > 0; }).reduce(function(s,r){return s+r.hours},0);
+      var curMonthDays = utl.filter(function(r) { return r.dt.getMonth() === cm && r.dt.getFullYear() === cy && r.hours > 0; }).length;
+      var revPerH = curMonthHours > 0 ? monthSoFar / curMonthHours : 0;
       revHourEl.textContent = fmtInt(Math.round(revPerH)) + ' ₺';
-      revHourDelta.textContent = curHours > 0 ? Math.round(curHours) + ' ч. загрузки' : 'нет данных загрузки';
+      // Last 30 days revenue + hours
+      var d30ago = new Date(today2); d30ago.setDate(d30ago.getDate() - 30);
+      var last30Hours = utl.filter(function(r) { return r.dt >= d30ago && r.dt <= today2 && r.hours > 0; }).reduce(function(s,r){return s+r.hours},0);
+      var last30Rev = 0;
+      var _wMap = tabData.income && tabData.income.weekMap;
+      if (_wMap) {
+        Object.values(_wMap).forEach(function(w) {
+          for (var d = 0; d < 7; d++) {
+            var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+            if (dd >= d30ago && dd <= today2) last30Rev += w.days[d];
+          }
+        });
+      }
+      var last30PerH = last30Hours > 0 ? last30Rev / last30Hours : 0;
+      var hint = curMonthHours > 0 ? Math.round(curMonthHours) + ' ч / ' + curMonthDays + ' дн. (мес.)' : 'нет данных';
+      if (last30Hours > 0) hint += ' · 30д: ' + fmtInt(Math.round(last30PerH)) + ' ₺/ч';
+      revHourDelta.textContent = hint;
     } else {
       revHourEl.textContent = '—';
       revHourDelta.textContent = 'загрузите вкладку Загрузка';
