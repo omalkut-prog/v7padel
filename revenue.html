@@ -599,7 +599,7 @@
     <div class="panel">
       <table class="fin" id="utl-courts-table">
         <thead>
-          <tr><th>Корт</th><th>Тип</th><th>Часов (факт)</th><th>Букингов</th><th>Загрузка%</th><th>Ср. длит.</th></tr>
+          <tr><th>Корт</th><th>Тип</th><th>Часов (факт)</th><th>Ср. ч/день</th><th>Загрузка%</th><th>Ср. длит.</th></tr>
         </thead>
         <tbody><tr><td colspan="6" class="loading">Загрузка…</td></tr></tbody>
       </table>
@@ -673,16 +673,114 @@ var _utilizationRendered = false;
 var _periodMonths = 1; // default: current month
 
 /* ---- Period filter ---- */
-document.querySelectorAll('.pf-btn').forEach(function(btn) {
+document.querySelectorAll('#period-filter .pf-btn').forEach(function(btn) {
   btn.addEventListener('click', function() {
-    document.querySelectorAll('.pf-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('#period-filter .pf-btn').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
     _periodMonths = parseInt(btn.dataset.months) || 0;
-    // Re-render weekly tables with period filter
+    // Re-render weekly tables AND KPIs with period filter
     renderWeeklyTable('inc');
     renderWeeklyTable('gds');
+    recalcKPIs('inc');
+    recalcKPIs('gds');
+    // Re-render DOW charts if available
+    if (typeof _lastDowData !== 'undefined' && _lastDowData) renderDowFiltered();
   });
 });
+
+/* ---- Recalculate KPIs based on period filter ---- */
+function getPeriodCutoff() {
+  if (_periodMonths <= 0) return null; // "All" — no cutoff
+  var cutoff = new Date();
+  cutoff.setMonth(cutoff.getMonth() - _periodMonths);
+  cutoff.setDate(1); cutoff.setHours(0,0,0,0);
+  return cutoff;
+}
+
+function recalcKPIs(prefix) {
+  var tabName = prefix === 'inc' ? 'income' : 'goods';
+  var wMap = tabData[tabName] && tabData[tabName].weekMap;
+  if (!wMap) return;
+
+  var today = new Date(); today.setHours(0,0,0,0);
+  var cutoff = getPeriodCutoff();
+
+  // Collect all day values in period
+  var dayValues = [];
+  Object.values(wMap).forEach(function(w) {
+    for (var d = 0; d < 7; d++) {
+      var dayDate = new Date(w.mon);
+      dayDate.setDate(dayDate.getDate() + d);
+      if (dayDate >= today) continue; // skip future
+      if (cutoff && dayDate < cutoff) continue; // skip before cutoff
+      dayValues.push({ date: dayDate, val: w.days[d] });
+    }
+  });
+
+  var totalDays = dayValues.length;
+  var daysWithRevenue = dayValues.filter(function(d) { return d.val > 0; }).length;
+  var totalRev = dayValues.reduce(function(s, d) { return s + d.val; }, 0);
+
+  // Period label
+  var periodLabel = _periodMonths === 1 ? 'текущий месяц' : _periodMonths === 3 ? '3 месяца' : _periodMonths === 6 ? '6 месяцев' : 'всё время';
+
+  var $ = function(id) { return document.getElementById(prefix + '-' + id); };
+
+  // If period is current month (1M), use the smart formula with prev month comparison
+  if (_periodMonths === 1) {
+    var curMonth = today.getMonth(), curYear = today.getFullYear();
+    var dimCur = daysInMonth(curYear, curMonth);
+    var completedDays = Math.max(today.getDate() - 1, 1);
+    var monthSoFar = 0, txCount = 0;
+    var prevM = curMonth === 0 ? 11 : curMonth - 1;
+    var prevY = curMonth === 0 ? curYear - 1 : curYear;
+    var prevMonthFull = 0;
+    Object.values(wMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd.getMonth() === curMonth && dd.getFullYear() === curYear) {
+          monthSoFar += w.days[d]; if (w.days[d] > 0) txCount++;
+        }
+        if (dd.getMonth() === prevM && dd.getFullYear() === prevY) prevMonthFull += w.days[d];
+      }
+    });
+    var prevDim = daysInMonth(prevY, prevM);
+    var prevPace = prevDim > 0 ? (prevMonthFull / prevDim) * completedDays : 0;
+    renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevPace, txCount, _goals[tabName] || 0);
+    return;
+  }
+
+  // For other periods — show period totals
+  var avgDay = totalDays > 0 ? totalRev / totalDays : 0;
+  var avgCheck = daysWithRevenue > 0 ? totalRev / daysWithRevenue : 0;
+
+  $('kpi-month-total').textContent = fmtMoney(totalRev);
+  $('kpi-month-label').textContent = (prefix === 'inc' ? 'Доход' : 'Продажи') + ' за ' + periodLabel;
+  $('kpi-month-delta').textContent = totalDays + ' дней';
+  $('kpi-month-delta').className = 'kpi-delta muted';
+
+  $('kpi-avg-day').textContent = fmtMoney(avgDay);
+  $('kpi-avg-label').textContent = 'Средняя в день';
+  $('kpi-avg-hint').textContent = 'все дни периода (вкл. нулевые)';
+
+  $('kpi-check').textContent = fmtMoney(avgCheck);
+  $('kpi-check-hint').textContent = daysWithRevenue + ' дней с выручкой';
+
+  // Forecast — проекция на 30 дней
+  var forecast30 = avgDay * 30;
+  $('kpi-forecast').textContent = fmtMoney(forecast30);
+  $('kpi-forecast-hint').textContent = 'темп за ' + periodLabel + ' → 30 дней';
+
+  // Goal — same as before
+  var goal = _goals[tabName] || 0;
+  if (goal > 0) {
+    var goalPct = (forecast30 / goal * 100);
+    $('kpi-goal-pct').textContent = goalPct.toFixed(1) + '%';
+    $('kpi-goal-bar').style.width = Math.min(goalPct, 100) + '%';
+    $('kpi-goal-hint').textContent = 'цель: ' + fmtMoney(goal);
+  }
+}
+var _goals = {};
 var _allGoodsTxns = null; // set by mainFromSheet or lazy-loaded
 
 document.querySelectorAll('.rev-tab').forEach(function(btn) {
@@ -1515,7 +1613,7 @@ async function renderUtilizationTab(bookings) {
   dtHtml += '<td class="num">' + (maxDayHours > 0 ? (grandAvg/maxDayHours*100).toFixed(0) + '%' : '') + '</td></tr>';
   dtBody.innerHTML = dtHtml;
 
-  // ═══ 2. Courts table ═══
+  // ═══ 2. Courts table — with avg per day ═══
   var courtsTbody = document.querySelector('#utl-courts-table tbody');
   var cHtml = '';
   ['P1','P2','P3','P4'].forEach(function(court) {
@@ -1523,15 +1621,28 @@ async function renderUtilizationTab(bookings) {
     var maxC = OPERATING_HOURS * completedDays;
     var pct = maxC > 0 ? (c.pastH / maxC * 100).toFixed(1) : '0';
     var avgDur = c.bookings > 0 ? (c.durSum / c.bookings).toFixed(1) : '0';
+    var avgPerDay = completedDays > 0 ? (c.pastH / completedDays).toFixed(1) : '0';
     cHtml += '<tr>';
     cHtml += '<td style="font-weight:600"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + COURT_COLORS[court] + ';margin-right:8px;vertical-align:middle"></span>' + court + '</td>';
     cHtml += '<td>' + COURT_TYPE[court] + '</td>';
     cHtml += '<td class="num">' + c.pastH.toFixed(1) + ' ч.</td>';
-    cHtml += '<td class="num">' + c.bookings + '</td>';
+    cHtml += '<td class="num" style="font-weight:600">' + avgPerDay + ' ч.</td>';
     cHtml += '<td class="num">' + pct + '%</td>';
     cHtml += '<td class="num">' + avgDur + ' ч.</td>';
     cHtml += '</tr>';
   });
+  // Total row
+  var totalPastH = Object.keys(courtCur).reduce(function(s,c) { return s + courtCur[c].pastH; }, 0);
+  var totalBook = Object.keys(courtCur).reduce(function(s,c) { return s + courtCur[c].bookings; }, 0);
+  var totalDurSum = Object.keys(courtCur).reduce(function(s,c) { return s + courtCur[c].durSum; }, 0);
+  var totalAvgDay = completedDays > 0 ? (totalPastH / completedDays).toFixed(1) : '0';
+  var totalPct = maxHours > 0 ? (totalPastH / maxHours * 100).toFixed(1) : '0';
+  var totalAvgDur = totalBook > 0 ? (totalDurSum / totalBook).toFixed(1) : '0';
+  cHtml += '<tr class="month-subtotal"><td style="font-weight:700">ИТОГО</td><td></td>';
+  cHtml += '<td class="num" style="font-weight:700">' + totalPastH.toFixed(1) + ' ч.</td>';
+  cHtml += '<td class="num" style="font-weight:700">' + totalAvgDay + ' ч.</td>';
+  cHtml += '<td class="num" style="font-weight:700">' + totalPct + '%</td>';
+  cHtml += '<td class="num">' + totalAvgDur + ' ч.</td></tr>';
   courtsTbody.innerHTML = cHtml;
 
   // ═══ 2b. Courts stacked chart by month ═══
@@ -1585,31 +1696,71 @@ async function renderUtilizationTab(bookings) {
     }
   });
 
-  // ═══ 5. Heatmap ═══
+  // ═══ 5. Heatmap — fill ALL hours of booking, not just start ═══
   var hours = []; for (var h = 8; h <= 22; h++) hours.push(h);
   var heatGrid = []; for (var dw = 0; dw < 7; dw++) { heatGrid.push([]); for (var hi = 0; hi < hours.length; hi++) heatGrid[dw].push(0); }
+  var heatDaysCount = [0,0,0,0,0,0,0]; // count unique days per DOW for averaging
+  var heatDaysSet = [new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
   parsed.forEach(function(b) {
     var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1;
-    var h = b.start.getHours();
-    if (h >= 8 && h <= 22) heatGrid[dow][h - 8]++;
+    heatDaysSet[dow].add(b.start.toISOString().slice(0,10));
+    // Fill every hour the booking occupies
+    var startH = b.start.getHours();
+    var endH = b.end.getHours() + (b.end.getMinutes() > 0 ? 1 : 0); // round up
+    for (var hh = startH; hh < endH; hh++) {
+      if (hh >= 8 && hh <= 22) heatGrid[dow][hh - 8]++;
+    }
   });
-  var maxHeat = 0;
-  heatGrid.forEach(function(row) { row.forEach(function(v) { if (v > maxHeat) maxHeat = v; }); });
+  // Count unique days
+  for (var dw = 0; dw < 7; dw++) heatDaysCount[dw] = Math.max(heatDaysSet[dw].size, 1);
+
+  // Average per day (not raw count)
+  var heatAvg = [];
+  for (var dw = 0; dw < 7; dw++) {
+    heatAvg.push([]);
+    for (var hi = 0; hi < hours.length; hi++) {
+      heatAvg[dw].push(Math.round(heatGrid[dw][hi] / heatDaysCount[dw] * 10) / 10);
+    }
+  }
+
+  // Max for color scaling (max courts = 4 = 100% slot)
+  var maxSlot = totalCourts; // 4 courts = max possible per hour slot
 
   var hmTable = document.getElementById('utl-heatmap-table');
   var hmHead = '<tr><th></th>';
   hours.forEach(function(h) { hmHead += '<th style="font-size:10px;padding:4px 6px">' + h + ':00</th>'; });
-  hmHead += '</tr>';
+  hmHead += '<th style="font-size:10px;padding:4px 6px">Ср.</th></tr>';
   hmTable.querySelector('thead').innerHTML = hmHead;
   var hmBody = '';
   DOW_NAMES.forEach(function(dayName, dw) {
     hmBody += '<tr><td style="font-weight:600;white-space:nowrap">' + dayName + '</td>';
-    heatGrid[dw].forEach(function(v) {
-      var bg = v > 0 ? heatColor(v, maxHeat) : 'transparent';
-      hmBody += '<td class="heat num" style="background:' + bg + ';padding:6px 8px;text-align:center;font-size:11px">' + (v > 0 ? v : '') + '</td>';
+    var rowSum = 0, rowCnt = 0;
+    heatAvg[dw].forEach(function(v) {
+      rowSum += v; rowCnt++;
+      // Color: blue = high occupancy (good), red = low (gap), neutral = medium
+      var pct = v / maxSlot; // 0..1+
+      var bg, color;
+      if (v === 0) { bg = 'rgba(231,76,60,0.15)'; color = '#999'; }
+      else if (pct < 0.25) { bg = 'rgba(231,76,60,0.3)'; color = '#c0392b'; }
+      else if (pct < 0.5) { bg = 'rgba(243,156,18,0.2)'; color = '#e67e22'; }
+      else if (pct < 0.75) { bg = 'rgba(10,186,181,0.2)'; color = 'var(--text)'; }
+      else { bg = 'rgba(10,186,181,0.45)'; color = '#0e8a87'; }
+      hmBody += '<td class="heat num" style="background:' + bg + ';color:' + color + ';padding:6px 8px;text-align:center;font-size:11px;font-weight:' + (pct >= 0.75 ? '700' : '400') + '">' + (v > 0 ? v.toFixed(1) : '·') + '</td>';
     });
+    var rowAvg = rowCnt > 0 ? rowSum / rowCnt : 0;
+    hmBody += '<td class="num" style="font-weight:700;padding:6px 8px;font-size:11px">' + rowAvg.toFixed(1) + '</td>';
     hmBody += '</tr>';
   });
+  // Column averages row
+  hmBody += '<tr style="font-weight:700"><td>Ср.</td>';
+  for (var hi = 0; hi < hours.length; hi++) {
+    var colSum = 0; for (var dw = 0; dw < 7; dw++) colSum += heatAvg[dw][hi];
+    var colAvg = colSum / 7;
+    var pct = colAvg / maxSlot;
+    var bg = pct < 0.25 ? 'rgba(231,76,60,0.2)' : pct < 0.5 ? 'rgba(243,156,18,0.15)' : pct < 0.75 ? 'rgba(10,186,181,0.15)' : 'rgba(10,186,181,0.35)';
+    hmBody += '<td class="num" style="background:' + bg + ';padding:6px 8px;font-size:11px">' + colAvg.toFixed(1) + '</td>';
+  }
+  hmBody += '<td></td></tr>';
   hmTable.querySelector('tbody').innerHTML = hmBody;
 }
 
