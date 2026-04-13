@@ -119,6 +119,22 @@
   }
   footer em { color: var(--accent); font-style: normal; }
 
+  /* Tab switcher */
+  .rev-tabs {
+    display: flex; gap: 0; margin-bottom: 24px;
+    border-bottom: 2px solid var(--border);
+  }
+  .rev-tab {
+    appearance: none; background: none; border: none; border-bottom: 2px solid transparent;
+    margin-bottom: -2px; padding: 12px 24px; font-family: inherit;
+    font-size: 14px; font-weight: 600; color: var(--text3); cursor: pointer;
+    transition: all .2s;
+  }
+  .rev-tab:hover { color: var(--text); }
+  .rev-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
   @media (max-width: 960px) {
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
     .two-col { grid-template-columns: 1fr; }
@@ -159,97 +175,100 @@
 
 <main>
   <h1 class="page-title">Пульс выручки</h1>
-  <p class="page-sub">Еженедельный пульс выручки V7 Padel. Источник: v7padel_db &middot; transactions.</p>
+  <p class="page-sub">Источник: v7padel_db &middot; transactions. Переключайте табы для анализа дохода и доп. продаж отдельно.</p>
 
-  <!-- KPI ROW -->
+  <!-- TAB SWITCHER -->
+  <div class="rev-tabs">
+    <button class="rev-tab active" data-tab="income">Доход</button>
+    <button class="rev-tab" data-tab="goods">Доп. продажи</button>
+  </div>
+
+  <!-- ═══════════════════ TAB: INCOME ═══════════════════ -->
+  <div class="tab-pane active" id="pane-income">
+
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-label">Выручка за апрель</div>
-      <div class="kpi-value" id="kpi-month-total">—</div>
-      <div class="kpi-delta" id="kpi-month-delta"></div>
+      <div class="kpi-label" id="inc-kpi-month-label">Доход за месяц</div>
+      <div class="kpi-value" id="inc-kpi-month-total">—</div>
+      <div class="kpi-delta" id="inc-kpi-month-delta"></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Средняя в день (апрель)</div>
-      <div class="kpi-value" id="kpi-avg-day">—</div>
-      <div class="kpi-delta muted" id="kpi-avg-hint"></div>
+      <div class="kpi-label" id="inc-kpi-avg-label">Средняя в день</div>
+      <div class="kpi-value" id="inc-kpi-avg-day">—</div>
+      <div class="kpi-delta muted" id="inc-kpi-avg-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Средний чек / день</div>
+      <div class="kpi-value" id="inc-kpi-check">—</div>
+      <div class="kpi-delta muted" id="inc-kpi-check-hint"></div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">Прогноз на месяц</div>
-      <div class="kpi-value" id="kpi-month-forecast">—</div>
-      <div class="kpi-delta muted" id="kpi-forecast-hint"></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">% от цели</div>
-      <div class="kpi-value" id="kpi-goal-pct">—</div>
-      <div class="progress-bar"><div class="fill" id="kpi-goal-bar" style="width:0%"></div></div>
-      <div class="kpi-delta muted" id="kpi-goal-hint"></div>
+      <div class="kpi-value" id="inc-kpi-forecast">—</div>
+      <div class="kpi-delta muted" id="inc-kpi-forecast-hint"></div>
     </div>
   </div>
 
-  <!-- BLOCK 1 — Weekly revenue table -->
   <section class="section">
     <div class="section-head">
-      <h2>1 &middot; Выручка по неделям</h2>
+      <h2>1 &middot; Доход по неделям</h2>
       <span class="hint">понедельник — воскресенье, последние 12 недель</span>
     </div>
     <div class="panel" style="overflow-x:auto">
-      <table class="fin weekly" id="weekly-table">
+      <table class="fin weekly" id="inc-weekly-table">
         <thead>
           <tr>
             <th>#</th><th>Период</th>
             <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
-            <th>Тотал</th><th>Ср/день</th><th>Рост</th><th>% цели</th><th>Примечания</th>
+            <th>Тотал</th><th>Ср/день</th><th>Рост</th><th>Примечания</th>
           </tr>
         </thead>
-        <tbody><tr><td colspan="14" class="loading">Загрузка данных…</td></tr></tbody>
-        <tfoot id="weekly-foot"></tfoot>
+        <tbody><tr><td colspan="13" class="loading">Загрузка данных…</td></tr></tbody>
+        <tfoot id="inc-weekly-foot"></tfoot>
       </table>
-      <button class="toggle-btn" id="toggle-weeks" style="display:none">Показать все</button>
+      <button class="toggle-btn" id="inc-toggle-weeks" style="display:none">Показать все</button>
     </div>
   </section>
 
-  <!-- BLOCK 2 — Average revenue by day of week -->
   <section class="section">
     <div class="section-head">
-      <h2>2 &middot; Средняя выручка по дням недели</h2>
+      <h2>2 &middot; Средний доход по дням недели</h2>
       <span class="hint">все данные</span>
     </div>
     <div class="panel">
-      <div class="chart-box short"><canvas id="dow-chart"></canvas></div>
+      <div class="chart-box short"><canvas id="inc-dow-chart"></canvas></div>
     </div>
   </section>
 
-  <!-- BLOCK 3 — Monthly summary -->
   <section class="section">
     <div class="section-head">
-      <h2>3 &middot; Месячная сводка</h2>
+      <h2>3 &middot; Месячная сводка (доход)</h2>
       <span class="hint">последние 8 месяцев</span>
     </div>
     <div class="panel">
-      <div class="chart-box"><canvas id="monthly-chart"></canvas></div>
+      <div class="chart-box"><canvas id="inc-monthly-chart"></canvas></div>
     </div>
     <div class="panel">
-      <table class="fin" id="monthly-table">
+      <table class="fin" id="inc-monthly-table">
         <thead>
-          <tr><th>Месяц</th><th>Итого</th><th>Ср/день</th><th>Лучшая неделя</th><th>Худшая неделя</th></tr>
+          <tr><th>Месяц</th><th>Итого</th><th>Ср/день</th><th>Лучшая нед.</th><th>Худшая нед.</th></tr>
         </thead>
         <tbody><tr><td colspan="5" class="loading">Загрузка…</td></tr></tbody>
       </table>
     </div>
   </section>
 
-  <!-- BLOCK 4 — Revenue by category -->
   <section class="section">
     <div class="section-head">
-      <h2>4 &middot; Выручка по категориям (текущий месяц)</h2>
+      <h2>4 &middot; Доход по категориям (текущий месяц)</h2>
     </div>
     <div class="two-col">
       <div class="panel">
-        <div class="chart-box"><canvas id="cat-donut"></canvas></div>
+        <div class="chart-box"><canvas id="inc-cat-donut"></canvas></div>
       </div>
       <div class="panel">
         <h3>Таблица</h3>
-        <table class="fin" id="cat-table">
+        <table class="fin" id="inc-cat-table">
           <thead><tr><th>Категория</th><th>Сумма</th><th>%</th></tr></thead>
           <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
         </table>
@@ -257,10 +276,86 @@
     </div>
   </section>
 
-  <!-- BLOCK 5 — Goods / additional sales -->
+  </div><!-- /pane-income -->
+
+  <!-- ═══════════════════ TAB: GOODS ═══════════════════ -->
+  <div class="tab-pane" id="pane-goods">
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label" id="gds-kpi-month-label">Продажи за месяц</div>
+      <div class="kpi-value" id="gds-kpi-month-total">—</div>
+      <div class="kpi-delta" id="gds-kpi-month-delta"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label" id="gds-kpi-avg-label">Средняя в день</div>
+      <div class="kpi-value" id="gds-kpi-avg-day">—</div>
+      <div class="kpi-delta muted" id="gds-kpi-avg-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Средний чек / день</div>
+      <div class="kpi-value" id="gds-kpi-check">—</div>
+      <div class="kpi-delta muted" id="gds-kpi-check-hint"></div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Прогноз на месяц</div>
+      <div class="kpi-value" id="gds-kpi-forecast">—</div>
+      <div class="kpi-delta muted" id="gds-kpi-forecast-hint"></div>
+    </div>
+  </div>
+
   <section class="section">
     <div class="section-head">
-      <h2>5 &middot; Доп. продажи (товары)</h2>
+      <h2>1 &middot; Продажи по неделям</h2>
+      <span class="hint">понедельник — воскресенье, последние 12 недель</span>
+    </div>
+    <div class="panel" style="overflow-x:auto">
+      <table class="fin weekly" id="gds-weekly-table">
+        <thead>
+          <tr>
+            <th>#</th><th>Период</th>
+            <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
+            <th>Тотал</th><th>Ср/день</th><th>Рост</th><th>Примечания</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="13" class="loading">Загрузка данных…</td></tr></tbody>
+        <tfoot id="gds-weekly-foot"></tfoot>
+      </table>
+      <button class="toggle-btn" id="gds-toggle-weeks" style="display:none">Показать все</button>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>2 &middot; Средние продажи по дням недели</h2>
+      <span class="hint">все данные</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box short"><canvas id="gds-dow-chart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>3 &middot; Месячная сводка (продажи)</h2>
+      <span class="hint">последние 8 месяцев</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box"><canvas id="gds-monthly-chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <table class="fin" id="gds-monthly-table">
+        <thead>
+          <tr><th>Месяц</th><th>Итого</th><th>Ср/день</th><th>Лучшая нед.</th><th>Худшая нед.</th></tr>
+        </thead>
+        <tbody><tr><td colspan="5" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>4 &middot; Топ товаров</h2>
       <span class="hint">топ-10 по subcategory</span>
     </div>
     <div class="panel">
@@ -272,6 +367,9 @@
       </table>
     </div>
   </section>
+
+  </div><!-- /pane-goods -->
+
 </main>
 
 <footer>
@@ -281,10 +379,9 @@
 <script>
 /* =========================================================================
  * revenue.html — Revenue Pulse — V7 Padel
- * Еженедельный пульс выручки. Источник: transactions (v7padel_db).
+ * Два таба: Доход (Income) и Доп. продажи (Товары).
  * ========================================================================= */
 
-// Цель по выручке — из единого конфига V7
 const MONTHLY_GOAL = V7.MONTHLY_GOAL;
 const WEEKLY_GOAL = Math.round(MONTHLY_GOAL / 4.33);
 
@@ -293,6 +390,21 @@ const { loadSheet, loadCacheTab, num, fmt, fmtMoney, fmtInt, parseDate, ymKey, y
 
 const DOW_NAMES = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const DOW_FULL  = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
+
+// Income categories (everything except Товары)
+const INCOME_CATS = new Set(['Корты','Инвентарь','Клубные карты','Тренировки','Турниры','Прочее']);
+function isIncome(cat) { return INCOME_CATS.has(categorizeRevenue(cat)); }
+function isGoods(cat) { return categorizeRevenue(cat) === 'Товары'; }
+
+/* ---- Tab switcher ---- */
+document.querySelectorAll('.rev-tab').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.rev-tab').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-pane').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('pane-' + btn.dataset.tab).classList.add('active');
+  });
+});
 
 /* ---- Date helpers ---- */
 function getMonday(d) {
@@ -357,80 +469,72 @@ function chartTextColor()  { return cssVar('--text2') || '#4a5967'; }
 function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }
 
 /* =========================================================================
- * Shared rendering state — populated by either mainFromCache or mainFromSheet
+ * Shared rendering state — per-tab data
  * ========================================================================= */
-let weekMap = {};   // weekKey -> { mon: Date, days: [0..6], total }
-let weekKeys = [];  // sorted descending
-let showAll = false;
+var tabData = {
+  income: { weekMap: {}, weekKeys: [], showAll: false },
+  goods:  { weekMap: {}, weekKeys: [], showAll: false }
+};
 const VISIBLE_WEEKS = 12;
 const MONTH_NAMES_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
 
-/* ---- Shared rendering helpers ---- */
+/* ---- Shared rendering helpers (parameterized by tab prefix) ---- */
 
-function computeMaxes(keys) {
+function computeMaxes(wMap, keys) {
   const maxDay = [0,0,0,0,0,0,0];
   let maxTotal = 0;
   keys.forEach(wk => {
-    const w = weekMap[wk];
+    const w = wMap[wk];
     for (let d = 0; d < 7; d++) maxDay[d] = Math.max(maxDay[d], w.days[d]);
     maxTotal = Math.max(maxTotal, w.total);
   });
   return { maxDay, maxTotal };
 }
 
-function autoNote(w, prevWk) {
+function autoNote(w) {
   const notes = [];
   const zeroDays = w.days.filter(d => d === 0).length;
-  if (zeroDays >= 4) notes.push('дожди/простой');
+  if (zeroDays >= 4) notes.push('простой');
   else if (zeroDays >= 2) notes.push(zeroDays + ' дн. без выручки');
   const maxDay = Math.max(...w.days);
-  if (maxDay > w.total * 0.4 && w.total > 50000) {
+  if (maxDay > w.total * 0.4 && w.total > 10000) {
     const dayIdx = w.days.indexOf(maxDay);
-    notes.push('пик ' + DOW_NAMES[dayIdx] + ' ' + fmtInt(Math.round(maxDay)));
+    notes.push('пик ' + DOW_NAMES[dayIdx]);
   }
   return notes.join('; ');
 }
 
-function renderWeeklyTable() {
+function renderWeeklyTable(prefix) {
+  var td = tabData[prefix === 'inc' ? 'income' : 'goods'];
+  var wMap = td.weekMap, wKeys = td.weekKeys;
   const curWeekKey = weekKey(new Date());
-  const keysChron = [...weekKeys].reverse();
-  const keysDesc = showAll ? [...keysChron].reverse() : keysChron.slice(-VISIBLE_WEEKS).reverse();
-  const { maxDay, maxTotal } = computeMaxes(weekKeys);
-  const tbody = document.querySelector('#weekly-table tbody');
-  const tfoot = document.getElementById('weekly-foot');
+  const keysChron = [...wKeys].reverse();
+  const keysDesc = td.showAll ? [...keysChron].reverse() : keysChron.slice(-VISIBLE_WEEKS).reverse();
+  const { maxDay, maxTotal } = computeMaxes(wMap, wKeys);
+  const tbody = document.querySelector('#' + prefix + '-weekly-table tbody');
+  const tfoot = document.getElementById(prefix + '-weekly-foot');
   let html = '';
-  let lastMonth = '';
-  let monthTotal = 0;
-  let monthAvgDays = 0;
-  let monthName = '';
+  let lastMonth = '', monthTotal = 0, monthAvgDays = 0, monthName = '';
 
   function flushMonth() {
     if (!monthName) return '';
     const avgPerDay = monthAvgDays > 0 ? monthTotal / monthAvgDays : 0;
-    return '<tr class="month-subtotal">' +
-      '<td></td><td>Итого ' + monthName + '</td>' +
-      '<td colspan="7"></td>' +
-      '<td class="num">' + fmtInt(Math.round(monthTotal)) + '</td>' +
-      '<td class="num">' + fmtInt(Math.round(avgPerDay)) + '</td>' +
-      '<td colspan="3"></td></tr>';
+    return '<tr class="month-subtotal"><td></td><td>Итого ' + monthName + '</td>' +
+      '<td colspan="7"></td><td class="num">' + fmtInt(Math.round(monthTotal)) + '</td>' +
+      '<td class="num">' + fmtInt(Math.round(avgPerDay)) + '</td><td colspan="2"></td></tr>';
   }
 
-  keysDesc.forEach((wk, i) => {
-    const w = weekMap[wk];
+  keysDesc.forEach(wk => {
+    const w = wMap[wk];
     const sun = getSunday(w.mon);
     const thu = new Date(w.mon); thu.setDate(thu.getDate() + 3);
     const wkMonth = thu.getFullYear() + '-' + String(thu.getMonth()+1).padStart(2,'0');
     const wkMonthLabel = MONTH_NAMES_RU[thu.getMonth()];
 
-    if (wkMonth !== lastMonth && lastMonth) {
-      html += flushMonth();
-      monthTotal = 0; monthAvgDays = 0;
-    }
-    lastMonth = wkMonth;
-    monthName = wkMonthLabel;
+    if (wkMonth !== lastMonth && lastMonth) { html += flushMonth(); monthTotal = 0; monthAvgDays = 0; }
+    lastMonth = wkMonth; monthName = wkMonthLabel;
     monthTotal += w.total;
-    const daysWithData = w.days.filter(d => d > 0).length || 7;
-    monthAvgDays += daysWithData;
+    monthAvgDays += w.days.filter(d => d > 0).length || 7;
 
     const rangeStr = fmtDate(w.mon) + ' – ' + fmtDate(sun);
     const isCurrent = wk === curWeekKey;
@@ -438,16 +542,14 @@ function renderWeeklyTable() {
     const avg = w.total / daysWithRevenue;
 
     const prevIdx = keysChron.indexOf(wk) - 1;
-    const prevWk = prevIdx >= 0 ? weekMap[keysChron[prevIdx]] : null;
-    let deltaStr = '—';
-    let deltaCls = 'muted';
+    const prevWk = prevIdx >= 0 ? wMap[keysChron[prevIdx]] : null;
+    let deltaStr = '—', deltaCls = 'muted';
     if (prevWk && prevWk.total > 0) {
       const diff = w.total - prevWk.total;
       deltaStr = (diff >= 0 ? '+' : '') + fmtInt(Math.round(diff));
       deltaCls = diff >= 0 ? 'pos' : 'neg';
     }
-    const goalPctWeek = WEEKLY_GOAL > 0 ? (w.total / WEEKLY_GOAL * 100).toFixed(0) + '%' : '—';
-    const note = autoNote(w, prevWk);
+    const note = autoNote(w);
     const weekNum = keysChron.indexOf(wk) + 1;
 
     html += '<tr' + (isCurrent ? ' class="current-week"' : '') + '>';
@@ -455,13 +557,11 @@ function renderWeeklyTable() {
     html += '<td style="white-space:nowrap;font-weight:500">' + rangeStr + '</td>';
     for (let d = 0; d < 7; d++) {
       const val = w.days[d];
-      const bg = heatColor(val, maxDay[d]);
-      html += '<td class="heat num" style="background:' + bg + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">0</span>') + '</td>';
+      html += '<td class="heat num" style="background:' + heatColor(val, maxDay[d]) + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">0</span>') + '</td>';
     }
     html += '<td class="num" style="font-weight:700;background:' + heatColor(w.total, maxTotal) + '">' + fmtInt(Math.round(w.total)) + '</td>';
     html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
     html += '<td class="' + deltaCls + '">' + deltaStr + '</td>';
-    html += '<td class="num">' + goalPctWeek + '</td>';
     html += '<td class="note" title="' + note.replace(/"/g,'&quot;') + '">' + note + '</td>';
     html += '</tr>';
   });
@@ -469,85 +569,71 @@ function renderWeeklyTable() {
   html += flushMonth();
   tbody.innerHTML = html;
 
-  const allKeys = keysDesc;
-  const footDow = [0,0,0,0,0,0,0];
-  const footCnt = [0,0,0,0,0,0,0];
+  const footDow = [0,0,0,0,0,0,0], footCnt = [0,0,0,0,0,0,0];
   let grandTotal = 0;
-  allKeys.forEach(wk => {
-    const w = weekMap[wk];
-    grandTotal += w.total;
-    for (let d = 0; d < 7; d++) {
-      footDow[d] += w.days[d];
-      if (w.days[d] > 0) footCnt[d]++;
-    }
+  keysDesc.forEach(wk => {
+    const w = wMap[wk]; grandTotal += w.total;
+    for (let d = 0; d < 7; d++) { footDow[d] += w.days[d]; if (w.days[d] > 0) footCnt[d]++; }
   });
-  let footHtml = '<tr>';
-  footHtml += '<td></td><td style="font-weight:700">СРЕДНЕЕ</td>';
-  for (let d = 0; d < 7; d++) {
-    const avg = footCnt[d] > 0 ? footDow[d] / footCnt[d] : 0;
-    footHtml += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
-  }
+  let footHtml = '<tr><td></td><td style="font-weight:700">СРЕДНЕЕ</td>';
+  for (let d = 0; d < 7; d++) footHtml += '<td class="num">' + fmtInt(Math.round(footCnt[d] > 0 ? footDow[d] / footCnt[d] : 0)) + '</td>';
   var totalDaysWithRevenue = footCnt.reduce((s, c) => s + c, 0) || 1;
   footHtml += '<td class="num" style="font-weight:700">' + fmtInt(Math.round(grandTotal)) + '</td>';
   footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / totalDaysWithRevenue)) + '</td>';
-  footHtml += '<td colspan="3"></td></tr>';
+  footHtml += '<td colspan="2"></td></tr>';
   tfoot.innerHTML = footHtml;
 
-  const btn = document.getElementById('toggle-weeks');
-  if (weekKeys.length > VISIBLE_WEEKS) {
+  const btn = document.getElementById(prefix + '-toggle-weeks');
+  if (wKeys.length > VISIBLE_WEEKS) {
     btn.style.display = '';
-    btn.textContent = showAll ? 'Последние 12 недель' : 'Все ' + weekKeys.length + ' недель';
+    btn.textContent = td.showAll ? 'Последние 12 недель' : 'Все ' + wKeys.length + ' недель';
   } else {
     btn.style.display = 'none';
   }
 }
 
-function renderKPIs(monthSoFar, dayOfMonth, dimCur, prevMonthTotal) {
+function renderKPIs(prefix, monthSoFar, dayOfMonth, dimCur, prevMonthPace, txCount) {
   const today = new Date(); today.setHours(0,0,0,0);
-  const curYear = today.getFullYear();
   const curMonth = today.getMonth();
-  const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
-  const monthName = MONTH_NAMES[curMonth].toLowerCase();
+  const monthName = MONTH_NAMES_RU[curMonth].toLowerCase();
+  const MONTH_DAT = ['январю','февралю','марту','апрелю','маю','июню','июлю','августу','сентябрю','октябрю','ноябрю','декабрю'];
+  const prevMonthDat = MONTH_DAT[curMonth === 0 ? 11 : curMonth - 1];
+  var $ = function(id) { return document.getElementById(prefix + '-' + id); };
 
-  // KPI 1: Current month revenue
-  document.getElementById('kpi-month-total').textContent = fmtMoney(monthSoFar);
-  // Update label with actual month name
-  var monthLabel = document.getElementById('kpi-month-total').parentElement.querySelector('.kpi-label');
-  if (monthLabel) monthLabel.textContent = 'Выручка за ' + monthName;
+  // KPI 1: Current month total
+  $('kpi-month-total').textContent = fmtMoney(monthSoFar);
+  $('kpi-month-label').textContent = (prefix === 'inc' ? 'Доход' : 'Продажи') + ' за ' + monthName;
 
-  // Delta vs previous month (same number of days for fair comparison)
-  if (prevMonthTotal > 0 && dayOfMonth > 0) {
-    // Compare current pace vs previous month pace at same day
-    const delta = ((monthSoFar - prevMonthTotal) / prevMonthTotal * 100);
-    const el = document.getElementById('kpi-month-delta');
-    el.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '% к марту (за ' + dayOfMonth + ' дн.)';
-    el.className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
+  if (prevMonthPace > 0 && dayOfMonth > 0) {
+    var delta = ((monthSoFar - prevMonthPace) / prevMonthPace * 100);
+    $('kpi-month-delta').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '% к ' + prevMonthDat;
+    $('kpi-month-delta').className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
   } else {
-    document.getElementById('kpi-month-delta').textContent = '';
+    $('kpi-month-delta').textContent = '';
   }
 
-  // KPI 2: Average per day this month
-  const avgDay = dayOfMonth > 0 ? monthSoFar / dayOfMonth : 0;
-  document.getElementById('kpi-avg-day').textContent = fmtMoney(avgDay);
-  var avgLabel = document.getElementById('kpi-avg-day').parentElement.querySelector('.kpi-label');
-  if (avgLabel) avgLabel.textContent = 'Средняя в день (' + monthName + ')';
-  document.getElementById('kpi-avg-hint').textContent = 'за ' + dayOfMonth + ' дн. из ' + dimCur;
+  // KPI 2: Average per day
+  var avgDay = dayOfMonth > 0 ? monthSoFar / dayOfMonth : 0;
+  $('kpi-avg-day').textContent = fmtMoney(avgDay);
+  $('kpi-avg-label').textContent = 'Средняя в день (' + monthName + ')';
+  $('kpi-avg-hint').textContent = 'за ' + dayOfMonth + ' дн. из ' + dimCur;
 
-  const forecast = dayOfMonth > 0 ? (monthSoFar / dayOfMonth) * dimCur : 0;
-  document.getElementById('kpi-month-forecast').textContent = fmtMoney(forecast);
-  document.getElementById('kpi-forecast-hint').textContent = 'факт ' + fmtMoney(monthSoFar) + ' за ' + dayOfMonth + ' дн.';
+  // KPI 3: Average check per day (revenue / number of transactions)
+  var avgCheck = txCount > 0 ? monthSoFar / txCount : 0;
+  $('kpi-check').textContent = fmtMoney(avgCheck);
+  $('kpi-check-hint').textContent = txCount + ' транзакций за ' + dayOfMonth + ' дн.';
 
-  const goalPct = MONTHLY_GOAL > 0 ? (monthSoFar / MONTHLY_GOAL * 100) : 0;
-  document.getElementById('kpi-goal-pct').textContent = goalPct.toFixed(1) + '%';
-  document.getElementById('kpi-goal-bar').style.width = Math.min(goalPct, 100) + '%';
-  document.getElementById('kpi-goal-hint').textContent = 'цель: ' + fmtMoney(MONTHLY_GOAL);
+  // KPI 4: Forecast
+  var forecast = dayOfMonth > 0 ? (monthSoFar / dayOfMonth) * dimCur : 0;
+  $('kpi-forecast').textContent = fmtMoney(forecast);
+  $('kpi-forecast-hint').textContent = 'факт ' + fmtMoney(monthSoFar) + ' за ' + dayOfMonth + ' дн.';
 }
 
-function renderDowChart(dowAvg) {
+function renderDowChart(canvasId, dowAvg) {
   const bestDow = dowAvg.indexOf(Math.max(...dowAvg));
   const dowColors = dowAvg.map((_, i) => i === bestDow ? (accent() || '#0ABAB5') : (cssVar('--text3') || '#8a9ba8'));
 
-  new Chart(document.getElementById('dow-chart'), {
+  new Chart(document.getElementById(canvasId), {
     type: 'bar',
     data: {
       labels: DOW_NAMES,
@@ -584,8 +670,8 @@ function renderDowChart(dowAvg) {
   });
 }
 
-function renderMonthlyChart(monthKeys, monthTotals) {
-  new Chart(document.getElementById('monthly-chart'), {
+function renderMonthlyChart(canvasId, monthKeys, monthTotals) {
+  new Chart(document.getElementById(canvasId), {
     type: 'bar',
     data: {
       labels: monthKeys.map(ymLabel),
@@ -618,7 +704,7 @@ function renderMonthlyChart(monthKeys, monthTotals) {
   });
 }
 
-function renderCatBlock(catMap, catTotal) {
+function renderCatBlock(donutId, tableId, catMap, catTotal) {
   const catOrder = REV_CAT_ORDER;
   const catColors = REV_CAT_COLORS;
   const catLabels = [];
@@ -634,7 +720,7 @@ function renderCatBlock(catMap, catTotal) {
   });
 
   if (catValues.length) {
-    new Chart(document.getElementById('cat-donut'), {
+    new Chart(document.getElementById(donutId), {
       type: 'doughnut',
       data: {
         labels: catLabels,
@@ -662,11 +748,11 @@ function renderCatBlock(catMap, catTotal) {
       }
     });
   } else {
-    document.getElementById('cat-donut').parentElement.innerHTML = '<div class="muted" style="text-align:center;padding:40px">Нет данных за текущий месяц</div>';
+    document.getElementById(donutId).parentElement.innerHTML = '<div class="muted" style="text-align:center;padding:40px">Нет данных за текущий месяц</div>';
   }
 
   // Category table
-  const tbody = document.querySelector('#cat-table tbody');
+  const tbody = document.querySelector('#' + tableId + ' tbody');
   let html = '';
   catOrder.forEach((c, i) => {
     const v = catMap[c] || 0;
@@ -736,155 +822,107 @@ function renderGoodsBlock(goodsItems, weeklyValues) {
 }
 
 /* =========================================================================
- * MAIN FROM CACHE (fast path)
+ * MAIN FROM CACHE — skip, always use sheet for per-category split
+ * Cache doesn't separate income/goods weekly data. Use sheet directly.
  * ========================================================================= */
 async function mainFromCache() {
-  var [weeklyRows, dowRows, monthlyTxRows, revCatRows, goodsWeeklyRows] = await Promise.all([
-    loadCacheTab('rev_weekly'),
-    loadCacheTab('rev_dow_avg'),
-    loadCacheTab('rev_monthly_tx'),
-    loadCacheTab('rev_by_month_cat'),
-    loadCacheTab('rev_goods_weekly')
-  ]);
-
-  if (!weeklyRows.length) throw new Error('rev_weekly cache empty');
-
-  /* ---- Build weekMap from cache ---- */
-  weekMap = {};
-  weeklyRows.forEach(function(r) {
-    var monDate = new Date(r.week_mon + 'T00:00:00');
-    weekMap[r.week_mon] = {
-      mon: monDate,
-      days: [num(r.d0), num(r.d1), num(r.d2), num(r.d3), num(r.d4), num(r.d5), num(r.d6)],
-      total: num(r.total)
-    };
-  });
-  weekKeys = Object.keys(weekMap).sort().reverse();
-
-  /* ---- KPI: monthly fact from rev_monthly_tx ---- */
-  var today = new Date(); today.setHours(0,0,0,0);
-  var curYear = today.getFullYear();
-  var curMonth = today.getMonth();
-  var curYM = curYear + '-' + String(curMonth + 1).padStart(2, '0');
-  var dimCur = daysInMonth(curYear, curMonth);
-  var dayOfMonth = today.getDate();
-  var monthSoFar = 0;
-  var prevYM = curMonth === 0
-    ? (curYear - 1) + '-12'
-    : curYear + '-' + String(curMonth).padStart(2, '0');
-  var prevMonthFull = 0;
-  monthlyTxRows.forEach(function(r) {
-    if (r.month === curYM) monthSoFar = num(r.total);
-    if (r.month === prevYM) prevMonthFull = num(r.total);
-  });
-  // Pace comparison: prev month daily rate × current days elapsed
-  var prevDim = curMonth === 0 ? daysInMonth(curYear - 1, 11) : daysInMonth(curYear, curMonth - 1);
-  var prevMonthPace = prevDim > 0 ? (prevMonthFull / prevDim) * dayOfMonth : 0;
-
-  renderKPIs(monthSoFar, dayOfMonth, dimCur, prevMonthPace);
-
-  /* ---- BLOCK 1: Weekly table ---- */
-  renderWeeklyTable();
-  document.getElementById('toggle-weeks').addEventListener('click', function() {
-    showAll = !showAll;
-    renderWeeklyTable();
-  });
-
-  /* ---- BLOCK 2: DOW chart ---- */
-  var dowAvg = [0,0,0,0,0,0,0];
-  var DOW_MAP = {'Пн':0,'Вт':1,'Ср':2,'Чт':3,'Пт':4,'Сб':5,'Вс':6};
-  dowRows.forEach(function(r) {
-    var idx = DOW_MAP[r.day];
-    if (idx !== undefined) dowAvg[idx] = num(r.avg);
-  });
-  renderDowChart(dowAvg);
-
-  /* ---- BLOCK 3: Monthly summary ---- */
-  // Build monthMap-like structure from rev_monthly_tx
-  var monthInfoMap = {};
-  monthlyTxRows.forEach(function(r) {
-    monthInfoMap[r.month] = { total: num(r.total), daysCount: num(r.days_count) };
-  });
-  var monthKeys = Object.keys(monthInfoMap).sort();
-  var last8 = monthKeys.slice(-8);
-
-  renderMonthlyChart(last8, last8.map(function(ym) { return monthInfoMap[ym].total; }));
-
-  // Monthly table with best/worst week from weekMap
-  function bestWorstWeekForMonth(ym) {
-    var best = null, worst = null;
-    weekKeys.forEach(function(wk) {
-      var w = weekMap[wk];
-      var wym = w.mon.getFullYear() + '-' + String(w.mon.getMonth()+1).padStart(2,'0');
-      if (wym === ym) {
-        if (!best || w.total > best.total) best = w;
-        if (!worst || w.total < worst.total) worst = w;
-      }
-    });
-    return {
-      best: best ? fmtInt(Math.round(best.total)) : '—',
-      worst: worst ? fmtInt(Math.round(worst.total)) : '—'
-    };
-  }
-
-  {
-    var tbody = document.querySelector('#monthly-table tbody');
-    var html = '';
-    last8.forEach(function(ym) {
-      var m = monthInfoMap[ym];
-      var avg = m.daysCount > 0 ? m.total / m.daysCount : 0;
-      var bw = bestWorstWeekForMonth(ym);
-      html += '<tr>';
-      html += '<td style="font-weight:500">' + ymLabel(ym) + '</td>';
-      html += '<td class="num">' + fmtInt(Math.round(m.total)) + ' ₺</td>';
-      html += '<td class="num">' + fmtInt(Math.round(avg)) + ' ₺</td>';
-      html += '<td class="num pos">' + bw.best + '</td>';
-      html += '<td class="num neg">' + bw.worst + '</td>';
-      html += '</tr>';
-    });
-    tbody.innerHTML = html;
-  }
-
-  /* ---- BLOCK 4: Category donut ---- */
-  var catMap = {};
-  var catTotal = 0;
-  var curCatRow = null;
-  revCatRows.forEach(function(r) {
-    if (r.month === curYM) curCatRow = r;
-  });
-  if (curCatRow) {
-    var catNames = ['Корты','Инвентарь','Клубные карты','Тренировки','Турниры','Товары','Прочее'];
-    catNames.forEach(function(c) {
-      var v = num(curCatRow[c]);
-      if (v > 0) {
-        catMap[c] = v;
-        catTotal += v;
-      }
-    });
-  }
-  renderCatBlock(catMap, catTotal);
-
-  /* ---- BLOCK 5: Goods sparklines ---- */
-  var goodsItems = [];
-  var goodsWeeklyVals = [];
-  goodsWeeklyRows.forEach(function(r) {
-    goodsItems.push({ sub: r.name, count: num(r.count), total: num(r.total) });
-    goodsWeeklyVals.push([num(r.w0), num(r.w1), num(r.w2), num(r.w3), num(r.w4), num(r.w5), num(r.w6), num(r.w7)]);
-  });
-  renderGoodsBlock(goodsItems, goodsWeeklyVals);
+  throw new Error('skip cache: need per-category data');
 }
 
 /* =========================================================================
  * MAIN FROM SHEET (slow fallback)
  * ========================================================================= */
+/* ---- Helper: build tab data from filtered txns ---- */
+function buildTabData(tabName, txns) {
+  var td = tabData[tabName];
+  td.weekMap = {}; td.weekKeys = [];
+  txns.forEach(function(t) {
+    var wk = weekKey(t.date);
+    if (!td.weekMap[wk]) td.weekMap[wk] = { mon: getMonday(t.date), days: [0,0,0,0,0,0,0], total: 0 };
+    var dow = isoWeekDow(t.date);
+    td.weekMap[wk].days[dow] += t.total;
+    td.weekMap[wk].total += t.total;
+  });
+  td.weekKeys = Object.keys(td.weekMap).sort().reverse();
+}
+
+function renderTabKPIs(prefix, txns) {
+  var today = new Date(); today.setHours(0,0,0,0);
+  var curMonth = today.getMonth(), curYear = today.getFullYear();
+  var dimCur = daysInMonth(curYear, curMonth);
+  // Completed days = yesterday (today is still in progress)
+  var completedDays = Math.max(today.getDate() - 1, 1);
+  var prevM = curMonth === 0 ? 11 : curMonth - 1;
+  var prevY = curMonth === 0 ? curYear - 1 : curYear;
+  var monthSoFar = 0, prevMonthFull = 0, txCount = 0;
+  txns.forEach(function(t) {
+    if (t.date.getMonth() === curMonth && t.date.getFullYear() === curYear) { monthSoFar += t.total; txCount++; }
+    if (t.date.getMonth() === prevM && t.date.getFullYear() === prevY) { prevMonthFull += t.total; }
+  });
+  var prevDim = daysInMonth(prevY, prevM);
+  var prevMonthPace = prevDim > 0 ? (prevMonthFull / prevDim) * completedDays : 0;
+  renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, txCount);
+}
+
+function renderTabDow(canvasId, txns) {
+  var dowTotals = [0,0,0,0,0,0,0];
+  var dowDates = [new Set(), new Set(), new Set(), new Set(), new Set(), new Set(), new Set()];
+  txns.forEach(function(t) {
+    var d = isoWeekDow(t.date);
+    dowTotals[d] += t.total;
+    dowDates[d].add(t.date.toISOString().slice(0, 10));
+  });
+  var dowAvg = dowTotals.map(function(tot, i) { return dowDates[i].size > 0 ? tot / dowDates[i].size : 0; });
+  renderDowChart(canvasId, dowAvg);
+}
+
+function renderTabMonthly(prefix, txns) {
+  var td = tabData[prefix === 'inc' ? 'income' : 'goods'];
+  var monthMap = {};
+  txns.forEach(function(t) {
+    var ym = ymKey(t.date);
+    if (!monthMap[ym]) monthMap[ym] = { total: 0, daySet: new Set() };
+    monthMap[ym].total += t.total;
+    monthMap[ym].daySet.add(t.date.toDateString());
+  });
+  var mKeys = Object.keys(monthMap).sort().slice(-8);
+  renderMonthlyChart(prefix + '-monthly-chart', mKeys, mKeys.map(function(ym) { return monthMap[ym].total; }));
+
+  function bestWorst(ym) {
+    var best = null, worst = null;
+    td.weekKeys.forEach(function(wk) {
+      var w = td.weekMap[wk];
+      if (ymKey(w.mon) === ym) {
+        if (!best || w.total > best.total) best = w;
+        if (!worst || w.total < worst.total) worst = w;
+      }
+    });
+    return { best: best ? fmtInt(Math.round(best.total)) : '—', worst: worst ? fmtInt(Math.round(worst.total)) : '—' };
+  }
+
+  var tbody = document.querySelector('#' + prefix + '-monthly-table tbody');
+  var html = '';
+  mKeys.forEach(function(ym) {
+    var m = monthMap[ym];
+    var ndays = m.daySet.size;
+    var avg = ndays > 0 ? m.total / ndays : 0;
+    var bw = bestWorst(ym);
+    html += '<tr><td style="font-weight:500">' + ymLabel(ym) + '</td>';
+    html += '<td class="num">' + fmtInt(Math.round(m.total)) + ' ₺</td>';
+    html += '<td class="num">' + fmtInt(Math.round(avg)) + ' ₺</td>';
+    html += '<td class="num pos">' + bw.best + '</td>';
+    html += '<td class="num neg">' + bw.worst + '</td></tr>';
+  });
+  tbody.innerHTML = html;
+}
+
 async function mainFromSheet() {
   let rows;
   try {
     rows = await loadSheet('transactions');
   } catch (err) {
     document.querySelector('main').innerHTML =
-      '<div class="panel" style="margin-top:40px"><div class="error">Не удалось загрузить данные: ' +
-      (err.message || err) + '</div></div>';
+      '<div class="panel" style="margin-top:40px"><div class="error">Не удалось загрузить данные: ' + (err.message || err) + '</div></div>';
     return;
   }
 
@@ -901,162 +939,67 @@ async function mainFromSheet() {
     if (!d) return;
     const total = num(r.total);
     if (!total) return;
-    txns.push({
-      date: d,
-      total,
-      category: r.category || '',
-      subcategory: r.subcategory || '',
-      source: r.source || '',
-      month: r.month || ymKey(d)
-    });
+    txns.push({ date: d, total, category: r.category || '', subcategory: r.subcategory || '' });
   });
-
   txns.sort((a, b) => a.date - b.date);
 
-  /* ---- Build weekly data ---- */
-  const today = new Date();
-  today.setHours(0,0,0,0);
+  /* ---- Split into income & goods ---- */
+  var incomeTxns = txns.filter(function(t) { return isIncome(t.category); });
+  var goodsTxns  = txns.filter(function(t) { return isGoods(t.category); });
 
-  weekMap = {};
-  txns.forEach(t => {
-    const wk = weekKey(t.date);
-    if (!weekMap[wk]) {
-      const mon = getMonday(t.date);
-      weekMap[wk] = { mon, days: [0,0,0,0,0,0,0], total: 0 };
-    }
-    const dow = isoWeekDow(t.date);
-    weekMap[wk].days[dow] += t.total;
-    weekMap[wk].total += t.total;
+  /* ═══ INCOME TAB ═══ */
+  buildTabData('income', incomeTxns);
+  renderTabKPIs('inc', incomeTxns);
+  renderWeeklyTable('inc');
+  document.getElementById('inc-toggle-weeks').addEventListener('click', function() {
+    tabData.income.showAll = !tabData.income.showAll;
+    renderWeeklyTable('inc');
   });
+  renderTabDow('inc-dow-chart', incomeTxns);
+  renderTabMonthly('inc', incomeTxns);
 
-  weekKeys = Object.keys(weekMap).sort().reverse();
-
-  /* ---- KPI ---- */
-  const curMonth = today.getMonth();
-  const curYear = today.getFullYear();
-  const dimCur = daysInMonth(curYear, curMonth);
-  const dayOfMonth = today.getDate();
-  let monthSoFar = 0;
-  let prevMonthFull = 0;
-  const prevM = curMonth === 0 ? 11 : curMonth - 1;
-  const prevY = curMonth === 0 ? curYear - 1 : curYear;
-  txns.forEach(t => {
-    if (t.date.getMonth() === curMonth && t.date.getFullYear() === curYear) {
-      monthSoFar += t.total;
-    }
-    if (t.date.getMonth() === prevM && t.date.getFullYear() === prevY) {
-      prevMonthFull += t.total;
-    }
-  });
-  const prevDim = daysInMonth(prevY, prevM);
-  const prevMonthPace = prevDim > 0 ? (prevMonthFull / prevDim) * dayOfMonth : 0;
-
-  renderKPIs(monthSoFar, dayOfMonth, dimCur, prevMonthPace);
-
-  /* ---- BLOCK 1: Weekly table ---- */
-  renderWeeklyTable();
-  document.getElementById('toggle-weeks').addEventListener('click', () => {
-    showAll = !showAll;
-    renderWeeklyTable();
-  });
-
-  /* ---- BLOCK 2: DOW chart (total revenue / unique dates per weekday) ---- */
-  const dowTotals = [0,0,0,0,0,0,0];
-  const dowDates = [new Set(), new Set(), new Set(), new Set(), new Set(), new Set(), new Set()];
-  txns.forEach(t => {
-    const d = isoWeekDow(t.date);
-    dowTotals[d] += t.total;
-    dowDates[d].add(t.date.toISOString().slice(0, 10));
-  });
-  const dowAvg = dowTotals.map((tot, i) => dowDates[i].size > 0 ? tot / dowDates[i].size : 0);
-  renderDowChart(dowAvg);
-
-  /* ---- BLOCK 3: Monthly summary ---- */
-  const monthMap = {};
-  txns.forEach(t => {
-    const ym = ymKey(t.date);
-    if (!monthMap[ym]) monthMap[ym] = { total: 0, daySet: new Set(), dayTotals: {} };
-    monthMap[ym].total += t.total;
-    const dk = t.date.toDateString();
-    monthMap[ym].daySet.add(dk);
-    monthMap[ym].dayTotals[dk] = (monthMap[ym].dayTotals[dk] || 0) + t.total;
-  });
-
-  const monthKeysAll = Object.keys(monthMap).sort();
-  const last8 = monthKeysAll.slice(-8);
-
-  renderMonthlyChart(last8, last8.map(ym => monthMap[ym].total));
-
-  function bestWorstWeekForMonth(ym) {
-    let best = null, worst = null;
-    weekKeys.forEach(wk => {
-      const w = weekMap[wk];
-      const wym = ymKey(w.mon);
-      if (wym === ym) {
-        if (!best || w.total > best.total) best = w;
-        if (!worst || w.total < worst.total) worst = w;
-      }
-    });
-    return {
-      best: best ? fmtInt(Math.round(best.total)) : '—',
-      worst: worst ? fmtInt(Math.round(worst.total)) : '—'
-    };
-  }
-
-  {
-    const tbody = document.querySelector('#monthly-table tbody');
-    let html = '';
-    last8.forEach(ym => {
-      const m = monthMap[ym];
-      const ndays = m.daySet.size;
-      const avg = ndays > 0 ? m.total / ndays : 0;
-      const bw = bestWorstWeekForMonth(ym);
-      html += '<tr>';
-      html += '<td style="font-weight:500">' + ymLabel(ym) + '</td>';
-      html += '<td class="num">' + fmtInt(Math.round(m.total)) + ' ₺</td>';
-      html += '<td class="num">' + fmtInt(Math.round(avg)) + ' ₺</td>';
-      html += '<td class="num pos">' + bw.best + '</td>';
-      html += '<td class="num neg">' + bw.worst + '</td>';
-      html += '</tr>';
-    });
-    tbody.innerHTML = html;
-  }
-
-  /* ---- BLOCK 4: Category donut ---- */
-  const curYM = ymKey(today);
-  const catMap = {};
-  let catTotal = 0;
-  txns.forEach(t => {
+  // Income category donut
+  var today = new Date(); today.setHours(0,0,0,0);
+  var curYM = ymKey(today);
+  var incCatMap = {}, incCatTotal = 0;
+  incomeTxns.forEach(function(t) {
     if (ymKey(t.date) !== curYM) return;
-    const cat = categorizeRevenue(t.category);
+    var cat = categorizeRevenue(t.category);
     if (!cat) return;
-    catMap[cat] = (catMap[cat] || 0) + t.total;
-    catTotal += t.total;
+    incCatMap[cat] = (incCatMap[cat] || 0) + t.total;
+    incCatTotal += t.total;
   });
-  renderCatBlock(catMap, catTotal);
+  renderCatBlock('inc-cat-donut', 'inc-cat-table', incCatMap, incCatTotal);
 
-  /* ---- BLOCK 5: Goods sparklines ---- */
-  const goodsTxns = txns.filter(t => categorizeRevenue(t.category) === 'Товары');
-  const goodsMap = {};
-  goodsTxns.forEach(t => {
-    const sub = t.subcategory || t.category || 'Без подкатегории';
+  /* ═══ GOODS TAB ═══ */
+  buildTabData('goods', goodsTxns);
+  renderTabKPIs('gds', goodsTxns);
+  renderWeeklyTable('gds');
+  document.getElementById('gds-toggle-weeks').addEventListener('click', function() {
+    tabData.goods.showAll = !tabData.goods.showAll;
+    renderWeeklyTable('gds');
+  });
+  renderTabDow('gds-dow-chart', goodsTxns);
+  renderTabMonthly('gds', goodsTxns);
+
+  // Goods sparklines
+  var goodsMap = {};
+  goodsTxns.forEach(function(t) {
+    var sub = t.subcategory || t.category || 'Без подкатегории';
     if (!goodsMap[sub]) goodsMap[sub] = { count: 0, total: 0, weeklyTotals: {} };
     goodsMap[sub].count++;
     goodsMap[sub].total += t.total;
-    const wk = weekKey(t.date);
+    var wk = weekKey(t.date);
     goodsMap[sub].weeklyTotals[wk] = (goodsMap[sub].weeklyTotals[wk] || 0) + t.total;
   });
-
-  const goodsItemsList = Object.entries(goodsMap)
+  var goodsItemsList = Object.entries(goodsMap)
     .map(([sub, data]) => ({ sub, ...data }))
     .sort((a, b) => b.total - a.total)
     .slice(0, 10);
-
-  const last8Weeks = weekKeys.slice(0, 8).reverse();
-  const goodsWeeklyVals = goodsItemsList.map(item =>
-    last8Weeks.map(wk => item.weeklyTotals[wk] || 0)
-  );
-
+  var last8Weeks = tabData.goods.weekKeys.slice(0, 8).reverse();
+  var goodsWeeklyVals = goodsItemsList.map(function(item) {
+    return last8Weeks.map(function(wk) { return item.weeklyTotals[wk] || 0; });
+  });
   renderGoodsBlock(goodsItemsList, goodsWeeklyVals);
 }
 
