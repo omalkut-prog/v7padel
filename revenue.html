@@ -631,7 +631,7 @@
     <div class="kpi-card">
       <div class="kpi-label">Корты / корто-час</div>
       <div class="kpi-value" id="utl-kpi-rev-hour-courts">—</div>
-      <div class="kpi-delta muted" id="utl-kpi-rev-hour-courts-hint">без доп. продаж</div>
+      <div class="kpi-delta muted" id="utl-kpi-rev-hour-courts-hint">только аренда кортов</div>
     </div>
   </div>
 
@@ -1827,7 +1827,8 @@ function _renderUtilizationCharts() {
   var dtBody = document.querySelector('#utl-days-table tbody');
   var dtHtml = '';
   var weekSum = 0, weekDays = 0, weekPers = 0;
-  allDays.forEach(function(d, idx) {
+  var reversedDays = allDays.slice().reverse();
+  reversedDays.forEach(function(d, idx) {
     var dayNum = multiMonth ? (d.date.slice(8,10) + '.' + d.date.slice(5,7)) : parseInt(d.date.slice(8,10));
     var rowClass = d.isPast ? '' : ' style="opacity:0.5"';
     dtHtml += '<tr' + rowClass + '>';
@@ -1841,7 +1842,8 @@ function _renderUtilizationCharts() {
     dtHtml += '<td class="num">' + ((d.h_actividades + d.h_centro) > 0 ? (d.h_actividades + d.h_centro).toFixed(1) : '—') + '</td>';
     dtHtml += '</tr>';
     weekSum += d.hours; weekDays++; weekPers += d.persons;
-    if (d.dow === 0 || idx === allDays.length - 1) {
+    // In reverse order: emit week subtotal after Monday (dow=1) or at end
+    if (d.dow === 1 || idx === reversedDays.length - 1) {
       var weekAvg = weekDays > 0 ? weekSum / weekDays : 0;
       dtHtml += '<tr class="month-subtotal"><td colspan="3" style="font-weight:600">Итого: ' + weekSum.toFixed(1) + ' ч.</td><td colspan="2" class="muted">ср. ' + weekAvg.toFixed(1) + ' ч/дн, ' + weekPers + ' чел.</td><td colspan="3"></td></tr>';
       weekSum = 0; weekDays = 0; weekPers = 0;
