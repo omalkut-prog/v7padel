@@ -439,7 +439,7 @@
 
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-label">Выручка товаров (всё время)</div>
+      <div class="kpi-label" id="mrg-kpi-period-label">Выручка товаров</div>
       <div class="kpi-value" id="mrg-kpi-revenue">—</div>
       <div class="kpi-delta muted" id="mrg-kpi-revenue-hint"></div>
     </div>
@@ -503,7 +503,30 @@
 
   <section class="section">
     <div class="section-head">
-      <h2>2 &middot; Маржа по категориям</h2>
+      <h2>2 &middot; Ходовые и залежалые товары</h2>
+      <span class="hint">топ продаж vs товары без движения (последние 30 дней)</span>
+    </div>
+    <div class="two-col">
+      <div class="panel">
+        <h3>Ходовые (топ-10)</h3>
+        <table class="fin" id="mrg-hot-table">
+          <thead><tr><th>Товар</th><th>Продаж</th><th>Маржа</th><th>Нац.%</th></tr></thead>
+          <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+      <div class="panel">
+        <h3>Залежалые (0 продаж за 30 дн.)</h3>
+        <table class="fin" id="mrg-stale-table">
+          <thead><tr><th>Товар</th><th>Посл. продажа</th><th>Наценка%</th></tr></thead>
+          <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>3 &middot; Маржа по категориям</h2>
       <span class="hint">Расходники vs Оборудование vs Мерч</span>
     </div>
     <div class="two-col">
@@ -521,23 +544,39 @@
 
   <section class="section">
     <div class="section-head">
-      <h2>3 &middot; Ходовые и залежалые товары</h2>
-      <span class="hint">топ продаж vs товары без движения (последние 30 дней)</span>
+      <h2>4 &middot; Рекомендации по закупкам</h2>
+      <span class="hint">на основе продаж и маржинальности</span>
     </div>
     <div class="two-col">
       <div class="panel">
-        <h3>Ходовые (топ-10)</h3>
-        <table class="fin" id="mrg-hot-table">
-          <thead><tr><th>Товар</th><th>Продаж</th><th>Маржа</th></tr></thead>
-          <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
+        <h3 style="color:var(--good)">Закупать больше</h3>
+        <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Хорошо продаётся + высокая маржа</p>
+        <table class="fin" id="mrg-buy-more-table">
+          <thead><tr><th>Товар</th><th>Продаж/мес</th><th>Маржа%</th><th>Маржа ₺/шт</th></tr></thead>
+          <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
         </table>
       </div>
       <div class="panel">
-        <h3>Залежалые (0 продаж за 30 дн.)</h3>
-        <table class="fin" id="mrg-stale-table">
-          <thead><tr><th>Товар</th><th>Посл. продажа</th><th>Наценка%</th></tr></thead>
-          <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
+        <h3 style="color:var(--bad)">Пересмотреть/убрать</h3>
+        <p style="font-size:11px;color:var(--text3);margin-bottom:10px">Низкие продажи или маржа &lt; 30%</p>
+        <table class="fin" id="mrg-buy-less-table">
+          <thead><tr><th>Товар</th><th>Продаж/мес</th><th>Маржа%</th><th>Проблема</th></tr></thead>
+          <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
         </table>
+      </div>
+    </div>
+    <div class="panel" id="mrg-daily-target" style="margin-top:14px">
+      <div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);font-weight:500">Цель: 5 000 ₺ / день чистыми</div>
+          <div style="font-size:24px;font-weight:700;color:var(--text)" id="mrg-daily-actual">—</div>
+          <div class="kpi-delta muted" id="mrg-daily-hint"></div>
+        </div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--text3);font-weight:500">При текущей марже нужно продаж/день</div>
+          <div style="font-size:24px;font-weight:700;color:var(--text)" id="mrg-daily-needed">—</div>
+          <div class="kpi-delta muted" id="mrg-daily-needed-hint"></div>
+        </div>
       </div>
     </div>
   </section>
@@ -689,6 +728,8 @@ document.querySelectorAll('#period-filter .pf-btn').forEach(function(btn) {
     renderWeeklyTable('gds');
     recalcKPIs('inc');
     recalcKPIs('gds');
+    // Recalc margins if data loaded
+    if (window._allGoodsTxnsRaw) _renderMarginsData(window._allGoodsTxnsRaw);
     // Recalc utilization KPIs if data loaded
     if (window._utlParsed) recalcUtilizationKPIs();
   });
@@ -1813,7 +1854,12 @@ async function renderUtilizationTab(bookings) {
 }
 
 /* ---- Load margins from PnL spreadsheet ---- */
-var _marginsMap = {}; // normalized product name → { cost, markup }
+var _marginsMap = {}; // normalized product name → { cost, markup, salePrice, category }
+
+// Normalize key: lowercase, collapse spaces, strip hyphens, unify quotes
+function normKey(s) {
+  return (s || '').toLowerCase().replace(/[-–—]/g, ' ').replace(/\s+/g, ' ').replace(/[\u2018\u2019\u2032\u0060]/g, "'").trim();
+}
 
 async function loadMargins() {
   var PNL_ID = '1wLvhEUAsS08K6LvxSKAx5-soh5NxayMpU3brvd4rQ54';
@@ -1823,15 +1869,10 @@ async function loadMargins() {
     var resp = await fetch(url);
     var text = await resp.text();
     var lines = text.split('\n');
-    // Skip header
     for (var i = 1; i < lines.length; i++) {
       var line = lines[i].trim();
       if (!line) continue;
-      // Parse CSV: split by "," between quoted fields
-      var cols = line.match(/("(?:[^"]|"")*"|[^,]*)/g) || [];
-      cols = cols.filter(function(_, idx) { return idx % 2 === 0; }); // take every other match (skip comma positions)
-      // Actually simpler: just use split with awareness of quotes
-      cols = [];
+      var cols = [];
       var raw = line + ',';
       var field = '', inQ = false;
       for (var ci = 0; ci < raw.length; ci++) {
@@ -1845,14 +1886,20 @@ async function loadMargins() {
           else { field += ch; }
         }
       }
+      var category = (cols[0] || '').trim();
       var product = (cols[1] || '').trim();
+      var salePriceStr = (cols[2] || '').replace(',', '.').replace(/\s/g, '');
       var costStr = (cols[3] || '').replace(',', '.').replace(/\s/g, '');
       var markupStr = (cols[4] || '').replace(',', '.').replace('%', '').replace(/\s/g, '');
-      var cost = parseFloat(costStr);
-      var markup = parseFloat(markupStr);
+      // Use newest cost/markup if available (cols 5,6 = updated price)
+      var newCostStr = (cols[5] || '').replace(',', '.').replace(/\s/g, '');
+      var newMarkupStr = (cols[6] || '').replace(',', '.').replace('%', '').replace(/\s/g, '');
+      var cost = parseFloat(newCostStr) || parseFloat(costStr);
+      var markup = parseFloat(newMarkupStr) || parseFloat(markupStr);
+      var salePrice = parseFloat(salePriceStr);
       if (!product || isNaN(cost)) continue;
-      var key = product.toLowerCase().replace(/\s+/g, ' ').replace(/[\u2018\u2019\u2032\u0060]/g, "'");
-      _marginsMap[key] = { cost: cost, markup: isNaN(markup) ? 0 : markup };
+      var key = normKey(product);
+      _marginsMap[key] = { cost: cost, markup: isNaN(markup) ? 0 : markup, salePrice: salePrice || 0, category: category };
     }
     console.log('[revenue] margins loaded:', Object.keys(_marginsMap).length, 'products');
   } catch (err) {
@@ -1862,36 +1909,50 @@ async function loadMargins() {
 
 function findMargin(subcategory) {
   if (!subcategory) return null;
-  // Extract product name after " / " if present (e.g. "Padel Balls / Dunlop" → "Dunlop")
   var parts = subcategory.split(' / ');
+  var catHint = parts.length > 1 ? normKey(parts[0]) : '';
   var name = (parts.length > 1 ? parts[parts.length - 1] : subcategory).trim();
-  var key = name.toLowerCase().replace(/\s+/g, ' ').replace(/[\u2018\u2019\u2032\u0060]/g, "'");
-  // Exact match
-  if (_marginsMap[key]) return _marginsMap[key];
-  // Substring match
+  var key = normKey(name);
   var keys = Object.keys(_marginsMap);
+
+  // 1. Exact match
+  if (_marginsMap[key]) return _marginsMap[key];
+
+  // 2. Substring match (both directions)
   for (var i = 0; i < keys.length; i++) {
     if (key.indexOf(keys[i]) >= 0 || keys[i].indexOf(key) >= 0) return _marginsMap[keys[i]];
   }
-  // Generic names: match by category keyword (e.g. "men's" → any Men's T-shirt)
-  var genericKW = ['men\'s', 'women\'s', 'hoodie', 'towel', 't-shirt'];
+
+  // 3. Strip noise words and retry (e.g. "300 ml carbonated coca cola can" → match "coca cola can")
+  var noiseRe = /\b(ml|300|carbonated|bottle|can|pet|500)\b/gi;
+  var cleanKey = key.replace(noiseRe, '').replace(/\s+/g, ' ').trim();
+  if (cleanKey && cleanKey !== key) {
+    if (_marginsMap[cleanKey]) return _marginsMap[cleanKey];
+    for (var i2 = 0; i2 < keys.length; i2++) {
+      if (cleanKey.indexOf(keys[i2]) >= 0 || keys[i2].indexOf(cleanKey) >= 0) return _marginsMap[keys[i2]];
+    }
+  }
+
+  // 4. Generic merchandise: match by category keyword
+  var genericKW = ['men\'s', 'women\'s', 'hoodie', 'towel', 't shirt'];
   for (var g = 0; g < genericKW.length; g++) {
-    if (key.indexOf(genericKW[g]) >= 0) {
+    if (key.indexOf(genericKW[g]) >= 0 || catHint.indexOf(genericKW[g]) >= 0 || catHint.indexOf('shirt') >= 0) {
       for (var k = 0; k < keys.length; k++) {
         if (keys[k].indexOf(genericKW[g]) >= 0) return _marginsMap[keys[k]];
       }
     }
   }
-  // Word overlap: find best match by shared significant words (>3 chars)
-  var words = key.split(/\s+/).filter(function(w) { return w.length > 3; });
-  if (words.length < 2) return null;
+
+  // 5. Word overlap: find best match by shared significant words (>3 chars)
+  var allWords = key.split(/\s+/).filter(function(w) { return w.length > 2; });
+  if (allWords.length < 1) return null;
   var bestMatch = null, bestScore = 0;
   for (var j = 0; j < keys.length; j++) {
     var score = 0;
-    for (var w = 0; w < words.length; w++) {
-      if (keys[j].indexOf(words[w]) >= 0) score++;
+    for (var w = 0; w < allWords.length; w++) {
+      if (keys[j].indexOf(allWords[w]) >= 0) score++;
     }
-    if (score > bestScore && score >= 2) { bestScore = score; bestMatch = _marginsMap[keys[j]]; }
+    if (score > bestScore && score >= 1) { bestScore = score; bestMatch = _marginsMap[keys[j]]; }
   }
   return bestMatch;
 }
@@ -1914,10 +1975,22 @@ function classifyGoodsCat(name) {
 }
 
 function renderMarginsTab(goodsTxns) {
-  // Aggregate by subcategory — ALL TIME
+  // Save all transactions for period re-filtering
+  window._allGoodsTxnsRaw = goodsTxns;
+  _renderMarginsData(goodsTxns);
+}
+
+function _renderMarginsData(goodsTxns) {
+  // Apply period filter
+  var cutoff = getPeriodCutoff();
+  var filtered = goodsTxns;
+  if (cutoff) {
+    filtered = goodsTxns.filter(function(t) { return t.date >= cutoff; });
+  }
+
   var byProduct = {};
   var last30 = new Date(); last30.setDate(last30.getDate() - 30);
-  goodsTxns.forEach(function(t) {
+  filtered.forEach(function(t) {
     var sub = t.subcategory || t.category || 'Без названия';
     if (!byProduct[sub]) byProduct[sub] = { name: sub, count: 0, revenue: 0, lastDate: null, recent30: 0 };
     byProduct[sub].count++;
@@ -1928,6 +2001,7 @@ function renderMarginsTab(goodsTxns) {
 
   var items = Object.values(byProduct);
   var totalRevenue = 0, totalCost = 0, totalMargin = 0, matched = 0, totalCount = 0;
+  var anomalies = [];
   items.forEach(function(item) {
     var mg = findMargin(item.name);
     item.cost = mg ? mg.cost * item.count : 0;
@@ -1935,12 +2009,17 @@ function renderMarginsTab(goodsTxns) {
     item.markup = mg ? mg.markup : null;
     item.marginPct = item.revenue > 0 ? (item.margin / item.revenue * 100) : 0;
     item.hasMargin = !!mg;
+    // Detect anomalies: margin% > 300% or < -50% likely means wrong match
+    if (mg && (item.marginPct > 300 || item.marginPct < -50)) {
+      anomalies.push(item.name + ' (' + item.marginPct.toFixed(0) + '%)');
+    }
     totalRevenue += item.revenue;
     totalCost += item.cost;
     totalCount += item.count;
     if (mg) { totalMargin += item.margin; matched++; }
   });
   totalMargin = totalRevenue - totalCost;
+  if (anomalies.length) console.warn('[margins] Anomalies detected:', anomalies.join(', '));
 
   // KPIs
   document.getElementById('mrg-kpi-revenue').textContent = fmtMoney(totalRevenue);
@@ -1957,26 +2036,29 @@ function renderMarginsTab(goodsTxns) {
   document.getElementById('mrg-kpi-matched').textContent = matched + '/' + items.length;
   document.getElementById('mrg-kpi-matched-hint').textContent = 'сопоставлено с PnL';
 
+  // Period label
+  var periodLabel = _periodMonths === 1 ? 'текущий месяц' : _periodMonths === 3 ? '3 месяца' : _periodMonths === 6 ? '6 месяцев' : 'всё время';
+  document.getElementById('mrg-kpi-period-label').textContent = 'Выручка товаров (' + periodLabel + ')';
+
   _mrgAllItems = items;
   renderMarginsTable();
 
-  // Category chart
+  // Category data
   var catData = {};
+  var EQUIP_KW2 = ['racket', 'raket', 'bag', 'shoe', 'backpack'];
+  var CONSUMABLE_KW = ['ball', 'overgrip', 'grip', 'tecnifibre', 'kuikma'];
+  var DRINK_KW = ['cola', 'fanta', 'sprite', 'monster', 'burn', 'fusetea', 'powerade', 'water'];
+  var FOOD_KW = ['protein', 'bigjoy', 'granio', 'fit bites', 'crumby', 'energy bar'];
+  var MERCH_KW = ['t-shirt', 'hoodie', 'towel', 'shirt', 'şapka', 'cap', 'sapka'];
   items.forEach(function(item) {
     var lower = item.name.toLowerCase();
     var cat;
-    var EQUIP_KW2 = ['racket', 'raket', 'bag', 'shoe', 'backpack'];
-    var CONSUMABLE_KW = ['ball', 'overgrip', 'grip', 'tecnifibre', 'kuikma'];
-    var DRINK_KW = ['cola', 'fanta', 'sprite', 'monster', 'burn', 'fusetea', 'powerade'];
-    var FOOD_KW = ['protein', 'bar', 'bigjoy', 'granio', 'fit bites', 'crumby'];
-    var MERCH_KW = ['t-shirt', 'hoodie', 'towel', 'shirt', 'şapka', 'cap'];
     if (EQUIP_KW2.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Оборудование';
     else if (CONSUMABLE_KW.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Расходники';
     else if (DRINK_KW.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Напитки';
     else if (FOOD_KW.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Снеки';
     else if (MERCH_KW.some(function(k){return lower.indexOf(k)>=0;})) cat = 'Мерч';
     else cat = 'Прочее';
-
     if (!catData[cat]) catData[cat] = { revenue: 0, cost: 0, margin: 0 };
     catData[cat].revenue += item.revenue;
     catData[cat].cost += item.cost;
@@ -1994,8 +2076,11 @@ function renderMarginsTab(goodsTxns) {
     }
   });
 
+  // Destroy old chart if exists, recreate
+  var catCanvas = document.getElementById('mrg-cat-chart');
+  if (window._mrgCatChart) { window._mrgCatChart.destroy(); window._mrgCatChart = null; }
   if (catValues.length) {
-    new Chart(document.getElementById('mrg-cat-chart'), {
+    window._mrgCatChart = new Chart(catCanvas, {
       type: 'doughnut',
       data: { labels: catLabels, datasets: [{ data: catValues, backgroundColor: catBgColors, borderWidth: 0, hoverOffset: 6 }] },
       options: { responsive: true, maintainAspectRatio: false, cutout: '55%',
@@ -2027,11 +2112,13 @@ function renderMarginsTab(goodsTxns) {
   var hotTbody = document.querySelector('#mrg-hot-table tbody');
   var hotHtml = '';
   sorted30.slice(0, 10).forEach(function(item) {
+    var marginPer = item.hasMargin && item.count > 0 ? Math.round(item.margin / item.count) : 0;
     hotHtml += '<tr><td style="font-weight:500">' + item.name + '</td>';
     hotHtml += '<td class="num">' + item.recent30 + '</td>';
-    hotHtml += '<td class="num pos">' + (item.hasMargin ? fmtInt(Math.round(item.margin * item.recent30 / item.count)) + ' ₺' : '—') + '</td></tr>';
+    hotHtml += '<td class="num pos">' + (item.hasMargin ? fmtInt(Math.round(item.margin * item.recent30 / item.count)) + ' ₺' : '—') + '</td>';
+    hotHtml += '<td class="num">' + (item.markup !== null ? item.markup.toFixed(0) + '%' : '—') + '</td></tr>';
   });
-  hotTbody.innerHTML = hotHtml || '<tr><td colspan="3" class="muted">Нет продаж за 30 дн.</td></tr>';
+  hotTbody.innerHTML = hotHtml || '<tr><td colspan="4" class="muted">Нет продаж за 30 дн.</td></tr>';
 
   var stale = items.filter(function(i){return i.recent30 === 0;}).sort(function(a,b){ return (a.lastDate||0) - (b.lastDate||0); });
   var staleTbody = document.querySelector('#mrg-stale-table tbody');
@@ -2044,31 +2131,81 @@ function renderMarginsTab(goodsTxns) {
   });
   staleTbody.innerHTML = staleHtml || '<tr><td colspan="3" class="muted">Все товары активны</td></tr>';
 
-  // Search
-  document.getElementById('mrg-search').addEventListener('input', function() {
-    _mrgSearch = this.value.toLowerCase();
-    renderMarginsTable();
-  });
+  // ═══ Procurement recommendations ═══
+  // Calculate months of data for per-month rates
+  var dateRange = filtered.reduce(function(r, t) {
+    if (!r.min || t.date < r.min) r.min = t.date;
+    if (!r.max || t.date > r.max) r.max = t.date;
+    return r;
+  }, { min: null, max: null });
+  var monthSpan = dateRange.min && dateRange.max ? Math.max(1, (dateRange.max - dateRange.min) / (30 * 86400000)) : 1;
 
-  // Category filter
-  document.querySelectorAll('#mrg-cat-filter .pf-btn').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('#mrg-cat-filter .pf-btn').forEach(function(b) { b.classList.remove('active'); });
-      this.classList.add('active');
-      _mrgCat = this.getAttribute('data-cat');
+  // Buy more: high sales + high margin
+  var buyMore = items.filter(function(i) { return i.hasMargin && i.recent30 > 0 && i.marginPct > 30; })
+    .sort(function(a, b) { return (b.margin * b.recent30 / b.count) - (a.margin * a.recent30 / a.count); });
+  var buyMoreHtml = '';
+  buyMore.slice(0, 10).forEach(function(item) {
+    var perMonth = (item.count / monthSpan).toFixed(1);
+    var marginPer = item.count > 0 ? Math.round(item.margin / item.count) : 0;
+    buyMoreHtml += '<tr><td style="font-weight:500">' + item.name + '</td>';
+    buyMoreHtml += '<td class="num">' + perMonth + '</td>';
+    buyMoreHtml += '<td class="num pos">' + item.marginPct.toFixed(0) + '%</td>';
+    buyMoreHtml += '<td class="num pos">' + fmtInt(marginPer) + ' ₺</td></tr>';
+  });
+  document.querySelector('#mrg-buy-more-table tbody').innerHTML = buyMoreHtml || '<tr><td colspan="4" class="muted">—</td></tr>';
+
+  // Buy less: low sales or low margin
+  var buyLess = items.filter(function(i) {
+    return i.hasMargin && (i.marginPct < 30 || (i.count / monthSpan < 1 && i.recent30 === 0));
+  }).sort(function(a, b) { return a.marginPct - b.marginPct; });
+  var buyLessHtml = '';
+  buyLess.slice(0, 10).forEach(function(item) {
+    var perMonth = (item.count / monthSpan).toFixed(1);
+    var problem = item.marginPct < 20 ? 'Маржа < 20%' : item.marginPct < 30 ? 'Маржа < 30%' : 'Нет продаж';
+    buyLessHtml += '<tr><td style="font-weight:500">' + item.name + '</td>';
+    buyLessHtml += '<td class="num">' + perMonth + '</td>';
+    buyLessHtml += '<td class="num neg">' + item.marginPct.toFixed(0) + '%</td>';
+    buyLessHtml += '<td class="muted" style="font-size:11px">' + problem + '</td></tr>';
+  });
+  document.querySelector('#mrg-buy-less-table tbody').innerHTML = buyLessHtml || '<tr><td colspan="4" class="muted">—</td></tr>';
+
+  // Daily target: 5000₺ net margin
+  var DAILY_TARGET = 5000;
+  var activeDays = filtered.reduce(function(s, t) { s.add(t.date.toISOString().slice(0,10)); return s; }, new Set()).size || 1;
+  var dailyMargin = totalMargin / activeDays;
+  var avgMarginPct = totalRevenue > 0 ? totalMargin / totalRevenue : 0;
+  var neededRevPerDay = avgMarginPct > 0 ? DAILY_TARGET / avgMarginPct : 0;
+
+  document.getElementById('mrg-daily-actual').textContent = fmtInt(Math.round(dailyMargin)) + ' ₺ / день';
+  document.getElementById('mrg-daily-actual').style.color = dailyMargin >= DAILY_TARGET ? 'var(--good)' : 'var(--bad)';
+  document.getElementById('mrg-daily-hint').textContent = 'при текущей марже ' + (avgMarginPct * 100).toFixed(0) + '% за ' + activeDays + ' дн.';
+  document.getElementById('mrg-daily-needed').textContent = fmtInt(Math.round(neededRevPerDay)) + ' ₺';
+  document.getElementById('mrg-daily-needed-hint').textContent = 'выручка товаров для 5 000 ₺ чистыми при ' + (avgMarginPct * 100).toFixed(0) + '% марже';
+
+  // Only bind events once (on first render)
+  if (!window._mrgEventsAttached) {
+    window._mrgEventsAttached = true;
+    document.getElementById('mrg-search').addEventListener('input', function() {
+      _mrgSearch = this.value.toLowerCase();
       renderMarginsTable();
     });
-  });
-
-  // Sort by clicking headers
-  document.querySelectorAll('#mrg-table th[data-sort]').forEach(function(th) {
-    th.addEventListener('click', function() {
-      var col = this.getAttribute('data-sort');
-      if (_mrgSortCol === col) _mrgSortAsc = !_mrgSortAsc;
-      else { _mrgSortCol = col; _mrgSortAsc = false; }
-      renderMarginsTable();
+    document.querySelectorAll('#mrg-cat-filter .pf-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('#mrg-cat-filter .pf-btn').forEach(function(b) { b.classList.remove('active'); });
+        this.classList.add('active');
+        _mrgCat = this.getAttribute('data-cat');
+        renderMarginsTable();
+      });
     });
-  });
+    document.querySelectorAll('#mrg-table th[data-sort]').forEach(function(th) {
+      th.addEventListener('click', function() {
+        var col = this.getAttribute('data-sort');
+        if (_mrgSortCol === col) _mrgSortAsc = !_mrgSortAsc;
+        else { _mrgSortCol = col; _mrgSortAsc = false; }
+        renderMarginsTable();
+      });
+    });
+  }
 }
 
 function renderMarginsTable() {
