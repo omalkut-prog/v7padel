@@ -547,6 +547,10 @@
   <!-- ═══════════════════ TAB: UTILIZATION ═══════════════════ -->
   <div class="tab-pane" id="pane-utilization">
 
+  <div id="utl-data-notice" style="display:none; background:rgba(243,156,18,0.1); border:1px solid rgba(243,156,18,0.3); border-radius:var(--radius); padding:12px 18px; margin-bottom:16px; font-size:12px; color:var(--text2);">
+    <strong style="color:#d35400">⚠ Данные:</strong> <span id="utl-notice-text"></span>
+  </div>
+
   <div class="kpi-row">
     <div class="kpi-card">
       <div class="kpi-label">Корто-часов (факт)</div>
@@ -586,9 +590,9 @@
     <div class="panel">
       <table class="fin" id="utl-days-table">
         <thead>
-          <tr><th>Дата</th><th>День</th><th>Часов</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>Загрузка%</th></tr>
+          <tr><th>Дата</th><th>День</th><th>Часов</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>Блоки</th><th>Загрузка%</th></tr>
         </thead>
-        <tbody><tr><td colspan="8" class="loading">Загрузка…</td></tr></tbody>
+        <tbody><tr><td colspan="9" class="loading">Загрузка…</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -695,14 +699,15 @@ function recalcUtilizationKPIs() {
   var parsed = window._utlParsed;
   if (!parsed || !parsed.length) return;
   var cutoff = getPeriodCutoff();
-  var today = new Date(); today.setHours(0,0,0,0);
+  var now = new Date(); // use actual time for isPast
 
-  var totalHours = 0, daySet = new Set();
+  var totalHours = 0, daySet = new Set(), blockHours = 0;
   var indoorH = 0, outdoorH = 0;
   var courtH = { P1: 0, P2: 0, P3: 0, P4: 0 };
   parsed.forEach(function(b) {
-    if (b.start >= today) return; // skip future
+    if (b.start >= now) return; // skip future (use actual time)
     if (cutoff && b.start < cutoff) return; // skip before period
+    if (b.isBlock) { blockHours += b.hours; return; } // skip maintenance blocks
     totalHours += b.hours;
     daySet.add(b.start.toISOString().slice(0,10));
     if (COURT_TYPE[b.court] === 'Открытый') outdoorH += b.hours; else indoorH += b.hours;
@@ -730,7 +735,7 @@ function recalcUtilizationKPIs() {
   document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + (totalCourts * OPERATING_HOURS) + ' возможных · ' + totalDays + ' дн.';
 
   document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
-  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%';
+  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%' + (blockHours > 0 ? ' · Блоки: ' + Math.round(blockHours) + 'ч.' : '');
 
   // Rev/hour needs income data recalculated for same period
   var incRev = 0;
@@ -1386,14 +1391,20 @@ async function lazyLoadUtilization() {
 }
 
 async function renderUtilizationTab(bookings) {
+  var now = new Date(); // actual current time for isPast checks
   var today = new Date(); today.setHours(0,0,0,0);
   var curMonth = today.getMonth(), curYear = today.getFullYear();
   var prevM = curMonth === 0 ? 11 : curMonth - 1;
   var prevY = curMonth === 0 ? curYear - 1 : curYear;
+  // Include current day as partial (bookings before now count)
   var completedDays = Math.max(today.getDate() - 1, 1);
+  // For today's partial day, add fraction of day passed
+  var dayFraction = (now.getHours() * 60 + now.getMinutes()) / (OPERATING_HOURS * 60);
+  var effectiveDays = completedDays + Math.min(dayFraction, 1);
 
-  // Parse bookings
+  // Parse bookings — detect maintenance blocks
   var parsed = [];
+  var activeByStartKey = {}; // "YYYY-MM-DDTHH:MM" -> array of bookings (for all-courts detection)
   bookings.forEach(function(b) {
     if ((b.status || '').trim().toLowerCase() !== 'active') return;
     var start = parseDate(b.start_ts);
@@ -1402,14 +1413,58 @@ async function renderUtilizationTab(bookings) {
     var court = (b.court_id || '').trim();
     if (!court) return;
     var hours = (end - start) / 3600000;
-    if (hours <= 0 || hours > 16) return; // allow tournament bookings up to 16h, skip bad data
+    if (hours <= 0 || hours > 16) return;
     var cid = (b.customer_id || '').trim();
-    parsed.push({ start: start, end: end, court: court, hours: hours, cid: cid, price: num(b.price) });
+    var price = num(b.price);
+    var entry = { start: start, end: end, court: court, hours: hours, cid: cid, price: price, isBlock: false };
+    parsed.push(entry);
+    // Index for all-courts block detection
+    var startKey = start.toISOString().slice(0, 16);
+    if (!activeByStartKey[startKey]) activeByStartKey[startKey] = [];
+    activeByStartKey[startKey].push(entry);
   });
 
+  // Detect maintenance/block bookings:
+  // 1) Long block: price=0 AND hours >= 4 → maintenance
+  // 2) All-courts block: all 4 courts at same start, all price=0, same duration → maintenance
+  parsed.forEach(function(b) {
+    if (b.price > 0) return;
+    // Rule 1: Single long block (4+ hours) with price=0
+    if (b.hours >= 4) { b.isBlock = true; return; }
+    // Rule 2: All courts (P1-P4) at exact same start time, all price=0
+    var startKey = b.start.toISOString().slice(0, 16);
+    var group = activeByStartKey[startKey];
+    if (group) {
+      var zeroPriceCourts = {};
+      group.forEach(function(g) {
+        if (g.price === 0) zeroPriceCourts[g.court] = true;
+      });
+      if (zeroPriceCourts.P1 && zeroPriceCourts.P2 && zeroPriceCourts.P3 && zeroPriceCourts.P4) {
+        // Mark all zero-price entries in this group as blocks
+        group.forEach(function(g) { if (g.price === 0) g.isBlock = true; });
+      }
+    }
+  });
+
+  var totalBlockHours = 0;
+  var blockCount = parsed.filter(function(b){return b.isBlock}).length;
+  parsed.forEach(function(b) { if (b.isBlock) totalBlockHours += b.hours; });
+  console.log('[utilization] Parsed:', parsed.length, 'bookings, blocks detected:', blockCount, '(' + totalBlockHours.toFixed(1) + 'h)');
+
+  // Show data quality notice
+  if (blockCount > 0) {
+    var noticeEl = document.getElementById('utl-data-notice');
+    noticeEl.style.display = 'block';
+    document.getElementById('utl-notice-text').textContent =
+      'Исключено ' + blockCount + ' блоков/ТО (' + totalBlockHours.toFixed(1) + ' ч.) — бронирования price=0 длительностью ≥4ч или одновременная блокировка всех кортов. ' +
+      'Источник данных: Google Sheet (синхронизация из Matchpoint может быть неполной).';
+  }
+
   // Current month stats — split past (for load%) vs future (for forecast)
+  // Exclude maintenance blocks from load calculations
   var pastHours = 0, pastBookings = 0, pastPeople = new Set();
   var futureHours = 0, futureBookings = 0;
+  var pastBlockHours = 0;
   var curMonthHours = 0, curMonthBookings = 0, curMonthPeople = new Set();
   var prevMonthHours = 0;
   var courtCur = { P1: { hours: 0, bookings: 0, durSum: 0, pastH: 0 }, P2: { hours: 0, bookings: 0, durSum: 0, pastH: 0 }, P3: { hours: 0, bookings: 0, durSum: 0, pastH: 0 }, P4: { hours: 0, bookings: 0, durSum: 0, pastH: 0 } };
@@ -1417,7 +1472,8 @@ async function renderUtilizationTab(bookings) {
   parsed.forEach(function(b) {
     var m = b.start.getMonth(), y = b.start.getFullYear();
     if (m === curMonth && y === curYear) {
-      var isPast = b.start < today;
+      var isPast = b.start < now; // use actual time, not midnight
+      if (b.isBlock) { if (isPast) pastBlockHours += b.hours; return; } // skip blocks from load
       curMonthHours += b.hours;
       curMonthBookings++;
       if (b.cid) curMonthPeople.add(b.cid);
@@ -1437,7 +1493,7 @@ async function renderUtilizationTab(bookings) {
       }
     }
     if (m === prevM && y === prevY) {
-      prevMonthHours += b.hours;
+      if (!b.isBlock) prevMonthHours += b.hours;
     }
   });
 
@@ -1452,19 +1508,20 @@ async function renderUtilizationTab(bookings) {
     });
   }
 
-  // Max possible hours by type
+  // Max possible hours by type (using effectiveDays to include today's partial)
   var indoorCourts = Object.keys(COURT_TYPE).filter(function(c) { return COURT_TYPE[c] === 'Крытый'; }).length; // 3
   var outdoorCourts = Object.keys(COURT_TYPE).filter(function(c) { return COURT_TYPE[c] === 'Открытый'; }).length; // 1
   var totalCourts = indoorCourts + outdoorCourts;
-  var maxHours = totalCourts * OPERATING_HOURS * completedDays;
-  var maxIndoor = indoorCourts * OPERATING_HOURS * completedDays;
-  var maxOutdoor = outdoorCourts * OPERATING_HOURS * completedDays;
+  var maxHours = totalCourts * OPERATING_HOURS * effectiveDays;
+  var maxIndoor = indoorCourts * OPERATING_HOURS * effectiveDays;
+  var maxOutdoor = outdoorCourts * OPERATING_HOURS * effectiveDays;
   var loadPct = maxHours > 0 ? (pastHours / maxHours * 100) : 0;
 
-  // Indoor/outdoor split
+  // Indoor/outdoor split (exclude blocks)
   var indoorPastH = 0, outdoorPastH = 0;
   parsed.forEach(function(b) {
-    if (b.start.getMonth() !== curMonth || b.start.getFullYear() !== curYear || b.start >= today) return;
+    if (b.isBlock) return;
+    if (b.start.getMonth() !== curMonth || b.start.getFullYear() !== curYear || b.start >= now) return;
     if (COURT_TYPE[b.court] === 'Открытый') outdoorPastH += b.hours; else indoorPastH += b.hours;
   });
   var indoorPct = maxIndoor > 0 ? (indoorPastH / maxIndoor * 100) : 0;
@@ -1484,21 +1541,22 @@ async function renderUtilizationTab(bookings) {
   } catch(e) {}
 
   // KPIs — exact numbers, no rounding
-  var avgHoursPerDay = completedDays > 0 ? (pastHours / completedDays) : 0;
+  var displayDays = Math.round(effectiveDays * 10) / 10;
+  var avgHoursPerDay = effectiveDays > 0 ? (pastHours / effectiveDays) : 0;
   document.getElementById('utl-kpi-hours').textContent = Math.round(pastHours) + ' ч.';
-  document.getElementById('utl-kpi-hours').title = 'Факт за ' + completedDays + ' дн. Будущие брони: +' + Math.round(futureHours) + 'ч.';
+  document.getElementById('utl-kpi-hours').title = 'Факт за ' + displayDays + ' дн. Будущие: +' + Math.round(futureHours) + 'ч.' + (pastBlockHours > 0 ? ' Блоки/ТО исключены: ' + Math.round(pastBlockHours) + 'ч.' : '');
   if (prevMonthHours > 0) {
-    var prevPace = (prevMonthHours / daysInMonth(prevY, prevM)) * completedDays;
+    var prevPace = (prevMonthHours / daysInMonth(prevY, prevM)) * effectiveDays;
     var delta = prevPace > 0 ? ((pastHours - prevPace) / prevPace * 100) : 0;
     document.getElementById('utl-kpi-hours-delta').textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '%';
     document.getElementById('utl-kpi-hours-delta').className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
   }
 
   document.getElementById('utl-kpi-avg-day').textContent = avgHoursPerDay.toFixed(1) + ' ч.';
-  document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + (totalCourts * OPERATING_HOURS) + ' возможных · ' + completedDays + ' дн.';
+  document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + (totalCourts * OPERATING_HOURS) + ' возможных · ' + displayDays + ' дн.';
 
   document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
-  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%';
+  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%' + (pastBlockHours > 0 ? ' · Блоки: ' + Math.round(pastBlockHours) + 'ч.' : '');
 
   // Rev/hour — exact, no rounding to K
   var revPerHourAll = pastHours > 0 ? incMonthRev / pastHours : 0;
@@ -1513,11 +1571,12 @@ async function renderUtilizationTab(bookings) {
   window._utlParsed = parsed;
 
   // ═══ 1. Days of month — bar chart + table ═══
-  var dayMap = {}; // date -> { total, P1, P2, P3, P4 }
+  var dayMap = {}; // date -> { total, P1, P2, P3, P4, blockH }
   parsed.forEach(function(b) {
     if (b.start.getMonth() !== curMonth || b.start.getFullYear() !== curYear) return;
     var dk = b.start.toISOString().slice(0,10);
-    if (!dayMap[dk]) dayMap[dk] = { total: 0, P1: 0, P2: 0, P3: 0, P4: 0 };
+    if (!dayMap[dk]) dayMap[dk] = { total: 0, P1: 0, P2: 0, P3: 0, P4: 0, blockH: 0 };
+    if (b.isBlock) { dayMap[dk].blockH += b.hours; return; } // track blocks separately
     dayMap[dk].total += b.hours;
     if (dayMap[dk][b.court] !== undefined) dayMap[dk][b.court] += b.hours;
   });
@@ -1528,14 +1587,14 @@ async function renderUtilizationTab(bookings) {
   for (var di = 1; di <= dim; di++) {
     var dd = new Date(curYear, curMonth, di);
     var dk = dd.toISOString().slice(0,10);
-    allDays.push({ date: dk, dow: dd.getDay(), data: dayMap[dk] || { total: 0, P1: 0, P2: 0, P3: 0, P4: 0 }, isPast: dd < today });
+    allDays.push({ date: dk, dow: dd.getDay(), data: dayMap[dk] || { total: 0, P1: 0, P2: 0, P3: 0, P4: 0, blockH: 0 }, isPast: dd < now });
   }
 
   // Bar chart: hours per day
   var dayLabels = allDays.map(function(d) { return parseInt(d.date.slice(8,10)) + ''; });
   var dayTotals = allDays.map(function(d) { return Math.round(d.data.total * 10) / 10; });
   var dayColors = allDays.map(function(d) {
-    if (!d.isPast && d.data.total > 0) return 'rgba(10,186,181,0.4)'; // future booked
+    if (!d.isPast && d.data.total > 0) return 'rgba(10,186,181,0.4)';
     if (!d.isPast) return 'transparent';
     return d.data.total > 0 ? (accent() || '#0ABAB5') : 'rgba(138,155,168,0.2)';
   });
@@ -1575,6 +1634,7 @@ async function renderUtilizationTab(bookings) {
       var v = d.data[court];
       dtHtml += '<td class="num">' + (v > 0 ? v.toFixed(1) : '—') + '</td>';
     });
+    dtHtml += '<td class="num muted">' + (d.data.blockH > 0 ? d.data.blockH.toFixed(1) : '—') + '</td>';
     dtHtml += '<td class="num">' + (d.data.total > 0 ? pct.toFixed(0) + '%' : '—') + '</td>';
     dtHtml += '</tr>';
 
@@ -1582,7 +1642,7 @@ async function renderUtilizationTab(bookings) {
     weekSum += d.data.total; weekDays++;
     if (d.dow === 0 || idx === allDays.length - 1) {
       var weekAvg = weekDays > 0 ? weekSum / weekDays : 0;
-      dtHtml += '<tr class="month-subtotal"><td colspan="3" style="font-weight:600">Итого за неделю: ' + weekSum.toFixed(1) + ' ч.</td><td colspan="5" class="muted">ср. ' + weekAvg.toFixed(1) + ' ч/день</td></tr>';
+      dtHtml += '<tr class="month-subtotal"><td colspan="3" style="font-weight:600">Итого за неделю: ' + weekSum.toFixed(1) + ' ч.</td><td colspan="6" class="muted">ср. ' + weekAvg.toFixed(1) + ' ч/день</td></tr>';
       weekSum = 0; weekDays = 0;
     }
   });
@@ -1593,6 +1653,8 @@ async function renderUtilizationTab(bookings) {
     var courtAvg = pastDaysWithData.length > 0 ? pastDaysWithData.reduce(function(s,d){return s+d.data[court]},0) / pastDaysWithData.length : 0;
     dtHtml += '<td class="num">' + courtAvg.toFixed(1) + '</td>';
   });
+  var blockAvg = pastDaysWithData.length > 0 ? pastDaysWithData.reduce(function(s,d){return s+d.data.blockH},0) / pastDaysWithData.length : 0;
+  dtHtml += '<td class="num muted">' + blockAvg.toFixed(1) + '</td>';
   dtHtml += '<td class="num">' + (maxDayHours > 0 ? (grandAvg/maxDayHours*100).toFixed(0) + '%' : '') + '</td></tr>';
   dtBody.innerHTML = dtHtml;
 
@@ -1601,10 +1663,10 @@ async function renderUtilizationTab(bookings) {
   var cHtml = '';
   ['P1','P2','P3','P4'].forEach(function(court) {
     var c = courtCur[court];
-    var maxC = OPERATING_HOURS * completedDays;
+    var maxC = OPERATING_HOURS * effectiveDays;
     var pct = maxC > 0 ? (c.pastH / maxC * 100).toFixed(1) : '0';
     var avgDur = c.bookings > 0 ? (c.durSum / c.bookings).toFixed(1) : '0';
-    var avgPerDay = completedDays > 0 ? (c.pastH / completedDays).toFixed(1) : '0';
+    var avgPerDay = effectiveDays > 0 ? (c.pastH / effectiveDays).toFixed(1) : '0';
     cHtml += '<tr>';
     cHtml += '<td style="font-weight:600"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + COURT_COLORS[court] + ';margin-right:8px;vertical-align:middle"></span>' + court + '</td>';
     cHtml += '<td>' + COURT_TYPE[court] + '</td>';
@@ -1618,7 +1680,7 @@ async function renderUtilizationTab(bookings) {
   var totalPastH = Object.keys(courtCur).reduce(function(s,c) { return s + courtCur[c].pastH; }, 0);
   var totalBook = Object.keys(courtCur).reduce(function(s,c) { return s + courtCur[c].bookings; }, 0);
   var totalDurSum = Object.keys(courtCur).reduce(function(s,c) { return s + courtCur[c].durSum; }, 0);
-  var totalAvgDay = completedDays > 0 ? (totalPastH / completedDays).toFixed(1) : '0';
+  var totalAvgDay = effectiveDays > 0 ? (totalPastH / effectiveDays).toFixed(1) : '0';
   var totalPct = maxHours > 0 ? (totalPastH / maxHours * 100).toFixed(1) : '0';
   var totalAvgDur = totalBook > 0 ? (totalDurSum / totalBook).toFixed(1) : '0';
   cHtml += '<tr class="month-subtotal"><td style="font-weight:700">ИТОГО</td><td></td>';
@@ -1631,6 +1693,7 @@ async function renderUtilizationTab(bookings) {
   // ═══ 2b. Courts stacked chart by month ═══
   var monthCourts = {};
   parsed.forEach(function(b) {
+    if (b.isBlock) return; // exclude maintenance
     var ym = ymKey(b.start);
     if (!monthCourts[ym]) monthCourts[ym] = { P1: 0, P2: 0, P3: 0, P4: 0 };
     if (monthCourts[ym][b.court] !== undefined) monthCourts[ym][b.court] += b.hours;
@@ -1665,6 +1728,7 @@ async function renderUtilizationTab(bookings) {
   // ═══ 4. DOW chart ═══
   var dowHours = [0,0,0,0,0,0,0], dowCnt = [new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
   parsed.forEach(function(b) {
+    if (b.isBlock) return; // exclude maintenance
     var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1;
     dowHours[dow] += b.hours;
     dowCnt[dow].add(b.start.toISOString().slice(0,10));
@@ -1684,6 +1748,7 @@ async function renderUtilizationTab(bookings) {
   var heatGrid = []; for (var dw = 0; dw < 7; dw++) { heatGrid.push([]); for (var hi = 0; hi < hours.length; hi++) heatGrid[dw].push(0); }
   var heatDaysSet = [new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
   parsed.forEach(function(b) {
+    if (b.isBlock) return; // exclude maintenance from heatmap
     var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1;
     heatDaysSet[dow].add(b.start.toISOString().slice(0,10));
     // Fill every hour the booking occupies
