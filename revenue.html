@@ -629,9 +629,9 @@
       <div class="kpi-delta muted" id="utl-kpi-rev-hour-hint">все доходы</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Корты / корто-час</div>
+      <div class="kpi-label">Всё / корто-час</div>
       <div class="kpi-value" id="utl-kpi-rev-hour-courts">—</div>
-      <div class="kpi-delta muted" id="utl-kpi-rev-hour-courts-hint">только аренда кортов</div>
+      <div class="kpi-delta muted" id="utl-kpi-rev-hour-courts-hint">+ доп. продажи</div>
     </div>
   </div>
 
@@ -798,7 +798,7 @@ function recalcUtilizationKPIs() {
   document.getElementById('utl-kpi-load-hint').textContent = typeHint;
 
   // Rev/hour
-  var incRev = 0, courtRev = 0;
+  var incRev = 0, goodsRev = 0;
   if (tabData.income && tabData.income.weekMap) {
     Object.values(tabData.income.weekMap).forEach(function(w) {
       for (var d = 0; d < 7; d++) {
@@ -809,21 +809,21 @@ function recalcUtilizationKPIs() {
       }
     });
   }
-  try {
-    var revMCData = window._utlRevMC;
-    if (revMCData && revMCData.length) {
-      revMCData.forEach(function(r) {
-        var ymDate = new Date(r.month + '-01');
-        if (cutoff && ymDate < cutoff) return;
-        courtRev += parseFloat(r['Корты'] || 0);
-      });
-    }
-  } catch(e) {}
+  if (tabData.goods && tabData.goods.weekMap) {
+    Object.values(tabData.goods.weekMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd >= today) continue;
+        if (cutoff && dd < cutoff) continue;
+        goodsRev += w.days[d];
+      }
+    });
+  }
 
   var revAll = totalHours > 0 ? incRev / totalHours : 0;
-  var revCourts = totalHours > 0 ? courtRev / totalHours : 0;
+  var revTotal = totalHours > 0 ? (incRev + goodsRev) / totalHours : 0;
   document.getElementById('utl-kpi-rev-hour').textContent = fmtInt(Math.round(revAll)) + ' ₺';
-  document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revCourts)) + ' ₺';
+  document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revTotal)) + ' ₺';
 }
 
 /* ---- Recalculate KPIs based on period filter ---- */
@@ -1619,18 +1619,16 @@ async function renderUtilizationTab(occRows) {
     });
   }
 
-  // Courts-only revenue
-  var courtRevOnly = 0;
-  try {
-    var revMCData = await V7.loadCacheTab('rev_by_month_cat');
-    window._utlRevMC = revMCData;
-    if (revMCData && revMCData.length) {
-      revMCData.forEach(function(r) {
-        if (r.month !== ymKey(today)) return;
-        courtRevOnly += num(r['Корты'] || 0);
-      });
-    }
-  } catch(e) {}
+  // Goods (доп. продажи) revenue for current month
+  var goodsMonthRev = 0;
+  if (tabData.goods && tabData.goods.weekMap) {
+    Object.values(tabData.goods.weekMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd.getMonth() === curMonth && dd.getFullYear() === curYear) goodsMonthRev += w.days[d];
+      }
+    });
+  }
 
   // Type breakdown for current month
   var typeHours = { reserva: 0, partida: 0, clases: 0, actividades: 0, centro: 0 };
@@ -1665,9 +1663,10 @@ async function renderUtilizationTab(occRows) {
   document.getElementById('utl-kpi-rev-hour').textContent = fmtInt(Math.round(revPerHourAll)) + ' ₺';
   document.getElementById('utl-kpi-rev-hour-hint').textContent = 'все доходы / корто-час';
 
-  var revPerHourCourts = pastHours > 0 ? courtRevOnly / pastHours : 0;
-  document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revPerHourCourts)) + ' ₺';
-  document.getElementById('utl-kpi-rev-hour-courts-hint').textContent = 'только аренда кортов';
+  var totalRevAll = incMonthRev + goodsMonthRev;
+  var revPerHourTotal = pastHours > 0 ? totalRevAll / pastHours : 0;
+  document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revPerHourTotal)) + ' ₺';
+  document.getElementById('utl-kpi-rev-hour-courts-hint').textContent = '+ доп. продажи / корто-час';
 
   // Save data for period recalculation
   window._utlParsed = parsed;
@@ -1729,18 +1728,20 @@ function renderUtilizationTabFromParsed(parsed) {
   document.getElementById('utl-kpi-rev-hour').textContent = fmtInt(Math.round(revPerHourAll)) + ' ₺';
   document.getElementById('utl-kpi-rev-hour-hint').textContent = 'все доходы / корто-час';
 
-  // Courts rev
-  (async function() {
-    var courtRevOnly = 0;
-    try {
-      var revMCData = window._utlRevMC || await V7.loadCacheTab('rev_by_month_cat');
-      window._utlRevMC = revMCData;
-      if (revMCData) revMCData.forEach(function(r) { if (r.month === ymKey(today)) courtRevOnly += num(r['Корты'] || 0); });
-    } catch(e) {}
-    var revPerHourCourts = pastHours > 0 ? courtRevOnly / pastHours : 0;
-    document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revPerHourCourts)) + ' ₺';
-    document.getElementById('utl-kpi-rev-hour-courts-hint').textContent = 'только аренда кортов';
-  })();
+  // Total rev (income + goods) / hour
+  var goodsMonthRev2 = 0;
+  if (tabData.goods && tabData.goods.weekMap) {
+    Object.values(tabData.goods.weekMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd.getMonth() === curMonth && dd.getFullYear() === curYear) goodsMonthRev2 += w.days[d];
+      }
+    });
+  }
+  var totalRevAll2 = incMonthRev + goodsMonthRev2;
+  var revPerHourTotal2 = pastHours > 0 ? totalRevAll2 / pastHours : 0;
+  document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revPerHourTotal2)) + ' ₺';
+  document.getElementById('utl-kpi-rev-hour-courts-hint').textContent = '+ доп. продажи / корто-час';
 
   _renderUtilizationCharts();
 }
