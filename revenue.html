@@ -1480,10 +1480,13 @@ async function renderUtilizationTab(bookings) {
   });
 
   // Detect maintenance/block bookings:
-  // Block detection: only all-4-courts simultaneous price=0 bookings = maintenance
-  // (price=0 на одном корте — это часто реальные игроки: comp, staff, бесплатные)
+  // Block/maintenance detection:
+  // 1) All 4 courts at same time, all price=0 → дождь/закрытие
+  // 2) price=0 + ≥4ч + пустой customer_id → maintenance 1 корта (ремонт, блокировка)
+  //    (реальный игрок всегда имеет customer_id, maintenance — нет)
   parsed.forEach(function(b) {
     if (b.price > 0) return;
+    // Rule 1: All 4 courts simultaneously blocked
     var startKey = b.start.toISOString().slice(0, 16);
     var group = activeByStartKey[startKey];
     if (group) {
@@ -1493,8 +1496,11 @@ async function renderUtilizationTab(bookings) {
       });
       if (zeroPriceCourts.P1 && zeroPriceCourts.P2 && zeroPriceCourts.P3 && zeroPriceCourts.P4) {
         group.forEach(function(g) { if (g.price === 0) g.isBlock = true; });
+        return;
       }
     }
+    // Rule 2: Single court, price=0, ≥4h, no customer → maintenance
+    if (b.hours >= 4 && !b.cid) { b.isBlock = true; }
   });
 
   // Detect tournament bookings: 3+ courts at same start, at least one paid
@@ -1517,8 +1523,8 @@ async function renderUtilizationTab(bookings) {
     var noticeEl = document.getElementById('utl-data-notice');
     noticeEl.style.display = 'block';
     document.getElementById('utl-notice-text').textContent =
-      'Исключено ' + blockCount + ' блоков/ТО (' + totalBlockHours.toFixed(1) + ' ч.) — одновременная блокировка всех 4 кортов с price=0. ' +
-      'Букинги price=0 на отдельных кортах считаются как реальные (comp/staff).';
+      'Исключено ' + blockCount + ' блоков/ТО (' + totalBlockHours.toFixed(1) + ' ч.) — блокировка всех 4 кортов или одного корта ≥4ч без customer_id. ' +
+      'Букинги price=0 с customer_id считаются реальными (comp/staff).';
   }
 
   // Current month stats — split past (for load%) vs future (for forecast)
