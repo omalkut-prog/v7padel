@@ -753,7 +753,7 @@ function recalcUtilizationKPIs() {
     if (cutoff && b.start < cutoff) return; // skip before period
     if (b.isBlock) { blockHours += b.hours; return; } // skip maintenance blocks
     totalHours += b.hours;
-    daySet.add(b.start.toISOString().slice(0,10));
+    daySet.add(localDateKey(b.start));
     if (COURT_TYPE[b.court] === 'Открытый') outdoorH += b.hours; else indoorH += b.hours;
     if (courtH[b.court] !== undefined) courtH[b.court] += b.hours;
   });
@@ -1430,6 +1430,10 @@ function renderStackedChart(txns) {
 }
 
 /* ---- Utilization tab: court hours ---- */
+// Local date key (avoids UTC timezone shift from toISOString)
+function localDateKey(d) {
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
 // Court types: P1,P2,P3 = крытый (indoor), P4 = открытый (outdoor)
 var COURT_TYPE = { P1: 'Крытый', P2: 'Крытый', P3: 'Крытый', P4: 'Открытый' };
 var COURT_COLORS = { P1: '#3498db', P2: '#2ecc71', P3: '#9b59b6', P4: '#e74c3c' };
@@ -1655,7 +1659,7 @@ function _renderUtilizationCharts() {
   var dayMap = {};
   parsed.forEach(function(b) {
     if (cutoff && b.start < cutoff) return;
-    var dk = b.start.toISOString().slice(0,10);
+    var dk = localDateKey(b.start);
     if (!dayMap[dk]) dayMap[dk] = { total: 0, regular: 0, tournament: 0, P1: 0, P2: 0, P3: 0, P4: 0, blockH: 0 };
     if (b.isBlock) { dayMap[dk].blockH += b.hours; return; }
     if (b.start >= now) return;
@@ -1682,7 +1686,7 @@ function _renderUtilizationCharts() {
   var allDays = [];
   var cur = new Date(startDate);
   while (cur <= endDate) {
-    var dk = cur.toISOString().slice(0,10);
+    var dk = localDateKey(cur);
     allDays.push({ date: dk, dow: cur.getDay(), data: dayMap[dk] || { total: 0, regular: 0, tournament: 0, P1: 0, P2: 0, P3: 0, P4: 0, blockH: 0 }, isPast: cur < now });
     cur = new Date(cur); cur.setDate(cur.getDate() + 1);
   }
@@ -1693,26 +1697,23 @@ function _renderUtilizationCharts() {
     : allDays.map(function(d) { return parseInt(d.date.slice(8,10)) + ''; });
   var pastDaysArr = allDays.filter(function(d) { return d.isPast; });
 
-  // Stacked bars: Обычные + Турниры = всего забуканных часов (без блоков)
-  var regularData = allDays.map(function(d) { return d.isPast ? Math.round(d.data.regular * 10) / 10 : 0; });
-  var tournamentData = allDays.map(function(d) { return d.isPast ? Math.round(d.data.tournament * 10) / 10 : 0; });
-  var futureData = allDays.map(function(d) { return !d.isPast ? Math.round(d.data.total * 10) / 10 : 0; });
-  var hasTournaments = tournamentData.some(function(v) { return v > 0; });
-
+  // Simple bars: total booked hours per day
+  var dayTotals = allDays.map(function(d) { return Math.round(d.data.total * 10) / 10; });
+  var dayColors = allDays.map(function(d) {
+    if (!d.isPast && d.data.total > 0) return 'rgba(10,186,181,0.35)'; // future bookings lighter
+    return d.data.total > 0 ? (accent() || '#0ABAB5') : 'rgba(138,155,168,0.15)';
+  });
   var datasets = [
-    { label: 'Обычные', data: regularData, backgroundColor: accent() || '#0ABAB5', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' }
+    { label: 'Забуканных часов', data: dayTotals, backgroundColor: dayColors, borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28 }
   ];
-  if (hasTournaments) datasets.push({ label: 'Турниры', data: tournamentData, backgroundColor: '#f39c12', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' });
-  var hasFuture = futureData.some(function(v) { return v > 0; });
-  if (hasFuture) datasets.push({ label: 'Будущие брони', data: futureData, backgroundColor: 'rgba(10,186,181,0.3)', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' });
 
   createChart('utl-days-chart', {
     type: 'bar', data: { labels: dayLabels, datasets: datasets },
     options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { position: 'bottom', labels: { color: chartTextColor() } },
-        tooltip: { mode: 'index', callbacks: { label: function(it) { return it.raw > 0 ? it.dataset.label + ': ' + it.raw + ' ч.' : ''; } } } },
-      scales: { y: { stacked: true, beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return v + 'ч'; } }, grid: { color: chartGridColor() } },
-        x: { stacked: true, ticks: { color: chartTextColor(), font: { size: multiMonth ? 8 : 10 }, maxRotation: multiMonth ? 90 : 0, autoSkip: true, maxTicksLimit: multiMonth ? 30 : 31 }, grid: { display: false } } }
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: function(it) { return it.raw + ' ч.'; } } } },
+      scales: { y: { beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return v + 'ч'; } }, grid: { color: chartGridColor() } },
+        x: { ticks: { color: chartTextColor(), font: { size: multiMonth ? 8 : 10 }, maxRotation: multiMonth ? 90 : 0, autoSkip: true, maxTicksLimit: multiMonth ? 30 : 31 }, grid: { display: false } } }
     }
   });
 
@@ -1760,7 +1761,7 @@ function _renderUtilizationCharts() {
   parsed.forEach(function(b) {
     if (b.isBlock || b.start >= now) return;
     if (cutoff && b.start < cutoff) return;
-    periodDaySet.add(b.start.toISOString().slice(0,10));
+    periodDaySet.add(localDateKey(b.start));
     if (courtStats[b.court]) {
       courtStats[b.court].pastH += b.hours;
       courtStats[b.court].bookings++;
@@ -1842,7 +1843,7 @@ function _renderUtilizationCharts() {
     if (cutoff && b.start < cutoff) return;
     var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1;
     dowHours[dow] += b.hours;
-    dowCnt[dow].add(b.start.toISOString().slice(0,10));
+    dowCnt[dow].add(localDateKey(b.start));
   });
   var dowAvgH = dowHours.map(function(t, i) { return dowCnt[i].size > 0 ? t / dowCnt[i].size : 0; });
   var bestDow = dowAvgH.indexOf(Math.max.apply(null, dowAvgH));
@@ -1862,7 +1863,7 @@ function _renderUtilizationCharts() {
     if (b.isBlock) return;
     if (cutoff && b.start < cutoff) return;
     var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1;
-    heatDaysSet[dow].add(b.start.toISOString().slice(0,10));
+    heatDaysSet[dow].add(localDateKey(b.start));
     var startH = b.start.getHours();
     var endH = b.end.getHours() + (b.end.getMinutes() > 0 ? 1 : 0);
     for (var hh = startH; hh < endH; hh++) {
