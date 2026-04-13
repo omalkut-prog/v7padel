@@ -199,19 +199,17 @@
   <div class="tab-content" id="tab-surplus">
     <section class="section">
       <div class="section-head">
-        <h2>Клиенты с профицитом</h2>
-        <span class="hint">отрицательный «другие долги» = предоплата / кредит</span>
+        <h2>Клиенты с балансом</h2>
+        <span class="hint">из Matchpoint «Clients with Balance»</span>
       </div>
       <div class="panel">
         <table class="fin" id="surplus-table">
           <thead>
             <tr>
               <th>Клиент</th>
-              <th>Долг (брони)</th>
-              <th>Кредит на балансе</th>
-              <th>NET профицит</th>
-              <th>Всего броней</th>
-              <th>Посл. бронь</th>
+              <th>Баланс</th>
+              <th>Email</th>
+              <th>Телефон</th>
             </tr>
           </thead>
           <tbody>
@@ -288,11 +286,12 @@
   });
 
   // ── Load data ──
-  let debts = [], movements = [];
+  let debts = [], movements = [], balances = [];
   try {
-    [debts, movements] = await Promise.all([
+    [debts, movements, balances] = await Promise.all([
       loadSheet('debts').catch(() => []),
       loadSheet('balance_log').catch(() => []),
+      loadSheet('client_balances').catch(() => []),
     ]);
   } catch (e) {
     console.error('Data load error:', e);
@@ -307,7 +306,6 @@
   const isTest = name => TEST_NAMES.some(t => name.toLowerCase().includes(t));
 
   const debtors = [];
-  const surplusClients = [];
 
   debts.forEach(r => {
     const name = r.client_name || r.client_id || '?';
@@ -334,16 +332,25 @@
     if (net > 10) {
       debtors.push(rec);
     }
-    if (net < -10) {
-      surplusClients.push(rec);
-    }
+    // surplus now comes from client_balances tab (Matchpoint export)
   });
 
   debtors.sort((a, b) => b.net - a.net);
-  surplusClients.sort((a, b) => a.net - b.net); // most negative first = biggest credit
+
+  // Surplus from Matchpoint "Clients with Balance" export
+  const surplusClients = balances
+    .filter(r => parseFloat(r.balance) > 0)
+    .map(r => ({
+      name: r.name || '?',
+      clientId: r.client_id,
+      balance: parseFloat(r.balance) || 0,
+      email: r.email || '',
+      mobile: r.mobile || '',
+    }))
+    .sort((a, b) => b.balance - a.balance);
 
   const totalDebt = debtors.reduce((s, d) => s + d.net, 0);
-  const totalSurplus = surplusClients.reduce((s, d) => s + Math.abs(d.net), 0);
+  const totalSurplus = surplusClients.reduce((s, d) => s + d.balance, 0);
 
   // ── KPIs ──
   document.getElementById('kpi-debt-val').textContent = fmt(totalDebt);
@@ -351,7 +358,7 @@
   document.getElementById('kpi-debtors-val').textContent = debtors.length;
   document.getElementById('kpi-debtors-sub').textContent = 'с неоплаченными бронями';
   document.getElementById('kpi-surplus-val').textContent = fmt(totalSurplus);
-  document.getElementById('kpi-surplus-sub').textContent = surplusClients.length + ' клиентов с кредитом';
+  document.getElementById('kpi-surplus-sub').textContent = surplusClients.length + ' клиентов с балансом';
   document.getElementById('kpi-movements-val').textContent = movements.length;
   document.getElementById('kpi-movements-sub').textContent = 'записей в логе';
 
@@ -386,25 +393,17 @@
   // ── Surplus table ──
   const sBody = document.querySelector('#surplus-table tbody');
   if (!surplusClients.length) {
-    sBody.innerHTML = '<tr><td colspan="6" class="loading">Нет клиентов с профицитом</td></tr>';
+    sBody.innerHTML = '<tr><td colspan="4" class="loading">Нет клиентов с балансом</td></tr>';
   } else {
-    sBody.innerHTML = surplusClients.map(d => {
-      const credit = Math.abs(d.net);
-      return `<tr>
-        <td>${d.name}</td>
-        <td>${fmt(d.debtRes)}</td>
-        <td class="pos">${fmt(Math.abs(d.debtOther))}</td>
-        <td class="pos" style="font-weight:700">${fmt(credit)}</td>
-        <td>${d.totalBookings}</td>
-        <td>${d.lastBooking}</td>
-      </tr>`;
-    }).join('') + `<tr class="total-row">
-      <td>ИТОГО</td>
-      <td>${fmt(surplusClients.reduce((s,d) => s+d.debtRes, 0))}</td>
-      <td class="pos">${fmt(surplusClients.reduce((s,d) => s+Math.abs(d.debtOther), 0))}</td>
+    sBody.innerHTML = surplusClients.map(d => `<tr>
+      <td>${d.name}</td>
+      <td class="pos" style="font-weight:700">${fmt(d.balance)}</td>
+      <td style="font-size:12px">${d.email}</td>
+      <td style="font-size:12px">${d.mobile}</td>
+    </tr>`).join('') + `<tr class="total-row">
+      <td>ИТОГО (${surplusClients.length} клиентов)</td>
       <td class="pos" style="font-weight:700">${fmt(totalSurplus)}</td>
-      <td>${surplusClients.reduce((s,d) => s+d.totalBookings, 0)}</td>
-      <td></td>
+      <td colspan="2"></td>
     </tr>`;
   }
 
