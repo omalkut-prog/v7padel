@@ -1692,13 +1692,13 @@ function _renderUtilizationCharts() {
     ? allDays.map(function(d) { return d.date.slice(8,10) + '.' + d.date.slice(5,7); })
     : allDays.map(function(d) { return parseInt(d.date.slice(8,10)) + ''; });
   var pastDaysArr = allDays.filter(function(d) { return d.isPast; });
-  var avgDayHours = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d) { return s + d.data.total; }, 0) / pastDaysArr.length : 0;
 
   // Stacked bars: regular + tournament + blocks
   var regularData = allDays.map(function(d) { return d.isPast ? Math.round(d.data.regular * 10) / 10 : 0; });
   var tournamentData = allDays.map(function(d) { return d.isPast ? Math.round(d.data.tournament * 10) / 10 : 0; });
   var blockData = allDays.map(function(d) { return Math.round(d.data.blockH * 10) / 10; });
   var futureData = allDays.map(function(d) { return !d.isPast ? Math.round(d.data.total * 10) / 10 : 0; });
+  var totalData = allDays.map(function(d) { return d.isPast ? Math.round(d.data.total * 10) / 10 : 0; });
   var hasTournaments = tournamentData.some(function(v) { return v > 0; });
   var hasBlocks = blockData.some(function(v) { return v > 0; });
 
@@ -1709,7 +1709,7 @@ function _renderUtilizationCharts() {
   if (hasBlocks) datasets.push({ label: 'Блоки/ТО', data: blockData, backgroundColor: 'rgba(138,155,168,0.3)', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' });
   var hasFuture = futureData.some(function(v) { return v > 0; });
   if (hasFuture) datasets.push({ label: 'Будущие', data: futureData, backgroundColor: 'rgba(10,186,181,0.3)', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' });
-  datasets.push({ label: 'Среднее', data: dayLabels.map(function() { return Math.round(avgDayHours * 10) / 10; }), type: 'line', borderColor: '#e74c3c', borderDash: [5,3], pointRadius: 0, borderWidth: 2, fill: false });
+  datasets.push({ label: 'Всего часов', data: totalData, type: 'line', borderColor: '#e74c3c', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#e74c3c', fill: false, tension: 0.2 });
 
   createChart('utl-days-chart', {
     type: 'bar', data: { labels: dayLabels, datasets: datasets },
