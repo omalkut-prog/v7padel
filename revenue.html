@@ -1693,23 +1693,18 @@ function _renderUtilizationCharts() {
     : allDays.map(function(d) { return parseInt(d.date.slice(8,10)) + ''; });
   var pastDaysArr = allDays.filter(function(d) { return d.isPast; });
 
-  // Stacked bars: regular + tournament + blocks
+  // Stacked bars: Обычные + Турниры = всего забуканных часов (без блоков)
   var regularData = allDays.map(function(d) { return d.isPast ? Math.round(d.data.regular * 10) / 10 : 0; });
   var tournamentData = allDays.map(function(d) { return d.isPast ? Math.round(d.data.tournament * 10) / 10 : 0; });
-  var blockData = allDays.map(function(d) { return Math.round(d.data.blockH * 10) / 10; });
   var futureData = allDays.map(function(d) { return !d.isPast ? Math.round(d.data.total * 10) / 10 : 0; });
-  var totalData = allDays.map(function(d) { return d.isPast ? Math.round(d.data.total * 10) / 10 : 0; });
   var hasTournaments = tournamentData.some(function(v) { return v > 0; });
-  var hasBlocks = blockData.some(function(v) { return v > 0; });
 
   var datasets = [
     { label: 'Обычные', data: regularData, backgroundColor: accent() || '#0ABAB5', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' }
   ];
   if (hasTournaments) datasets.push({ label: 'Турниры', data: tournamentData, backgroundColor: '#f39c12', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' });
-  if (hasBlocks) datasets.push({ label: 'Блоки/ТО', data: blockData, backgroundColor: 'rgba(138,155,168,0.3)', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' });
   var hasFuture = futureData.some(function(v) { return v > 0; });
-  if (hasFuture) datasets.push({ label: 'Будущие', data: futureData, backgroundColor: 'rgba(10,186,181,0.3)', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' });
-  datasets.push({ label: 'Всего часов', data: totalData, type: 'line', borderColor: '#e74c3c', borderWidth: 2, pointRadius: 3, pointBackgroundColor: '#e74c3c', fill: false, tension: 0.2 });
+  if (hasFuture) datasets.push({ label: 'Будущие брони', data: futureData, backgroundColor: 'rgba(10,186,181,0.3)', borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28, stack: 'hours' });
 
   createChart('utl-days-chart', {
     type: 'bar', data: { labels: dayLabels, datasets: datasets },
