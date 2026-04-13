@@ -99,6 +99,13 @@
   .tab-content { display: none; }
   .tab-content.active { display: block; }
 
+  /* Sortable table headers */
+  table.fin th.sortable { cursor: pointer; user-select: none; }
+  table.fin th.sortable:hover { color: var(--accent); }
+  table.fin th.sortable::after { content: ' ⇅'; font-size: 10px; opacity: 0.4; }
+  table.fin th.sortable.asc::after { content: ' ↑'; opacity: 1; }
+  table.fin th.sortable.desc::after { content: ' ↓'; opacity: 1; }
+
   @media (max-width: 960px) {
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
     .two-col { grid-template-columns: 1fr; }
@@ -176,14 +183,14 @@
         <table class="fin" id="debtors-table">
           <thead>
             <tr>
-              <th>Клиент</th>
-              <th>Брони</th>
+              <th class="sortable" data-sort="name">Клиент</th>
+              <th class="sortable" data-sort="pendRes">Брони</th>
               <th>Свет</th>
-              <th>Баланс</th>
-              <th>NET долг</th>
-              <th>Неопл.</th>
+              <th class="sortable" data-sort="debtOther">Баланс</th>
+              <th class="sortable desc" data-sort="realDebt">Долг</th>
+              <th class="sortable" data-sort="unpaid">Неопл.</th>
               <th>Всего</th>
-              <th>Посл. бронь</th>
+              <th class="sortable" data-sort="lastBooking">Посл. бронь</th>
               <th>Корт</th>
             </tr>
           </thead>
@@ -298,10 +305,8 @@
   }
 
   // ── Process debts ──
-  // NET = debt_reservas + debt_luz + debt_other
-  // debt_other < 0 means client has credit (prepaid balance)
-  // debt_other > 0 means client has additional debts beyond bookings
-  // NET > 0 = real debtor, NET < 0 = surplus (credit exceeds debt)
+  // real_debt = OtrosPendientes + PendienteReserva (snapshot from latest booking)
+  // This is the TOTAL client debt as Matchpoint sees it
   const TEST_NAMES = ['test', 'prueba', 'demo'];
   const isTest = name => TEST_NAMES.some(t => name.toLowerCase().includes(t));
 
@@ -309,33 +314,33 @@
 
   debts.forEach(r => {
     const name = r.client_name || r.client_id || '?';
-    if (isTest(name)) return; // skip test accounts
+    if (isTest(name)) return;
 
-    const debtRes = parseFloat(r.debt_reservas) || 0;
+    const realDebt = parseFloat(r.real_debt) || 0;
+    const pendRes = parseFloat(r.pending_res_latest) || 0;
     const debtOther = parseFloat(r.debt_other) || 0;
     const debtLuz = parseFloat(r.debt_luz) || 0;
-    const net = debtRes + debtLuz + debtOther; // real balance: positive=owes, negative=credit
 
     const rec = {
       name,
       clientId: r.client_id,
-      debtRes,
-      debtLuz,
+      realDebt,
+      pendRes,
       debtOther,
-      net,
+      debtLuz,
       unpaid: parseInt(r.bookings_unpaid) || 0,
       totalBookings: parseInt(r.bookings_total) || 0,
       lastBooking: r.last_booking || '',
       lastCourt: r.last_court || '',
     };
 
-    if (net > 10) {
+    if (realDebt > 10) {
       debtors.push(rec);
     }
     // surplus now comes from client_balances tab (Matchpoint export)
   });
 
-  debtors.sort((a, b) => b.net - a.net);
+  debtors.sort((a, b) => b.realDebt - a.realDebt);
 
   // Surplus from Matchpoint "Clients with Balance" export
   const surplusClients = balances
@@ -349,7 +354,7 @@
     }))
     .sort((a, b) => b.balance - a.balance);
 
-  const totalDebt = debtors.reduce((s, d) => s + d.net, 0);
+  const totalDebt = debtors.reduce((s, d) => s + d.realDebt, 0);
   const totalSurplus = surplusClients.reduce((s, d) => s + d.balance, 0);
 
   // ── KPIs ──
@@ -369,17 +374,17 @@
   } else {
     dtBody.innerHTML = debtors.map(d => `<tr>
       <td>${d.name}</td>
-      <td>${fmt(d.debtRes)}</td>
+      <td>${fmt(d.pendRes)}</td>
       <td>${d.debtLuz ? fmt(d.debtLuz) : '—'}</td>
       <td class="${d.debtOther > 0 ? 'neg' : d.debtOther < 0 ? 'pos' : ''}">${fmt(d.debtOther)}</td>
-      <td class="neg" style="font-weight:700">${fmt(d.net)}</td>
+      <td class="neg" style="font-weight:700">${fmt(d.realDebt)}</td>
       <td>${d.unpaid}</td>
       <td>${d.totalBookings}</td>
       <td>${d.lastBooking}</td>
       <td>${d.lastCourt}</td>
     </tr>`).join('') + `<tr class="total-row">
       <td>ИТОГО</td>
-      <td>${fmt(debtors.reduce((s,d) => s+d.debtRes, 0))}</td>
+      <td>${fmt(debtors.reduce((s,d) => s+d.pendRes, 0))}</td>
       <td>${fmt(debtors.reduce((s,d) => s+d.debtLuz, 0))}</td>
       <td>${fmt(debtors.reduce((s,d) => s+d.debtOther, 0))}</td>
       <td class="neg" style="font-weight:700">${fmt(totalDebt)}</td>
@@ -388,6 +393,46 @@
       <td colspan="2"></td>
     </tr>`;
     document.getElementById('debtors-hint').textContent = debtors.length + ' клиентов · ' + fmt(totalDebt);
+
+    // ── Sortable headers ──
+    const renderDebtors = (sorted) => {
+      dtBody.innerHTML = sorted.map(d => `<tr>
+        <td>${d.name}</td>
+        <td>${fmt(d.pendRes)}</td>
+        <td>${d.debtLuz ? fmt(d.debtLuz) : '—'}</td>
+        <td class="${d.debtOther > 0 ? 'neg' : d.debtOther < 0 ? 'pos' : ''}">${fmt(d.debtOther)}</td>
+        <td class="neg" style="font-weight:700">${fmt(d.realDebt)}</td>
+        <td>${d.unpaid}</td>
+        <td>${d.totalBookings}</td>
+        <td>${d.lastBooking}</td>
+        <td>${d.lastCourt}</td>
+      </tr>`).join('') + `<tr class="total-row">
+        <td>ИТОГО</td>
+        <td>${fmt(sorted.reduce((s,d) => s+d.pendRes, 0))}</td>
+        <td>${fmt(sorted.reduce((s,d) => s+d.debtLuz, 0))}</td>
+        <td>${fmt(sorted.reduce((s,d) => s+d.debtOther, 0))}</td>
+        <td class="neg" style="font-weight:700">${fmt(totalDebt)}</td>
+        <td>${sorted.reduce((s,d) => s+d.unpaid, 0)}</td>
+        <td>${sorted.reduce((s,d) => s+d.totalBookings, 0)}</td>
+        <td colspan="2"></td>
+      </tr>`;
+    };
+
+    document.querySelectorAll('#debtors-table th.sortable').forEach(th => {
+      th.addEventListener('click', () => {
+        const key = th.dataset.sort;
+        const wasAsc = th.classList.contains('asc');
+        document.querySelectorAll('#debtors-table th.sortable').forEach(h => h.classList.remove('asc', 'desc'));
+        const asc = !wasAsc;
+        th.classList.add(asc ? 'asc' : 'desc');
+        const sorted = [...debtors].sort((a, b) => {
+          const va = typeof a[key] === 'string' ? a[key] : +a[key];
+          const vb = typeof b[key] === 'string' ? b[key] : +b[key];
+          return asc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
+        });
+        renderDebtors(sorted);
+      });
+    });
   }
 
   // ── Surplus table ──
@@ -437,8 +482,8 @@
       data: {
         labels: top.map(d => d.name.length > 20 ? d.name.slice(0, 18) + '...' : d.name),
         datasets: [{
-          label: 'NET долг',
-          data: top.map(d => d.net),
+          label: 'Долг',
+          data: top.map(d => d.realDebt),
           backgroundColor: 'rgba(231, 76, 60, 0.7)',
         }],
       },
