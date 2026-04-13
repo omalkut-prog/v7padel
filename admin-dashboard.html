@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: #FFF7E8; color: #303030;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100; height: 56px;
+    background: #303030; display: flex; align-items: center; padding: 0 32px; gap: 12px;
+  }
+  .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1.5px; color: #fff; text-decoration: none; margin-right: auto; }
+  .nav-logo .padel { color: #E5FF2B; }
+  .nav-role {
+    font-size: 11px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase;
+    background: rgba(229,255,43,0.15); border: 1px solid rgba(229,255,43,0.3);
+    color: #E5FF2B; padding: 4px 12px; border-radius: 20px;
+  }
+  .lang-switcher { display: flex; gap: 2px; background: rgba(255,255,255,0.08); border-radius: 8px; padding: 3px; }
+  .lang-btn {
+    background: transparent; border: none; cursor: pointer;
+    font-size: 11px; font-weight: 600; letter-spacing: 0.5px;
+    color: rgba(255,255,255,0.45); padding: 4px 10px; border-radius: 6px;
+    font-family: 'Inter', sans-serif; transition: all 0.2s;
+  }
+  .lang-btn:hover { color: rgba(255,255,255,0.8); }
+  .lang-btn.active { background: #E5FF2B; color: #303030; }
+  .nav-logout {
+    padding: 6px 16px; background: transparent; border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+    color: rgba(255,255,255,0.7); font-family: 'Inter', sans-serif; transition: all 0.2s;
+  }
+  .nav-logout:hover { border-color: rgba(255,255,255,0.7); color: #fff; }
+
+  /* HERO */
+  .hero { background: #303030; padding: 64px 40px 56px; position: relative; overflow: hidden; }
+  .hero::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(229,255,43,0.06) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .hero-inner { max-width: 1200px; margin: 0 auto; position: relative; }
+  .hero-eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; color: rgba(229,255,43,0.7); margin-bottom: 12px; }
+  .hero-title { font-family: 'Bebas Neue', sans-serif; font-size: clamp(64px, 10vw, 120px); letter-spacing: 2px; line-height: 0.9; color: #fff; margin-bottom: 16px; }
+  .hero-sub { font-size: 16px; font-weight: 300; color: rgba(255,255,255,0.5); max-width: 480px; }
+  .hero-accent { color: #E5FF2B; }
+
+  /* MAIN */
+  main { max-width: 1200px; margin: 0 auto; padding: 48px 24px 80px; }
+  .section { margin-bottom: 48px; }
+  .section-label {
+    font-size: 11px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase;
+    color: #888; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(48,48,48,0.1); }
+
+  .bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+  .col3  { grid-column: span 3; }
+  .col4  { grid-column: span 4; }
+  .col6  { grid-column: span 6; }
+  .col8  { grid-column: span 8; }
+  .col12 { grid-column: span 12; }
+
+  .card {
+    background: #fff; border: 1px solid rgba(48,48,48,0.08); border-radius: 20px;
+    padding: 32px; text-decoration: none; color: #303030;
+    display: flex; flex-direction: column; min-height: 220px;
+    position: relative; overflow: hidden;
+    transition: border-color 0.25s, transform 0.3s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s;
+  }
+  .card:hover { border-color: rgba(48,48,48,0.2); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(48,48,48,0.1); }
+  .card.accent { background: #303030; border-color: transparent; color: #fff; }
+  .card.accent:hover { box-shadow: 0 12px 40px rgba(48,48,48,0.25); }
+
+  .card-num { font-size: 12px; font-weight: 500; color: #bbb; margin-bottom: auto; }
+  .card.accent .card-num { color: rgba(255,255,255,0.35); }
+  .card-icon { font-size: 36px; line-height: 1; margin-bottom: 14px; margin-top: 20px; }
+  .card-title { font-size: 22px; font-weight: 700; letter-spacing: -0.3px; line-height: 1.1; margin-bottom: 8px; }
+  .card-desc { font-size: 13px; color: #888; font-weight: 400; line-height: 1.5; flex: 1; }
+  .card.accent .card-desc { color: rgba(255,255,255,0.45); }
+
+  .card-arrow {
+    position: absolute; bottom: 24px; right: 24px; width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid rgba(48,48,48,0.12); display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: #aaa; transition: all 0.2s;
+  }
+  .card:hover .card-arrow { border-color: #303030; color: #303030; transform: translate(2px,-2px); }
+  .card.accent .card-arrow { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.5); }
+  .card.accent:hover .card-arrow { border-color: #E5FF2B; color: #E5FF2B; }
+  .c-yellow .card-arrow { border-color: rgba(229,255,43,0.4); background: #E5FF2B; color: #303030; }
+  .c-yellow:hover .card-arrow { background: #d4ee1a; }
+  .c-cyan .card-title   { color: #0890a8; }
+  .c-green .card-title  { color: #1a8a5a; }
+  .c-purple .card-title { color: #6b35c0; }
+  .c-orange .card-title { color: #c06b10; }
+  .c-red .card-title    { color: #e03e2d; }
+
+  @media (max-width: 900px) {
+    .col3,.col4,.col6,.col8,.col12 { grid-column: span 12; }
+    .hero { padding: 40px 24px 36px; }
+    .lang-switcher { display: none; }
+  }
+  @media (max-width: 600px) { main { padding: 32px 16px 60px; } .hero-title { font-size: 60px; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="admin-dashboard.html">V7 <span class="padel">PADEL</span></a>
+  <span class="nav-role" id="nav-role-label">Administrator</span>
+  <div class="lang-switcher">
+    <button class="lang-btn" onclick="setLang('ru')">RU</button>
+    <button class="lang-btn" onclick="setLang('en')">EN</button>
+    <button class="lang-btn" onclick="setLang('tr')">TR</button>
+  </div>
+  <button class="nav-logout" id="nav-logout-label" onclick="sessionStorage.clear();location.href='login.html'">Sign out</button>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">V7 Padel · Antalya · 2026</div>
+    <h1 class="hero-title" id="hero-title">ADMIN DASHBOARD<span class="hero-accent">.</span></h1>
+    <p class="hero-sub" id="hero-sub">Your workspace — tasks, clients, tournaments and schedule.</p>
+  </div>
+</section>
+
+<main>
+
+  <div class="section">
+    <div class="section-label" id="sec1-label">01 · KPI &amp; Tasks</div>
+    <div class="bento">
+      <div class="col6">
+        <a class="card c-yellow" href="admin-kpi.html">
+          <span class="card-num">01</span>
+          <div class="card-icon">📊</div>
+          <div class="card-title" id="kpi-title">My KPI</div>
+          <div class="card-desc" id="kpi-desc">Performance indicators, goals and progress.</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+      <div class="col6">
+        <a class="card c-cyan" href="admin-tasks.html">
+          <span class="card-num">02</span>
+          <div class="card-icon">✅</div>
+          <div class="card-title" id="tasks-title">My Tasks</div>
+          <div class="card-desc" id="tasks-desc">Current tasks, deadlines and completion statuses.</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label" id="sec2-label">02 · Clients</div>
+    <div class="bento">
+      <div class="col12">
+        <a class="card accent" href="clients.html">
+          <span class="card-num">03</span>
+          <div class="card-icon">🎾</div>
+          <div class="card-title" id="clients-title">Client Base</div>
+          <div class="card-desc" id="clients-desc">1 173 clients · segments · contacts · activity</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label" id="sec3-label">03 · Tournaments</div>
+    <div class="bento">
+      <div class="col6">
+        <a class="card c-orange" href="tournaments.html">
+          <span class="card-num">04</span>
+          <div class="card-icon">🏆</div>
+          <div class="card-title" id="tourn-title">Tournaments &amp; Events</div>
+          <div class="card-desc" id="tourn-desc">Formats, pricing, prize pool and corporate events.</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+      <div class="col6">
+        <a class="card c-cyan" href="tournament-calendar.html">
+          <span class="card-num">05</span>
+          <div class="card-icon">📅</div>
+          <div class="card-title" id="cal-title">Tournament Calendar</div>
+          <div class="card-desc" id="cal-desc">Schedule of all tournaments and events for 2026.</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label" id="sec4-label">04 · Knowledge Base</div>
+    <div class="bento">
+      <div class="col12">
+        <a class="card c-purple" href="knowledge.html">
+          <span class="card-num">06</span>
+          <div class="card-icon">📚</div>
+          <div class="card-title" id="kb-title">MatchPoint Guide</div>
+          <div class="card-desc" id="kb-desc">Club rules, service standards, scripts and onboarding.</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label" id="sec5-label">05 · Schedule &amp; Checklists</div>
+    <div class="bento">
+      <div class="col3">
+        <a class="card c-green" href="admin-schedule.html">
+          <span class="card-num">07</span>
+          <div class="card-icon">🗓</div>
+          <div class="card-title" id="sched-title">My Schedule</div>
+          <div class="card-desc" id="sched-desc">Work schedule and shifts.</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+      <div class="col3">
+        <a class="card c-yellow" href="admin-checklists.html">
+          <span class="card-num">08</span>
+          <div class="card-icon">✅</div>
+          <div class="card-title" id="checks-title">My Checklists</div>
+          <div class="card-desc" id="checks-desc">Daily and weekly checklists.</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+      <div class="col3">
+        <a class="card c-cyan" href="admin-schedule.html">
+          <span class="card-num">09</span>
+          <div class="card-icon">👥</div>
+          <div class="card-title" id="adminsched-title">Admin Schedule</div>
+          <div class="card-desc" id="adminsched-desc">Administrator shifts and work schedule.</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+      <div class="col3">
+        <a class="card c-orange" href="coach-schedule.html">
+          <span class="card-num">10</span>
+          <div class="card-icon">🎾</div>
+          <div class="card-title" id="coachsched-title">Coach Schedule</div>
+          <div class="card-desc" id="coachsched-desc">Coach training schedule.</div>
+          <div class="card-arrow">↗</div>
+        </a>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+var STRINGS = {
+  ru: {
+    role: 'Администратор', logout: 'Выйти',
+    heroTitle: 'АДМИНИСТРАТОР', heroSub: 'Ваш рабочий кабинет — задачи, клиенты, турниры и расписание.',
+    sec1: '01 · KPI и Задачи', kpiTitle: 'Мои KPI', kpiDesc: 'Показатели эффективности, цели и прогресс по периодам.',
+    tasksTitle: 'Мои задачи', tasksDesc: 'Текущие задачи, дедлайны и статусы выполнения.',
+    sec2: '02 · Клиенты', clientsTitle: 'База клиентов', clientsDesc: '1 173 клиента · сегменты · контакты · активность',
+    sec3: '03 · Турниры', tournTitle: 'Турниры и Ивенты', tournDesc: 'Форматы, ценообразование и корп. мероприятия.',
+    calTitle: 'Календарь турниров', calDesc: 'Расписание всех турниров и ивентов на 2026 год.',
+    sec4: '04 · База знаний', kbTitle: 'База знаний MatchPoint', kbDesc: 'Правила клуба, стандарты сервиса, скрипты и онбординг.',
+    sec5: '05 · Расписание и Чек-листы', schedTitle: 'Мое расписание', schedDesc: 'Рабочий график и смены.',
+    checksTitle: 'Мои чек-листы', checksDesc: 'Ежедневные и еженедельные чек-листы.',
+    adminSchedTitle: 'Расписание администраторов', adminSchedDesc: 'Смены и график работы администраторов.',
+    coachSchedTitle: 'Расписание коучей', coachSchedDesc: 'Тренировочный график коучей.'
+  },
+  en: {
+    role: 'Administrator', logout: 'Sign out',
+    heroTitle: 'ADMIN DASHBOARD', heroSub: 'Your workspace — tasks, clients, tournaments and schedule.',
+    sec1: '01 · KPI & Tasks', kpiTitle: 'My KPI', kpiDesc: 'Performance indicators, goals and progress.',
+    tasksTitle: 'My Tasks', tasksDesc: 'Current tasks, deadlines and completion statuses.',
+    sec2: '02 · Clients', clientsTitle: 'Client Base', clientsDesc: '1 173 clients · segments · contacts · activity',
+    sec3: '03 · Tournaments', tournTitle: 'Tournaments & Events', tournDesc: 'Formats, pricing, prize pool and corporate events.',
+    calTitle: 'Tournament Calendar', calDesc: 'Schedule of all tournaments and events for 2026.',
+    sec4: '04 · Knowledge Base', kbTitle: 'MatchPoint Guide', kbDesc: 'Club rules, service standards, scripts and onboarding.',
+    sec5: '05 · Schedule & Checklists', schedTitle: 'My Schedule', schedDesc: 'Work schedule and shifts.',
+    checksTitle: 'My Checklists', checksDesc: 'Daily and weekly checklists.',
+    adminSchedTitle: 'Admin Schedule', adminSchedDesc: 'Administrator shifts and work schedule.',
+    coachSchedTitle: 'Coach Schedule', coachSchedDesc: 'Coach training schedule.'
+  },
+  tr: {
+    role: 'Yönetici', logout: 'Çıkış',
+    heroTitle: 'YÖNETİCİ PANELİ', heroSub: 'Çalışma alanınız — görevler, müşteriler, turnuvalar ve program.',
+    sec1: '01 · KPI ve Görevler', kpiTitle: "KPI'm", kpiDesc: 'Performans göstergeleri, hedefler ve ilerleme.',
+    tasksTitle: 'Görevlerim', tasksDesc: 'Mevcut görevler, son tarihler ve tamamlanma durumları.',
+    sec2: '02 · Müşteriler', clientsTitle: 'Müşteri Tabanı', clientsDesc: '1 173 müşteri · segmentler · iletişim · aktivite',
+    sec3: '03 · Turnuvalar', tournTitle: 'Turnuvalar ve Etkinlikler', tournDesc: 'Formatlar, fiyatlandırma ve kurumsal etkinlikler.',
+    calTitle: 'Turnuva Takvimi', calDesc: "2026'daki tüm turnuva ve etkinliklerin programı.",
+    sec4: '04 · Bilgi Tabanı', kbTitle: 'MatchPoint Kılavuzu', kbDesc: 'Kulüp kuralları, hizmet standartları, senaryolar ve oryantasyon.',
+    sec5: '05 · Program ve Kontrol Listeleri', schedTitle: 'Programım', schedDesc: 'Çalışma programı ve vardiyalar.',
+    checksTitle: 'Kontrol Listelerim', checksDesc: 'Günlük ve haftalık kontrol listeleri.',
+    adminSchedTitle: 'Yönetici Programı', adminSchedDesc: 'Yönetici vardiyaları ve çalışma programı.',
+    coachSchedTitle: 'Antrenör Programı', coachSchedDesc: 'Antrenör eğitim programı.'
+  }
+};
+
+function applyLang(l) {
+  if (!STRINGS[l]) l = 'en';
+  var s = STRINGS[l];
+  document.getElementById('nav-role-label').textContent   = s.role;
+  document.getElementById('nav-logout-label').textContent = s.logout;
+  document.getElementById('hero-title').innerHTML = s.heroTitle + '<span class="hero-accent">.</span>';
+  document.getElementById('hero-sub').textContent      = s.heroSub;
+  document.getElementById('sec1-label').textContent    = s.sec1;
+  document.getElementById('kpi-title').textContent     = s.kpiTitle;
+  document.getElementById('kpi-desc').textContent      = s.kpiDesc;
+  document.getElementById('tasks-title').textContent   = s.tasksTitle;
+  document.getElementById('tasks-desc').textContent    = s.tasksDesc;
+  document.getElementById('sec2-label').textContent    = s.sec2;
+  document.getElementById('clients-title').textContent = s.clientsTitle;
+  document.getElementById('clients-desc').textContent  = s.clientsDesc;
+  document.getElementById('sec3-label').textContent    = s.sec3;
+  document.getElementById('tourn-title').textContent   = s.tournTitle;
+  document.getElementById('tourn-desc').textContent    = s.tournDesc;
+  document.getElementById('cal-title').textContent     = s.calTitle;
+  document.getElementById('cal-desc').textContent      = s.calDesc;
+  document.getElementById('sec4-label').textContent    = s.sec4;
+  document.getElementById('kb-title').textContent      = s.kbTitle;
+  document.getElementById('kb-desc').textContent       = s.kbDesc;
+  document.getElementById('sec5-label').textContent    = s.sec5;
+  document.getElementById('sched-title').textContent   = s.schedTitle;
+  document.getElementById('sched-desc').textContent    = s.schedDesc;
+  document.getElementById('checks-title').textContent  = s.checksTitle;
+  document.getElementById('checks-desc').textContent   = s.checksDesc;
+  document.getElementById('adminsched-title').textContent = s.adminSchedTitle;
+  document.getElementById('adminsched-desc').textContent  = s.adminSchedDesc;
+  document.getElementById('coachsched-title').textContent = s.coachSchedTitle;
+  document.getElementById('coachsched-desc').textContent  = s.coachSchedDesc;
+  document.querySelectorAll('.lang-btn').forEach(function(b){ b.classList.toggle('active', b.textContent.toLowerCase() === l); });
+}
+
+function setLang(l) {
+  sessionStorage.setItem('v7lang', l);
+  applyLang(l);
+}
+
+var lang = sessionStorage.getItem('v7lang') || 'en';
+applyLang(lang);
+</script>
+<script src="assets/nav.js"></script>
+</body>
+</html>

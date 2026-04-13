@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — Sign In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ---- LEFT PANEL ---- */
+  .left {
+    flex: 1;
+    background: #303030;
+    display: flex;
+    flex-direction: column;
+    padding: 48px 52px;
+    position: relative;
+    overflow: hidden;
+    min-height: 100vh;
+  }
+
+  /* Decorative triangles */
+  .left::before {
+    content: '';
+    position: absolute;
+    top: -60px; left: -60px;
+    width: 260px; height: 260px;
+    background: rgba(229,255,43,0.04);
+    transform: rotate(45deg);
+    pointer-events: none;
+  }
+  .left::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; right: -80px;
+    width: 320px; height: 320px;
+    background: rgba(229,255,43,0.04);
+    transform: rotate(20deg);
+    pointer-events: none;
+  }
+  .tri1 {
+    position: absolute;
+    bottom: 120px; left: -40px;
+    width: 0; height: 0;
+    border-right: 100px solid rgba(229,255,43,0.05);
+    border-top: 100px solid transparent;
+    border-bottom: 100px solid transparent;
+  }
+  .tri2 {
+    position: absolute;
+    top: 160px; right: -30px;
+    width: 0; height: 0;
+    border-left: 80px solid rgba(229,255,43,0.04);
+    border-top: 80px solid transparent;
+    border-bottom: 80px solid transparent;
+  }
+
+  .left-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 42px;
+    letter-spacing: 2px;
+    color: #fff;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+  }
+  .left-logo .padel { color: #E5FF2B; }
+  .left-logo-sub {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-top: 6px;
+    position: relative; z-index: 1;
+  }
+
+  .left-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative; z-index: 1;
+  }
+
+  .left-tag {
+    display: inline-block;
+    background: #E5FF2B;
+    color: #303030;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 5px 12px;
+    border-radius: 4px;
+    margin-bottom: 24px;
+    align-self: flex-start;
+  }
+
+  .left-headline {
+    font-size: 36px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    margin-bottom: 16px;
+    max-width: 380px;
+  }
+
+  .left-sub {
+    font-size: 15px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+    max-width: 360px;
+  }
+
+  .left-bottom {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative; z-index: 1;
+  }
+  .pulse-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #E5FF2B;
+    animation: pulseGlow 2s ease-in-out infinite;
+  }
+  @keyframes pulseGlow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(229,255,43,0.6); }
+    50% { box-shadow: 0 0 0 8px rgba(229,255,43,0); }
+  }
+  .left-bottom-text {
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.5px;
+  }
+
+  /* ---- RIGHT PANEL ---- */
+  .right {
+    width: 460px;
+    flex-shrink: 0;
+    background: #FFF7E8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 52px;
+    min-height: 100vh;
+  }
+
+  .form-wrap {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .form-eyebrow {
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #666;
+    margin-bottom: 8px;
+  }
+  .form-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: #303030;
+    letter-spacing: -0.8px;
+    margin-bottom: 10px;
+  }
+  .form-desc {
+    font-size: 14px;
+    font-weight: 300;
+    color: #666;
+    line-height: 1.55;
+    margin-bottom: 36px;
+  }
+
+  .field-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: #303030;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .input-wrap {
+    position: relative;
+    margin-bottom: 20px;
+  }
+  .input-wrap input {
+    width: 100%;
+    padding: 14px 48px 14px 16px;
+    background: #fff;
+    border: 1px solid rgba(48,48,48,0.12);
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    color: #303030;
+    letter-spacing: 2px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  .input-wrap input::placeholder { letter-spacing: 0; color: #bbb; }
+  .input-wrap input:focus {
+    border-color: #303030;
+    box-shadow: 0 0 0 3px rgba(48,48,48,0.08);
+  }
+  .toggle-pw {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    color: #999;
+    padding: 4px;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .toggle-pw:hover { color: #303030; }
+
+  .error-msg {
+    font-size: 13px;
+    font-weight: 500;
+    color: #FF675A;
+    margin-bottom: 16px;
+    min-height: 20px;
+    display: none;
+  }
+  .error-msg.visible { display: block; }
+
+  .btn-signin {
+    width: 100%;
+    padding: 15px;
+    background: #303030;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+  }
+  .btn-signin:hover:not(:disabled) { background: #444; }
+  .btn-signin:disabled { opacity: 0.7; cursor: not-allowed; }
+
+  .spinner {
+    display: none;
+    width: 16px; height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn-signin.loading .spinner { display: block; }
+  .btn-signin.loading .btn-text { opacity: 0.7; }
+
+  .form-hint {
+    font-size: 12px;
+    color: rgba(48,48,48,0.35);
+    text-align: center;
+    margin-top: 20px;
+    line-height: 1.5;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-6px); }
+    40%       { transform: translateX(6px); }
+    60%       { transform: translateX(-4px); }
+    80%       { transform: translateX(4px); }
+  }
+  .shake { animation: shake 0.4s ease; }
+
+  /* Responsive */
+  @media (max-width: 860px) {
+    body { flex-direction: column; }
+    .left { min-height: 280px; padding: 36px 32px; }
+    .left-center { margin: 32px 0; }
+    .left-headline { font-size: 26px; }
+    .right { width: 100%; padding: 40px 32px; }
+  }
+  @media (max-width: 480px) {
+    .left { padding: 28px 24px; }
+    .right { padding: 32px 24px; }
+    .form-title { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left">
+  <div class="tri1"></div>
+  <div class="tri2"></div>
+
+  <div>
+    <div class="left-logo">V7 <span class="padel">PADEL</span></div>
+    <div class="left-logo-sub">Antalya · Internal Hub</div>
+  </div>
+
+  <div class="left-center">
+    <span class="left-tag">Management Platform</span>
+    <h1 class="left-headline">Where champions are built off the court.</h1>
+    <p class="left-sub">Every great game starts with great management. This is your command center.</p>
+  </div>
+
+  <div class="left-bottom">
+    <div class="pulse-dot"></div>
+    <span class="left-bottom-text">V7 Padel · Antalya · 2026</span>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right">
+  <div class="form-wrap">
+    <div class="form-eyebrow">Welcome back</div>
+    <h2 class="form-title">Sign in</h2>
+    <p class="form-desc">Enter your password to access V7 Padel management platform.</p>
+
+    <label class="field-label" for="pw-input">Password</label>
+    <div class="input-wrap">
+      <input type="password" id="pw-input" placeholder="Enter your password" autocomplete="current-password">
+      <button class="toggle-pw" type="button" id="toggle-btn" aria-label="Show password">👁</button>
+    </div>
+
+    <div class="error-msg" id="error-msg">Incorrect password. Please try again.</div>
+
+    <button class="btn-signin" id="signin-btn" type="button">
+      <span class="btn-text">Sign in →</span>
+      <span class="spinner"></span>
+    </button>
+
+    <p class="form-hint">Forgot your password? Contact your administrator.</p>
+  </div>
+</div>
+
+<script>
+const PASSWORDS = {
+  'V7admin2026':     { role: 'admin',         redirect: 'index.html' },
+  'V7manager2026':   { role: 'manager',        redirect: 'manager-dashboard.html' },
+  'V7coach2026':     { role: 'coach',          redirect: 'coach-dashboard.html' },
+  'V7clubadmin2026': { role: 'administrator',  redirect: 'admin-dashboard.html' },
+};
+
+var pwInput  = document.getElementById('pw-input');
+var toggleBtn = document.getElementById('toggle-btn');
+var signinBtn = document.getElementById('signin-btn');
+var errorMsg  = document.getElementById('error-msg');
+var inputWrap = document.querySelector('.input-wrap');
+
+// Toggle password visibility
+toggleBtn.addEventListener('click', function() {
+  if (pwInput.type === 'password') {
+    pwInput.type = 'text';
+    toggleBtn.textContent = '🙈';
+  } else {
+    pwInput.type = 'password';
+    toggleBtn.textContent = '👁';
+  }
+});
+
+// Submit on Enter
+pwInput.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') doSignIn();
+});
+
+signinBtn.addEventListener('click', doSignIn);
+
+function doSignIn() {
+  var val = pwInput.value.trim();
+  if (!val) return;
+
+  // Loading state
+  signinBtn.classList.add('loading');
+  signinBtn.disabled = true;
+  errorMsg.classList.remove('visible');
+
+  setTimeout(function() {
+    var match = PASSWORDS[val];
+    if (match) {
+      sessionStorage.setItem('v7role', match.role);
+      if (match.role === 'coach' || match.role === 'administrator') {
+        if (!sessionStorage.getItem('v7lang')) sessionStorage.setItem('v7lang', 'en');
+      }
+      location.href = match.redirect;
+    } else {
+      signinBtn.classList.remove('loading');
+      signinBtn.disabled = false;
+      errorMsg.classList.add('visible');
+      // Shake animation
+      inputWrap.classList.remove('shake');
+      void inputWrap.offsetWidth; // reflow
+      inputWrap.classList.add('shake');
+      pwInput.value = '';
+      pwInput.focus();
+    }
+  }, 500);
+}
+
+// If already logged in, redirect to appropriate dashboard
+(function() {
+  var role = sessionStorage.getItem('v7role');
+  if (!role) return;
+  var DASHBOARDS = {
+    'admin':         'index.html',
+    'manager':       'manager-dashboard.html',
+    'coach':         'coach-dashboard.html',
+    'administrator': 'admin-dashboard.html',
+  };
+  var dest = DASHBOARDS[role];
+  if (dest) location.href = dest;
+})();
+</script>
+</body>
+</html>

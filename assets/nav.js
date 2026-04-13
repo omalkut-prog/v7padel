@@ -48,3 +48,29 @@
     if (e.key === 'Escape') nav.classList.remove('nav-open');
   });
 })();
+
+// ── Logout button ──
+(function() {
+  var role = sessionStorage.getItem('v7role');
+  if (!role) return;
+  var nav = document.querySelector('nav') || document.querySelector('.nav');
+  if (!nav) return;
+
+  var lang = sessionStorage.getItem('v7lang') || 'ru';
+  var exitLabels = { ru: 'Выйти', en: 'Sign out', tr: 'Çıkış' };
+  var label = (role === 'coach' || role === 'administrator')
+    ? (exitLabels[lang] || 'Sign out')
+    : 'Выйти';
+
+  var btn = document.createElement('button');
+  btn.textContent = label;
+  btn.id = 'nav-logout-btn';
+  btn.style.cssText = 'margin-left:auto;padding:6px 16px;background:transparent;border:1px solid currentColor;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;opacity:0.6;transition:opacity .2s;font-family:inherit;color:inherit';
+  btn.onmouseover = function(){ btn.style.opacity = '1'; };
+  btn.onmouseout  = function(){ btn.style.opacity = '0.6'; };
+  btn.onclick = function() {
+    sessionStorage.clear();
+    location.href = 'login.html';
+  };
+  nav.appendChild(btn);
+})();
