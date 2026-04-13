@@ -113,6 +113,7 @@
       <tbody>
         <tr><td>customers</td><td>customer_id, name, phone, email, gender, age, subs_date, level, nationality</td><td><span class="tag tag-ok">ok</span></td></tr>
         <tr><td>bookings</td><td>booking_id, customer_id, court_id, start_ts, end_ts, status, price</td><td><span class="tag tag-block">customer_id пуст 100%</span></td></tr>
+        <tr><td>occupancy_daily</td><td>date, weekday, hours, pct, persons, h_reserva, h_partida, h_clases, h_actividades, h_centro, bk_admin, bk_web, bk_mobile, hourly_json</td><td><span class="tag tag-ok">195 дней · Matchpoint API</span></td></tr>
         <tr><td>memberships</td><td>membership_id, holder, card_type, rate, payment, subs_date, paid_until, next_fee, status, first_fee, fee</td><td><span class="tag tag-ok">ok</span></td></tr>
         <tr><td>transactions</td><td>date, month, category, subcategory, status, players, price, amount1, method1, currency1, amount2, method2, currency2, coach, comment, admin, total, source, transaction_id</td><td><span class="tag tag-ok">ok</span></td></tr>
         <tr><td>expenses</td><td>date, month, category, item, comment, amount, currency, method, payer, capex_flag, prepaid, amortize_months, source, amort_monthly_try, expense_id</td><td><span class="tag tag-ok">ok</span></td></tr>
@@ -193,6 +194,76 @@
     <div class="rule"><span class="num">4.1</span><div class="text">При изменении логики ETL — <strong>dry-run обязателен</strong> перед реальным запуском.</div></div>
     <div class="rule"><span class="num">4.2</span><div class="text">При обычном ежедневном прогоне — dry-run не нужен.</div></div>
     <div class="rule"><span class="num">4.3</span><div class="text">Не ломай базу — перед любым rebuild проверь что схема не изменилась.</div></div>
+  </div>
+
+  <!-- 4.5 MATCHPOINT API -->
+  <div class="section">
+    <h2>4.5 · Matchpoint API</h2>
+    <p>ASP.NET WebForms. API через PageMethods (JSON POST). Все вызовы требуют аутентифицированную сессию.</p>
+    <p><strong>Base URL:</strong> <code>https://app-v7padel-tur.matchpoint.com.es</code></p>
+
+    <h3>Аутентификация (двухшаговая)</h3>
+    <ol>
+      <li><code>GET /Login.aspx</code> → извлечь <code>__VIEWSTATE</code>, <code>__VIEWSTATEGENERATOR</code>, <code>__EVENTVALIDATION</code></li>
+      <li><code>POST</code> форму: <code>username</code>, <code>password</code>, <code>ddlLenguaje=en-GB</code>, <code>__EVENTTARGET=btnLogin</code></li>
+      <li>Если ответ содержит <code>btnAcceder</code> → <code>POST</code> выбор кассы: <code>DropDownListCajas=1</code>, <code>__EVENTTARGET=btnAcceder</code></li>
+    </ol>
+    <p>Креды: <code>etl/matchpoint_creds.json</code>. Реализация: <code>etl/sync_customers_matchpoint.py</code> → <code>mp_login()</code></p>
+
+    <h3>Эндпоинт: Загрузка кортов (Occupancy) <span class="tag tag-ok">TOP 3 KPI</span></h3>
+    <table class="schema">
+      <thead><tr><th>Параметр</th><th>Значение</th></tr></thead>
+      <tbody>
+        <tr><td>URL</td><td><code>POST /Reservas/CuadroReservasNuevo.aspx/ObtenerEstadisticasOcupacion</code></td></tr>
+        <tr><td>Content-Type</td><td><code>application/json; charset=utf-8</code></td></tr>
+        <tr><td>Body</td><td><code>{"idCuadro": "3", "fecha": "DD/MM/YYYY"}</code></td></tr>
+        <tr><td>Контекст</td><td>Перед вызовом посетить <code>/Reservas/CuadroReservas.aspx?id_cuadro=3</code></td></tr>
+        <tr><td>idCuadro</td><td><code>3</code> = PADEL</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Ответ (внутри <code>{"d": {...}}</code>)</h3>
+    <table class="schema">
+      <thead><tr><th>Поле</th><th>Тип</th><th>Описание</th></tr></thead>
+      <tbody>
+        <tr><td>HorasOcupadas</td><td>float</td><td>Часы загрузки за день</td></tr>
+        <tr><td>PorcentajeOcupacion</td><td>float</td><td>% загрузки от максимума</td></tr>
+        <tr><td>NumeroPersonas</td><td>int</td><td>Количество человек</td></tr>
+        <tr><td>Pie</td><td>array</td><td>Разбивка: reserva, partida, clases, actividades, centro</td></tr>
+        <tr><td>GraficoOcupacion</td><td>array</td><td>Почасовая загрузка %: <code>[{category: "9", value: 75.0}, ...]</code></td></tr>
+        <tr><td>ReservasCantidadRealizadaAdministracion</td><td>int</td><td>Бронирования через админку</td></tr>
+        <tr><td>ReservasCantidadRealizadaWeb</td><td>int</td><td>Бронирования через сайт</td></tr>
+        <tr><td>ReservasCantidadRealizadaMovil</td><td>int</td><td>Бронирования через мобилку</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Эндпоинт: Список клиентов (Customers)</h3>
+    <table class="schema">
+      <thead><tr><th>Параметр</th><th>Значение</th></tr></thead>
+      <tbody>
+        <tr><td>URL</td><td><code>POST /Administracion/Clientes/ListaClientes.aspx/ObtenerClientes</code></td></tr>
+        <tr><td>Результат</td><td>1173 клиентов → <code>customers</code> таб</td></tr>
+        <tr><td>Скрипт</td><td><code>etl/sync_customers_matchpoint.py</code></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Скрипты и расписание</h3>
+    <table class="schema">
+      <thead><tr><th>Скрипт</th><th>Что делает</th><th>Расписание</th></tr></thead>
+      <tbody>
+        <tr><td><code>scrape_occupancy.py</code></td><td>Occupancy API → <code>occupancy_daily</code> таб (195 дней, 14 полей)</td><td>Ежедневно 06:00 (run_all_etl.py)</td></tr>
+        <tr><td><code>sync_customers_matchpoint.py</code></td><td>Customers API → <code>customers</code> таб (1173 записей)</td><td>Вс 05:30</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Заметки</h3>
+    <ul>
+      <li><code>session.verify = False</code> — SSL сертификат проблемный</li>
+      <li>Rate limit: ~150мс между запросами</li>
+      <li>Grid page может редиректить: <code>CuadroReservas.aspx</code> → <code>CuadroReservasNuevo.aspx</code></li>
+      <li>Все PageMethods возвращают ответ в обёртке <code>{"d": {...}}</code></li>
+      <li>Потенциально доступны другие PageMethods — исследовать по мере надобности</li>
+    </ul>
   </div>
 
   <!-- 5. КАЧЕСТВО -->
