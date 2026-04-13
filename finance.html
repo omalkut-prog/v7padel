@@ -640,6 +640,7 @@ function renderBlock1FromCache(seriesRows) {
   const tfoot = document.querySelector('#pnl-table tfoot');
   const monthsAsc = seriesRows
     .filter(r => (r.period_month || '') >= V7.START_MONTH)
+    .filter(r => num(r.revenue) !== 0 || num(r.opex) !== 0 || r.source === 'live')
     .sort((a, b) => a.period_month < b.period_month ? -1 : 1);
   if (!monthsAsc.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
 

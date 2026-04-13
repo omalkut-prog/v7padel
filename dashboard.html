@@ -582,7 +582,7 @@ async function loadSlowLiabilities() {
 
       // ── PNL CHART (from monthly_series) ──
       var series = cache.series || [];
-      var sMonths = series.map(function(r) { return r.period_month; }).filter(function(m) { return m >= V7.START_MONTH; });
+      var sMonths = series.filter(function(r) { return r.period_month >= V7.START_MONTH && (Number(r.revenue) !== 0 || Number(r.opex) !== 0 || r.source === 'live'); }).map(function(r) { return r.period_month; });
       var sMap = {}; series.forEach(function(r) { sMap[r.period_month] = r; });
       renderPnlChart(sMonths,
         sMonths.map(function(m) { return sMap[m].revenue; }),
