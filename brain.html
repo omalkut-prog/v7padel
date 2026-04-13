@@ -230,7 +230,12 @@
         <tr><td>HorasOcupadas</td><td>float</td><td>Часы загрузки за день</td></tr>
         <tr><td>PorcentajeOcupacion</td><td>float</td><td>% загрузки от максимума</td></tr>
         <tr><td>NumeroPersonas</td><td>int</td><td>Количество человек</td></tr>
-        <tr><td>Pie</td><td>array</td><td>Разбивка: reserva, partida, clases, actividades, centro</td></tr>
+        <tr><td>Pie</td><td>array</td><td>Разбивка: reserva, partida, clases, actividades, centro, mantenimiento.<br>
+          <strong>Маппинг на наши категории:</strong><br>
+          • <b>Бронирования</b> = reserva + partida (все букинги включая опен-игры)<br>
+          • <b>Тренировки</b> = clases (индивидуальные/групповые с тренером, 1-4 чел.)<br>
+          • <b>Турниры</b> = actividades + centro (мероприятия + время заблокированное центром)<br>
+          • mantenimiento = техобслуживание (вычитается из hours, не считается загрузкой)</td></tr>
         <tr><td>GraficoOcupacion</td><td>array</td><td>Почасовая загрузка %: <code>[{category: "9", value: 75.0}, ...]</code></td></tr>
         <tr><td>ReservasCantidadRealizadaAdministracion</td><td>int</td><td>Бронирования через админку</td></tr>
         <tr><td>ReservasCantidadRealizadaWeb</td><td>int</td><td>Бронирования через сайт</td></tr>

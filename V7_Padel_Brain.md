@@ -191,7 +191,7 @@ Body: {"idCuadro": "3", "fecha": "DD/MM/YYYY"}
 | HorasOcupadas | float | Часы загрузки за день |
 | PorcentajeOcupacion | float | % загрузки от макс. |
 | NumeroPersonas | int | Количество человек |
-| Pie | array | Разбивка: reserva, partida, clases, actividades, centro |
+| Pie | array | Разбивка: reserva, partida, clases, actividades, centro, mantenimiento. **Маппинг:** Бронирования=reserva+partida, Тренировки=clases, Турниры=actividades+centro. mantenimiento вычитается из hours |
 | GraficoOcupacion | array | Почасовая загрузка %: `[{category: "9", value: 75.0}, ...]` |
 | ReservasCantidadRealizadaAdministracion | int | Бронирования через админку |
 | ReservasCantidadRealizadaWeb | int | Бронирования через сайт |

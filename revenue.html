@@ -646,7 +646,7 @@
     <div class="panel">
       <table class="fin" id="utl-days-table">
         <thead>
-          <tr><th>Дата</th><th>День</th><th>Часов</th><th>%</th><th>Чел.</th><th>Резерв</th><th>Матчи</th><th>Классы</th><th>Прочее</th></tr>
+          <tr><th>Дата</th><th>День</th><th>Часов</th><th>%</th><th>Чел.</th><th>Брони</th><th>Трен.</th><th>Турниры</th></tr>
         </thead>
         <tbody><tr><td colspan="9" class="loading">Загрузка…</td></tr></tbody>
       </table>
@@ -794,7 +794,7 @@ function recalcUtilizationKPIs() {
   document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + maxDayHours + ' возможных · ' + totalDays + ' дн.';
 
   document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
-  var typeHint = 'резерв ' + Math.round(typeHours.reserva) + ' · матчи ' + Math.round(typeHours.partida) + ' · классы ' + Math.round(typeHours.clases) + ' · актив. ' + Math.round(typeHours.actividades) + ' · центр ' + Math.round(typeHours.centro);
+  var typeHint = 'брони ' + Math.round(typeHours.reserva + typeHours.partida) + ' · трен. ' + Math.round(typeHours.clases) + ' · турниры ' + Math.round(typeHours.actividades + typeHours.centro);
   document.getElementById('utl-kpi-load-hint').textContent = typeHint;
 
   // Rev/hour
@@ -1639,7 +1639,7 @@ async function renderUtilizationTab(occRows) {
   document.getElementById('utl-kpi-avg-day-hint').textContent = 'из ' + maxDayHours + ' возможных · ' + effectiveDays + ' дн.';
 
   document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
-  var typeHint = 'резерв ' + Math.round(typeHours.reserva) + ' · матчи ' + Math.round(typeHours.partida) + ' · классы ' + Math.round(typeHours.clases) + ' · актив. ' + Math.round(typeHours.actividades) + ' · центр ' + Math.round(typeHours.centro);
+  var typeHint = 'брони ' + Math.round(typeHours.reserva + typeHours.partida) + ' · трен. ' + Math.round(typeHours.clases) + ' · турниры ' + Math.round(typeHours.actividades + typeHours.centro);
   document.getElementById('utl-kpi-load-hint').textContent = typeHint;
 
   // Rev/hour
@@ -1705,7 +1705,7 @@ function renderUtilizationTabFromParsed(parsed) {
     typeHours.reserva += r.h_reserva; typeHours.partida += r.h_partida;
     typeHours.clases += r.h_clases; typeHours.actividades += r.h_actividades; typeHours.centro += r.h_centro;
   });
-  document.getElementById('utl-kpi-load-hint').textContent = 'резерв ' + Math.round(typeHours.reserva) + ' · матчи ' + Math.round(typeHours.partida) + ' · классы ' + Math.round(typeHours.clases) + ' · актив. ' + Math.round(typeHours.actividades) + ' · центр ' + Math.round(typeHours.centro);
+  document.getElementById('utl-kpi-load-hint').textContent = 'брони ' + Math.round(typeHours.reserva + typeHours.partida) + ' · трен. ' + Math.round(typeHours.clases) + ' · турниры ' + Math.round(typeHours.actividades + typeHours.centro);
 
   var revPerHourAll = pastHours > 0 ? incMonthRev / pastHours : 0;
   document.getElementById('utl-kpi-rev-hour').textContent = fmtInt(Math.round(revPerHourAll)) + ' ₺';
@@ -1818,15 +1818,14 @@ function _renderUtilizationCharts() {
     dtHtml += '<td class="num" style="font-weight:600">' + (d.hours > 0 ? d.hours.toFixed(1) : '—') + '</td>';
     dtHtml += '<td class="num">' + (d.hours > 0 ? d.pct.toFixed(0) + '%' : '—') + '</td>';
     dtHtml += '<td class="num">' + (d.persons > 0 ? d.persons : '—') + '</td>';
-    dtHtml += '<td class="num">' + (d.h_reserva > 0 ? d.h_reserva.toFixed(1) : '—') + '</td>';
-    dtHtml += '<td class="num">' + (d.h_partida > 0 ? d.h_partida.toFixed(1) : '—') + '</td>';
+    dtHtml += '<td class="num">' + ((d.h_reserva + d.h_partida) > 0 ? (d.h_reserva + d.h_partida).toFixed(1) : '—') + '</td>';
     dtHtml += '<td class="num">' + (d.h_clases > 0 ? d.h_clases.toFixed(1) : '—') + '</td>';
     dtHtml += '<td class="num">' + ((d.h_actividades + d.h_centro) > 0 ? (d.h_actividades + d.h_centro).toFixed(1) : '—') + '</td>';
     dtHtml += '</tr>';
     weekSum += d.hours; weekDays++; weekPers += d.persons;
     if (d.dow === 0 || idx === allDays.length - 1) {
       var weekAvg = weekDays > 0 ? weekSum / weekDays : 0;
-      dtHtml += '<tr class="month-subtotal"><td colspan="3" style="font-weight:600">Итого: ' + weekSum.toFixed(1) + ' ч.</td><td colspan="2" class="muted">ср. ' + weekAvg.toFixed(1) + ' ч/дн, ' + weekPers + ' чел.</td><td colspan="4"></td></tr>';
+      dtHtml += '<tr class="month-subtotal"><td colspan="3" style="font-weight:600">Итого: ' + weekSum.toFixed(1) + ' ч.</td><td colspan="2" class="muted">ср. ' + weekAvg.toFixed(1) + ' ч/дн, ' + weekPers + ' чел.</td><td colspan="3"></td></tr>';
       weekSum = 0; weekDays = 0; weekPers = 0;
     }
   });
@@ -1836,28 +1835,25 @@ function _renderUtilizationCharts() {
   dtHtml += '<td class="num">' + grandAvg.toFixed(1) + '</td>';
   dtHtml += '<td class="num">' + (maxDayHours > 0 ? (grandAvg/maxDayHours*100).toFixed(0) + '%' : '') + '</td>';
   dtHtml += '<td class="num">' + grandPers + '</td>';
-  var avgRes = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d){return s+d.h_reserva},0)/pastDaysArr.length : 0;
-  var avgPar = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d){return s+d.h_partida},0)/pastDaysArr.length : 0;
+  var avgBook = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d){return s+d.h_reserva+d.h_partida},0)/pastDaysArr.length : 0;
   var avgCls = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d){return s+d.h_clases},0)/pastDaysArr.length : 0;
-  var avgOth = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d){return s+d.h_actividades+d.h_centro},0)/pastDaysArr.length : 0;
-  dtHtml += '<td class="num">' + avgRes.toFixed(1) + '</td>';
-  dtHtml += '<td class="num">' + avgPar.toFixed(1) + '</td>';
+  var avgTour = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d){return s+d.h_actividades+d.h_centro},0)/pastDaysArr.length : 0;
+  dtHtml += '<td class="num">' + avgBook.toFixed(1) + '</td>';
   dtHtml += '<td class="num">' + avgCls.toFixed(1) + '</td>';
-  dtHtml += '<td class="num">' + avgOth.toFixed(1) + '</td></tr>';
+  dtHtml += '<td class="num">' + avgTour.toFixed(1) + '</td></tr>';
   dtBody.innerHTML = dtHtml;
 
   // ═══ 2. Type breakdown stacked chart by month ═══
-  var TYPE_LABELS = ['Резерв', 'Матчи', 'Классы', 'Актив.+Центр'];
-  var TYPE_COLORS = ['#0ABAB5', '#3498db', '#9b59b6', '#f39c12'];
+  var TYPE_LABELS = ['Бронирования', 'Тренировки', 'Турниры'];
+  var TYPE_COLORS = ['#0ABAB5', '#9b59b6', '#f39c12'];
   var monthTypes = {};
   filtered.forEach(function(r) {
     if (r.dt > today) return;
     var ym = r.date.slice(0, 7);
-    if (!monthTypes[ym]) monthTypes[ym] = { reserva: 0, partida: 0, clases: 0, other: 0, total: 0 };
-    monthTypes[ym].reserva += r.h_reserva;
-    monthTypes[ym].partida += r.h_partida;
-    monthTypes[ym].clases += r.h_clases;
-    monthTypes[ym].other += r.h_actividades + r.h_centro;
+    if (!monthTypes[ym]) monthTypes[ym] = { bookings: 0, training: 0, tournaments: 0, total: 0 };
+    monthTypes[ym].bookings += r.h_reserva + r.h_partida;
+    monthTypes[ym].training += r.h_clases;
+    monthTypes[ym].tournaments += r.h_actividades + r.h_centro;
     monthTypes[ym].total += r.hours;
   });
   var mtKeys = Object.keys(monthTypes).sort().slice(-12);
@@ -1868,10 +1864,9 @@ function _renderUtilizationCharts() {
   var periodDays = pastDaysArr.length || 1;
   var cHtml = '';
   var typeData = [
-    { label: 'Бронирования', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_reserva},0), color: TYPE_COLORS[0] },
-    { label: 'Матчи', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_partida},0), color: TYPE_COLORS[1] },
-    { label: 'Классы', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_clases},0), color: TYPE_COLORS[2] },
-    { label: 'Актив.+Центр', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_actividades+r.h_centro},0), color: TYPE_COLORS[3] },
+    { label: 'Бронирования', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_reserva+r.h_partida},0), color: TYPE_COLORS[0] },
+    { label: 'Тренировки', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_clases},0), color: TYPE_COLORS[1] },
+    { label: 'Турниры', hours: filtered.filter(function(r){return r.dt<=today}).reduce(function(s,r){return s+r.h_actividades+r.h_centro},0), color: TYPE_COLORS[2] },
   ];
   typeData.forEach(function(t) {
     var pct = periodTotal > 0 ? (t.hours / periodTotal * 100).toFixed(1) : '0';
@@ -1893,10 +1888,9 @@ function _renderUtilizationCharts() {
 
   // Stacked chart by month (types)
   var typeDatasets = [
-    { label: 'Резерв', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].reserva); }), backgroundColor: TYPE_COLORS[0], borderRadius: 4 },
-    { label: 'Матчи', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].partida); }), backgroundColor: TYPE_COLORS[1], borderRadius: 4 },
-    { label: 'Классы', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].clases); }), backgroundColor: TYPE_COLORS[2], borderRadius: 4 },
-    { label: 'Актив.+Центр', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].other); }), backgroundColor: TYPE_COLORS[3], borderRadius: 4 },
+    { label: 'Бронирования', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].bookings); }), backgroundColor: TYPE_COLORS[0], borderRadius: 4 },
+    { label: 'Тренировки', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].training); }), backgroundColor: TYPE_COLORS[1], borderRadius: 4 },
+    { label: 'Турниры', data: mtKeys.map(function(ym) { return Math.round(monthTypes[ym].tournaments); }), backgroundColor: TYPE_COLORS[2], borderRadius: 4 },
   ];
   createChart('utl-courts-chart', {
     type: 'bar', data: { labels: mtKeys.map(ymLabel), datasets: typeDatasets },
