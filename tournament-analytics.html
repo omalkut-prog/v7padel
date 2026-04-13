@@ -372,9 +372,9 @@ function filtered() {
   });
 }
 
+const _now = new Date(); _now.setHours(0,0,0,0);
 function isCancelled(t) {
-  const now = new Date();
-  return t.date < now && (t.participants === 0 || (t.state !== 'ended' && t.state !== 'started'));
+  return t.date < _now && (t.participants === 0 || (t.state !== 'ended' && t.state !== 'started'));
 }
 
 // ── Tab switching ──

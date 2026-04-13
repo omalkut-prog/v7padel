@@ -27,7 +27,7 @@ window.RacketID = (function() {
   function farray(fields, key) {
     if (!fields || !fields[key]) return [];
     const v = fields[key];
-    if (v.arrayValue && v.arrayValue.values) return v.arrayValue.values.map(x => x.stringValue || '');
+    if (v.arrayValue && v.arrayValue.values) return v.arrayValue.values.map(x => x.stringValue || '').filter(Boolean);
     return [];
   }
 
@@ -121,11 +121,11 @@ window.RacketID = (function() {
       if (status === 'program') return; // skip templates
       if (!dt || isNaN(dt.getTime())) return;
 
-      // Classify type
+      // Classify type (special first — takes priority, then rated, default nonrated)
       const tu = title.toUpperCase();
       let type = 'nonrated';
       if (tu.includes('RANKED') || tu.includes('AMERICANO 1100') || tu.includes('BEGINNERS') || tu.includes('LADY')) type = 'rated';
-      if (tu.includes('PREMIER') || tu.includes('MAJOR') || tu.includes('KIDS') || tu.includes('JUNIOR') || tu.includes('EVENT') || tu.includes('PADEL VS')) type = 'special';
+      if (tu.includes('PREMIER') || tu.includes('MAJOR') || tu.includes('KIDS') || tu.includes('JUNIOR') || tu.includes('EVENT WEEKEND') || tu.includes('PADEL VS')) type = 'special';
 
       // Clean title from emojis
       const cleanTitle = title.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
@@ -182,6 +182,7 @@ window.RacketID = (function() {
    * Fetches in parallel batches of 10.
    */
   async function loadProfiles(userIds) {
+    userIds = [...new Set(userIds)]; // deduplicate
     const results = [];
     const toFetch = userIds.filter(id => !_profileCache[id]);
     const cached = userIds.filter(id => _profileCache[id]).map(id => _profileCache[id]);
