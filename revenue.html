@@ -164,12 +164,12 @@
   <!-- KPI ROW -->
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-label">Выручка текущей недели</div>
-      <div class="kpi-value" id="kpi-week-total">—</div>
-      <div class="kpi-delta" id="kpi-week-delta"></div>
+      <div class="kpi-label">Выручка за апрель</div>
+      <div class="kpi-value" id="kpi-month-total">—</div>
+      <div class="kpi-delta" id="kpi-month-delta"></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Средняя в день (тек. неделя)</div>
+      <div class="kpi-label">Средняя в день (апрель)</div>
       <div class="kpi-value" id="kpi-avg-day">—</div>
       <div class="kpi-delta muted" id="kpi-avg-hint"></div>
     </div>
@@ -502,60 +502,36 @@ function renderWeeklyTable() {
   }
 }
 
-function renderKPIs(monthSoFar, dayOfMonth, dimCur) {
+function renderKPIs(monthSoFar, dayOfMonth, dimCur, prevMonthTotal) {
   const today = new Date(); today.setHours(0,0,0,0);
-  const curWeekKey = weekKey(today);
-  const currentMonday = getMonday(today);
-  const curWeekRaw = weekMap[curWeekKey];
+  const curYear = today.getFullYear();
+  const curMonth = today.getMonth();
+  const MONTH_NAMES = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  const monthName = MONTH_NAMES[curMonth].toLowerCase();
 
-  // If current week has no data yet (e.g. Monday morning before first transaction),
-  // show last available week instead of zeros
-  var showWeek, showWeekTotal, showDaysElapsed, compWeekTotal, showLabel;
-  if (!curWeekRaw || curWeekRaw.total === 0) {
-    // Fall back to last available week
-    var lastKey = weekKeys.length ? weekKeys[0] : null; // weekKeys sorted desc
-    showWeek = lastKey ? weekMap[lastKey] : { mon: currentMonday, days: [0,0,0,0,0,0,0], total: 0 };
-    showWeekTotal = showWeek.total;
-    showDaysElapsed = 7; // full week
-    showLabel = 'прошлая неделя';
-    // Compare with the week before that
-    var prevKey = weekKeys.length > 1 ? weekKeys[1] : null;
-    compWeekTotal = prevKey ? weekMap[prevKey].total : 0;
-  } else {
-    showWeek = curWeekRaw;
-    showWeekTotal = curWeekRaw.total;
-    showDaysElapsed = isoWeekDow(today) + 1;
-    showLabel = null; // current week, no extra label
-    var prevMonday = new Date(currentMonday);
-    prevMonday.setDate(prevMonday.getDate() - 7);
-    var prevWeekKey = weekKey(prevMonday);
-    var prevWeek = weekMap[prevWeekKey];
-    compWeekTotal = prevWeek ? prevWeek.total : 0;
-  }
+  // KPI 1: Current month revenue
+  document.getElementById('kpi-month-total').textContent = fmtMoney(monthSoFar);
+  // Update label with actual month name
+  var monthLabel = document.getElementById('kpi-month-total').parentElement.querySelector('.kpi-label');
+  if (monthLabel) monthLabel.textContent = 'Выручка за ' + monthName;
 
-  document.getElementById('kpi-week-total').textContent = fmtMoney(showWeekTotal);
-  if (showLabel) {
-    // Indicate that we're showing last week, not current
-    var labelEl = document.getElementById('kpi-week-total');
-    if (labelEl && labelEl.parentElement) {
-      var kpiLabel = labelEl.parentElement.querySelector('.kpi-label');
-      if (kpiLabel) kpiLabel.textContent = 'Выручка прошлой недели';
-    }
-  }
-  if (compWeekTotal > 0) {
-    const delta = ((showWeekTotal - compWeekTotal) / compWeekTotal * 100);
-    const el = document.getElementById('kpi-week-delta');
-    el.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '% к пред. неделе';
+  // Delta vs previous month (same number of days for fair comparison)
+  if (prevMonthTotal > 0 && dayOfMonth > 0) {
+    // Compare current pace vs previous month pace at same day
+    const delta = ((monthSoFar - prevMonthTotal) / prevMonthTotal * 100);
+    const el = document.getElementById('kpi-month-delta');
+    el.textContent = (delta >= 0 ? '+' : '') + delta.toFixed(1) + '% к марту (за ' + dayOfMonth + ' дн.)';
     el.className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
   } else {
-    document.getElementById('kpi-week-delta').textContent = '';
+    document.getElementById('kpi-month-delta').textContent = '';
   }
 
-  const avgDay = showDaysElapsed > 0 ? showWeekTotal / showDaysElapsed : 0;
+  // KPI 2: Average per day this month
+  const avgDay = dayOfMonth > 0 ? monthSoFar / dayOfMonth : 0;
   document.getElementById('kpi-avg-day').textContent = fmtMoney(avgDay);
-  document.getElementById('kpi-avg-hint').textContent = showLabel
-    ? 'за 7 дн. прошлой недели'
-    : 'за ' + showDaysElapsed + ' дн. текущей недели';
+  var avgLabel = document.getElementById('kpi-avg-day').parentElement.querySelector('.kpi-label');
+  if (avgLabel) avgLabel.textContent = 'Средняя в день (' + monthName + ')';
+  document.getElementById('kpi-avg-hint').textContent = 'за ' + dayOfMonth + ' дн. из ' + dimCur;
 
   const forecast = dayOfMonth > 0 ? (monthSoFar / dayOfMonth) * dimCur : 0;
   document.getElementById('kpi-month-forecast').textContent = fmtMoney(forecast);
@@ -793,11 +769,19 @@ async function mainFromCache() {
   var dimCur = daysInMonth(curYear, curMonth);
   var dayOfMonth = today.getDate();
   var monthSoFar = 0;
+  var prevYM = curMonth === 0
+    ? (curYear - 1) + '-12'
+    : curYear + '-' + String(curMonth).padStart(2, '0');
+  var prevMonthFull = 0;
   monthlyTxRows.forEach(function(r) {
     if (r.month === curYM) monthSoFar = num(r.total);
+    if (r.month === prevYM) prevMonthFull = num(r.total);
   });
+  // Pace comparison: prev month daily rate × current days elapsed
+  var prevDim = curMonth === 0 ? daysInMonth(curYear - 1, 11) : daysInMonth(curYear, curMonth - 1);
+  var prevMonthPace = prevDim > 0 ? (prevMonthFull / prevDim) * dayOfMonth : 0;
 
-  renderKPIs(monthSoFar, dayOfMonth, dimCur);
+  renderKPIs(monthSoFar, dayOfMonth, dimCur, prevMonthPace);
 
   /* ---- BLOCK 1: Weekly table ---- */
   renderWeeklyTable();
@@ -953,13 +937,21 @@ async function mainFromSheet() {
   const dimCur = daysInMonth(curYear, curMonth);
   const dayOfMonth = today.getDate();
   let monthSoFar = 0;
+  let prevMonthFull = 0;
+  const prevM = curMonth === 0 ? 11 : curMonth - 1;
+  const prevY = curMonth === 0 ? curYear - 1 : curYear;
   txns.forEach(t => {
     if (t.date.getMonth() === curMonth && t.date.getFullYear() === curYear) {
       monthSoFar += t.total;
     }
+    if (t.date.getMonth() === prevM && t.date.getFullYear() === prevY) {
+      prevMonthFull += t.total;
+    }
   });
+  const prevDim = daysInMonth(prevY, prevM);
+  const prevMonthPace = prevDim > 0 ? (prevMonthFull / prevDim) * dayOfMonth : 0;
 
-  renderKPIs(monthSoFar, dayOfMonth, dimCur);
+  renderKPIs(monthSoFar, dayOfMonth, dimCur, prevMonthPace);
 
   /* ---- BLOCK 1: Weekly table ---- */
   renderWeeklyTable();
