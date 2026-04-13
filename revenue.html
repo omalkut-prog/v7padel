@@ -432,21 +432,6 @@
     </div>
   </section>
 
-  <section class="section">
-    <div class="section-head">
-      <h2>4 &middot; Топ товаров</h2>
-      <span class="hint">топ-10 по subcategory &middot; маржинальность из PnL</span>
-    </div>
-    <div class="panel">
-      <table class="fin" id="goods-table">
-        <thead>
-          <tr><th>Товар / подкатегория</th><th>Кол-во</th><th>Выручка</th><th>Себ-ть</th><th>Маржа</th><th>Нац.%</th><th style="min-width:100px">Тренд (8 нед.)</th></tr>
-        </thead>
-        <tbody><tr><td colspan="7" class="loading">Загрузка…</td></tr></tbody>
-      </table>
-    </div>
-  </section>
-
   </div><!-- /pane-goods -->
 
   <!-- ═══════════════════ TAB: MARGINS ═══════════════════ -->
@@ -486,8 +471,17 @@
       <span class="hint">все проданные товары &middot; данные себестоимости из PnL</span>
     </div>
     <div class="panel" style="overflow-x:auto">
-      <div style="margin-bottom:10px">
-        <input type="text" id="mrg-search" placeholder="Поиск товара…" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);width:280px;">
+      <div style="margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="period-filter" id="mrg-cat-filter" style="margin:0">
+          <span class="pf-label">Категория:</span>
+          <button class="pf-btn active" data-cat="all">Все</button>
+          <button class="pf-btn" data-cat="rackets">Ракетки</button>
+          <button class="pf-btn" data-cat="balls">Мячи</button>
+          <button class="pf-btn" data-cat="clothing">Одежда</button>
+          <button class="pf-btn" data-cat="drinks">Напитки/Еда</button>
+          <button class="pf-btn" data-cat="accessories">Аксессуары</button>
+        </div>
+        <input type="text" id="mrg-search" placeholder="Поиск товара…" style="padding:8px 14px;border:1px solid var(--border);border-radius:8px;font-size:13px;font-family:inherit;background:var(--surface);color:var(--text);width:220px;">
       </div>
       <table class="fin" id="mrg-table">
         <thead>
@@ -555,35 +549,48 @@
 
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-label" id="utl-kpi-hours-label">Корто-часов (тек. месяц)</div>
+      <div class="kpi-label">Корто-часов (факт)</div>
       <div class="kpi-value" id="utl-kpi-hours">—</div>
       <div class="kpi-delta" id="utl-kpi-hours-delta"></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Выручка / корто-час</div>
-      <div class="kpi-value" id="utl-kpi-rev-hour">—</div>
-      <div class="kpi-delta muted" id="utl-kpi-rev-hour-hint"></div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Средняя загрузка</div>
+      <div class="kpi-label">Загрузка %</div>
       <div class="kpi-value" id="utl-kpi-load-pct">—</div>
       <div class="kpi-delta muted" id="utl-kpi-load-hint"></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Букингов (тек. месяц)</div>
-      <div class="kpi-value" id="utl-kpi-bookings">—</div>
-      <div class="kpi-delta muted" id="utl-kpi-bookings-hint"></div>
+      <div class="kpi-label">Доход / корто-час</div>
+      <div class="kpi-value" id="utl-kpi-rev-hour">—</div>
+      <div class="kpi-delta muted" id="utl-kpi-rev-hour-hint">все доходы</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Людей / день</div>
-      <div class="kpi-value" id="utl-kpi-people">—</div>
-      <div class="kpi-delta muted" id="utl-kpi-people-hint"></div>
+      <div class="kpi-label">Корты / корто-час</div>
+      <div class="kpi-value" id="utl-kpi-rev-hour-courts">—</div>
+      <div class="kpi-delta muted" id="utl-kpi-rev-hour-courts-hint">без доп. продаж</div>
     </div>
   </div>
 
   <section class="section">
     <div class="section-head">
-      <h2>1 &middot; Загрузка по кортам</h2>
+      <h2>1 &middot; Часы по дням месяца</h2>
+      <span class="hint">забуканные часы в каждом дне &middot; как в Доходе</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box"><canvas id="utl-days-chart"></canvas></div>
+    </div>
+    <div class="panel">
+      <table class="fin" id="utl-days-table">
+        <thead>
+          <tr><th>Дата</th><th>День</th><th>Часов</th><th>P1</th><th>P2</th><th>P3</th><th>P4</th><th>Загрузка%</th></tr>
+        </thead>
+        <tbody><tr><td colspan="8" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>2 &middot; Загрузка по кортам</h2>
       <span class="hint">часов в месяц по каждому корту</span>
     </div>
     <div class="panel">
@@ -592,7 +599,7 @@
     <div class="panel">
       <table class="fin" id="utl-courts-table">
         <thead>
-          <tr><th>Корт</th><th>Тип</th><th>Часов (тек.)</th><th>Букингов</th><th>Загрузка%</th><th>Ср. длит.</th></tr>
+          <tr><th>Корт</th><th>Тип</th><th>Часов (факт)</th><th>Букингов</th><th>Загрузка%</th><th>Ср. длит.</th></tr>
         </thead>
         <tbody><tr><td colspan="6" class="loading">Загрузка…</td></tr></tbody>
       </table>
@@ -601,7 +608,7 @@
 
   <section class="section">
     <div class="section-head">
-      <h2>2 &middot; Корто-часы по месяцам</h2>
+      <h2>3 &middot; Корто-часы по месяцам</h2>
       <span class="hint">динамика загрузки</span>
     </div>
     <div class="panel">
@@ -611,8 +618,8 @@
 
   <section class="section">
     <div class="section-head">
-      <h2>3 &middot; Загрузка по дням недели</h2>
-      <span class="hint">среднее кол-во часов и букингов</span>
+      <h2>4 &middot; Средняя загрузка по дням недели</h2>
+      <span class="hint">среднее часов в день</span>
     </div>
     <div class="panel">
       <div class="chart-box short"><canvas id="utl-dow-chart"></canvas></div>
@@ -621,8 +628,8 @@
 
   <section class="section">
     <div class="section-head">
-      <h2>4 &middot; Пиковые часы</h2>
-      <span class="hint">тепловая карта: час × день недели</span>
+      <h2>5 &middot; Тепловая карта</h2>
+      <span class="hint">час &times; день недели</span>
     </div>
     <div class="panel" style="overflow-x:auto">
       <table class="fin" id="utl-heatmap-table">
@@ -1299,7 +1306,7 @@ async function lazyLoadUtilization() {
   }
 }
 
-function renderUtilizationTab(bookings) {
+async function renderUtilizationTab(bookings) {
   var today = new Date(); today.setHours(0,0,0,0);
   var curMonth = today.getMonth(), curYear = today.getFullYear();
   var prevM = curMonth === 0 ? 11 : curMonth - 1;
@@ -1370,36 +1377,41 @@ function renderUtilizationTab(bookings) {
   var indoorCourts = Object.keys(COURT_TYPE).filter(function(c) { return COURT_TYPE[c] === 'Крытый'; }).length; // 3
   var outdoorCourts = Object.keys(COURT_TYPE).filter(function(c) { return COURT_TYPE[c] === 'Открытый'; }).length; // 1
   var totalCourts = indoorCourts + outdoorCourts;
-  // Load% based on PAST days only (no future bookings in denominator)
   var maxHours = totalCourts * OPERATING_HOURS * completedDays;
   var maxIndoor = indoorCourts * OPERATING_HOURS * completedDays;
   var maxOutdoor = outdoorCourts * OPERATING_HOURS * completedDays;
   var loadPct = maxHours > 0 ? (pastHours / maxHours * 100) : 0;
 
-  // Indoor/outdoor split — past only for load%
+  // Indoor/outdoor split
   var indoorPastH = 0, outdoorPastH = 0;
-  var indoorAllH = 0, outdoorAllH = 0;
   parsed.forEach(function(b) {
-    var m = b.start.getMonth(), y = b.start.getFullYear();
-    if (m !== curMonth || y !== curYear) return;
-    var isIndoor = COURT_TYPE[b.court] !== 'Открытый';
-    if (isIndoor) indoorAllH += b.hours; else outdoorAllH += b.hours;
-    if (b.start < today) {
-      if (isIndoor) indoorPastH += b.hours; else outdoorPastH += b.hours;
-    }
+    if (b.start.getMonth() !== curMonth || b.start.getFullYear() !== curYear || b.start >= today) return;
+    if (COURT_TYPE[b.court] === 'Открытый') outdoorPastH += b.hours; else indoorPastH += b.hours;
   });
   var indoorPct = maxIndoor > 0 ? (indoorPastH / maxIndoor * 100) : 0;
   var outdoorPct = maxOutdoor > 0 ? (outdoorPastH / maxOutdoor * 100) : 0;
 
-  // Forecast: project month-end based on past pace
-  var dim = daysInMonth(curYear, curMonth);
-  var forecastHours = completedDays > 0 ? Math.round(pastHours / completedDays * dim) : 0;
-  var maxMonthHours = totalCourts * OPERATING_HOURS * dim;
-  var forecastPct = maxMonthHours > 0 ? (forecastHours / maxMonthHours * 100).toFixed(0) : 0;
+  // Courts-only revenue (without goods) for second KPI
+  var courtOnlyRev = 0;
+  if (tabData.income && tabData.income.weekMap) {
+    // incMonthRev already has total income — we need courts-only from rev_by_month_cat
+    // For now use incMonthRev as total; courtOnly needs category data
+  }
+  // Try to get courts-only from cached rev_by_month_cat
+  var courtRevOnly = 0;
+  try {
+    var revMCData = await V7.loadCacheTab('rev_by_month_cat');
+    if (revMCData && revMCData.length) {
+      revMCData.forEach(function(r) {
+        if (r.month !== ymKey(today)) return;
+        courtRevOnly += num(r['Корты'] || 0);
+      });
+    }
+  } catch(e) {}
 
-  // KPIs
+  // KPIs — exact numbers, no rounding
   document.getElementById('utl-kpi-hours').textContent = Math.round(pastHours) + ' ч.';
-  document.getElementById('utl-kpi-hours').title = 'Прошедшие дни. Будущие брони: +' + Math.round(futureHours) + 'ч.';
+  document.getElementById('utl-kpi-hours').title = 'Факт за ' + completedDays + ' дн. Будущие брони: +' + Math.round(futureHours) + 'ч.';
   if (prevMonthHours > 0) {
     var prevPace = (prevMonthHours / daysInMonth(prevY, prevM)) * completedDays;
     var delta = prevPace > 0 ? ((pastHours - prevPace) / prevPace * 100) : 0;
@@ -1407,21 +1419,103 @@ function renderUtilizationTab(bookings) {
     document.getElementById('utl-kpi-hours-delta').className = 'kpi-delta ' + (delta >= 0 ? 'pos' : 'neg');
   }
 
-  var revPerHour = pastHours > 0 ? incMonthRev / pastHours : 0;
-  document.getElementById('utl-kpi-rev-hour').textContent = fmtMoney(revPerHour);
-  document.getElementById('utl-kpi-rev-hour-hint').textContent = 'доход / корто-час (цель ~2K)';
-
   document.getElementById('utl-kpi-load-pct').textContent = loadPct.toFixed(1) + '%';
-  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '% · Прогноз ' + forecastPct + '% (' + forecastHours + '/' + maxMonthHours + 'ч)';
+  document.getElementById('utl-kpi-load-hint').textContent = 'Крытые ' + indoorPct.toFixed(0) + '% · Открытый ' + outdoorPct.toFixed(0) + '%';
 
-  document.getElementById('utl-kpi-bookings').textContent = pastBookings + (futureBookings > 0 ? ' +' + futureBookings : '');
-  document.getElementById('utl-kpi-bookings-hint').textContent = pastBookings + ' факт за ' + completedDays + ' дн.' + (futureBookings > 0 ? ' + ' + futureBookings + ' будущих' : '');
+  // Rev/hour — exact, no rounding to K
+  var revPerHourAll = pastHours > 0 ? incMonthRev / pastHours : 0;
+  document.getElementById('utl-kpi-rev-hour').textContent = fmtInt(Math.round(revPerHourAll)) + ' ₺';
+  document.getElementById('utl-kpi-rev-hour-hint').textContent = 'все доходы / корто-час';
 
-  var peoplePerDay = completedDays > 0 ? pastPeople.size / completedDays : 0;
-  document.getElementById('utl-kpi-people').textContent = peoplePerDay.toFixed(1);
-  document.getElementById('utl-kpi-people-hint').textContent = curMonthPeople.size + ' уникальных за месяц';
+  var revPerHourCourts = pastHours > 0 ? courtRevOnly / pastHours : 0;
+  document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revPerHourCourts)) + ' ₺';
+  document.getElementById('utl-kpi-rev-hour-courts-hint').textContent = 'только аренда кортов';
 
-  // Courts table
+  // ═══ 1. Days of month — bar chart + table ═══
+  var dayMap = {}; // date -> { total, P1, P2, P3, P4 }
+  parsed.forEach(function(b) {
+    if (b.start.getMonth() !== curMonth || b.start.getFullYear() !== curYear) return;
+    var dk = b.start.toISOString().slice(0,10);
+    if (!dayMap[dk]) dayMap[dk] = { total: 0, P1: 0, P2: 0, P3: 0, P4: 0 };
+    dayMap[dk].total += b.hours;
+    if (dayMap[dk][b.court] !== undefined) dayMap[dk][b.court] += b.hours;
+  });
+
+  // Build all days of current month
+  var dim = daysInMonth(curYear, curMonth);
+  var allDays = [];
+  for (var di = 1; di <= dim; di++) {
+    var dd = new Date(curYear, curMonth, di);
+    var dk = dd.toISOString().slice(0,10);
+    allDays.push({ date: dk, dow: dd.getDay(), data: dayMap[dk] || { total: 0, P1: 0, P2: 0, P3: 0, P4: 0 }, isPast: dd < today });
+  }
+
+  // Bar chart: hours per day
+  var dayLabels = allDays.map(function(d) { return parseInt(d.date.slice(8,10)) + ''; });
+  var dayTotals = allDays.map(function(d) { return Math.round(d.data.total * 10) / 10; });
+  var dayColors = allDays.map(function(d) {
+    if (!d.isPast && d.data.total > 0) return 'rgba(10,186,181,0.4)'; // future booked
+    if (!d.isPast) return 'transparent';
+    return d.data.total > 0 ? (accent() || '#0ABAB5') : 'rgba(138,155,168,0.2)';
+  });
+  var avgDayHours = 0;
+  var pastDaysWithData = allDays.filter(function(d) { return d.isPast; });
+  if (pastDaysWithData.length > 0) avgDayHours = pastDaysWithData.reduce(function(s,d) { return s + d.data.total; }, 0) / pastDaysWithData.length;
+
+  new Chart(document.getElementById('utl-days-chart'), {
+    type: 'bar', data: { labels: dayLabels, datasets: [
+      { label: 'Часов', data: dayTotals, backgroundColor: dayColors, borderRadius: 4, maxBarThickness: 28 },
+      { label: 'Среднее', data: dayLabels.map(function() { return Math.round(avgDayHours * 10) / 10; }), type: 'line', borderColor: '#e74c3c', borderDash: [5,3], pointRadius: 0, borderWidth: 2, fill: false }
+    ]},
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: chartTextColor() } },
+        tooltip: { callbacks: { label: function(it) { return it.dataset.label + ': ' + it.raw + ' ч.'; } } } },
+      scales: { y: { beginAtZero: true, ticks: { color: chartTextColor(), callback: function(v) { return v + 'ч'; } }, grid: { color: chartGridColor() } },
+        x: { ticks: { color: chartTextColor(), font: { size: 10 } }, grid: { display: false } } }
+    }
+  });
+
+  // Days table
+  var DOW_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  var maxDayHours = totalCourts * OPERATING_HOURS;
+  var dtBody = document.querySelector('#utl-days-table tbody');
+  var dtHtml = '';
+  var weekSum = 0, weekDays = 0;
+  allDays.forEach(function(d, idx) {
+    var pct = maxDayHours > 0 ? (d.data.total / maxDayHours * 100) : 0;
+    var dayNum = parseInt(d.date.slice(8,10));
+    var rowClass = d.isPast ? '' : ' style="opacity:0.5"';
+    var futureTag = !d.isPast && d.data.total > 0 ? ' <span class="muted" style="font-size:10px">бронь</span>' : '';
+    dtHtml += '<tr' + rowClass + '>';
+    dtHtml += '<td style="font-weight:600">' + dayNum + futureTag + '</td>';
+    dtHtml += '<td>' + DOW_SHORT[d.dow] + '</td>';
+    dtHtml += '<td class="num" style="font-weight:600">' + (d.data.total > 0 ? d.data.total.toFixed(1) : '—') + '</td>';
+    ['P1','P2','P3','P4'].forEach(function(court) {
+      var v = d.data[court];
+      dtHtml += '<td class="num">' + (v > 0 ? v.toFixed(1) : '—') + '</td>';
+    });
+    dtHtml += '<td class="num">' + (d.data.total > 0 ? pct.toFixed(0) + '%' : '—') + '</td>';
+    dtHtml += '</tr>';
+
+    // Weekly subtotal
+    weekSum += d.data.total; weekDays++;
+    if (d.dow === 0 || idx === allDays.length - 1) {
+      var weekAvg = weekDays > 0 ? weekSum / weekDays : 0;
+      dtHtml += '<tr class="month-subtotal"><td colspan="3" style="font-weight:600">Итого за неделю: ' + weekSum.toFixed(1) + ' ч.</td><td colspan="5" class="muted">ср. ' + weekAvg.toFixed(1) + ' ч/день</td></tr>';
+      weekSum = 0; weekDays = 0;
+    }
+  });
+  // Grand average
+  var grandAvg = pastDaysWithData.length > 0 ? pastDaysWithData.reduce(function(s,d){return s+d.data.total},0) / pastDaysWithData.length : 0;
+  dtHtml += '<tr class="month-subtotal" style="font-weight:700"><td colspan="2">СРЕДНЕЕ / ДЕНЬ</td><td class="num">' + grandAvg.toFixed(1) + '</td>';
+  ['P1','P2','P3','P4'].forEach(function(court) {
+    var courtAvg = pastDaysWithData.length > 0 ? pastDaysWithData.reduce(function(s,d){return s+d.data[court]},0) / pastDaysWithData.length : 0;
+    dtHtml += '<td class="num">' + courtAvg.toFixed(1) + '</td>';
+  });
+  dtHtml += '<td class="num">' + (maxDayHours > 0 ? (grandAvg/maxDayHours*100).toFixed(0) + '%' : '') + '</td></tr>';
+  dtBody.innerHTML = dtHtml;
+
+  // ═══ 2. Courts table ═══
   var courtsTbody = document.querySelector('#utl-courts-table tbody');
   var cHtml = '';
   ['P1','P2','P3','P4'].forEach(function(court) {
@@ -1432,7 +1526,7 @@ function renderUtilizationTab(bookings) {
     cHtml += '<tr>';
     cHtml += '<td style="font-weight:600"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:' + COURT_COLORS[court] + ';margin-right:8px;vertical-align:middle"></span>' + court + '</td>';
     cHtml += '<td>' + COURT_TYPE[court] + '</td>';
-    cHtml += '<td class="num">' + Math.round(c.hours) + ' ч.</td>';
+    cHtml += '<td class="num">' + c.pastH.toFixed(1) + ' ч.</td>';
     cHtml += '<td class="num">' + c.bookings + '</td>';
     cHtml += '<td class="num">' + pct + '%</td>';
     cHtml += '<td class="num">' + avgDur + ' ч.</td>';
@@ -1440,7 +1534,7 @@ function renderUtilizationTab(bookings) {
   });
   courtsTbody.innerHTML = cHtml;
 
-  // Courts stacked chart by month
+  // ═══ 2b. Courts stacked chart by month ═══
   var monthCourts = {};
   parsed.forEach(function(b) {
     var ym = ymKey(b.start);
@@ -1461,7 +1555,7 @@ function renderUtilizationTab(bookings) {
     }
   });
 
-  // Monthly total hours chart
+  // ═══ 3. Monthly total hours ═══
   var monthTotalHours = mcKeys.map(function(ym) {
     var c = monthCourts[ym];
     return Math.round((c.P1||0) + (c.P2||0) + (c.P3||0) + (c.P4||0));
@@ -1474,10 +1568,10 @@ function renderUtilizationTab(bookings) {
     }
   });
 
-  // DOW chart
+  // ═══ 4. DOW chart ═══
   var dowHours = [0,0,0,0,0,0,0], dowCnt = [new Set(),new Set(),new Set(),new Set(),new Set(),new Set(),new Set()];
   parsed.forEach(function(b) {
-    var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1; // Mon=0
+    var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1;
     dowHours[dow] += b.hours;
     dowCnt[dow].add(b.start.toISOString().slice(0,10));
   });
@@ -1491,8 +1585,8 @@ function renderUtilizationTab(bookings) {
     }
   });
 
-  // Heatmap: hour x weekday
-  var hours = []; for (var h = 8; h <= 22; h++) hours.push(h); // 8:00-22:00 (last slot starts at 22)
+  // ═══ 5. Heatmap ═══
+  var hours = []; for (var h = 8; h <= 22; h++) hours.push(h);
   var heatGrid = []; for (var dw = 0; dw < 7; dw++) { heatGrid.push([]); for (var hi = 0; hi < hours.length; hi++) heatGrid[dw].push(0); }
   parsed.forEach(function(b) {
     var dow = b.start.getDay(); dow = dow === 0 ? 6 : dow - 1;
@@ -1722,6 +1816,17 @@ var _mrgAllItems = []; // for sorting
 var _mrgSortCol = 'revenue';
 var _mrgSortAsc = false;
 var _mrgSearch = '';
+var _mrgCat = 'all'; // category filter
+
+function classifyGoodsCat(name) {
+  var s = (name || '').toLowerCase();
+  if (/raket|racket|pala|nox|head.*padel|bullpadel.*raket|siux/i.test(s)) return 'rackets';
+  if (/ball|мяч|pelota|bola/i.test(s)) return 'balls';
+  if (/shirt|t-shirt|шорт|short|cap|кепка|худи|hoodie|футболк|одежд|merch|мерч|polo|vest/i.test(s)) return 'clothing';
+  if (/water|вода|напит|drink|coffee|кофе|чай|tea|cola|juice|сок|протеин|protein|bar\b|snack|перекус|food|еда/i.test(s)) return 'drinks';
+  if (/grip|overgrip|bag|сумк|backpack|рюкзак|wristband|напульс|headband|повязк|vibra|виброгас|protector|защит|shoe|кроссовк|sock|носк|towel|полотенц|string|струн/i.test(s)) return 'accessories';
+  return 'accessories'; // default fallback
+}
 
 function renderMarginsTab(goodsTxns) {
   // Aggregate by subcategory — ALL TIME
@@ -1860,6 +1965,16 @@ function renderMarginsTab(goodsTxns) {
     renderMarginsTable();
   });
 
+  // Category filter
+  document.querySelectorAll('#mrg-cat-filter .pf-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('#mrg-cat-filter .pf-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      _mrgCat = this.getAttribute('data-cat');
+      renderMarginsTable();
+    });
+  });
+
   // Sort by clicking headers
   document.querySelectorAll('#mrg-table th[data-sort]').forEach(function(th) {
     th.addEventListener('click', function() {
@@ -1873,6 +1988,9 @@ function renderMarginsTab(goodsTxns) {
 
 function renderMarginsTable() {
   var items = _mrgAllItems.slice();
+  if (_mrgCat !== 'all') {
+    items = items.filter(function(i) { return classifyGoodsCat(i.name) === _mrgCat; });
+  }
   if (_mrgSearch) {
     items = items.filter(function(i) { return i.name.toLowerCase().indexOf(_mrgSearch) >= 0; });
   }
@@ -2060,29 +2178,35 @@ async function mainFromCache() {
     tbody.innerHTML = html;
   }
 
-  // Category donut — use rev_by_month_cat for current month
+  // Category donut — rev_by_month_cat is WIDE format: {month, Корты, Тренировки, ...}
   var today = new Date(); today.setHours(0,0,0,0);
   var curYM = ymKey(today);
+  var CAT_COLS = REV_CAT_ORDER; // ['Корты','Инвентарь','Клубные карты','Тренировки','Турниры','Товары','Прочее']
   if (revMC && revMC.length) {
     var incCatMap = {}, incCatTotal = 0;
     revMC.forEach(function(r) {
       if (r.month !== curYM) return;
-      var cat = r.category;
-      if (cat === 'Товары') return;
-      var v = num(r.total);
-      incCatMap[cat] = (incCatMap[cat] || 0) + v;
-      incCatTotal += v;
+      CAT_COLS.forEach(function(cat) {
+        if (cat === 'Товары') return;
+        var v = num(r[cat]);
+        if (v > 0) {
+          incCatMap[cat] = (incCatMap[cat] || 0) + v;
+          incCatTotal += v;
+        }
+      });
     });
     renderCatBlock('inc-cat-donut', 'inc-cat-table', incCatMap, incCatTotal);
     renderCatMinibar(incCatMap);
 
-    // Stacked chart from rev_by_month_cat
+    // Stacked chart from rev_by_month_cat (wide format)
     var monthCats = {};
     revMC.forEach(function(r) {
-      var cat = r.category;
-      if (cat === 'Товары') return;
       if (!monthCats[r.month]) monthCats[r.month] = {};
-      monthCats[r.month][cat] = (monthCats[r.month][cat] || 0) + num(r.total);
+      CAT_COLS.forEach(function(cat) {
+        if (cat === 'Товары') return;
+        var v = num(r[cat]);
+        if (v > 0) monthCats[r.month][cat] = (monthCats[r.month][cat] || 0) + v;
+      });
     });
     var stackKeys = Object.keys(monthCats).sort().slice(-8);
     var stackCatOrder = REV_CAT_ORDER.filter(function(c) { return c !== 'Товары'; });
@@ -2171,7 +2295,7 @@ async function mainFromCache() {
       }
       goodsWV.push(wvals);
     });
-    renderGoodsGrouped(goodsItems, goodsWV);
+    // goods-table removed — full goods analysis in Маржинальность tab
   }
 
   // Summary header
@@ -2390,7 +2514,7 @@ async function mainFromSheet() {
   var goodsWeeklyVals = goodsItemsList.map(function(item) {
     return last8Weeks.map(function(wk) { return item.weeklyTotals[wk] || 0; });
   });
-  renderGoodsGrouped(goodsItemsList, goodsWeeklyVals);
+  // goods-table removed — full goods analysis in Маржинальность tab
 
   /* ═══ SUMMARY HEADER ═══ */
   var today2 = new Date(); today2.setHours(0,0,0,0);
