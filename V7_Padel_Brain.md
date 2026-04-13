@@ -30,6 +30,7 @@
 | customers | 1 173 | 13 | A-M: id, name, phone, email, gender, age, subs_date, level, nationality, language, telegram, whatsapp, birthday |
 | bookings | 7 268 | 7 | Бронирования из Matchpoint |
 | memberships | 39 | 11 | Абонементы |
+| occupancy_daily | 195 | 14 | Загрузка кортов из Matchpoint API (часы, %, типы, почасовка) |
 | courts | 4 | 3 | Корты |
 | pnl_monthly | 587 | 11 | Помесячный P&L |
 | racketid_members | 351 | 6 | Участники Racket.ID |
@@ -48,6 +49,7 @@
 - Python-скрипты в `etl/`:
   - `sync_customers_matchpoint.py` — ✅ **НОВЫЙ** синк customers из Matchpoint (1173 клиентов, двухшаговый логин, HTML-парсинг с пагинацией). Вс 05:30.
   - `enrich_customers.py` — ✅ **НОВЫЙ** обогащение customers из таблицы Оли (язык, telegram, whatsapp, birthday). Вс 06:00.
+  - `scrape_occupancy.py` — ✅ **НОВЫЙ** скрапинг загрузки кортов из Matchpoint API (195 дней, 14 полей → `occupancy_daily`). Ежедневно 06:00 через run_all_etl.py.
   - `csv_to_sheets.py` — загрузка CSV в Google Sheets (racketid_members, racketid_tournaments, racketid_participants). Ежедневно 06:00.
   - `fuzzy_match.py` — привязка bookings ↔ customers по тексту (14% покрытие)
   - `racketid_extract.py` — извлечение данных из Firestore
@@ -156,6 +158,68 @@
 
 ---
 
+## 🔌 Matchpoint API
+
+> Matchpoint — ASP.NET WebForms приложение. API реализовано через PageMethods (JSON POST).
+> Все вызовы требуют аутентифицированную сессию (cookies после логина).
+
+**Base URL:** `https://app-v7padel-tur.matchpoint.com.es`
+
+### Аутентификация
+
+Двухшаговый ASP.NET Forms Auth:
+1. `GET /Login.aspx` → извлечь `__VIEWSTATE`, `__VIEWSTATEGENERATOR`, `__EVENTVALIDATION`
+2. `POST` форму с `username`, `password`, `ddlLenguaje=en-GB`, `__EVENTTARGET=btnLogin`
+3. Если в ответе есть `btnAcceder` → `POST` выбор кассы с `DropDownListCajas=1`, `__EVENTTARGET=btnAcceder`
+
+Креды: `etl/matchpoint_creds.json`. Реализация: `etl/sync_customers_matchpoint.py` → `mp_login()`.
+
+### Эндпоинты
+
+#### 1. Загрузка кортов (Occupancy)
+
+```
+POST /Reservas/CuadroReservasNuevo.aspx/ObtenerEstadisticasOcupacion
+Content-Type: application/json; charset=utf-8
+Body: {"idCuadro": "3", "fecha": "DD/MM/YYYY"}
+```
+
+**Важно:** перед вызовом нужно посетить `/Reservas/CuadroReservas.aspx?id_cuadro=3` (устанавливает серверный контекст).
+
+| Поле ответа (внутри `d`) | Тип | Описание |
+|---|---|---|
+| HorasOcupadas | float | Часы загрузки за день |
+| PorcentajeOcupacion | float | % загрузки от макс. |
+| NumeroPersonas | int | Количество человек |
+| Pie | array | Разбивка: reserva, partida, clases, actividades, centro |
+| GraficoOcupacion | array | Почасовая загрузка %: `[{category: "9", value: 75.0}, ...]` |
+| ReservasCantidadRealizadaAdministracion | int | Бронирования через админку |
+| ReservasCantidadRealizadaWeb | int | Бронирования через сайт |
+| ReservasCantidadRealizadaMovil | int | Бронирования через мобилку |
+
+**idCuadro:** `3` = PADEL.
+
+Скрипт: `etl/scrape_occupancy.py` → пишет в `occupancy_daily` таб v7padel_db.
+Запуск: `python scrape_occupancy.py --from 2025-10-01 --to 2026-04-13 --write`
+Rate limit: 150мс между запросами.
+
+#### 2. Список клиентов (Customers)
+
+```
+POST /Administracion/Clientes/ListaClientes.aspx/ObtenerClientes
+```
+
+Скрипт: `etl/sync_customers_matchpoint.py`. Результат: 1173 клиентов → `customers` таб.
+
+### Заметки
+
+- `session.verify = False` — SSL сертификат проблемный
+- Grid page может редиректить: `CuadroReservas.aspx` → `CuadroReservasNuevo.aspx`
+- Все API-вызовы — PageMethods (ASP.NET AJAX), ответ в обёртке `{"d": {...}}`
+- Потенциально доступны другие PageMethods на тех же страницах — исследовать по мере надобности
+
+---
+
 ## 🎯 Активный спринт · Спринт 2 — «Понимаю клиентов»
 
 **Гипотеза спринта:** если мы знаем поведение клиента точно — мы знаем, где теряем деньги и где можем поднять чек.
@@ -229,4 +293,5 @@
 - **2026-04-09** — Спринт 1 завершён. Racket.ID подключён через Firestore. Fuzzy matching + cross-matching. PnL бухгалтера. Gulcan Yanar → staff_former.
 - **2026-04-09** — Спринт 1 закрыт окончательно. ETL Matchpoint (двухшаговый логин, 1173 customers). Обогащение из таблицы Оли (523 ячейки). Task Scheduler: 3 задачи. v7padel_db: 8 вкладок, 12 357 строк. Спринт 2 начат.
 - **2026-04-10** — Бэклог расширен: продукты (Grand Event, бизнес-лига, школа, V7 Queen), маркетинг (Марбелья, туристы, группы), инструменты (калькуляторы, календарь, задачник), законодательство.
+- **2026-04-13** — Matchpoint API задокументирован в Brain. Обнаружен PageMethod `ObtenerEstadisticasOcupacion` — загрузка кортов напрямую из Matchpoint (TOP 3 KPI). Создан `scrape_occupancy.py` (195 дней → `occupancy_daily` таб). Загрузка в revenue.html полностью переведена на Matchpoint как источник правды. Добавлен в run_all_etl.py.
 - **2026-04-10** — v7padel_cache подключён (15 вкладок, 500-700мс). Волна 1: 4 бага (CL-1, F-6, F-1, M-1). Кликабельные KPI на dashboard. P&L сортировка. Revenue улучшения. Tournament-calendar: KPI дашборд + архив. Волна 2: техдолг (START_MONTH, MONTHLY_GOAL, единый :root). Волна 3: hamburger меню + nav.js.
