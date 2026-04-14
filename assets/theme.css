@@ -229,10 +229,33 @@ nav.nav-open .nav-burger span:nth-child(3) { transform: translateY(-7px) rotate(
 .theme-switcher button:hover { color: var(--text); background: var(--surface2); }
 .theme-switcher button.active { color: #fff; background: var(--accent); }
 
-/* Nav с padding справа чтоб переключатель не налезал */
+/* Nav с padding справа чтоб переключатель не налезал (для страниц без сайдбара) */
 @media (min-width: 961px) {
-  html[data-theme] nav { padding-right: 140px !important; }
+  html[data-theme] nav:not(.v7-sidebar-skip) { padding-right: 140px !important; }
 }
+
+/* ---- SIDEBAR THEME OVERRIDES ---- */
+html[data-theme] .v7-sidebar { background: var(--surface) !important; border-right-color: var(--border) !important; }
+html[data-theme] .sb-header { border-bottom-color: var(--border) !important; }
+html[data-theme] .sb-logo { color: var(--text) !important; }
+html[data-theme] .sb-logo em { color: var(--accent) !important; }
+html[data-theme] .sb-logo-icon { background: var(--accent) !important; }
+html[data-theme="v7"] .sb-logo-icon,
+html[data-theme="tiffany"] .sb-logo-icon { color: #000 !important; }
+html[data-theme="dark"] .sb-logo-icon { color: #fff !important; }
+html[data-theme] .sb-group-label { color: var(--text3) !important; }
+html[data-theme] .sb-item { color: var(--text2) !important; }
+html[data-theme] .sb-item:hover { background: var(--surface2) !important; color: var(--text) !important; }
+html[data-theme] .sb-item.active { background: var(--accent-soft) !important; color: var(--accent) !important; }
+html[data-theme] .sb-footer { border-top-color: var(--border) !important; }
+html[data-theme] .sb-role { color: var(--accent) !important; }
+html[data-theme] .sb-logout { color: var(--text3) !important; border-color: var(--border) !important; }
+html[data-theme] .sb-logout:hover { color: var(--text) !important; border-color: var(--border-hover) !important; }
+html[data-theme] .sb-toggle { color: var(--text3) !important; }
+html[data-theme] .sb-toggle:hover { color: var(--text) !important; background: var(--surface2) !important; }
+/* Tiffany: hide team/brain links like before */
+html[data-theme="tiffany"] .v7-sidebar .team-link,
+html[data-theme="tiffany"] .v7-sidebar .brain-link { display: none !important; }
 
 /* ---- ROLE PICKER MODAL (только на index.html) ---- */
 .role-picker-backdrop {
