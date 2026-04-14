@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260414e"></script>
+<script src="assets/data.js?v=20260414f"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -347,7 +347,7 @@ const state = {
       state.customers = cached.map(function(c) {
         var seg = (c.segment || 'never').toLowerCase();
         return {
-          id: '',
+          id: c.customer_id || '',
           name: c.name || '—',
           phone: (c.phone || '—').replace(/^(\+?\d{1,4})\s+\+?\1/, '$1'),
           email: c.email || '—',
@@ -741,12 +741,17 @@ function closeCard() { document.getElementById('modal-backdrop').classList.remov
 window.closeCard = closeCard;
 
 /* ---------- TOP CLIENTS BY REVENUE (block 3) ---------- */
-const TOP_N = 50;
 const topState = { rows: [], period: 'all' };
 
 function fmtMoney(n) {
   n = Number(n) || 0;
   return n.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+}
+
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 function renderTopClients() {
@@ -760,22 +765,37 @@ function renderTopClients() {
     .filter(function(r) { return r._amt > 0; })
     .sort(function(a, b) { return b._amt - a._amt; });
   var total = rows.reduce(function(s, r) { return s + r._amt; }, 0);
-  var top = rows.slice(0, TOP_N);
-  if (!top.length) {
+  if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="5" class="loading">Нет данных за выбранный период</td></tr>';
     info.textContent = '0 ₺';
     return;
   }
-  tbody.innerHTML = top.map(function(r, i) {
-    return '<tr>'
+  tbody.innerHTML = rows.map(function(r, i) {
+    var cid = escHtml(r.customer_id || '');
+    return '<tr data-cid="' + cid + '">'
       + '<td style="color:var(--text3)">' + (i + 1) + '</td>'
-      + '<td class="name-cell">' + (r.name || '—') + '</td>'
-      + '<td>' + (r.email || '—') + '</td>'
-      + '<td>' + (r.phone || '—') + '</td>'
+      + '<td class="name-cell">' + escHtml(r.name || '—') + '</td>'
+      + '<td>' + escHtml(r.email || '—') + '</td>'
+      + '<td>' + escHtml(r.phone || '—') + '</td>'
       + '<td style="text-align:right;font-weight:600;color:var(--text)">' + fmtMoney(r._amt) + '</td>'
       + '</tr>';
   }).join('');
   info.textContent = rows.length + ' клиентов · итого ' + fmtMoney(total) + ' ₺';
+}
+
+function openCardByCid(cid) {
+  if (!cid) return false;
+  var c = (state.customers || []).find(function(x) { return String(x.id) === String(cid); });
+  if (c) { openCard(c); return true; }
+  return false;
+}
+
+function openCardByName(name) {
+  if (!name) return false;
+  var key = String(name).trim().toLowerCase();
+  var c = (state.customers || []).find(function(x) { return (x.name || '').trim().toLowerCase() === key; });
+  if (c) { openCard(c); return true; }
+  return false;
 }
 
 function bindTopPeriodChips() {
@@ -789,8 +809,25 @@ function bindTopPeriodChips() {
   });
 }
 
+function bindTopRowClick() {
+  var tbody = document.getElementById('top-tbody');
+  if (!tbody) return;
+  tbody.addEventListener('click', function(e) {
+    var tr = e.target.closest('tr[data-cid]');
+    if (!tr) return;
+    var cid = tr.getAttribute('data-cid');
+    // Основная карточка строится из state.customers (clients_enriched).
+    // Если клиент уже есть в базе enriched — открываем карточку; иначе сообщаем.
+    if (openCardByCid(cid)) return;
+    var name = tr.querySelector('.name-cell') ? tr.querySelector('.name-cell').textContent : '';
+    if (openCardByName(name)) return;
+    console.warn('top-client not found in enriched:', cid, name);
+  });
+}
+
 (async function initTopClients() {
   bindTopPeriodChips();
+  bindTopRowClick();
   try {
     var data = await V7.loadCacheTab('top_clients_revenue');
     if (!data || !data.length) {
