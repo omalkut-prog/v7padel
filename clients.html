@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260414i"></script>
+<script src="assets/data.js?v=20260414j"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -280,10 +280,11 @@
             <th style="text-align:right;width:110px">Выручка ₺</th>
             <th style="text-align:right;width:80px">Визитов</th>
             <th style="text-align:right;width:90px">Ср.чек ₺</th>
+            <th style="text-align:center;width:130px">Последний платёж</th>
             <th>Контакты</th>
           </tr>
         </thead>
-        <tbody id="top-tbody"><tr><td colspan="7" class="loading">Загружаю…</td></tr></tbody>
+        <tbody id="top-tbody"><tr><td colspan="8" class="loading">Загружаю…</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -781,7 +782,7 @@ function renderTopClients() {
   else                    rows.sort(function(a, b) { return b._bk  - a._bk; });
 
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="loading">Нет клиентов по фильтру</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="8" class="loading">Нет клиентов по фильтру</td></tr>';
     info.textContent = '0';
     return;
   }
@@ -793,6 +794,23 @@ function renderTopClients() {
     var contacts = '';
     if (r.email && r.email !== '—') contacts += escHtml(r.email);
     if (r.phone && r.phone !== '—') contacts += (contacts ? ' · ' : '') + escHtml(r.phone);
+    // Aging: цвет индикатора по days_since_last_tx
+    var days = parseInt(r.days_since_last_tx);
+    var lastTx = r.last_tx || '';
+    var agingCell;
+    if (!lastTx || isNaN(days)) {
+      agingCell = '<td style="text-align:center;color:var(--text3);font-size:11px">нет данных</td>';
+    } else {
+      var color, bg;
+      if (days < 14)      { color = 'var(--good)';  bg = 'rgba(19,194,150,0.10)'; }
+      else if (days < 30) { color = 'var(--text2)'; bg = 'transparent'; }
+      else if (days < 60) { color = 'var(--warn)';  bg = 'rgba(243,156,18,0.10)'; }
+      else                { color = 'var(--bad)';   bg = 'rgba(235,87,87,0.10)'; }
+      agingCell = '<td style="text-align:center;background:' + bg + '">'
+                + '<div style="font-size:12px;color:' + color + ';font-weight:600">' + days + ' дн</div>'
+                + '<div style="font-size:10px;color:var(--text3)">' + lastTx + '</div>'
+                + '</td>';
+    }
     return '<tr data-cid="' + cid + '" style="cursor:pointer">'
       + '<td style="color:var(--text3)">' + (i + 1) + '</td>'
       + '<td class="name-cell">' + escHtml(r.name || '—') + '</td>'
@@ -800,6 +818,7 @@ function renderTopClients() {
       + '<td style="text-align:right;font-weight:600">' + fmtMoney(r._amt) + '</td>'
       + '<td style="text-align:right">' + (r._bk || 0) + '</td>'
       + '<td style="text-align:right;color:var(--text2)">' + (r._avg ? fmtMoney(r._avg) : '—') + '</td>'
+      + agingCell
       + '<td style="color:var(--text3);font-size:11px">' + contacts + '</td>'
       + '</tr>';
   }).join('');
@@ -939,7 +958,7 @@ openCard = function(c) {
     var data = await V7.loadCacheTab('top_clients_revenue');
     if (!data || !data.length) {
       document.getElementById('top-tbody').innerHTML =
-        '<tr><td colspan="7" class="loading">Кэш пуст — проверьте ETL</td></tr>';
+        '<tr><td colspan="8" class="loading">Кэш пуст — проверьте ETL</td></tr>';
       return;
     }
     topState.rows = data;
@@ -951,7 +970,7 @@ openCard = function(c) {
   } catch (e) {
     console.warn('top_clients load failed:', e);
     document.getElementById('top-tbody').innerHTML =
-      '<tr><td colspan="7" class="error">Ошибка загрузки кэша</td></tr>';
+      '<tr><td colspan="8" class="error">Ошибка загрузки кэша</td></tr>';
   }
 })();
 </script>
