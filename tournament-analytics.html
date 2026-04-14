@@ -88,6 +88,9 @@ table.fin th.sortable.desc::after{content:' \u2193';opacity:1}
 .badge.rated{background:rgba(39,174,96,.12);color:#27ae60}
 .badge.nonrated{background:rgba(230,126,34,.12);color:#e67e22}
 .badge.special{background:rgba(142,68,173,.12);color:#8e44ad}
+.badge.korzinka{background:rgba(52,152,219,.12);color:#3498db}
+.club-tag{display:inline-block;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700;margin-left:4px;letter-spacing:.5px}
+.club-tag.ua{background:rgba(52,152,219,.15);color:#2980b9}
 
 .loading{color:var(--text3);font-size:14px;padding:20px;text-align:center}
 
@@ -177,6 +180,10 @@ table.fin tr.expanded{background:var(--surface2)}
     <input type="date" class="d-input" id="date-from" onchange="setCustomRange()">
     <span class="d-sep">—</span>
     <input type="date" class="d-input" id="date-to" onchange="setCustomRange()">
+    <span class="d-sep">|</span>
+    <button class="d-btn c-btn active" data-club="all" onclick="setAnalyticsClub('all',this)">Все клубы</button>
+    <button class="d-btn c-btn" data-club="antalya" onclick="setAnalyticsClub('antalya',this)">Antalya</button>
+    <button class="d-btn c-btn" data-club="ua" onclick="setAnalyticsClub('ua',this)">UA</button>
   </div>
 
   <div class="kpi-row">
@@ -341,7 +348,15 @@ let allItems = [];
 let allPlayerMap = {};
 let dateFrom = null, dateTo = null;
 let currentRange = 30;
+let currentClub = 'all';
 let charts = {};
+
+function setAnalyticsClub(club, btn) {
+  currentClub = club;
+  document.querySelectorAll('.c-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  rebuild();
+}
 
 // ── Date range ──
 function setRange(days, btn) {
@@ -369,6 +384,7 @@ function filtered() {
   return allItems.filter(t => {
     if (dateFrom && t.date < dateFrom) return false;
     if (dateTo && t.date > dateTo) return false;
+    if (currentClub !== 'all' && t.club !== currentClub) return false;
     return true;
   });
 }
@@ -460,7 +476,12 @@ function stateLabel(s, t) {
 function typeLabel(t) {
   if (t === 'rated') return '<span class="badge rated">Ranked</span>';
   if (t === 'special') return '<span class="badge special">Special</span>';
+  if (t === 'korzinka') return '<span class="badge korzinka">Korzinka</span>';
   return '<span class="badge nonrated">Non-ranked</span>';
+}
+function clubLabel(c) {
+  if (c === 'ua') return '<span class="club-tag ua">UA</span>';
+  return '';
 }
 function shortName(s) { return s.length > 24 ? s.slice(0, 22) + '...' : s; }
 
@@ -481,7 +502,7 @@ function renderList(data) {
     tr.innerHTML = `
       <td>${dd}</td>
       <td>${DAYS_RU[i.date.getDay()]}</td>
-      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${i.title}</td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis">${i.title}${clubLabel(i.club)}</td>
       <td>${typeLabel(i.type)}</td>
       <td><div class="fill-bar"><div class="fill-bg"><div class="fill-fg ${fillColor(i.fillPct)}" style="width:${Math.min(i.fillPct,100)}%"></div></div><span class="fill-pct">${i.fillPct}%</span></div></td>
       <td>${i.participants}</td>
@@ -585,7 +606,7 @@ function renderFormats(items, cancelled) {
   destroyChart('chart-format-count');
   charts['chart-format-count'] = new Chart(document.getElementById('chart-format-count'), {
     type: 'bar',
-    data: { labels: top10.map(f => shortName(f.title)), datasets: [{ label: 'Турниров', data: top10.map(f => f.count), backgroundColor: top10.map(f => f.type === 'rated' ? 'rgba(39,174,96,.7)' : f.type === 'special' ? 'rgba(142,68,173,.7)' : 'rgba(230,126,34,.7)') }] },
+    data: { labels: top10.map(f => shortName(f.title)), datasets: [{ label: 'Турниров', data: top10.map(f => f.count), backgroundColor: top10.map(f => f.type === 'rated' ? 'rgba(39,174,96,.7)' : f.type === 'special' ? 'rgba(142,68,173,.7)' : f.type === 'korzinka' ? 'rgba(52,152,219,.7)' : 'rgba(230,126,34,.7)') }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { color: 'rgba(128,128,128,.1)' } }, y: { ticks: { font: { size: 11 } } } } },
   });
 

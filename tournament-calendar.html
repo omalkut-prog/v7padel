@@ -58,7 +58,7 @@ nav {
 .leg.off{opacity:.3}
 .leg.off .ldot{background:var(--text3)!important}
 .ldot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
-.lr{background:#27ae60}.ln{background:#e67e22}.ls{background:#8e44ad}.lc{background:#e67e22;background:linear-gradient(135deg,#e8a000,#f39c12)}
+.lr{background:#27ae60}.ln{background:#e67e22}.ls{background:#8e44ad}.lc{background:#e67e22;background:linear-gradient(135deg,#e8a000,#f39c12)}.lk{background:#3498db}
 
 /* MAIN */
 .main{padding:20px 24px;max-width:1600px;margin:0 auto}
@@ -90,6 +90,8 @@ nav {
 .ev.nonrated{background:#fde8d0;color:#a04000;border-left-color:#e67e22}
 .ev.special{background:#ead6f8;color:#5b1a8a;border-left-color:#8e44ad}
 .ev.camp{background:#fef3d0;color:#7d4e00;border-left-color:#f39c12}
+.ev.korzinka{background:#d6eaf8;color:#1b4f72;border-left-color:#3498db}
+.ev-club{display:inline-block;padding:0 4px;border-radius:3px;font-size:.5rem;font-weight:800;margin-left:3px;letter-spacing:.3px;background:rgba(52,152,219,.2);color:#2980b9;vertical-align:middle}
 .ev-t{font-size:.6rem;opacity:.65;font-weight:500}
 .ev-n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
@@ -118,6 +120,7 @@ nav {
 .mb-nonrated{background:#fde8d0;color:#a04000}
 .mb-special{background:#ead6f8;color:#5b1a8a}
 .mb-camp{background:#fef3d0;color:#7d4e00}
+.mb-korzinka{background:#d6eaf8;color:#1b4f72}
 .mtitle{font-size:1.12rem;font-weight:800;color:var(--text);line-height:1.3}
 .mclose{position:absolute;top:14px;right:16px;background:var(--surface2);border:none;width:28px;height:28px;border-radius:50%;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text3)}
 .mclose:hover{background:var(--border-hover)}
@@ -236,6 +239,7 @@ nav {
   <div class="leg" data-type="nonrated" onclick="toggleFilter(this)"><div class="ldot ln"></div>Нерейтинговые</div>
   <div class="leg" data-type="special" onclick="toggleFilter(this)"><div class="ldot ls"></div>Спецсобытия</div>
   <div class="leg" data-type="camp" onclick="toggleFilter(this)"><div class="ldot" style="background:#f39c12"></div>Camp</div>
+  <div class="leg" data-type="korzinka" onclick="toggleFilter(this)"><div class="ldot lk"></div>Корзинки UA</div>
 </div>
 
 <div class="main">
@@ -272,10 +276,16 @@ window._racketByDate = {};
     data.forEach(t => {
       if (!window._racketByDate[t.dateStr]) window._racketByDate[t.dateStr] = [];
       window._racketByDate[t.dateStr].push({
+        id: t.id,
         title: t.title.toUpperCase(),
+        titleRaw: t.title,
         slots: t.slots,
         count: t.participants,
-        state: t.state
+        state: t.state,
+        type: t.type,
+        club: t.club,
+        korzinkaLevel: t.korzinkaLevel,
+        date: t.date
       });
     });
     // Re-render to show live fill data
@@ -523,6 +533,7 @@ function renderMonth(m){
     // Build date key for Racket.ID lookup (YYYY-MM-DD)
     const dateKey = `2026-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     const racketDay = window._racketByDate[dateKey] || [];
+    const matchedRacketIds = new Set();
 
     dayEvs.forEach(ev=>{
       const type=evType(ev.key);
@@ -536,6 +547,7 @@ function renderMonth(m){
         // Match if Racket.ID title contains the calendar event key (or vice versa)
         return r.title.includes(evKeyUp) || evKeyUp.includes(r.title.split(' ').slice(0,2).join(' '));
       });
+      if (match) matchedRacketIds.add(match.id);
 
       let fillBadge = '';
       if (match && match.slots > 0) {
@@ -545,6 +557,24 @@ function renderMonth(m){
 
       el.innerHTML=`<span class="ev-t">${ev.t}</span><span class="ev-n">${ev.key}${fillBadge}</span>`;
       el.onclick=()=>openModal(ev,d,dow,m);
+      cell.appendChild(el);
+    });
+
+    // Inject unmatched Racket.ID tournaments (UA корзинки and other extras)
+    racketDay.forEach(r => {
+      if (matchedRacketIds.has(r.id)) return;
+      if (hiddenTypes.has(r.type)) return;
+      const el = document.createElement('div');
+      el.className = `ev ${r.type}`;
+      const timeStr = r.date ? (String(r.date.getHours()).padStart(2,'0') + ':' + String(r.date.getMinutes()).padStart(2,'0')) : '';
+      let fillBadge = '';
+      if (r.slots > 0) {
+        const fillCls = r.count >= r.slots ? 'full' : r.count >= r.slots * 0.6 ? 'yellow' : 'open';
+        fillBadge = ` <span class="ev-fill ${fillCls}">${r.count}/${r.slots}</span>`;
+      }
+      const clubTag = r.club === 'ua' ? '<span class="ev-club">UA</span>' : '';
+      el.innerHTML = `<span class="ev-t">${timeStr}</span><span class="ev-n">${r.titleRaw}${clubTag}${fillBadge}</span>`;
+      el.onclick = () => openRacketModal(r, d, dow, m);
       cell.appendChild(el);
     });
 
@@ -561,11 +591,21 @@ function renderMonth(m){
   const nr=evs.filter(e=>evType(e.key)==='rated').length;
   const nn=evs.filter(e=>evType(e.key)==='nonrated').length;
   const ns=evs.filter(e=>evType(e.key)==='special'||evType(e.key)==='camp').length;
+  // Count korzinki from Racket.ID for this month
+  let nk = 0;
+  Object.keys(window._racketByDate||{}).forEach(dk => {
+    const [yy, mm] = dk.split('-').map(Number);
+    if (yy === 2026 && mm === m) {
+      (window._racketByDate[dk]||[]).forEach(r => { if (r.type === 'korzinka') nk++; });
+    }
+  });
+  const totalAll = evs.length + nk;
   document.getElementById('stats').innerHTML=`
-    <div class="stat s0"><div class="stat-n">${evs.length}</div><div class="stat-l">Total Events</div></div>
+    <div class="stat s0"><div class="stat-n">${totalAll}</div><div class="stat-l">Total Events</div></div>
     <div class="stat s1"><div class="stat-n">${nr}</div><div class="stat-l">Rated</div></div>
     <div class="stat s2"><div class="stat-n">${nn}</div><div class="stat-l">Non-Rated</div></div>
     <div class="stat s3"><div class="stat-n">${ns}</div><div class="stat-l">Special</div></div>
+    ${nk>0?`<div class="stat" style="background:#d6eaf8;color:#1b4f72"><div class="stat-n">${nk}</div><div class="stat-l">Korzinki UA</div></div>`:''}
   `;
 }
 
@@ -632,6 +672,53 @@ async function loadModalParticipants(dateKey, evKey) {
     });
     if (!match || !match.participantIds.length) {
       panel.innerHTML = '<div class="mp-title"><span>Нет данных об участниках</span></div>';
+      return;
+    }
+    panel.innerHTML = '<div class="mp-title"><span>' + match.participants + ' участников</span><a class="mp-link" href="' + RacketID.tournamentUrl(match.id) + '" target="_blank">Racket.ID &rarr;</a></div><div class="mp-loading">Загрузка профилей...</div>';
+    const profiles = await RacketID.loadProfiles(match.participantIds);
+    panel.innerHTML = '<div class="mp-title"><span>' + profiles.length + ' участников</span><a class="mp-link" href="' + RacketID.tournamentUrl(match.id) + '" target="_blank">Racket.ID &rarr;</a></div>' +
+      '<div class="mp-grid">' + profiles.map(p =>
+        '<div class="mp-card"><span class="mp-name">' + (p.name || p.user_id) + '</span>' +
+        (p.rating ? '<span class="mp-rat">' + Math.round(p.rating) + '</span>' : '') + '</div>'
+      ).join('') + '</div>';
+  } catch(e) {
+    panel.innerHTML = '<div class="mp-loading">Ошибка загрузки</div>';
+  }
+}
+
+function openRacketModal(r, day, dow, month) {
+  const monthNames={4:'Апрель',5:'Май',6:'Июнь',7:'Июль'};
+  const WDAYS_RU=["Понедельник","Вторник","Среда","Четверг","Пятница","Суббота","Воскресенье"];
+  const labels={rated:'Рейтинговый',nonrated:'Нерейтинговый',special:'Спецсобытие',camp:'Camp',korzinka:'Корзинка'};
+  document.getElementById('mbadge').className = `mbadge mb-${r.type}`;
+  const badgeText = r.type === 'korzinka' && r.korzinkaLevel ? `Корзинка ${r.korzinkaLevel}` : (labels[r.type] || 'Event');
+  document.getElementById('mbadge').textContent = badgeText;
+  const clubTag = r.club === 'ua' ? ' <span class="ev-club">UA</span>' : '';
+  const icon = r.type === 'korzinka' ? '🧺' : '🎾';
+  document.getElementById('mtitle').innerHTML = `${icon} ${r.titleRaw}${clubTag}`;
+
+  const timeStr = r.date ? (String(r.date.getHours()).padStart(2,'0') + ':' + String(r.date.getMinutes()).padStart(2,'0')) : '—';
+  const fillInfo = r.slots > 0 ? `<div class="mrow"><span class="mico">📊</span><div class="mval"><strong>${r.count}/${r.slots}</strong> участников</div></div>` : `<div class="mrow"><span class="mico">📊</span><div class="mval"><strong>${r.count}</strong> участников</div></div>`;
+
+  document.getElementById('mbody').innerHTML = `
+    <div class="mrow"><span class="mico">📅</span><div class="mval"><strong>${day} ${monthNames[month]} 2026</strong> — ${WDAYS_RU[dow]}</div></div>
+    <div class="mrow"><span class="mico">🕐</span><div class="mval"><strong>${timeStr}</strong></div></div>
+    ${fillInfo}
+    <div class="mrow"><span class="mico">🌍</span><div class="mval">V7 Padel ${r.club === 'ua' ? 'UA' : 'Antalya'}</div></div>
+    <div class="m-participants" id="m-part"><div class="mp-loading">Загрузка участников...</div></div>
+  `;
+  document.getElementById('overlay').classList.add('on');
+  loadRacketModalParticipants(r.id);
+}
+
+async function loadRacketModalParticipants(productId) {
+  const panel = document.getElementById('m-part');
+  if (!panel) return;
+  try {
+    const tournaments = await RacketID.loadTournaments();
+    const match = tournaments.find(t => t.id === productId);
+    if (!match || !match.participantIds.length) {
+      panel.innerHTML = '<div class="mp-title"><span>Нет данных об участниках</span><a class="mp-link" href="' + RacketID.tournamentUrl(productId) + '" target="_blank">Racket.ID &rarr;</a></div>';
       return;
     }
     panel.innerHTML = '<div class="mp-title"><span>' + match.participants + ' участников</span><a class="mp-link" href="' + RacketID.tournamentUrl(match.id) + '" target="_blank">Racket.ID &rarr;</a></div><div class="mp-loading">Загрузка профилей...</div>';

@@ -5,7 +5,11 @@
  */
 window.RacketID = (function() {
   const BASE = 'https://firestore.googleapis.com/v1/projects/racket-id/databases/(default)/documents';
-  const GROUP_ID = 'pQ5uN5ZErqRufJ';
+  // V7 Padel groups in Racket.ID. Антальская группа — основная; UA — украинские корзинки.
+  const GROUPS = [
+    { id: 'pQ5uN5ZErqRufJ', name: 'V7 Antalya', club: 'antalya' },
+    { id: 'JMEPce8MA6ZAwm', name: 'V7 UA',      club: 'ua' },
+  ];
 
   // Cache to avoid re-fetching profiles
   const _profileCache = {};
@@ -66,9 +70,13 @@ window.RacketID = (function() {
   async function loadTournaments(forceRefresh) {
     if (_tournamentsCache && !forceRefresh) return _tournamentsCache;
 
-    const docs = await firestoreQuery('IProducts', 'group', GROUP_ID, 20);
+    // Fetch tournaments from ALL V7 groups in parallel
+    const allDocs = await Promise.all(
+      GROUPS.map(g => firestoreQuery('IProducts', 'group', g.id, 20).then(docs => ({ group: g, docs })))
+    );
     const tournaments = [];
 
+    allDocs.forEach(({ group, docs }) => {
     docs.forEach(p => {
       const doc = p.document;
       const docId = doc.name.split('/').pop();
@@ -121,11 +129,20 @@ window.RacketID = (function() {
       if (status === 'program') return; // skip templates
       if (!dt || isNaN(dt.getTime())) return;
 
-      // Classify type (special first — takes priority, then rated, default nonrated)
+      // Classify type (special first — takes priority, then rated, korzinka, default nonrated)
       const tu = title.toUpperCase();
+      const tl = title.toLowerCase();
       let type = 'nonrated';
+      // Украинские корзинки (V7 UA) — отдельный тип
+      const korzinkaMatch = title.match(/(\d)\s*[кКKk][оo]р[зz]ин/);
+      if (korzinkaMatch || tl.includes('корзин') || tl.includes('korzin')) {
+        type = 'korzinka';
+      }
       if (tu.includes('RANKED') || tu.includes('AMERICANO 1100') || tu.includes('BEGINNERS') || tu.includes('LADY')) type = 'rated';
       if (tu.includes('PREMIER') || tu.includes('MAJOR') || tu.includes('KIDS') || tu.includes('JUNIOR') || tu.includes('EVENT WEEKEND') || tu.includes('PADEL VS')) type = 'special';
+
+      // Клуб turnира (для фильтров)
+      const tournamentClub = group.club;
 
       // Clean title from emojis
       const cleanTitle = title.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, '').trim();
@@ -135,6 +152,9 @@ window.RacketID = (function() {
         title: cleanTitle,
         titleRaw: title,
         type,
+        korzinkaLevel: korzinkaMatch ? parseInt(korzinkaMatch[1]) : null, // 1..5 for UA korzinkas
+        club: tournamentClub,       // 'antalya' or 'ua'
+        groupName: group.name,      // 'V7 Antalya' or 'V7 UA'
         date: dt,
         dateStr: dt.toISOString().slice(0, 10),
         endTime,
@@ -147,6 +167,7 @@ window.RacketID = (function() {
         state: (gpState || '').toLowerCase(),
       });
     });
+    }); // end allDocs.forEach
 
     tournaments.sort((a, b) => b.date - a.date);
     _tournamentsCache = tournaments;
@@ -204,5 +225,5 @@ window.RacketID = (function() {
     return 'https://racket.id/events/' + productId;
   }
 
-  return { loadTournaments, loadProfile, loadProfiles, tournamentUrl };
+  return { loadTournaments, loadProfile, loadProfiles, tournamentUrl, GROUPS };
 })();

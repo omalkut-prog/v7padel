@@ -71,6 +71,10 @@ tbody tr.selected{background:var(--accent-soft)}
 .t-badge.nonrated{background:rgba(230,126,34,.12);color:#e67e22}
 .t-badge.special{background:rgba(142,68,173,.12);color:#8e44ad}
 .t-badge.camp{background:rgba(243,156,18,.12);color:#f39c12}
+.t-badge.korzinka{background:rgba(52,152,219,.12);color:#3498db}
+.t-club{display:inline-block;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;margin-left:4px;letter-spacing:.5px;text-transform:uppercase}
+.t-club.antalya{background:rgba(212,240,58,.12);color:#9ca80b}
+.t-club.ua{background:rgba(52,152,219,.15);color:#2980b9}
 
 .t-state{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}
 .t-state.ended{background:var(--surface2);color:var(--text3)}
@@ -153,6 +157,11 @@ tbody tr.selected{background:var(--accent-soft)}
     <button class="f-btn" data-type="rated" onclick="setFilter('rated',this)">Рейтинговые</button>
     <button class="f-btn" data-type="nonrated" onclick="setFilter('nonrated',this)">Нерейтинговые</button>
     <button class="f-btn" data-type="special" onclick="setFilter('special',this)">Спецсобытия</button>
+    <button class="f-btn" data-type="korzinka" onclick="setFilter('korzinka',this)">Корзинки UA</button>
+    <span style="width:1px;background:var(--border);align-self:stretch;margin:0 4px"></span>
+    <button class="f-btn active" data-club="all" onclick="setClub('all',this)">Все клубы</button>
+    <button class="f-btn" data-club="antalya" onclick="setClub('antalya',this)">Antalya</button>
+    <button class="f-btn" data-club="ua" onclick="setClub('ua',this)">UA</button>
     <input class="f-search" type="text" placeholder="Поиск по названию..." id="search" oninput="applyFilters()">
   </div>
 
@@ -187,6 +196,7 @@ tbody tr.selected{background:var(--accent-soft)}
 let allTournaments = [];
 let currentTab = 'upcoming';
 let currentType = 'all';
+let currentClub = 'all';
 let sortCol = 'date';
 let sortAsc = true;
 let selectedId = null;
@@ -213,9 +223,10 @@ function isCancelled(t) {
 function updateCounts() {
   const now = new Date();
   now.setHours(0,0,0,0);
-  const cancelled = allTournaments.filter(t => isCancelled(t));
-  const past = allTournaments.filter(t => t.date < now && !isCancelled(t));
-  const upcoming = allTournaments.filter(t => t.date >= now);
+  const src = currentClub === 'all' ? allTournaments : allTournaments.filter(t => t.club === currentClub);
+  const cancelled = src.filter(t => isCancelled(t));
+  const past = src.filter(t => t.date < now && !isCancelled(t));
+  const upcoming = src.filter(t => t.date >= now);
   document.getElementById('cnt-upcoming').textContent = upcoming.length;
   document.getElementById('cnt-past').textContent = past.length;
   document.getElementById('cnt-cancelled').textContent = cancelled.length;
@@ -231,8 +242,16 @@ function switchTab(tab) {
 
 function setFilter(type, btn) {
   currentType = type;
-  document.querySelectorAll('.f-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.f-btn[data-type]').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  applyFilters();
+}
+
+function setClub(club, btn) {
+  currentClub = club;
+  document.querySelectorAll('.f-btn[data-club]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  updateCounts();
   applyFilters();
 }
 
@@ -259,6 +278,10 @@ function applyFilters() {
     list = allTournaments.filter(t => isCancelled(t));
   } else {
     list = allTournaments.filter(t => t.date < now && !isCancelled(t));
+  }
+
+  if (currentClub !== 'all') {
+    list = list.filter(t => t.club === currentClub);
   }
 
   if (currentType !== 'all') {
@@ -288,7 +311,7 @@ function applyFilters() {
   renderTable(list);
 }
 
-const typeLabels = {rated:'Рейтинговый',nonrated:'Нерейтинговый',special:'Спецсобытие',camp:'Camp'};
+const typeLabels = {rated:'Рейтинговый',nonrated:'Нерейтинговый',special:'Спецсобытие',camp:'Camp',korzinka:'Корзинка'};
 const WDAYS_RU = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
 const MONTHS_RU = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
 
@@ -308,10 +331,12 @@ function renderTable(list) {
     const cancelled = isCancelled(t);
     const stCls = cancelled ? 'cancelled' : t.state === 'ended' ? 'ended' : (t.participants >= t.slots && t.slots > 0) ? 'full' : 'open';
     const stLabel = cancelled ? 'Отменён' : t.state === 'ended' ? 'Завершён' : stCls === 'full' ? 'Полный' : 'Открыт';
+    const typeLabel = t.type === 'korzinka' && t.korzinkaLevel ? `Корзинка ${t.korzinkaLevel}` : (typeLabels[t.type] || t.type);
+    const clubBadge = t.club === 'ua' ? '<span class="t-club ua">UA</span>' : '';
     return `<tr onclick="selectTournament('${t.id}')" class="${selectedId === t.id ? 'selected' : ''}">
       <td>${fmtDate(t.date)}</td>
-      <td class="t-name">${t.title}</td>
-      <td><span class="t-badge ${t.type}">${typeLabels[t.type] || t.type}</span></td>
+      <td class="t-name">${t.title}${clubBadge}</td>
+      <td><span class="t-badge ${t.type}">${typeLabel}</span></td>
       <td><div class="fill-bar"><div class="fill-bg"><div class="fill-fg ${fillCls}" style="width:${Math.min(fillPct,100)}%"></div></div><span class="fill-txt">${t.participants}/${t.slots}</span></div></td>
       <td><span class="t-state ${stCls}">${stLabel}</span></td>
     </tr>`;
