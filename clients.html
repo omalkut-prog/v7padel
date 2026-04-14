@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260414g"></script>
+<script src="assets/data.js?v=20260414h"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -97,6 +97,30 @@
   .seg-sleeping{ background: rgba(243,156,18,0.12); color: var(--warn); }
   .seg-new     { background: var(--accent-soft); color: var(--accent); }
   .seg-never   { background: rgba(138,155,168,0.12); color: var(--text3); }
+  /* segments v2 */
+  .seg-core       { background: rgba(155,89,182,0.16); color: #b483d6; }
+  .seg-risk       { background: rgba(231,126,34,0.16); color: #e87e3c; }
+  .seg-growing    { background: rgba(46,204,113,0.14); color: #2ecc71; }
+  .seg-occasional { background: rgba(138,155,168,0.12); color: var(--text3); }
+  .seg-zero       { background: rgba(138,155,168,0.08); color: var(--text3); }
+  /* segment chip selected colors */
+  .chip.top-seg.active.seg-chip-core      { border-color: #b483d6; background: rgba(155,89,182,0.18); color: #b483d6; }
+  .chip.top-seg.active.seg-chip-risk      { border-color: #e87e3c; background: rgba(231,126,34,0.18); color: #e87e3c; }
+  .chip.top-seg.active.seg-chip-growing   { border-color: #2ecc71; background: rgba(46,204,113,0.18); color: #2ecc71; }
+  .chip.top-seg.active.seg-chip-occasional{ border-color: var(--text3); }
+  /* category breakdown bars */
+  .cat-row { display: grid; grid-template-columns: 130px 1fr 90px; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--border); }
+  .cat-row:first-child { border-top: 0; }
+  .cat-row .cat-name { font-size: 12px; color: var(--text); font-weight: 500; }
+  .cat-row .cat-bar-bg { background: var(--surface2); height: 14px; border-radius: 4px; overflow: hidden; }
+  .cat-row .cat-bar { height: 100%; border-radius: 4px; transition: width .6s ease; }
+  .cat-row .cat-amt { text-align: right; font-size: 12px; color: var(--text); font-weight: 600; }
+  .cat-bar.cat-membership { background: #b483d6; }
+  .cat-bar.cat-courts     { background: var(--accent); }
+  .cat-bar.cat-activity   { background: #f1c40f; }
+  .cat-bar.cat-items      { background: #2ecc71; }
+  .cat-bar.cat-lessons    { background: #e87e3c; }
+  .cat-bar.cat-other      { background: var(--text3); }
 
   /* Pagination */
   .pag {
@@ -213,31 +237,53 @@
     </div>
   </section>
 
-  <!-- BLOCK 2: TOP CLIENTS BY REVENUE -->
+  <!-- BLOCK 2: TOP CLIENTS — REVENUE + VISITS + SEGMENTS -->
   <section class="section">
     <div class="section-head">
-      <h2>2 · Топ клиентов по выручке</h2>
-      <span class="hint">источник: Matchpoint (ListadoClientesMasGasto), обновление 1×/день</span>
+      <h2>2 · Топ клиентов</h2>
+      <span class="hint">Matchpoint, 1×/день · клик по строке → детализация трат</span>
     </div>
-    <div class="filters">
-      <button class="chip top-period active" data-period="all">За всё время</button>
-      <button class="chip top-period" data-period="90d">90 дней</button>
-      <button class="chip top-period" data-period="30d">30 дней</button>
-      <button class="chip top-period" data-period="7d">7 дней</button>
+    <div class="filters" style="row-gap:8px">
+      <!-- view: выручка vs визиты -->
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Сорт:</span>
+      <button class="chip top-view active" data-view="revenue">по выручке</button>
+      <button class="chip top-view" data-view="visits">по визитам</button>
+      <span style="width:14px"></span>
+      <!-- period -->
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Период:</span>
+      <button class="chip top-period active" data-period="all">всё время</button>
+      <button class="chip top-period" data-period="90d">90 дн</button>
+      <button class="chip top-period" data-period="30d">30 дн</button>
+      <button class="chip top-period" data-period="7d">7 дн</button>
+    </div>
+    <div class="filters" style="row-gap:8px">
+      <!-- segments -->
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Сегмент:</span>
+      <button class="chip top-seg active" data-seg="all">все</button>
+      <button class="chip top-seg seg-chip-core" data-seg="core" title="amount_30d ≥ 10 000 ₺">🟣 ядро</button>
+      <button class="chip top-seg seg-chip-risk" data-seg="risk" title="amount_30d=0 И amount_90d ≥ 10 000 ₺">🟠 под риском</button>
+      <button class="chip top-seg seg-chip-growing" data-seg="growing" title="amount_30d 2k–10k И amount_all &lt; 25k">🟢 растущие</button>
+      <button class="chip top-seg seg-chip-occasional" data-seg="occasional">⚫ разовые</button>
+      <span style="width:14px"></span>
+      <!-- amount filter -->
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">от ₺:</span>
+      <input type="number" id="top-min-amt" placeholder="0" min="0" step="1000" style="width:120px">
       <span class="count" id="top-info">—</span>
     </div>
     <div class="table-wrap">
       <table class="clients">
         <thead>
           <tr>
-            <th style="width:48px">#</th>
+            <th style="width:42px">#</th>
             <th>Клиент</th>
-            <th>E-mail</th>
-            <th>Телефон</th>
-            <th style="text-align:right">Выручка, ₺</th>
+            <th style="width:110px">Сегмент</th>
+            <th style="text-align:right;width:110px">Выручка ₺</th>
+            <th style="text-align:right;width:80px">Визитов</th>
+            <th style="text-align:right;width:90px">Ср.чек ₺</th>
+            <th>Контакты</th>
           </tr>
         </thead>
-        <tbody id="top-tbody"><tr><td colspan="5" class="loading">Загружаю…</td></tr></tbody>
+        <tbody id="top-tbody"><tr><td colspan="7" class="loading">Загружаю…</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -662,47 +708,102 @@ function openCard(c) {
 function closeCard() { document.getElementById('modal-backdrop').classList.remove('active'); }
 window.closeCard = closeCard;
 
-/* ---------- TOP CLIENTS BY REVENUE (block 3) ---------- */
-const topState = { rows: [], period: 'all' };
+/* ---------- TOP CLIENTS — REVENUE + VISITS + SEGMENTS ---------- */
+const topState = {
+  rows: [],          // raw из кэша top_clients_revenue
+  byCid: {},         // cid → row для drill-down
+  view: 'revenue',   // 'revenue' | 'visits'
+  period: 'all',     // 'all' | '90d' | '30d' | '7d'
+  segment: 'all',    // 'all' | 'core' | 'risk' | 'growing' | 'occasional'
+  minAmt: 0,         // фильтр от ₺ (по выручке за выбранный период)
+};
+
+const SEG_LABEL = {
+  core:       'Ядро',
+  risk:       'Под риском',
+  growing:    'Растущий',
+  occasional: 'Разовый',
+  zero:       'Ноль',
+};
+const CAT_LABEL = {
+  membership: 'Абонемент',
+  courts:     'Корты',
+  activity:   'Активности',
+  items:      'Товары/прокат',
+  lessons:    'Тренировки',
+  other:      'Прочее',
+};
+const CAT_ORDER = ['membership', 'courts', 'activity', 'items', 'lessons', 'other'];
 
 function fmtMoney(n) {
   n = Number(n) || 0;
   return n.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
 }
-
 function escHtml(s) {
   return String(s == null ? '' : s)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+function segBadge(seg) {
+  var lbl = SEG_LABEL[seg] || '—';
+  return '<span class="seg-badge seg-' + (seg || 'occasional') + '">' + lbl + '</span>';
 }
 
 function renderTopClients() {
   var tbody = document.getElementById('top-tbody');
   var info = document.getElementById('top-info');
   if (!tbody) return;
+
   var period = topState.period;
-  var field = 'amount_' + period;
-  var rows = (topState.rows || [])
-    .map(function(r) { return Object.assign({}, r, { _amt: Number(r[field]) || 0 }); })
-    .filter(function(r) { return r._amt > 0; })
-    .sort(function(a, b) { return b._amt - a._amt; });
-  var total = rows.reduce(function(s, r) { return s + r._amt; }, 0);
+  var view = topState.view;
+  var seg = topState.segment;
+  var minAmt = Number(topState.minAmt) || 0;
+
+  var amtField = 'amount_' + period;
+  var bkField  = 'bookings_' + period;
+
+  var rows = (topState.rows || []).map(function(r) {
+    var amt = Number(r[amtField]) || 0;
+    var bk  = Number(r[bkField])  || 0;
+    var avg = bk > 0 ? amt / bk : 0;
+    return Object.assign({}, r, { _amt: amt, _bk: bk, _avg: avg });
+  });
+
+  // фильтры
+  if (seg !== 'all') rows = rows.filter(function(r) { return r.segment === seg; });
+  if (minAmt > 0)    rows = rows.filter(function(r) { return r._amt >= minAmt; });
+  // отбрасываем пустые в выбранном виде
+  if (view === 'revenue') rows = rows.filter(function(r) { return r._amt > 0; });
+  else                    rows = rows.filter(function(r) { return r._bk  > 0; });
+
+  // сортировка
+  if (view === 'revenue') rows.sort(function(a, b) { return b._amt - a._amt; });
+  else                    rows.sort(function(a, b) { return b._bk  - a._bk; });
+
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="loading">Нет данных за выбранный период</td></tr>';
-    info.textContent = '0 ₺';
+    tbody.innerHTML = '<tr><td colspan="7" class="loading">Нет клиентов по фильтру</td></tr>';
+    info.textContent = '0';
     return;
   }
+  var total = rows.reduce(function(s, r) { return s + r._amt; }, 0);
+  var totalBk = rows.reduce(function(s, r) { return s + r._bk; }, 0);
+
   tbody.innerHTML = rows.map(function(r, i) {
     var cid = escHtml(r.customer_id || '');
-    return '<tr data-cid="' + cid + '">'
+    var contacts = '';
+    if (r.email && r.email !== '—') contacts += escHtml(r.email);
+    if (r.phone && r.phone !== '—') contacts += (contacts ? ' · ' : '') + escHtml(r.phone);
+    return '<tr data-cid="' + cid + '" style="cursor:pointer">'
       + '<td style="color:var(--text3)">' + (i + 1) + '</td>'
       + '<td class="name-cell">' + escHtml(r.name || '—') + '</td>'
-      + '<td>' + escHtml(r.email || '—') + '</td>'
-      + '<td>' + escHtml(r.phone || '—') + '</td>'
-      + '<td style="text-align:right;font-weight:600;color:var(--text)">' + fmtMoney(r._amt) + '</td>'
+      + '<td>' + segBadge(r.segment) + '</td>'
+      + '<td style="text-align:right;font-weight:600">' + fmtMoney(r._amt) + '</td>'
+      + '<td style="text-align:right">' + (r._bk || 0) + '</td>'
+      + '<td style="text-align:right;color:var(--text2)">' + (r._avg ? fmtMoney(r._avg) : '—') + '</td>'
+      + '<td style="color:var(--text3);font-size:11px">' + contacts + '</td>'
       + '</tr>';
   }).join('');
-  info.textContent = rows.length + ' клиентов · итого ' + fmtMoney(total) + ' ₺';
+  info.textContent = rows.length + ' клиент(ов) · ∑ ' + fmtMoney(total) + ' ₺ · ' + totalBk + ' визит(ов)';
 }
 
 function openCardByCid(cid) {
@@ -711,7 +812,6 @@ function openCardByCid(cid) {
   if (c) { openCard(c); return true; }
   return false;
 }
-
 function openCardByName(name) {
   if (!name) return false;
   var key = String(name).trim().toLowerCase();
@@ -720,7 +820,15 @@ function openCardByName(name) {
   return false;
 }
 
-function bindTopPeriodChips() {
+function bindTopFilters() {
+  document.querySelectorAll('.chip.top-view').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.chip.top-view').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      topState.view = btn.dataset.view;
+      renderTopClients();
+    });
+  });
   document.querySelectorAll('.chip.top-period').forEach(function(btn) {
     btn.addEventListener('click', function() {
       document.querySelectorAll('.chip.top-period').forEach(function(b) { b.classList.remove('active'); });
@@ -729,6 +837,25 @@ function bindTopPeriodChips() {
       renderTopClients();
     });
   });
+  document.querySelectorAll('.chip.top-seg').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.chip.top-seg').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      topState.segment = btn.dataset.seg;
+      renderTopClients();
+    });
+  });
+  var minAmt = document.getElementById('top-min-amt');
+  if (minAmt) {
+    var t;
+    minAmt.addEventListener('input', function(e) {
+      clearTimeout(t);
+      t = setTimeout(function() {
+        topState.minAmt = Number(e.target.value) || 0;
+        renderTopClients();
+      }, 250);
+    });
+  }
 }
 
 function bindTopRowClick() {
@@ -738,8 +865,6 @@ function bindTopRowClick() {
     var tr = e.target.closest('tr[data-cid]');
     if (!tr) return;
     var cid = tr.getAttribute('data-cid');
-    // Основная карточка строится из state.customers (clients_enriched).
-    // Если клиент уже есть в базе enriched — открываем карточку; иначе сообщаем.
     if (openCardByCid(cid)) return;
     var name = tr.querySelector('.name-cell') ? tr.querySelector('.name-cell').textContent : '';
     if (openCardByName(name)) return;
@@ -747,22 +872,86 @@ function bindTopRowClick() {
   });
 }
 
+/* ---------- Drill-down: рендер блока «Что и сколько потратил» ---------- */
+function renderClientCategoryBreakdown(cid) {
+  var top = topState.byCid[String(cid)];
+  if (!top) return '';
+
+  var parts = [];
+  parts.push('<h4>На что потратил</h4>');
+  parts.push('<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">');
+
+  ['all', '30d'].forEach(function(period) {
+    var label = period === 'all' ? 'За всё время' : 'За 30 дней';
+    var totalAmt = period === 'all' ? Number(top.amount_all) : Number(top.amount_30d);
+    var bkCount  = period === 'all' ? Number(top.bookings_all) : Number(top.bookings_30d);
+    var avg      = bkCount > 0 ? totalAmt / bkCount : 0;
+
+    var max = 0;
+    var rows = CAT_ORDER.map(function(ck) {
+      var v = Number(top['cat_' + ck + '_' + period]) || 0;
+      if (v > max) max = v;
+      return { key: ck, label: CAT_LABEL[ck], amt: v };
+    }).filter(function(r) { return r.amt > 0; });
+
+    var html = '<div style="background:var(--surface2);border-radius:12px;padding:14px">';
+    html += '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">'
+         + label + ' · ∑ ' + fmtMoney(totalAmt) + ' ₺ · ' + (bkCount || 0) + ' визитов · ср.чек ' + (avg ? fmtMoney(avg) : '—') + ' ₺</div>';
+    if (!rows.length) {
+      html += '<div style="font-size:12px;color:var(--text3);font-style:italic">Нет трат</div>';
+    } else {
+      html += rows.map(function(r) {
+        var w = max > 0 ? Math.max(2, Math.round(r.amt / max * 100)) : 2;
+        return '<div class="cat-row">'
+          + '<div class="cat-name">' + r.label + '</div>'
+          + '<div class="cat-bar-bg"><div class="cat-bar cat-' + r.key + '" style="width:' + w + '%"></div></div>'
+          + '<div class="cat-amt">' + fmtMoney(r.amt) + ' ₺</div>'
+          + '</div>';
+      }).join('');
+    }
+    html += '</div>';
+    parts.push(html);
+  });
+
+  parts.push('</div>');
+  return parts.join('');
+}
+
+// Расширяем openCard: после оригинального вызова — добавляем drill-down
+const _origOpenCard = openCard;
+openCard = function(c) {
+  _origOpenCard(c);
+  if (!c || !c.id) return;
+  var extra = renderClientCategoryBreakdown(c.id);
+  if (!extra) return;
+  var body = document.getElementById('modal-body');
+  if (!body) return;
+  // Вставляем перед h4 «История игр» / «Паттерн игры», либо в конец
+  var firstH4 = body.querySelector('h4');
+  if (firstH4) firstH4.insertAdjacentHTML('beforebegin', extra);
+  else body.insertAdjacentHTML('beforeend', extra);
+};
+
 (async function initTopClients() {
-  bindTopPeriodChips();
+  bindTopFilters();
   bindTopRowClick();
   try {
     var data = await V7.loadCacheTab('top_clients_revenue');
     if (!data || !data.length) {
       document.getElementById('top-tbody').innerHTML =
-        '<tr><td colspan="5" class="loading">Кэш пуст — проверьте ETL (sync_client_revenue + build_cache)</td></tr>';
+        '<tr><td colspan="7" class="loading">Кэш пуст — проверьте ETL</td></tr>';
       return;
     }
     topState.rows = data;
+    topState.byCid = {};
+    data.forEach(function(r) {
+      if (r.customer_id) topState.byCid[String(r.customer_id)] = r;
+    });
     renderTopClients();
   } catch (e) {
     console.warn('top_clients load failed:', e);
     document.getElementById('top-tbody').innerHTML =
-      '<tr><td colspan="5" class="error">Ошибка загрузки кэша</td></tr>';
+      '<tr><td colspan="7" class="error">Ошибка загрузки кэша</td></tr>';
   }
 })();
 </script>
