@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260414f"></script>
+<script src="assets/data.js?v=20260414g"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -56,17 +56,6 @@
   .kpi .label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text3); }
   .kpi .value { font-size: 30px; font-weight: 700; letter-spacing: -0.8px; color: var(--text); line-height: 1.1; }
   .kpi .sub { font-size: 11px; color: var(--text3); }
-
-  /* Funnel */
-  .funnel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
-  .funnel-row { display: grid; grid-template-columns: 200px 1fr 120px 90px; gap: 14px; align-items: center; padding: 14px 0; border-top: 1px solid var(--border); }
-  .funnel-row:first-child { border-top: 0; }
-  .funnel-row .stage { font-size: 13px; font-weight: 500; color: var(--text); }
-  .funnel-row .stage small { display: block; color: var(--text3); font-size: 11px; margin-top: 2px; font-weight: 400; }
-  .funnel-bar-bg { background: var(--surface2); height: 30px; border-radius: 8px; overflow: hidden; }
-  .funnel-bar { background: var(--accent); height: 100%; border-radius: 8px; transition: width .8s ease; display: flex; align-items: center; padding-left: 10px; color: #fff; font-size: 12px; font-weight: 600; }
-  .funnel-row .count { font-size: 18px; font-weight: 700; text-align: right; color: var(--text); }
-  .funnel-row .conv { font-size: 12px; color: var(--text3); text-align: right; }
 
   /* Filters */
   .filters { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; flex-wrap: wrap; }
@@ -157,8 +146,6 @@
   @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 760px)  {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-    .funnel-row { grid-template-columns: 130px 1fr 70px; }
-    .funnel-row .conv { display: none; }
     .filters input { min-width: 0; width: 100%; }
     table.clients th:nth-child(3), table.clients td:nth-child(3) { display: none; }
     table.clients th:nth-child(4), table.clients td:nth-child(4) { display: none; }
@@ -226,16 +213,10 @@
     </div>
   </section>
 
-  <!-- BLOCK 2: FUNNEL -->
-  <section class="section">
-    <div class="section-head"><h2>2 · Воронка</h2><span class="hint">зарегистрирован → VIP карта</span></div>
-    <div class="funnel" id="funnel"><div class="loading">Считаю воронку…</div></div>
-  </section>
-
-  <!-- BLOCK 3: TOP CLIENTS BY REVENUE -->
+  <!-- BLOCK 2: TOP CLIENTS BY REVENUE -->
   <section class="section">
     <div class="section-head">
-      <h2>3 · Топ клиентов по выручке</h2>
+      <h2>2 · Топ клиентов по выручке</h2>
       <span class="hint">источник: Matchpoint (ListadoClientesMasGasto), обновление 1×/день</span>
     </div>
     <div class="filters">
@@ -261,9 +242,9 @@
     </div>
   </section>
 
-  <!-- BLOCK 4: TABLE -->
+  <!-- BLOCK 3: TABLE -->
   <section class="section">
-    <div class="section-head"><h2>4 · Таблица клиентов</h2><span class="hint">клик по строке → карточка</span></div>
+    <div class="section-head"><h2>3 · Таблица клиентов</h2><span class="hint">клик по строке → карточка</span></div>
     <div class="filters">
       <input type="search" id="flt-search" placeholder="Поиск по имени или телефону…">
       <button class="chip active" data-seg="all">Все</button>
@@ -490,7 +471,6 @@ const state = {
   }
 
   renderSummary();
-  renderFunnel();
   applyFilters();
   bindUI();
 })();
@@ -507,64 +487,6 @@ function renderSummary() {
   document.getElementById('sum-active').textContent = n_active;
   document.getElementById('sum-sleep').textContent  = n_sleep;
   document.getElementById('sum-never').textContent  = n_never;
-}
-
-function renderFunnel() {
-  const cs = state.customers;
-  const total = cs.length;
-  const club = cs.filter(c => c.card === 'Club').length;
-  const vip  = cs.filter(c => c.card === 'VIP').length;
-
-  // Booking-based stages require bookings.customer_id → currently empty.
-  // When linkable, compute real numbers; otherwise mark as N/A.
-  let firstVisit = null, twoThree = null, regular = null;
-  if (state.bookingsLinkable) {
-    firstVisit = cs.filter(c => c.bkCount >= 1).length;
-    twoThree   = cs.filter(c => c.bkCount >= 2 && c.bkCount <= 3).length;
-    const now = new Date();
-    const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 30);
-    regular = cs.filter(c => c.bk.filter(b => b.date && b.date >= cutoff).length >= 4).length;
-  }
-
-  const na = '<span style="color:var(--text3);font-style:italic">н/д</span>';
-  const naHint = '⚠ bookings.customer_id пуст';
-  const stages = [
-    { name: 'Зарегистрирован', sub: 'в customers',             n: total,      available: true },
-    { name: 'Первый визит',    sub: '≥1 бронирование',         n: firstVisit, available: firstVisit != null, hint: naHint },
-    { name: '2–3 игры',        sub: '2–3 брон. всего',         n: twoThree,   available: twoThree   != null, hint: naHint },
-    { name: 'Регулярный 4+',   sub: '≥4 брон. за 30 дней',     n: regular,    available: regular    != null, hint: naHint },
-    { name: 'Club карта',      sub: 'memberships.card_type=Club', n: club,    available: true },
-    { name: 'VIP карта',       sub: 'memberships.card_type=VIP',  n: vip,     available: true }
-  ];
-  // maxN for bar scaling uses only available stages; fallback to total
-  const maxN = Math.max.apply(null, stages.filter(s => s.available).map(s => s.n).concat(1));
-  const html = stages.map((s, i) => {
-    if (!s.available) {
-      return '<div class="funnel-row">' +
-        '<div class="stage">' + s.name + '<small>' + s.sub + '</small></div>' +
-        '<div class="funnel-bar-bg" title="' + s.hint + '"><div class="funnel-bar" style="width:2%;background:var(--surface2)"></div></div>' +
-        '<div class="count">' + na + '</div>' +
-        '<div class="conv">' + na + '</div>' +
-      '</div>';
-    }
-    // conv: use last available previous stage
-    let prev = null;
-    for (let j = i - 1; j >= 0; j--) { if (stages[j].available) { prev = stages[j].n; break; } }
-    const conv = prev && prev > 0 ? Math.round((s.n / prev) * 100) : null;
-    const w = Math.max(2, Math.round((s.n / maxN) * 100));
-    return '<div class="funnel-row">' +
-      '<div class="stage">' + s.name + '<small>' + s.sub + '</small></div>' +
-      '<div class="funnel-bar-bg"><div class="funnel-bar" style="width:' + w + '%">' + (s.n > 0 ? s.n : '') + '</div></div>' +
-      '<div class="count">' + s.n + '</div>' +
-      '<div class="conv">' + (conv != null ? conv + '%' : (i === 0 ? '—' : '')) + '</div>' +
-    '</div>';
-  }).join('');
-
-  const notice = state.bookingsLinkable ? '' :
-    '<div style="margin-bottom:14px;padding:10px 14px;background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.25);border-radius:10px;font-size:12px;color:var(--warn)">' +
-    '⚠ <b>Частичная воронка.</b> В vкладке <code>bookings</code> поле <code>customer_id</code> пустое для всех строк — нельзя связать игры с клиентами. Стадии «Первый визит / 2–3 игры / Регулярный 4+» помечены н/д до исправления данных в ETL.' +
-    '</div>';
-  document.getElementById('funnel').innerHTML = notice + html;
 }
 
 /* ---------- Filters / pagination ---------- */
