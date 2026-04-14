@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260414j"></script>
+<script src="assets/data.js?v=20260414k"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -280,7 +280,7 @@
             <th style="text-align:right;width:110px">Выручка ₺</th>
             <th style="text-align:right;width:80px">Визитов</th>
             <th style="text-align:right;width:90px">Ср.чек ₺</th>
-            <th style="text-align:center;width:130px">Последний платёж</th>
+            <th style="text-align:center;width:110px" title="Последняя активность клиента: учитывает разовые покупки + абонементы + списания с баланса (ListadoClientesMasGasto)">Активность</th>
             <th>Контакты</th>
           </tr>
         </thead>
@@ -794,23 +794,24 @@ function renderTopClients() {
     var contacts = '';
     if (r.email && r.email !== '—') contacts += escHtml(r.email);
     if (r.phone && r.phone !== '—') contacts += (contacts ? ' · ' : '') + escHtml(r.phone);
-    // Aging: цвет индикатора по days_since_last_tx
-    var days = parseInt(r.days_since_last_tx);
+    // Activity bucket: корзина активности из amount_7d/30d/90d/all (учитывает
+    // тикеты + абонементы + саldo — всё, что попадает в ListadoClientesMasGasto).
+    // Надёжнее, чем только tx: клиенты по абонементу тоже видны.
+    var bucket = r.activity_bucket || 'none';
     var lastTx = r.last_tx || '';
-    var agingCell;
-    if (!lastTx || isNaN(days)) {
-      agingCell = '<td style="text-align:center;color:var(--text3);font-size:11px">нет данных</td>';
-    } else {
-      var color, bg;
-      if (days < 14)      { color = 'var(--good)';  bg = 'rgba(19,194,150,0.10)'; }
-      else if (days < 30) { color = 'var(--text2)'; bg = 'transparent'; }
-      else if (days < 60) { color = 'var(--warn)';  bg = 'rgba(243,156,18,0.10)'; }
-      else                { color = 'var(--bad)';   bg = 'rgba(235,87,87,0.10)'; }
-      agingCell = '<td style="text-align:center;background:' + bg + '">'
-                + '<div style="font-size:12px;color:' + color + ';font-weight:600">' + days + ' дн</div>'
-                + '<div style="font-size:10px;color:var(--text3)">' + lastTx + '</div>'
-                + '</td>';
-    }
+    var bucketMap = {
+      '7d':    { label: '7 дн',    color: 'var(--good)', bg: 'rgba(19,194,150,0.12)', hint: 'активен последнюю неделю' },
+      '8_30d': { label: '8-30 дн', color: 'var(--text2)',bg: 'transparent',           hint: 'остывает (30д ещё активен, 7д — нет)' },
+      '31_90d':{ label: '31-90 дн',color: 'var(--warn)', bg: 'rgba(243,156,18,0.12)', hint: 'под риском (90д есть, 30д — нет)' },
+      'old':   { label: '>90 дн',  color: 'var(--bad)',  bg: 'rgba(235,87,87,0.12)',  hint: 'потерян — не платил 90+ дней' },
+      'none':  { label: '—',       color: 'var(--text3)',bg: 'transparent',           hint: 'нет истории покупок' }
+    };
+    var b = bucketMap[bucket] || bucketMap.none;
+    var tickHint = lastTx ? ' · последний тикет ' + lastTx : '';
+    var agingCell = '<td style="text-align:center;background:' + b.bg + '" title="' + b.hint + tickHint + '">'
+                  + '<div style="font-size:12px;color:' + b.color + ';font-weight:600">' + b.label + '</div>'
+                  + (lastTx ? '<div style="font-size:10px;color:var(--text3)">' + lastTx + '</div>' : '')
+                  + '</td>';
     return '<tr data-cid="' + cid + '" style="cursor:pointer">'
       + '<td style="color:var(--text3)">' + (i + 1) + '</td>'
       + '<td class="name-cell">' + escHtml(r.name || '—') + '</td>'
