@@ -99,45 +99,177 @@
   }
 
   /* -------------------------------------------------------------------------
-   * loadSheet(name, opts?) — fetch + parse, with 30s timeout + 1 auto-retry.
-   * Запросы выполняются последовательно (через очередь) чтобы не перегружать
-   * Google Sheets API параллельными запросами.
+   * IndexedDB SWR cache — страницы открываются мгновенно из кэша, в фоне
+   * подтягивается свежее. Хранилище: БД 'v7_cache', store 'sheets'.
+   * Запись: { key, data, t } где t — timestamp.
    * ----------------------------------------------------------------------- */
-  // Sequential queue to avoid parallel Google Sheets rate limiting
-  var _sheetQueue = Promise.resolve();
+  var CACHE_FRESH_MS = 60 * 1000;          // < 60с — считаем свежим, не рефрешим
+  var CACHE_STALE_MS = 10 * 60 * 1000;     // 60с..10мин — отдаём и рефрешим в фоне (SWR)
+  var CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // > 24ч — игнорируем, ждём фетч
 
-  async function _fetchSheet(name, timeoutMs) {
-    const url = GVIZ_BASE + encodeURIComponent(name);
+  var _idb = null, _idbPromise = null;
+  function _openIDB() {
+    if (_idb) return Promise.resolve(_idb);
+    if (_idbPromise) return _idbPromise;
+    _idbPromise = new Promise(function(res, rej) {
+      try {
+        if (!window.indexedDB) return rej(new Error('no indexedDB'));
+        var req = indexedDB.open('v7_cache', 1);
+        req.onupgradeneeded = function(e) {
+          var db = e.target.result;
+          if (!db.objectStoreNames.contains('sheets')) {
+            db.createObjectStore('sheets', { keyPath: 'key' });
+          }
+        };
+        req.onsuccess = function(e) { _idb = e.target.result; res(_idb); };
+        req.onerror = function(e) { rej(e.target.error); };
+      } catch (e) { rej(e); }
+    });
+    return _idbPromise;
+  }
+  function _idbGet(key) {
+    return _openIDB().then(function(db) {
+      return new Promise(function(res) {
+        try {
+          var tx = db.transaction('sheets', 'readonly');
+          var req = tx.objectStore('sheets').get(key);
+          req.onsuccess = function() { res(req.result || null); };
+          req.onerror = function() { res(null); };
+        } catch(e) { res(null); }
+      });
+    }).catch(function() { return null; });
+  }
+  function _idbPut(key, data) {
+    return _openIDB().then(function(db) {
+      return new Promise(function(res) {
+        try {
+          var tx = db.transaction('sheets', 'readwrite');
+          tx.objectStore('sheets').put({ key: key, data: data, t: Date.now() });
+          tx.oncomplete = function() { res(true); };
+          tx.onerror = function() { res(false); };
+        } catch(e) { res(false); }
+      });
+    }).catch(function() { return false; });
+  }
+  function _clearIDB() {
+    return _openIDB().then(function(db) {
+      return new Promise(function(res) {
+        try {
+          var tx = db.transaction('sheets', 'readwrite');
+          tx.objectStore('sheets').clear();
+          tx.oncomplete = function() { res(true); };
+        } catch(e) { res(false); }
+      });
+    }).catch(function() { return false; });
+  }
+
+  /* -------------------------------------------------------------------------
+   * Parallel fetch semaphore (3 concurrent) — вместо последовательной очереди.
+   * Google Sheets gviz CSV не лимитирует 3 параллельных запроса, но 10+ может
+   * отдавать 429. 3 — безопасный баланс скорости и надёжности.
+   * ----------------------------------------------------------------------- */
+  var _sem = { active: 0, max: 3, queue: [] };
+  function _semAcquire() {
+    return new Promise(function(res) {
+      if (_sem.active < _sem.max) { _sem.active++; res(); }
+      else _sem.queue.push(res);
+    });
+  }
+  function _semRelease() {
+    _sem.active--;
+    var next = _sem.queue.shift();
+    if (next) { _sem.active++; next(); }
+  }
+
+  /* -------------------------------------------------------------------------
+   * loadSheet(name, opts?) — fetch + parse с SWR-кэшем в IndexedDB.
+   *
+   * Поведение по умолчанию (SWR):
+   *   1. Если в IDB есть запись < 60с — возвращаем её, сеть не трогаем.
+   *   2. Если запись 60с..10мин — возвращаем её немедленно + фоновый рефреш.
+   *   3. Если запись > 10мин или её нет — фетчим, возвращаем свежее.
+   *   4. Если запись > 24ч — игнорируем её (слишком старая), ждём фетч.
+   *
+   * Опции:
+   *   opts.timeoutMs       — таймаут сети (default 30000)
+   *   opts.fresh = true    — байпас кэша, всегда фетчим свежее
+   *   opts.cacheKey        — кастомный ключ (default = name)
+   *   opts.cacheSource     — 'db' (default) или 'cache' — для ключа без коллизий
+   * ----------------------------------------------------------------------- */
+  async function _fetchSheet(name, timeoutMs, base) {
+    const url = (base || GVIZ_BASE) + encodeURIComponent(name);
     const ctrl = new AbortController();
     const tmr = setTimeout(() => ctrl.abort(), timeoutMs);
+    await _semAcquire();
     try {
       const r = await fetch(url, { signal: ctrl.signal });
       if (!r.ok) throw new Error('HTTP ' + r.status + ' для ' + name);
       return parseCSV(await r.text());
     } finally {
       clearTimeout(tmr);
+      _semRelease();
     }
   }
 
-  async function loadSheet(name, opts) {
+  async function _fetchWithRetry(name, timeoutMs, base) {
+    try {
+      return await _fetchSheet(name, timeoutMs, base);
+    } catch (err) {
+      const isRetryable = err.name === 'AbortError' || String(err).indexOf('Failed to fetch') >= 0;
+      if (isRetryable) {
+        console.warn(name + ': retry after ' + err.name);
+        return await _fetchSheet(name, timeoutMs, base);
+      }
+      throw err;
+    }
+  }
+
+  async function _loadGeneric(name, opts, base, sourceTag) {
     opts = opts || {};
     const timeoutMs = opts.timeoutMs || DEFAULT_TIMEOUT;
-    // Queue: each request waits for the previous one to finish
-    const job = _sheetQueue.then(async () => {
-      try {
-        return await _fetchSheet(name, timeoutMs);
-      } catch (err) {
-        // Auto-retry once on AbortError (timeout) or network failure
-        const isRetryable = err.name === 'AbortError' || String(err).indexOf('Failed to fetch') >= 0;
-        if (isRetryable) {
-          console.warn(name + ': retry after ' + err.name);
-          return await _fetchSheet(name, timeoutMs);
-        }
-        throw err;
+    const key = (opts.cacheKey || sourceTag + ':' + name);
+
+    if (opts.fresh) {
+      const data = await _fetchWithRetry(name, timeoutMs, base);
+      _idbPut(key, data); // fire-and-forget
+      return data;
+    }
+
+    // Try cache first
+    const cached = await _idbGet(key);
+    if (cached && typeof cached.t === 'number') {
+      const age = Date.now() - cached.t;
+      if (age < CACHE_FRESH_MS) {
+        return cached.data; // свежий кэш — даже не рефрешим
       }
-    });
-    _sheetQueue = job.catch(() => {}); // keep queue alive even on error
-    return job;
+      if (age < CACHE_STALE_MS) {
+        // SWR: вернуть сразу + рефреш в фоне
+        _fetchWithRetry(name, timeoutMs, base)
+          .then(function(fresh) { _idbPut(key, fresh); })
+          .catch(function(e) { console.debug('[V7] SWR bg refresh failed for ' + name + ':', e.message); });
+        return cached.data;
+      }
+      if (age < CACHE_MAX_AGE_MS) {
+        // Старый кэш (>10мин): пробуем свежий, при ошибке — fallback на кэш
+        try {
+          const fresh = await _fetchWithRetry(name, timeoutMs, base);
+          _idbPut(key, fresh);
+          return fresh;
+        } catch (e) {
+          console.warn('[V7] fetch failed, using stale cache (' + Math.round(age/60000) + 'm old):', name);
+          return cached.data;
+        }
+      }
+    }
+
+    // Нет кэша или > 24ч — ждём свежее
+    const data = await _fetchWithRetry(name, timeoutMs, base);
+    _idbPut(key, data);
+    return data;
+  }
+
+  async function loadSheet(name, opts) {
+    return _loadGeneric(name, opts, GVIZ_BASE, 'db');
   }
 
   /* -------------------------------------------------------------------------
@@ -518,18 +650,13 @@
    * loadFullCache() → {kpis, series, revMix, liabilities} or null
    * 4 parallel requests to tiny sheets — all data for dashboard in <2s.
    * ----------------------------------------------------------------------- */
+  // Cache tabs: SWR через тот же IndexedDB, но TTL короче (кэш-таблицы агрегаты,
+  // обновляются ETL раз в сутки — stale 10 мин ок, но при первом визите важна скорость).
   async function _fetchCacheTab(tab) {
-    var url = CACHE_BASE + encodeURIComponent(tab);
-    var ctrl = new AbortController();
-    var tmr = setTimeout(function() { ctrl.abort(); }, 10000);
     try {
-      var r = await fetch(url, { signal: ctrl.signal });
-      if (!r.ok) return null;
-      return parseCSV(await r.text());
+      return await _loadGeneric(tab, { timeoutMs: 10000 }, CACHE_BASE, 'cache');
     } catch (e) {
       return null;
-    } finally {
-      clearTimeout(tmr);
     }
   }
 
@@ -618,6 +745,7 @@
     loadSheet,
     loadPnL,
     loadFixedOpex,
+    clearCache: _clearIDB,  // V7.clearCache() — очистить IndexedDB (для отладки)
     loadCache,
     loadCacheSeries,
     loadFullCache,
