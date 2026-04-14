@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260414d"></script>
+<script src="assets/data.js?v=20260414e"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -232,9 +232,38 @@
     <div class="funnel" id="funnel"><div class="loading">Считаю воронку…</div></div>
   </section>
 
-  <!-- BLOCK 3: TABLE -->
+  <!-- BLOCK 3: TOP CLIENTS BY REVENUE -->
   <section class="section">
-    <div class="section-head"><h2>3 · Таблица клиентов</h2><span class="hint">клик по строке → карточка</span></div>
+    <div class="section-head">
+      <h2>3 · Топ клиентов по выручке</h2>
+      <span class="hint">источник: Matchpoint (ListadoClientesMasGasto), обновление 1×/день</span>
+    </div>
+    <div class="filters">
+      <button class="chip top-period active" data-period="all">За всё время</button>
+      <button class="chip top-period" data-period="90d">90 дней</button>
+      <button class="chip top-period" data-period="30d">30 дней</button>
+      <button class="chip top-period" data-period="7d">7 дней</button>
+      <span class="count" id="top-info">—</span>
+    </div>
+    <div class="table-wrap">
+      <table class="clients">
+        <thead>
+          <tr>
+            <th style="width:48px">#</th>
+            <th>Клиент</th>
+            <th>E-mail</th>
+            <th>Телефон</th>
+            <th style="text-align:right">Выручка, ₺</th>
+          </tr>
+        </thead>
+        <tbody id="top-tbody"><tr><td colspan="5" class="loading">Загружаю…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BLOCK 4: TABLE -->
+  <section class="section">
+    <div class="section-head"><h2>4 · Таблица клиентов</h2><span class="hint">клик по строке → карточка</span></div>
     <div class="filters">
       <input type="search" id="flt-search" placeholder="Поиск по имени или телефону…">
       <button class="chip active" data-seg="all">Все</button>
@@ -710,6 +739,73 @@ function openCard(c) {
 }
 function closeCard() { document.getElementById('modal-backdrop').classList.remove('active'); }
 window.closeCard = closeCard;
+
+/* ---------- TOP CLIENTS BY REVENUE (block 3) ---------- */
+const TOP_N = 50;
+const topState = { rows: [], period: 'all' };
+
+function fmtMoney(n) {
+  n = Number(n) || 0;
+  return n.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+}
+
+function renderTopClients() {
+  var tbody = document.getElementById('top-tbody');
+  var info = document.getElementById('top-info');
+  if (!tbody) return;
+  var period = topState.period;
+  var field = 'amount_' + period;
+  var rows = (topState.rows || [])
+    .map(function(r) { return Object.assign({}, r, { _amt: Number(r[field]) || 0 }); })
+    .filter(function(r) { return r._amt > 0; })
+    .sort(function(a, b) { return b._amt - a._amt; });
+  var total = rows.reduce(function(s, r) { return s + r._amt; }, 0);
+  var top = rows.slice(0, TOP_N);
+  if (!top.length) {
+    tbody.innerHTML = '<tr><td colspan="5" class="loading">Нет данных за выбранный период</td></tr>';
+    info.textContent = '0 ₺';
+    return;
+  }
+  tbody.innerHTML = top.map(function(r, i) {
+    return '<tr>'
+      + '<td style="color:var(--text3)">' + (i + 1) + '</td>'
+      + '<td class="name-cell">' + (r.name || '—') + '</td>'
+      + '<td>' + (r.email || '—') + '</td>'
+      + '<td>' + (r.phone || '—') + '</td>'
+      + '<td style="text-align:right;font-weight:600;color:var(--text)">' + fmtMoney(r._amt) + '</td>'
+      + '</tr>';
+  }).join('');
+  info.textContent = rows.length + ' клиентов · итого ' + fmtMoney(total) + ' ₺';
+}
+
+function bindTopPeriodChips() {
+  document.querySelectorAll('.chip.top-period').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.chip.top-period').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      topState.period = btn.dataset.period;
+      renderTopClients();
+    });
+  });
+}
+
+(async function initTopClients() {
+  bindTopPeriodChips();
+  try {
+    var data = await V7.loadCacheTab('top_clients_revenue');
+    if (!data || !data.length) {
+      document.getElementById('top-tbody').innerHTML =
+        '<tr><td colspan="5" class="loading">Кэш пуст — проверьте ETL (sync_client_revenue + build_cache)</td></tr>';
+      return;
+    }
+    topState.rows = data;
+    renderTopClients();
+  } catch (e) {
+    console.warn('top_clients load failed:', e);
+    document.getElementById('top-tbody').innerHTML =
+      '<tr><td colspan="5" class="error">Ошибка загрузки кэша</td></tr>';
+  }
+})();
 </script>
 
 <script src="assets/nav.js"></script>
