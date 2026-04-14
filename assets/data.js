@@ -33,13 +33,37 @@
   const START_MONTH = '2025-10'; // первый месяц операционных данных клуба
   const MONTHLY_GOAL = 1800000; // целевая выручка в месяц (₺)
 
-  // Фиксированные ежемесячные расходы для live-month, которых НЕТ в expenses sheet
-  // (аренда не заносится ни в expenses, ни в бухгалтерский PnL — добавляем вручную).
-  // Обновлять при изменении условий аренды / новых фиксированных контрактах.
-  const FIXED_MONTHLY_OPEX = {
-    rent: 380000,  // аренда помещения (~380k+ по уточнению владельца, апрель 2026)
-  };
-  const FIXED_OPEX_TOTAL = Object.values(FIXED_MONTHLY_OPEX).reduce((s, v) => s + v, 0);
+  // Единый источник правды для повторяющихся ежемесячных расходов и политики OPEX.
+  // Файл: site/assets/fixed_opex.json (его же читает Python ETL build_cache.py).
+  // Менять тарифы/добавлять статьи — только там.
+  let FIXED_OPEX_CONFIG = null; // {recurring: {k: {amount, label, active_from, active_to}}, live_month_policy: {...}}
+  let _fixedOpexPromise = null;
+  function loadFixedOpex() {
+    if (FIXED_OPEX_CONFIG) return Promise.resolve(FIXED_OPEX_CONFIG);
+    if (_fixedOpexPromise) return _fixedOpexPromise;
+    _fixedOpexPromise = fetch('assets/fixed_opex.json?v=20260414', { cache: 'no-cache' })
+      .then(function(r) { if (!r.ok) throw new Error('fixed_opex.json HTTP ' + r.status); return r.json(); })
+      .then(function(cfg) { FIXED_OPEX_CONFIG = cfg; return cfg; })
+      .catch(function(e) {
+        console.error('[V7] fixed_opex.json load failed, using fallback:', e);
+        FIXED_OPEX_CONFIG = { recurring: {}, live_month_policy: { include_payroll: true, exclude_capex: true } };
+        return FIXED_OPEX_CONFIG;
+      });
+    return _fixedOpexPromise;
+  }
+  // Возвращает { k: amount } для активных в данном YYYY-MM статей
+  function activeRecurringForMonth(ym) {
+    var out = {};
+    if (!FIXED_OPEX_CONFIG || !FIXED_OPEX_CONFIG.recurring) return out;
+    Object.keys(FIXED_OPEX_CONFIG.recurring).forEach(function(k) {
+      var it = FIXED_OPEX_CONFIG.recurring[k];
+      if (!it || typeof it.amount !== 'number') return;
+      if (it.active_from && ym < it.active_from) return;
+      if (it.active_to && ym > it.active_to) return;
+      out[k] = it.amount;
+    });
+    return out;
+  }
 
   const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Спонсоры', 'Товары', 'Прочее'];
   const REV_CAT_COLORS = ['#0ABAB5', '#0e8a87', '#7C3AED', '#13c296', '#f39c12', '#e74c3c', '#5ac8fa', '#8a9ba8'];
@@ -398,6 +422,11 @@
     var curYM = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     if (!out[curYM]) {
       try {
+        await loadFixedOpex();
+        var policy = (FIXED_OPEX_CONFIG && FIXED_OPEX_CONFIG.live_month_policy) || { include_payroll: true, exclude_capex: true };
+        var activeRecurring = activeRecurringForMonth(curYM);
+        var recurringTotal = Object.values(activeRecurring).reduce(function(s, v){ return s + v; }, 0);
+
         var txRows = await loadSheet('transactions');
         var exRows = await loadSheet('expenses');
 
@@ -422,10 +451,11 @@
           if (r.month !== curYM) return;
           var src = (r.source || '').toLowerCase();
           var a = num(r.amount);
-          // Exclude capex
-          if ((r.capex_flag || '').toLowerCase() === 'true' || (r.capex_flag || '') === '1') return;
-          // Payroll: включаем в live OPEX (раньше skip'али — из-за этого ЗП не видны в текущем месяце)
+          // Exclude capex (per policy)
+          if (policy.exclude_capex && ((r.capex_flag || '').toLowerCase() === 'true' || (r.capex_flag || '') === '1')) return;
+          // Payroll: включать если политика требует (иначе ЗП не видны в текущем месяце)
           if (src === 'payroll') {
+            if (!policy.include_payroll) return;
             payrollTotal += Math.abs(a);
             details.staff = (details.staff || 0) + Math.abs(a);
             opex += Math.abs(a);
@@ -439,9 +469,9 @@
           else details.admin = (details.admin || 0) + Math.abs(a);
         });
 
-        // Добавляем фиксированные ежемесячные расходы (аренда) — их нет ни в expenses, ни в бух. PnL
-        Object.keys(FIXED_MONTHLY_OPEX).forEach(function(k) {
-          var v = FIXED_MONTHLY_OPEX[k];
+        // Добавляем фиксированные ежемесячные расходы из fixed_opex.json (аренда и т.п.)
+        Object.keys(activeRecurring).forEach(function(k) {
+          var v = activeRecurring[k];
           opex += v;
           details[k] = (details[k] || 0) + v;
         });
@@ -453,8 +483,8 @@
           details: details,
           source: 'live',  // marker: this month is from transactions, not accountant PnL
           liveBreakdown: {
-            fromExpenses: opex - FIXED_OPEX_TOTAL,
-            fixed: FIXED_MONTHLY_OPEX,
+            fromExpenses: opex - recurringTotal - payrollTotal,
+            fixed: activeRecurring,
             payroll: payrollTotal
           }
         };
@@ -587,6 +617,7 @@
     parseCSV,
     loadSheet,
     loadPnL,
+    loadFixedOpex,
     loadCache,
     loadCacheSeries,
     loadFullCache,

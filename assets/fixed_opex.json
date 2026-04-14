@@ -1,0 +1,19 @@
+{
+  "_comment": "Единый источник правды для повторяющихся ежемесячных расходов. Меняй тут — подхватывается и фронтом (data.js), и Python ETL (build_cache.py). Суммы в ₺.",
+  "_schema": {
+    "recurring": "Обязательные ежемесячные траты, не попадающие в expenses-лист бухгалтера (аренда и т.п.). Добавляются к live-месяцу.",
+    "live_month_policy": "Какие записи expenses-листа включать/исключать при расчёте OPEX текущего (незакрытого) месяца."
+  },
+  "recurring": {
+    "rent": {
+      "amount": 380000,
+      "label": "Аренда помещения",
+      "active_from": "2026-01",
+      "active_to": null
+    }
+  },
+  "live_month_policy": {
+    "include_payroll": true,
+    "exclude_capex": true
+  }
+}
