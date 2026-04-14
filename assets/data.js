@@ -33,6 +33,14 @@
   const START_MONTH = '2025-10'; // первый месяц операционных данных клуба
   const MONTHLY_GOAL = 1800000; // целевая выручка в месяц (₺)
 
+  // Фиксированные ежемесячные расходы для live-month, которых НЕТ в expenses sheet
+  // (аренда не заносится ни в expenses, ни в бухгалтерский PnL — добавляем вручную).
+  // Обновлять при изменении условий аренды / новых фиксированных контрактах.
+  const FIXED_MONTHLY_OPEX = {
+    rent: 380000,  // аренда помещения (~380k+ по уточнению владельца, апрель 2026)
+  };
+  const FIXED_OPEX_TOTAL = Object.values(FIXED_MONTHLY_OPEX).reduce((s, v) => s + v, 0);
+
   const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Спонсоры', 'Товары', 'Прочее'];
   const REV_CAT_COLORS = ['#0ABAB5', '#0e8a87', '#7C3AED', '#13c296', '#f39c12', '#e74c3c', '#5ac8fa', '#8a9ba8'];
 
@@ -409,20 +417,33 @@
         });
 
         var opex = 0;
+        var payrollTotal = 0;
         exRows.forEach(function(r) {
           if (r.month !== curYM) return;
           var src = (r.source || '').toLowerCase();
-          // Skip payroll for live month — staff list is unstable, wait for accountant PnL
-          if (src === 'payroll') return;
           var a = num(r.amount);
           // Exclude capex
           if ((r.capex_flag || '').toLowerCase() === 'true' || (r.capex_flag || '') === '1') return;
+          // Payroll: включаем в live OPEX (раньше skip'али — из-за этого ЗП не видны в текущем месяце)
+          if (src === 'payroll') {
+            payrollTotal += Math.abs(a);
+            details.staff = (details.staff || 0) + Math.abs(a);
+            opex += Math.abs(a);
+            return;
+          }
           opex += Math.abs(a);
           // Categorize expenses
           var item = (r.category || r.item || '').toLowerCase();
           if (item.indexOf('market') >= 0 || item.indexOf('реклам') >= 0) details.marketing = (details.marketing || 0) + Math.abs(a);
-          else if (item.indexOf('utility') >= 0 || item.indexOf('electric') >= 0 || item.indexOf('water') >= 0) details.utilities = (details.utilities || 0) + Math.abs(a);
+          else if (item.indexOf('utility') >= 0 || item.indexOf('electric') >= 0 || item.indexOf('water') >= 0 || item.indexOf('коммунал') >= 0) details.utilities = (details.utilities || 0) + Math.abs(a);
           else details.admin = (details.admin || 0) + Math.abs(a);
+        });
+
+        // Добавляем фиксированные ежемесячные расходы (аренда) — их нет ни в expenses, ни в бух. PnL
+        Object.keys(FIXED_MONTHLY_OPEX).forEach(function(k) {
+          var v = FIXED_MONTHLY_OPEX[k];
+          opex += v;
+          details[k] = (details[k] || 0) + v;
         });
 
         out[curYM] = {
@@ -430,7 +451,12 @@
           opex: opex,
           pnl: rev - opex,
           details: details,
-          source: 'live'  // marker: this month is from transactions, not accountant PnL
+          source: 'live',  // marker: this month is from transactions, not accountant PnL
+          liveBreakdown: {
+            fromExpenses: opex - FIXED_OPEX_TOTAL,
+            fixed: FIXED_MONTHLY_OPEX,
+            payroll: payrollTotal
+          }
         };
       } catch (e) {
         console.warn('loadPnL: failed to fill current month from transactions:', e);
