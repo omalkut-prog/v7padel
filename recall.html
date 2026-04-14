@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Recall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<script src="assets/data.js?v=20260414k"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/sidebar.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+  .section-head .hint { font-size: 11px; color: var(--text3); }
+
+  /* KPI cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 18px 16px; }
+  .kpi .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
+  .kpi .value { font-size: 24px; font-weight: 600; line-height: 1; }
+  .kpi .sub { font-size: 11px; color: var(--text3); margin-top: 6px; }
+  .kpi.hot .value { color: var(--warn); }
+  .kpi.done .value { color: var(--good); }
+  .kpi.money .value { color: var(--accent); }
+
+  /* Filters */
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .chip { background: var(--surface); border: 1px solid var(--border); color: var(--text2); font-size: 12px; padding: 6px 12px; border-radius: 18px; cursor: pointer; transition: all .15s; }
+  .chip:hover { border-color: var(--accent-border); color: var(--text); }
+  .chip.active { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+
+  /* Table */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  table.recall { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.recall th { text-align: left; padding: 12px 14px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; }
+  table.recall td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  table.recall tr:last-child td { border-bottom: none; }
+  table.recall tr:hover { background: rgba(128,128,128,0.04); }
+  table.recall .loading { padding: 28px; text-align: center; color: var(--text3); }
+  table.recall .error { padding: 28px; text-align: center; color: var(--bad); }
+  .name-cell { font-weight: 500; color: var(--text); }
+  .name-cell .cid { font-size: 10px; color: var(--text3); margin-left: 6px; }
+
+  /* Activity bucket badges */
+  .bucket-badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .bucket-31_90d { background: rgba(243,156,18,0.14); color: var(--warn); }
+  .bucket-old    { background: rgba(235,87,87,0.12);  color: var(--bad); }
+
+  /* Contact buttons */
+  .contact-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cbtn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 11px; font-weight: 500; text-decoration: none; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text2); transition: all .15s; }
+  .cbtn:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); }
+  .cbtn.wa:hover    { border-color: #25D366; color: #25D366; background: rgba(37,211,102,0.08); }
+  .cbtn.tel:hover   { border-color: var(--good); color: var(--good); background: rgba(19,194,150,0.08); }
+
+  /* Status picker */
+  .status-select { background: var(--bg); border: 1px solid var(--border); color: var(--text); font-size: 12px; padding: 5px 8px; border-radius: 8px; cursor: pointer; font-family: inherit; }
+  .status-select:focus { outline: none; border-color: var(--accent); }
+  .status-select.s-todo      { border-color: var(--border); }
+  .status-select.s-called    { border-color: #f39c12; color: #f39c12; }
+  .status-select.s-no_answer { border-color: #e74c3c; color: #e74c3c; }
+  .status-select.s-returned  { border-color: var(--good); color: var(--good); }
+  .status-select.s-lost      { opacity: 0.4; }
+  .status-select.s-skip      { opacity: 0.5; color: var(--text3); }
+
+  .note-cell textarea { width: 100%; min-height: 28px; background: transparent; border: none; color: var(--text2); font-family: inherit; font-size: 12px; resize: vertical; padding: 2px 0; }
+  .note-cell textarea:focus { outline: none; background: rgba(128,128,128,0.06); }
+
+  /* Amount */
+  .amt { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .amt .sub-amt { font-size: 10px; color: var(--text3); font-weight: 400; display: block; margin-top: 2px; }
+
+  .cat-pill { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 8px; background: rgba(128,128,128,0.10); color: var(--text2); white-space: nowrap; }
+
+  .filter-count { font-size: 12px; color: var(--text3); margin-left: auto; }
+
+  .hidden-row { display: none; }
+
+  /* Action bar */
+  .action-bar { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); }
+  .action-bar .btn { background: var(--bg); border: 1px solid var(--border); color: var(--text2); font-size: 12px; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .action-bar .btn:hover { border-color: var(--accent-border); color: var(--text); }
+  .action-bar .btn.primary { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+</style>
+</head>
+<body>
+
+<main>
+  <h1 class="page-title">Recall-лист</h1>
+  <p class="page-sub">Клиенты, которые перестали платить. Источник: Matchpoint · ListadoClientesMasGasto · обновляется 1×/день</p>
+
+  <!-- KPI cards -->
+  <div class="kpi-grid">
+    <div class="kpi hot">
+      <div class="label">К звонку сегодня</div>
+      <div class="value" id="kpi-todo">—</div>
+      <div class="sub">со статусом TODO</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Остывают (31-90д)</div>
+      <div class="value" id="kpi-warm">—</div>
+      <div class="sub">main priority — ещё вернутся</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Потеряны (>90д)</div>
+      <div class="value" id="kpi-cold">—</div>
+      <div class="sub">cold reactivation</div>
+    </div>
+    <div class="kpi money">
+      <div class="label">Потенциал в recall</div>
+      <div class="value" id="kpi-potential">—</div>
+      <div class="sub">суммарная выручка off-клиентов</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <section class="section">
+    <div class="section-head">
+      <h2>Список</h2>
+      <span class="hint">статусы и заметки хранятся в этом браузере · экспорт в CSV кнопкой ниже</span>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn" id="btn-export">⬇ Экспорт CSV</button>
+      <button class="btn" id="btn-reset-status">Сбросить все статусы</button>
+      <span style="font-size:11px;color:var(--text3);margin-left:auto">статусы для <b id="status-count">0</b> клиентов сохранены</span>
+    </div>
+
+    <div class="filters">
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Bucket:</span>
+      <button class="chip f-bucket active" data-bucket="all">все</button>
+      <button class="chip f-bucket" data-bucket="31_90d">🟠 31-90 дней</button>
+      <button class="chip f-bucket" data-bucket="old">🔴 >90 дней</button>
+      <span style="width:14px"></span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Статус:</span>
+      <button class="chip f-status active" data-status="all">все</button>
+      <button class="chip f-status" data-status="todo">не звонили</button>
+      <button class="chip f-status" data-status="called">звонили</button>
+      <button class="chip f-status" data-status="no_answer">не отвечает</button>
+      <button class="chip f-status" data-status="returned">✓ вернулись</button>
+      <button class="chip f-status" data-status="lost">потерян</button>
+      <button class="chip f-status" data-status="skip">не звонить</button>
+    </div>
+
+    <div class="filters">
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Мин. выручка ₺ всего:</span>
+      <input type="number" id="f-min" placeholder="0" min="0" step="1000" style="width:120px;padding:6px 10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:12px;font-family:inherit">
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-left:14px">Поиск:</span>
+      <input type="text" id="f-search" placeholder="имя / телефон" style="width:200px;padding:6px 10px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:8px;font-size:12px;font-family:inherit">
+      <span class="filter-count" id="rowCount">—</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="recall">
+        <thead>
+          <tr>
+            <th style="width:42px">#</th>
+            <th>Клиент</th>
+            <th style="width:110px">Активность</th>
+            <th style="text-align:right;width:100px">₺ всё время</th>
+            <th style="text-align:right;width:90px">₺ 90д</th>
+            <th style="text-align:right;width:65px">Визиты 90д</th>
+            <th style="width:140px">Любимое</th>
+            <th style="width:160px">Контакты</th>
+            <th style="width:140px">Статус</th>
+            <th>Заметка</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="10" class="loading">Загружаю…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="assets/sidebar.js"></script>
+<script>
+// ============================================================
+// STATE
+// ============================================================
+var STORAGE_KEY = 'v7.recall.v1';
+var state = {
+  rows: [],            // все клиенты из recall-листа (31_90d + old)
+  filters: { bucket: 'all', status: 'all', minAmt: 0, q: '' },
+  statuses: {},        // { cid: { status, note, updated } } из localStorage
+};
+
+// ============================================================
+// STORAGE
+// ============================================================
+function loadStatuses() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    state.statuses = raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    console.warn('recall statuses load failed:', e);
+    state.statuses = {};
+  }
+}
+function saveStatuses() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.statuses)); }
+  catch (e) { console.error('recall save failed:', e); }
+}
+function setStatus(cid, patch) {
+  cid = String(cid);
+  var cur = state.statuses[cid] || { status: 'todo', note: '', updated: '' };
+  state.statuses[cid] = Object.assign(cur, patch, { updated: new Date().toISOString() });
+  if (state.statuses[cid].status === 'todo' && !state.statuses[cid].note) {
+    delete state.statuses[cid]; // не замусориваем storage пустыми "todo"
+  }
+  saveStatuses();
+  updateKPIs();
+  updateStatusCount();
+}
+function getStatus(cid) {
+  return (state.statuses[String(cid)] || {}).status || 'todo';
+}
+function getNote(cid) {
+  return (state.statuses[String(cid)] || {}).note || '';
+}
+
+// ============================================================
+// UTIL
+// ============================================================
+function fmtMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  n = Number(n);
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1).replace('.', ',') + 'M';
+  if (Math.abs(n) >= 1000) return Math.round(n/1000) + 'k';
+  return Math.round(n).toString();
+}
+function fmtFull(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return Math.round(Number(n)).toLocaleString('ru-RU').replace(/,/g, ' ');
+}
+function escHtml(s) {
+  return String(s || '').replace(/[&<>"]/g, function(c) {
+    return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];
+  });
+}
+function normalizePhone(p) {
+  if (!p) return '';
+  return String(p).replace(/[^+\d]/g, '');
+}
+
+// ============================================================
+// FAVORITE CATEGORY (из cat_<key>_all)
+// ============================================================
+var CAT_LABELS = {
+  courts: 'Корты',
+  inventory: 'Инвентарь',
+  memberships: 'Клубные карты',
+  training: 'Тренировки',
+  tournaments: 'Турниры',
+  goods: 'Товары',
+  other: 'Прочее',
+};
+function favoriteCategory(r) {
+  var best = null, bestVal = 0;
+  Object.keys(CAT_LABELS).forEach(function(k) {
+    var v = parseFloat(r['cat_' + k + '_all']) || 0;
+    if (v > bestVal) { bestVal = v; best = k; }
+  });
+  return best ? { key: best, label: CAT_LABELS[best], amt: bestVal } : null;
+}
+
+// ============================================================
+// LOAD + FILTER + RENDER
+// ============================================================
+async function loadData() {
+  var data = await V7.loadCacheTab('top_clients_revenue');
+  if (!data || !data.length) {
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="10" class="error">Кэш пуст — проверьте ETL</td></tr>';
+    return;
+  }
+  // Берём только клиентов с bucket ∈ {31_90d, old}
+  state.rows = data.filter(function(r) {
+    var b = r.activity_bucket;
+    return b === '31_90d' || b === 'old';
+  });
+  // Сортировка: по amount_all desc внутри bucket (31_90d сначала)
+  state.rows.sort(function(a, b) {
+    // 31_90d идут первыми
+    if (a.activity_bucket !== b.activity_bucket) {
+      return a.activity_bucket === '31_90d' ? -1 : 1;
+    }
+    var av = parseFloat(a.amount_all) || 0;
+    var bv = parseFloat(b.amount_all) || 0;
+    return bv - av;
+  });
+  render();
+  updateKPIs();
+  updateStatusCount();
+}
+
+function render() {
+  var tbody = document.getElementById('tbody');
+  var rowCount = document.getElementById('rowCount');
+  var f = state.filters;
+  var visible = state.rows.filter(function(r) {
+    if (f.bucket !== 'all' && r.activity_bucket !== f.bucket) return false;
+    var st = getStatus(r.customer_id);
+    if (f.status !== 'all' && st !== f.status) return false;
+    if (f.minAmt > 0 && (parseFloat(r.amount_all) || 0) < f.minAmt) return false;
+    if (f.q) {
+      var q = f.q.toLowerCase();
+      var hay = (r.name || '') + ' ' + (r.phone || '') + ' ' + (r.email || '');
+      if (hay.toLowerCase().indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  if (!visible.length) {
+    tbody.innerHTML = '<tr><td colspan="10" class="loading">Нет клиентов по фильтру</td></tr>';
+    rowCount.textContent = '0 / ' + state.rows.length;
+    return;
+  }
+
+  tbody.innerHTML = visible.map(function(r, i) {
+    var cid = r.customer_id;
+    var name = escHtml(r.name || '—');
+    var bucket = r.activity_bucket;
+    var bucketLabel = bucket === '31_90d' ? '31-90 дн' : '>90 дн';
+    var amtAll = parseFloat(r.amount_all) || 0;
+    var amt90 = parseFloat(r.amount_90d) || 0;
+    var bk90 = parseInt(r.bookings_90d) || 0;
+
+    var fav = favoriteCategory(r);
+    var favHtml = fav
+      ? '<span class="cat-pill" title="' + fmtFull(fav.amt) + ' ₺ всего">' + fav.label + '</span>'
+      : '<span style="color:var(--text3);font-size:11px">—</span>';
+
+    var phone = r.phone || '';
+    var phoneN = normalizePhone(phone);
+    var email = r.email || '';
+    var contacts = [];
+    if (phoneN) {
+      contacts.push('<a class="cbtn tel" href="tel:' + phoneN + '" title="' + escHtml(phone) + '">☎ tel</a>');
+      contacts.push('<a class="cbtn wa" href="https://wa.me/' + phoneN.replace(/^\+/, '') + '" target="_blank" title="' + escHtml(phone) + '">WA</a>');
+    }
+    if (email && email !== '—') {
+      contacts.push('<a class="cbtn" href="mailto:' + escHtml(email) + '" title="' + escHtml(email) + '">✉</a>');
+    }
+    if (!contacts.length) contacts.push('<span style="color:var(--text3);font-size:11px">нет</span>');
+
+    var status = getStatus(cid);
+    var note = getNote(cid);
+
+    var lastTxHint = r.last_tx ? '<div style="font-size:10px;color:var(--text3);margin-top:2px">ticket ' + r.last_tx + '</div>' : '';
+
+    return '<tr data-cid="' + escHtml(cid) + '">'
+      + '<td style="color:var(--text3)">' + (i + 1) + '</td>'
+      + '<td class="name-cell">' + name + '<span class="cid">#' + escHtml(cid) + '</span>' + lastTxHint + '</td>'
+      + '<td><span class="bucket-badge bucket-' + bucket + '">' + bucketLabel + '</span></td>'
+      + '<td class="amt">' + fmtFull(amtAll) + '</td>'
+      + '<td class="amt">' + fmtMoney(amt90) + '</td>'
+      + '<td class="amt">' + bk90 + '</td>'
+      + '<td>' + favHtml + '</td>'
+      + '<td><div class="contact-btns">' + contacts.join('') + '</div></td>'
+      + '<td>'
+      +   '<select class="status-select s-' + status + '" data-cid="' + escHtml(cid) + '">'
+      +     '<option value="todo"     ' + (status==='todo'?'selected':'') + '>не звонили</option>'
+      +     '<option value="called"   ' + (status==='called'?'selected':'') + '>звонили</option>'
+      +     '<option value="no_answer"' + (status==='no_answer'?'selected':'') + '>не отвечает</option>'
+      +     '<option value="returned" ' + (status==='returned'?'selected':'') + '>✓ вернулись</option>'
+      +     '<option value="lost"     ' + (status==='lost'?'selected':'') + '>потерян</option>'
+      +     '<option value="skip"     ' + (status==='skip'?'selected':'') + '>не звонить</option>'
+      +   '</select>'
+      + '</td>'
+      + '<td class="note-cell"><textarea data-cid="' + escHtml(cid) + '" placeholder="...">' + escHtml(note) + '</textarea></td>'
+      + '</tr>';
+  }).join('');
+  rowCount.textContent = visible.length + ' / ' + state.rows.length;
+
+  // Bind status/note events
+  tbody.querySelectorAll('.status-select').forEach(function(sel) {
+    sel.addEventListener('change', function() {
+      var cid = sel.getAttribute('data-cid');
+      setStatus(cid, { status: sel.value });
+      sel.className = 'status-select s-' + sel.value;
+      // если фильтр по статусу активен — перерисовать
+      if (state.filters.status !== 'all') render();
+    });
+  });
+  tbody.querySelectorAll('.note-cell textarea').forEach(function(ta) {
+    ta.addEventListener('blur', function() {
+      var cid = ta.getAttribute('data-cid');
+      setStatus(cid, { note: ta.value.trim(), status: getStatus(cid) });
+    });
+  });
+}
+
+// ============================================================
+// KPI
+// ============================================================
+function updateKPIs() {
+  var todo = 0, warm = 0, cold = 0, potential = 0;
+  state.rows.forEach(function(r) {
+    var st = getStatus(r.customer_id);
+    if (st === 'todo') todo++;
+    if (r.activity_bucket === '31_90d') warm++;
+    if (r.activity_bucket === 'old')    cold++;
+    if (st !== 'returned' && st !== 'lost' && st !== 'skip') {
+      potential += parseFloat(r.amount_all) || 0;
+    }
+  });
+  document.getElementById('kpi-todo').textContent = todo;
+  document.getElementById('kpi-warm').textContent = warm;
+  document.getElementById('kpi-cold').textContent = cold;
+  document.getElementById('kpi-potential').textContent = fmtFull(potential) + ' ₺';
+}
+function updateStatusCount() {
+  document.getElementById('status-count').textContent = Object.keys(state.statuses).length;
+}
+
+// ============================================================
+// FILTERS (chip buttons)
+// ============================================================
+function bindFilters() {
+  document.querySelectorAll('.f-bucket').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.f-bucket').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      state.filters.bucket = btn.dataset.bucket;
+      render();
+    });
+  });
+  document.querySelectorAll('.f-status').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.f-status').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      state.filters.status = btn.dataset.status;
+      render();
+    });
+  });
+  document.getElementById('f-min').addEventListener('input', function(e) {
+    state.filters.minAmt = parseFloat(e.target.value) || 0;
+    render();
+  });
+  document.getElementById('f-search').addEventListener('input', function(e) {
+    state.filters.q = e.target.value || '';
+    render();
+  });
+
+  document.getElementById('btn-export').addEventListener('click', exportCSV);
+  document.getElementById('btn-reset-status').addEventListener('click', function() {
+    if (confirm('Сбросить ВСЕ статусы и заметки recall-листа? Отменить нельзя.')) {
+      state.statuses = {};
+      saveStatuses();
+      render();
+      updateKPIs();
+      updateStatusCount();
+    }
+  });
+}
+
+// ============================================================
+// EXPORT CSV
+// ============================================================
+function exportCSV() {
+  var f = state.filters;
+  var rows = state.rows.filter(function(r) {
+    if (f.bucket !== 'all' && r.activity_bucket !== f.bucket) return false;
+    var st = getStatus(r.customer_id);
+    if (f.status !== 'all' && st !== f.status) return false;
+    if (f.minAmt > 0 && (parseFloat(r.amount_all) || 0) < f.minAmt) return false;
+    return true;
+  });
+
+  var headers = ['customer_id', 'name', 'bucket', 'amount_all', 'amount_90d',
+                 'bookings_90d', 'phone', 'email', 'favorite_cat', 'status', 'note'];
+  var csv = [headers.join(',')];
+  rows.forEach(function(r) {
+    var fav = favoriteCategory(r);
+    var rec = [
+      r.customer_id, r.name, r.activity_bucket,
+      r.amount_all, r.amount_90d, r.bookings_90d,
+      r.phone, r.email,
+      fav ? fav.label : '',
+      getStatus(r.customer_id), getNote(r.customer_id),
+    ];
+    csv.push(rec.map(function(v) {
+      var s = String(v == null ? '' : v).replace(/"/g, '""');
+      return /[,"\n]/.test(s) ? '"' + s + '"' : s;
+    }).join(','));
+  });
+
+  var blob = new Blob(["\ufeff" + csv.join('\n')], { type: 'text/csv;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'recall_' + new Date().toISOString().slice(0, 10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function() { URL.revokeObjectURL(url); a.remove(); }, 100);
+}
+
+// ============================================================
+// INIT
+// ============================================================
+(async function init() {
+  loadStatuses();
+  bindFilters();
+  try {
+    await loadData();
+  } catch (e) {
+    console.error('recall init error:', e);
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="10" class="error">Ошибка загрузки кэша: ' + escHtml(e.message || e) + '</td></tr>';
+  }
+})();
+</script>
+
+</body>
+</html>
