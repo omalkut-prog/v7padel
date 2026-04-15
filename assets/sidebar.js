@@ -52,7 +52,7 @@
     { group: 'Инструменты', items: [
       { label: 'Данные',      href: 'data.html',                 icon: 'data',       roles: ['admin'] },
       { label: 'Brain',       href: 'brain.html',                icon: 'brain',      roles: ['admin'], cls: 'brain-link' },
-      { label: 'База знаний', href: 'knowledge.html',            icon: 'knowledge',  roles: ['admin', 'manager', 'coach', 'administrator'] },
+      { label: 'База знаний', href: 'brain.html',                icon: 'knowledge',  roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Расписание',  href: 'schedule-builder.html',     icon: 'schedule',   roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Калькулятор', href: 'club-coach-calculator.html', icon: 'calculator', roles: ['admin', 'manager', 'coach', 'administrator'] },
     ]},
