@@ -229,6 +229,38 @@
     </div>
   </div>
 
+  <!-- Mix бронирований + Retention новичков -->
+  <div class="grid equal">
+    <div class="card">
+      <h3>Mix бронирований <small>штук в месяц по типу, вкл. Open Games</small></h3>
+      <div class="chart-wrap"><canvas id="chart-booking-types"></canvas></div>
+      <div style="margin-top:10px; font-size:12px; color:#6b7b8c;" id="bk-types-note">—</div>
+    </div>
+    <div class="card">
+      <h3>Новички → возврат <small>% когорты с ≥2 визитами в 14 дней</small></h3>
+      <div class="chart-wrap"><canvas id="chart-retention"></canvas></div>
+      <div style="margin-top:10px; font-size:12px; color:#6b7b8c;" id="ret-note">—</div>
+    </div>
+  </div>
+
+  <!-- Списки под ручной recall -->
+  <div class="grid equal">
+    <div class="card">
+      <h3>Под риском <small>топ клиентов с ≥10k₺/90д, 0 за 30д</small></h3>
+      <table class="mini" id="tbl-atrisk">
+        <thead><tr><th>Клиент</th><th class="num">90д, ₺</th><th class="num">Пропал</th><th>Телефон</th></tr></thead>
+        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Кандидаты в клуб <small>ядро (≥10k₺/30д) без активной карты</small></h3>
+      <table class="mini" id="tbl-memcand">
+        <thead><tr><th>Клиент</th><th class="num">30д, ₺</th><th class="num">90д, ₺</th><th>Телефон</th></tr></thead>
+        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
   <footer class="meta">
     V7 Padel · источник данных: <code>v7padel_db</code> (Google Sheets, gviz CSV) ·
     обновлено <span id="ts">—</span>
@@ -441,6 +473,153 @@ function renderLiabilities(rows) {
     desc = desc.trim();
     if (desc.length > 80) desc = desc.slice(0, 80) + '…';
     tr.innerHTML = '<td>' + (r.date || "") + '</td><td>' + cred + '</td><td>' + desc + '</td><td class="num">' + fmt(toNum(r.amount)) + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Mix бронирований (stacked bar по месяцам, с Open games) ---
+function renderBookingTypes(rows) {
+  // rows: [{month, tipo, tipo_label, count, unique_players, avg_players}]
+  if (!rows || !rows.length) return;
+  // Группируем по tipo и по месяцу
+  var months = Array.from(new Set(rows.map(function(r) { return r.month; }))).sort().slice(-6);
+  var tipoOrder = [
+    ['reserva_actividad_abierta', 'Open games'],
+    ['reserva_partida', 'Парные'],
+    ['reserva_individual', 'Одиночные'],
+    ['clase_suelta', 'Тренировки'],
+    ['reserva_club', 'Клубные'],
+  ];
+  var colors = ['#f39c12', '#0ABAB5', '#0e8a87', '#9b59b6', '#7f8c8d'];
+  var datasets = tipoOrder.map(function(pair, i) {
+    return {
+      label: pair[1],
+      data: months.map(function(m) {
+        var r = rows.find(function(x) { return x.month === m && x.tipo === pair[0]; });
+        return r ? toNum(r.count) : 0;
+      }),
+      backgroundColor: colors[i],
+      borderRadius: 3,
+    };
+  });
+  new Chart(document.getElementById("chart-booking-types"), {
+    type: "bar",
+    data: { labels: months.map(V7.ymLabel), datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom", labels: { boxWidth: 10, boxHeight: 10, padding: 10, font: { size: 11 } } },
+        tooltip: { callbacks: {
+          footer: function(items) {
+            // показать уникальных игроков и avg для Open games
+            var sum = items.reduce(function(a, b) { return a + b.parsed.y; }, 0);
+            return 'Всего: ' + sum;
+          }
+        }}
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false } },
+        y: { stacked: true, grid: { color: "#eef2f4" }, beginAtZero: true }
+      }
+    }
+  });
+  // Нижняя сноска: Open games последний полный месяц
+  var curM = new Date().toISOString().slice(0, 7);
+  var lastFullM = months.filter(function(m) { return m < curM; }).slice(-1)[0] || months.slice(-1)[0];
+  var og = rows.find(function(r) { return r.month === lastFullM && r.tipo === 'reserva_actividad_abierta'; });
+  if (og) {
+    document.getElementById("bk-types-note").textContent =
+      "Open Games в " + V7.ymLabel(lastFullM) + ": " + og.count + " игр · " +
+      og.unique_players + " уникальных игроков · в среднем " + og.avg_players + " чел./игра";
+  }
+}
+
+// --- Retention новичков (bar chart % возврата) ---
+function renderRetention(rows) {
+  if (!rows || !rows.length) return;
+  var months = rows.map(function(r) { return r.month; });
+  var pct = rows.map(function(r) { return toNum(r.ret_14d_pct); });
+  var cohort = rows.map(function(r) { return toNum(r.cohort_size); });
+  var curM = new Date().toISOString().slice(0, 7);
+  var bgColors = months.map(function(m) { return m === curM ? '#f39c12' : ACCENT; });
+  new Chart(document.getElementById("chart-retention"), {
+    type: "bar",
+    data: {
+      labels: months.map(V7.ymLabel),
+      datasets: [{
+        label: '% вернувшихся',
+        data: pct,
+        backgroundColor: bgColors,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          label: function(c) {
+            var r = rows[c.dataIndex];
+            return [
+              c.parsed.y + '% вернулись (≥2 визита в 14 дней)',
+              'Когорта: ' + r.cohort_size + ' новичков',
+              'Вернулись за 30 дней: ' + r.returned_30d
+            ];
+          }
+        }}
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, max: 100, grid: { color: "#eef2f4" }, ticks: { callback: function(v) { return v + '%'; } } }
+      }
+    }
+  });
+  // Сноска: средний retention (без текущего неполного месяца)
+  var finished = rows.filter(function(r) { return r.month < curM; });
+  if (finished.length) {
+    var sumPct = finished.reduce(function(a, b) { return a + toNum(b.ret_14d_pct); }, 0);
+    var avg = Math.round(sumPct / finished.length);
+    document.getElementById("ret-note").textContent =
+      "Средний retention (14d, без текущего мес): " + avg + "% · оранжевая колонка — месяц не закрыт";
+  }
+}
+
+// --- Список Под риском ---
+function renderAtRisk(rows) {
+  var tbody = document.querySelector("#tbl-atrisk tbody");
+  tbody.innerHTML = "";
+  if (!rows || !rows.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет клиентов под риском</td></tr>';
+    return;
+  }
+  rows.forEach(function(r) {
+    var tr = document.createElement("tr");
+    var phone = (r.phone || '').replace(/\D/g, '');
+    var phoneCell = phone ? ('<a href="https://wa.me/' + phone + '" target="_blank">' + r.phone + '</a>') : '';
+    tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
+                   '<td class="num">' + fmt(toNum(r.amount_90d)) + '</td>' +
+                   '<td class="num">' + (r.days_since_last_tx || '—') + 'д</td>' +
+                   '<td>' + phoneCell + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Список Кандидаты в клуб ---
+function renderMemCandidates(rows) {
+  var tbody = document.querySelector("#tbl-memcand tbody");
+  tbody.innerHTML = "";
+  if (!rows || !rows.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет кандидатов</td></tr>';
+    return;
+  }
+  rows.slice(0, 10).forEach(function(r) {
+    var tr = document.createElement("tr");
+    var phone = (r.phone || '').replace(/\D/g, '');
+    var phoneCell = phone ? ('<a href="https://wa.me/' + phone + '" target="_blank">' + r.phone + '</a>') : '';
+    tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
+                   '<td class="num">' + fmt(toNum(r.amount_30d)) + '</td>' +
+                   '<td class="num">' + fmt(toNum(r.amount_90d)) + '</td>' +
+                   '<td>' + phoneCell + '</td>';
     tbody.appendChild(tr);
   });
 }
@@ -659,6 +838,19 @@ async function loadSlowLiabilities() {
 
       // ── LIABILITIES (from liabilities tab) ──
       renderLiabilities(cache.liabilities);
+
+      // ── NEW: Mix броней + Retention + списки (parallel) ──
+      Promise.all([
+        V7.loadCacheTab('booking_types_monthly').catch(function() { return []; }),
+        V7.loadCacheTab('new_clients_retention').catch(function() { return []; }),
+        V7.loadCacheTab('at_risk_top').catch(function() { return []; }),
+        V7.loadCacheTab('membership_candidates').catch(function() { return []; }),
+      ]).then(function(results) {
+        renderBookingTypes(results[0]);
+        renderRetention(results[1]);
+        renderAtRisk(results[2]);
+        renderMemCandidates(results[3]);
+      });
 
       // ── TIMESTAMP ──
       var updAt = kpis.updated_at || '';

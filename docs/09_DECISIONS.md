@@ -223,6 +223,34 @@
 
 ---
 
+## ADR-014 · 2026-04-16 · Два namespace customer_id в Matchpoint; retention считается строго из bookings
+
+**Контекст**: При попытке построить cohort retention для новичков (Phase после ADR-013) обнаружилось, что JOIN `customers.customer_id ↔ bookings.customer_id` ломается для большинства свежих клиентов. Конкретно: Onur Ahmedov в `ListadoClientes.aspx` имеет cid=692, а в `ObtenerInformacionReservaTooltip` тот же человек — cid=1700. То же самое с Mehmet Küçük (1297 vs 2307) и Sudenaz Aydinli (698 vs 1700+). Итог первого прогона: февральская когорта 96 новых, 0 с бронью — ложный сигнал, реально они бронировали.
+
+**Диагноз**: в Matchpoint два независимых id-пространства:
+- `ListadoClientes.aspx` → плотная нумерация 1..1297, растёт на ~150/мес (source для `sync_customers_matchpoint.py`)
+- `ObtenerInformacionReservaTooltip.Usuarios[].IdCliente` → sparse нумерация 1..2307 с пропусками (source для `sync_bookings_matchpoint.py`)
+
+Оба возвращают одного и того же физического человека, но под разными числами. Вероятно внутри Matchpoint это `IdCliente` vs `IdPersona`, но без доступа к их БД не проверить.
+
+**Варианты**:
+1. Мэппить через телефон: tooltip возвращает `Telefono`, customers имеет `phone` → bridge. Осуществимо, но +1 источник ошибок (разные форматы номеров, +90/90/пробелы).
+2. Переделать `sync_bookings_matchpoint` чтобы использовать `FichaCliente.aspx` как дополнительный lookup — медленно (+N HTTP запросов).
+3. Считать retention **напрямую из bookings**: first_visit = min(start_ts) по cid в tooltip-пространстве. Игнорировать customers-namespace для этой метрики.
+4. Считать retention по customers.subs_date только для тех, чей cid присутствует в обоих источниках (intersection).
+
+**Выбор**: вариант 3.
+
+**Почему**: retention-метрика отвечает на вопрос «кто сделал 2+ визита в первые 14 дней после первого визита», а не «кто зарегистрировался». `subs_date` в Matchpoint заполняется при любом контакте (бар, заказ стола), не обязательно при игре. Первое появление в bookings — более честный триггер когорты. Вариант 1 (phone bridge) оставляем для будущей работы — он нужен для других метрик (например, расчёт LTV по клиенту: сейчас transactions cid и bookings cid могут ссылаться на одну и ту же персону как на разных людей).
+
+Результат: retention 14d за последние 4 месяца — 29-46%, что выше индустрии (30-40% норма). Апрель 2026 пока 29% при неполном месяце — потенциальная регрессия, нужен мониторинг. Метрика добавлена на dashboard как `new_clients_retention` таб + bar chart.
+
+**Известные следствия для UI / отчётов**:
+- `clients_active_30d` через union (bookings ∪ client_transactions) может _слегка_ завышать число из-за возможного дублирования одного физ. человека в двух namespace (он считается один раз в каждом). Погрешность в пределах единиц процентов, допустимо.
+- При построении client_card (страница `/clients.html`) для клиента из customers — его bookings могут быть «невидимыми», если cid в customers != cid в bookings. Это отдельный тикет в backlog для fix через phone-bridge.
+
+---
+
 ## Шаблон новой записи
 
 ```markdown
