@@ -139,13 +139,15 @@ Access control: `site/assets/auth-guard.js`. Sidebar: `site/assets/sidebar.js`.
 
 ## Авто-запуск ETL
 
-Windows Task Scheduler, 06:00 ежедневно:
-- `etl/install_task.ps1` — основной sync клиентов
-- `etl/install_enrich_task.ps1` — обогащение
-- `etl/install_matchpoint_task.ps1` — matchpoint
-- `etl/create_cache_task.bat` — финальный build_cache
+Windows Task Scheduler, **07:00 ежедневно** (к открытию клуба в 9:00 цифры свежие). Был `23:50 + 06:00` — избыточно, см. ADR-011.
 
-Порядок внутри `run_all_etl.py`: customers → revenue → visits → categories → transactions → cache.
+Раньше крутилось несколько PS1-инсталлеров для разных шагов — сейчас одна задача `V7Padel_ETL_Daily`, запускающая `etl/run_all_etl.py` (см. `03_ETL_PLAYBOOK.md`). Старые `install_*.ps1` / `create_cache_task.bat` остались как справочный материал.
+
+Порядок внутри `run_all_etl.py`: customers → revenue → visits → categories → transactions → topup → occupancy → debts → etl.py → sync_topup_to_transactions → memberships → build_cache → generate_state_doc.
+
+### Lite refresh (браузер)
+
+Кнопка **«Обновить»** в сайдбаре (`site/assets/sidebar.js`) чистит только IndexedDB текущего браузера (`V7.clearCache()` → `v7_cache`) и перезагружает страницу. БД на проде обновляет **только** cron — это даёт иллюзию «свежих» данных, но источник остаётся вчерашним (или утренним после 07:00). См. ADR-011.
 
 ## Что не является частью этой архитектуры
 

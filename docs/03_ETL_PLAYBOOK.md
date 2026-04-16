@@ -1,8 +1,9 @@
 # 03 — ETL Playbook
 
 *Папка*: `etl/`
-*Планировщик*: Windows Task Scheduler, 23:50 (primary) + 06:00 (fallback)
-*Точка входа*: `etl/run_all_etl.py`
+*Планировщик*: Windows Task Scheduler, **07:00 ежедневно** (к открытию клуба в 9:00 цифры свежие). Был `23:50 + 06:00` — избыточно, см. ADR-011.
+*Точка входа*: `etl/run_all_etl.py` (запуск вручную: `python etl/run_all_etl.py`, ~5-10 мин)
+*Lite refresh*: кнопка в сайдбаре чистит только IndexedDB браузера — БД обновляет только этот cron.
 
 ## Каталог скриптов
 
