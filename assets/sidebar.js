@@ -194,6 +194,8 @@
   if (oldLogout) oldLogout.remove();
 
   // ── Lite refresh: clear IndexedDB cache, then reload ──
+  // Пользователь жмёт → чистим локальный кеш → перезагрузка берёт свежие данные из Google Sheets.
+  // Данные самой БД (v7padel_cache) обновляет cron ETL в 07:00.
   var refreshBtn = document.getElementById('sb-refresh-btn');
   if (refreshBtn) {
     refreshBtn.addEventListener('click', function() {
@@ -204,23 +206,28 @@
       if (labelEl) labelEl.textContent = 'Обновляю…';
       var finish = function() {
         try {
-          // cache-bust: force reload ignoring HTTP cache
           location.reload();
-        } catch(e) { location.href = location.href; }
+        } catch(e) {
+          console.warn('[sidebar refresh] reload failed, fallback href=', e);
+          location.href = location.href;
+        }
+      };
+      var onErr = function(err) {
+        console.warn('[sidebar refresh] clearCache failed (reloading anyway):', err);
+        finish();
       };
       try {
         if (window.V7 && typeof window.V7.clearCache === 'function') {
-          Promise.resolve(window.V7.clearCache()).then(finish, finish);
-        } else {
+          Promise.resolve(window.V7.clearCache()).then(finish, onErr);
+        } else if (window.indexedDB && indexedDB.deleteDatabase) {
           // Fallback: drop the whole IDB DB by name
-          if (window.indexedDB && indexedDB.deleteDatabase) {
-            var req = indexedDB.deleteDatabase('v7_cache');
-            req.onsuccess = finish; req.onerror = finish; req.onblocked = finish;
-          } else {
-            finish();
-          }
+          var req = indexedDB.deleteDatabase('v7_cache');
+          req.onsuccess = finish; req.onerror = onErr; req.onblocked = onErr;
+        } else {
+          console.warn('[sidebar refresh] no V7.clearCache and no indexedDB — reload only');
+          finish();
         }
-      } catch(e) { finish(); }
+      } catch(e) { onErr(e); }
     });
   }
 

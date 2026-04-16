@@ -252,8 +252,8 @@
     <button class="pf-btn" data-months="6">6М</button>
     <button class="pf-btn" data-months="0">Всё</button>
     <span class="pf-label" style="margin-left:16px">Режим:</span>
-    <button class="pf-btn active" id="mode-calendar" data-mode="calendar" title="Календарный месяц (с 1 числа текущего месяца)">Календарь</button>
-    <button class="pf-btn" id="mode-rolling" data-mode="rolling" title="Rolling period (последние N·30 дней от сегодня)">Rolling</button>
+    <button class="pf-btn active" id="mode-calendar" data-mode="calendar" title="Календарные границы: 1М = с 1 числа, 3М = с 1 числа месяца 2 назад, и т.д.">Календарь</button>
+    <button class="pf-btn" id="mode-rolling" data-mode="rolling" title="Rolling окно от сегодня: 1М = посл. 30 дн., 3М = посл. 90 дн., 6М = посл. 180 дн.">Rolling</button>
   </div>
 
   <!-- TAB SWITCHER -->
@@ -776,49 +776,43 @@ var _utilizationRendered = false;
 var _periodMonths = 1; // default: current month
 var _periodMode = 'calendar'; // 'calendar' | 'rolling'
 
-/* ---- Period filter ---- */
+/* ---- Full re-render after period/mode change (shared by both handlers) ---- */
+function _rerenderAllAfterPeriodChange() {
+  renderWeeklyTable('inc');
+  renderWeeklyTable('gds');
+  recalcKPIs('inc');
+  recalcKPIs('gds');
+  _renderPeriodCharts('inc');
+  _renderPeriodCharts('gds');
+  if (window._allGoodsTxnsRaw) _renderMarginsData(window._allGoodsTxnsRaw);
+  if (window._utlParsed) { recalcUtilizationKPIs(); _renderUtilizationCharts(); loadPerCourtData(); }
+  // Safety-net: гарантированно пересчитать ₺/корто-час.
+  if (typeof updateRevPerHourKPI === 'function' && document.getElementById('inc-kpi-rev-hour')) {
+    updateRevPerHourKPI();
+  }
+}
+
+/* ---- Period filter (1M/3M/6M/All) ---- */
 document.querySelectorAll('#period-filter .pf-btn[data-months]').forEach(function(btn) {
   btn.addEventListener('click', function() {
+    var months = parseInt(btn.dataset.months, 10) || 0;
+    if (months === _periodMonths) return; // no-op if already selected
     document.querySelectorAll('#period-filter .pf-btn[data-months]').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
-    _periodMonths = parseInt(btn.dataset.months) || 0;
-    // Re-render weekly tables AND KPIs with period filter
-    renderWeeklyTable('inc');
-    renderWeeklyTable('gds');
-    recalcKPIs('inc');
-    recalcKPIs('gds');
-    // Re-render income/goods charts for new period
-    _renderPeriodCharts('inc');
-    _renderPeriodCharts('gds');
-    // Recalc margins if data loaded
-    if (window._allGoodsTxnsRaw) _renderMarginsData(window._allGoodsTxnsRaw);
-    // Recalc utilization KPIs + all charts/tables
-    if (window._utlParsed) { recalcUtilizationKPIs(); _renderUtilizationCharts(); loadPerCourtData(); }
-    // Safety-net: гарантированно пересчитать ₺/корто-час (если где-то в пути его пропустили).
-    if (typeof updateRevPerHourKPI === 'function' && document.getElementById('inc-kpi-rev-hour')) {
-      updateRevPerHourKPI();
-    }
+    _periodMonths = months;
+    _rerenderAllAfterPeriodChange();
   });
 });
 
 /* ---- Period mode toggle (calendar vs rolling) ---- */
 document.querySelectorAll('#period-filter .pf-btn[data-mode]').forEach(function(btn) {
   btn.addEventListener('click', function() {
+    var mode = btn.dataset.mode;
+    if (mode === _periodMode) return; // no-op if already selected
     document.querySelectorAll('#period-filter .pf-btn[data-mode]').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
-    _periodMode = btn.dataset.mode;
-    // Full re-render (same as months-button handler)
-    renderWeeklyTable('inc');
-    renderWeeklyTable('gds');
-    recalcKPIs('inc');
-    recalcKPIs('gds');
-    _renderPeriodCharts('inc');
-    _renderPeriodCharts('gds');
-    if (window._allGoodsTxnsRaw) _renderMarginsData(window._allGoodsTxnsRaw);
-    if (window._utlParsed) { recalcUtilizationKPIs(); _renderUtilizationCharts(); loadPerCourtData(); }
-    if (typeof updateRevPerHourKPI === 'function' && document.getElementById('inc-kpi-rev-hour')) {
-      updateRevPerHourKPI();
-    }
+    _periodMode = mode;
+    _rerenderAllAfterPeriodChange();
   });
 });
 
@@ -944,9 +938,17 @@ function recalcKPIs(prefix) {
 
   // Period label
   var periodLabel;
-  if (_periodMonths <= 0) periodLabel = 'всё время';
-  else if (_periodMode === 'rolling') periodLabel = 'посл. ' + (_periodMonths * 30) + ' дн. (rolling)';
-  else periodLabel = _periodMonths === 1 ? 'текущий месяц' : _periodMonths === 3 ? '3 месяца' : _periodMonths === 6 ? '6 месяцев' : 'всё время';
+  if (_periodMonths <= 0) {
+    periodLabel = 'всё время';
+  } else if (_periodMode === 'rolling') {
+    periodLabel = 'посл. ' + (_periodMonths * 30) + ' дн. (rolling)';
+  } else {
+    // Calendar mode
+    periodLabel = _periodMonths === 1 ? 'текущий месяц'
+                : _periodMonths === 3 ? '3 месяца'
+                : _periodMonths === 6 ? '6 месяцев'
+                : _periodMonths + ' мес.';
+  }
 
   var $ = function(id) { return document.getElementById(prefix + '-' + id); };
 
