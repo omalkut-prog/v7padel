@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Участники клуба</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<script src="assets/data.js?v=20260416m"></script>
+<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/sidebar.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-font-smoothing: antialiased; }
+
+  main { max-width: 1500px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+  .section-head .hint { font-size: 11px; color: var(--text3); }
+
+  /* KPI cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 18px 16px; }
+  .kpi .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
+  .kpi .value { font-size: 24px; font-weight: 600; line-height: 1; }
+  .kpi .sub { font-size: 11px; color: var(--text3); margin-top: 6px; }
+  .kpi.vip .value { color: #0e8a87; }
+  .kpi.club .value { color: var(--accent); }
+  .kpi.expiring .value { color: var(--warn); }
+  .kpi.expired .value { color: var(--bad); }
+
+  /* Filters */
+  .filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 14px; }
+  .chip { background: var(--surface); border: 1px solid var(--border); color: var(--text2); font-size: 12px; padding: 6px 12px; border-radius: 18px; cursor: pointer; transition: all .15s; font-family: inherit; }
+  .chip:hover { border-color: var(--accent-border); color: var(--text); }
+  .chip.active { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+  .chip.v-active { background: rgba(14,138,135,0.12); border-color: #0e8a87; color: #0e8a87; }
+  .chip.v-active:hover { border-color: #0e8a87; color: #0e8a87; }
+
+  /* Search */
+  .search-input { padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-size: 12px; font-family: inherit; }
+  .search-input:focus { outline: none; border-color: var(--accent); }
+
+  /* Table */
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 28px; }
+  table.members { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.members th { text-align: left; padding: 12px 14px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; cursor: pointer; user-select: none; }
+  table.members th:hover { color: var(--text); }
+  table.members th.sort-asc::after  { content: ' ↑'; color: var(--accent); }
+  table.members th.sort-desc::after { content: ' ↓'; color: var(--accent); }
+  table.members td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.members tr:last-child td { border-bottom: none; }
+  table.members tr:hover { background: rgba(128,128,128,0.04); }
+  table.members .loading { padding: 28px; text-align: center; color: var(--text3); }
+  table.members .empty { padding: 28px; text-align: center; color: var(--text3); }
+
+  .name-cell { font-weight: 500; color: var(--text); }
+  .name-cell .cid { font-size: 10px; color: var(--text3); margin-left: 6px; }
+  .name-cell .bday { display: block; font-size: 10px; color: var(--text3); margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+  /* Card badges */
+  .card-badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .card-vip  { background: rgba(14,138,135,0.14); color: #0e8a87; }
+  .card-club { background: rgba(128,128,128,0.15); color: var(--text2); }
+
+  /* Bucket */
+  .bucket-badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .bucket-active   { background: rgba(19,194,150,0.12); color: var(--good); }
+  .bucket-expiring { background: rgba(243,156,18,0.14); color: var(--warn); }
+  .bucket-expired  { background: rgba(235,87,87,0.14);  color: var(--bad); }
+  .bucket-unknown  { background: rgba(128,128,128,0.12); color: var(--text3); }
+
+  .dte { display: block; font-size: 10px; color: var(--text3); margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+  /* Contact buttons */
+  .contact-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .cbtn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 11px; font-weight: 500; text-decoration: none; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text2); transition: all .15s; }
+  .cbtn:hover { border-color: var(--accent-border); color: var(--accent); background: var(--accent-soft); }
+  .cbtn.wa:hover    { border-color: #25D366; color: #25D366; background: rgba(37,211,102,0.08); }
+  .cbtn.tg:hover    { border-color: #2AABEE; color: #2AABEE; background: rgba(42,171,238,0.08); }
+  .cbtn.tel:hover   { border-color: var(--good); color: var(--good); background: rgba(19,194,150,0.08); }
+
+  /* Numeric */
+  .num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .num .sub-num { font-size: 10px; color: var(--text3); font-weight: 400; display: block; margin-top: 2px; }
+  .muted { color: var(--text3); }
+
+  .filter-count { font-size: 12px; color: var(--text3); margin-left: auto; }
+
+  /* Action bar */
+  .action-bar { display: flex; gap: 12px; margin-bottom: 20px; align-items: center; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); flex-wrap: wrap; }
+  .action-bar .btn { background: var(--bg); border: 1px solid var(--border); color: var(--text2); font-size: 12px; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .action-bar .btn:hover { border-color: var(--accent-border); color: var(--text); }
+
+  @media (max-width: 1100px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    table.members { font-size: 12px; }
+    table.members th, table.members td { padding: 8px 10px; }
+    .col-optional { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<main>
+  <h1 class="page-title">Участники клуба</h1>
+  <p class="page-sub">Держатели карт Club + VIP — контакты, сроки, активность. Источник: Matchpoint · ListadoAbonados · sync 1×/день</p>
+
+  <!-- KPI cards -->
+  <div class="kpi-grid">
+    <div class="kpi vip">
+      <div class="label">VIP активные</div>
+      <div class="value" id="kpi-vip">—</div>
+      <div class="sub"><span id="kpi-vip-expired" class="muted"></span></div>
+    </div>
+    <div class="kpi club">
+      <div class="label">Club активные</div>
+      <div class="value" id="kpi-club">—</div>
+      <div class="sub"><span id="kpi-club-expired" class="muted"></span></div>
+    </div>
+    <div class="kpi expiring">
+      <div class="label">Истекают ≤ 14 дней</div>
+      <div class="value" id="kpi-expiring">—</div>
+      <div class="sub">нужно напомнить / продлить</div>
+    </div>
+    <div class="kpi expired">
+      <div class="label">Уже истекли</div>
+      <div class="value" id="kpi-expired-total">—</div>
+      <div class="sub">статус Active, но paid_until &lt; сегодня</div>
+    </div>
+  </div>
+
+  <!-- Filters + Table -->
+  <section class="section">
+    <div class="section-head">
+      <h2>Список держателей</h2>
+      <span class="hint" id="ts">—</span>
+    </div>
+
+    <div class="action-bar">
+      <button class="btn" id="btn-export">⬇ Экспорт CSV</button>
+      <span style="font-size:11px;color:var(--text3);margin-left:auto">клик на заголовок — сортировка</span>
+    </div>
+
+    <div class="filters">
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Карта:</span>
+      <button class="chip f-card active" data-card="all">все</button>
+      <button class="chip f-card v-active" data-card="VIP">VIP</button>
+      <button class="chip f-card" data-card="Club">Club</button>
+      <span style="width:14px"></span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Статус:</span>
+      <button class="chip f-bucket active" data-bucket="all">все</button>
+      <button class="chip f-bucket" data-bucket="active">🟢 активные</button>
+      <button class="chip f-bucket" data-bucket="expiring">🟡 истекают (≤14д)</button>
+      <button class="chip f-bucket" data-bucket="expired">🔴 истекли</button>
+      <span style="width:14px"></span>
+      <input type="text" id="f-search" class="search-input" placeholder="имя / телефон / email" style="width:240px">
+      <span class="filter-count" id="rowCount">—</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="members">
+        <thead>
+          <tr>
+            <th data-sort="holder">Клиент</th>
+            <th data-sort="card_type">Карта</th>
+            <th data-sort="paid_until">Оплачено до</th>
+            <th data-sort="rate" class="col-optional">Тариф</th>
+            <th style="text-align:right" data-sort="fee" class="col-optional num">Взнос, ₺</th>
+            <th>Контакты</th>
+            <th style="text-align:right" data-sort="amount_90d" class="num">Выручка 90д</th>
+            <th style="text-align:right" data-sort="hours_90d" class="num">Часы 90д</th>
+            <th style="text-align:right" data-sort="amount_all" class="col-optional num">Всего ₺</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"><tr><td colspan="9" class="loading">Загружаю…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="assets/sidebar.js"></script>
+<script>
+// ============================================================
+// STATE
+// ============================================================
+var state = {
+  rows: [],
+  filters: { card: 'all', bucket: 'all', q: '' },
+  sort: { key: 'amount_90d', dir: 'desc' },
+};
+
+// ============================================================
+// UTIL
+// ============================================================
+function fmtMoney(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  n = Number(n);
+  if (n === 0) return '0';
+  if (Math.abs(n) >= 1e6) return (n/1e6).toFixed(1).replace('.', ',') + 'M';
+  if (Math.abs(n) >= 1e3) return (n/1e3).toFixed(0) + 'K';
+  return n.toFixed(0);
+}
+function fmtInt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '—';
+  return Math.round(Number(n)).toString();
+}
+function fmtHours(h) {
+  h = Number(h);
+  if (!h) return '—';
+  return h.toFixed(1).replace('.', ',');
+}
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, function(c) {
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+function parseDateRU(s) {
+  // '15/04/2026' → Date; 'YYYY-MM-DD' → Date
+  if (!s) return null;
+  s = String(s).trim();
+  var m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return new Date(Number(m[3]), Number(m[2]) - 1, Number(m[1]));
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return new Date(s);
+  return null;
+}
+function daysBetween(a, b) {
+  return Math.round((a - b) / (1000 * 60 * 60 * 24));
+}
+function fmtDate(s) {
+  var d = parseDateRU(s);
+  if (!d) return '—';
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+// ============================================================
+// LOAD
+// ============================================================
+async function load() {
+  try {
+    var rows = await V7.loadCacheTab('club_members');
+    state.rows = (rows || []).map(function(r) {
+      // Нормализуем числовые поля
+      ['amount_all','amount_90d','amount_30d','amount_7d',
+       'bookings_all','bookings_90d','bookings_30d',
+       'hours_all','hours_90d','hours_30d',
+       'fee','first_fee','next_fee','days_to_expire'].forEach(function(k) {
+        r[k] = (r[k] === '' || r[k] == null) ? 0 : Number(r[k]);
+      });
+      return r;
+    });
+    updateKPIs();
+    render();
+  } catch (e) {
+    console.error('club_members load failed:', e);
+    document.getElementById('tbody').innerHTML =
+      '<tr><td colspan="9" class="empty">Ошибка загрузки: ' + escapeHtml(e.message || e) + '</td></tr>';
+  }
+}
+
+// ============================================================
+// KPIs
+// ============================================================
+function updateKPIs() {
+  var vipAct = 0, vipExp = 0, clubAct = 0, clubExp = 0, expiring = 0, expired = 0;
+  state.rows.forEach(function(r) {
+    var isVip  = r.card_type === 'VIP';
+    var isClub = r.card_type === 'Club';
+    var b = r.bucket;
+    if (b === 'active' || b === 'expiring') {
+      if (isVip) vipAct++;
+      else if (isClub) clubAct++;
+    }
+    if (b === 'expired') {
+      if (isVip) vipExp++;
+      else if (isClub) clubExp++;
+      expired++;
+    }
+    if (b === 'expiring') expiring++;
+  });
+  document.getElementById('kpi-vip').textContent = vipAct;
+  document.getElementById('kpi-club').textContent = clubAct;
+  document.getElementById('kpi-vip-expired').textContent  = vipExp  ? ('+ ' + vipExp  + ' истекли') : '';
+  document.getElementById('kpi-club-expired').textContent = clubExp ? ('+ ' + clubExp + ' истекли') : '';
+  document.getElementById('kpi-expiring').textContent = expiring;
+  document.getElementById('kpi-expired-total').textContent = expired;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function applyFilters(rows) {
+  var f = state.filters;
+  return rows.filter(function(r) {
+    if (f.card !== 'all' && r.card_type !== f.card) return false;
+    if (f.bucket !== 'all' && r.bucket !== f.bucket) return false;
+    if (f.q) {
+      var q = f.q.toLowerCase();
+      var blob = (r.holder + ' ' + (r.phone||'') + ' ' + (r.email||'') + ' ' + (r.telegram||'')).toLowerCase();
+      if (blob.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+}
+
+function sortRows(rows) {
+  var key = state.sort.key;
+  var dir = state.sort.dir === 'asc' ? 1 : -1;
+  return rows.slice().sort(function(a, b) {
+    var av = a[key], bv = b[key];
+    // числовые vs строковые
+    if (typeof av === 'number' && typeof bv === 'number') {
+      return (av - bv) * dir;
+    }
+    if (key === 'paid_until') {
+      var ad = parseDateRU(av); var bd = parseDateRU(bv);
+      return ((ad ? ad.getTime() : 0) - (bd ? bd.getTime() : 0)) * dir;
+    }
+    av = String(av || '').toLowerCase();
+    bv = String(bv || '').toLowerCase();
+    if (av < bv) return -1 * dir;
+    if (av > bv) return  1 * dir;
+    return 0;
+  });
+}
+
+function renderContacts(r) {
+  var parts = [];
+  var phone = (r.phone || '').trim();
+  var waNum = (r.whatsapp || phone).trim().replace(/[^\d+]/g, '');
+  var tg = (r.telegram || '').trim().replace(/^@/, '');
+  if (phone) {
+    parts.push('<a class="cbtn tel" href="tel:' + escapeHtml(phone) + '" title="Позвонить">☎ ' + escapeHtml(phone) + '</a>');
+  }
+  if (waNum && waNum.length >= 10) {
+    var waHref = 'https://wa.me/' + waNum.replace(/^\+/, '');
+    parts.push('<a class="cbtn wa" href="' + waHref + '" target="_blank" rel="noopener" title="WhatsApp">WA</a>');
+  }
+  if (tg) {
+    parts.push('<a class="cbtn tg" href="https://t.me/' + encodeURIComponent(tg) + '" target="_blank" rel="noopener" title="Telegram">TG</a>');
+  }
+  if (r.email) {
+    parts.push('<a class="cbtn" href="mailto:' + escapeHtml(r.email) + '" title="' + escapeHtml(r.email) + '">✉</a>');
+  }
+  if (!parts.length) return '<span class="muted">—</span>';
+  return '<div class="contact-btns">' + parts.join('') + '</div>';
+}
+
+function renderRow(r) {
+  var cardCls = r.card_type === 'VIP' ? 'card-vip' : 'card-club';
+  var bucketCls = 'bucket-' + (r.bucket || 'unknown');
+  var bucketLbl = ({ active: 'активен', expiring: 'истекает', expired: 'истёк', unknown: '?' })[r.bucket] || '';
+  var dte = r.days_to_expire;
+  var dteStr = '';
+  if (r.bucket === 'expired') dteStr = 'истёк ' + Math.abs(dte) + ' дн. назад';
+  else if (r.bucket === 'active' || r.bucket === 'expiring') dteStr = 'осталось ' + dte + ' дн.';
+
+  var bday = (r.birthday || '').trim();
+  var bdayBlock = '';
+  if (bday) {
+    var bd = parseDateRU(bday);
+    if (bd) bdayBlock = '<span class="bday">🎂 ' + bd.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' }) + '</span>';
+    else bdayBlock = '<span class="bday">🎂 ' + escapeHtml(bday) + '</span>';
+  }
+
+  return (
+    '<tr>' +
+      '<td class="name-cell">' +
+        escapeHtml(r.holder) +
+        (r.customer_id ? ' <span class="cid">#' + escapeHtml(r.customer_id) + '</span>' : '') +
+        bdayBlock +
+      '</td>' +
+      '<td><span class="card-badge ' + cardCls + '">' + escapeHtml(r.card_type) + '</span></td>' +
+      '<td>' +
+        '<span class="bucket-badge ' + bucketCls + '">' + bucketLbl + '</span>' +
+        '<span class="dte">' + escapeHtml(r.paid_until || '—') + (dteStr ? ' · ' + dteStr : '') + '</span>' +
+      '</td>' +
+      '<td class="col-optional">' + escapeHtml(r.rate || '—') + '</td>' +
+      '<td class="num col-optional">' + (r.fee ? fmtMoney(r.fee) : '—') + '</td>' +
+      '<td>' + renderContacts(r) + '</td>' +
+      '<td class="num">' +
+        (r.amount_90d ? fmtMoney(r.amount_90d) : '<span class="muted">—</span>') +
+        (r.bookings_90d ? '<span class="sub-num">' + r.bookings_90d + ' визитов</span>' : '') +
+      '</td>' +
+      '<td class="num">' +
+        (r.hours_90d ? fmtHours(r.hours_90d) : '<span class="muted">—</span>') +
+      '</td>' +
+      '<td class="num col-optional">' +
+        (r.amount_all ? fmtMoney(r.amount_all) : '<span class="muted">—</span>') +
+      '</td>' +
+    '</tr>'
+  );
+}
+
+function render() {
+  var filtered = sortRows(applyFilters(state.rows));
+  var tbody = document.getElementById('tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="9" class="empty">По фильтрам никого нет</td></tr>';
+  } else {
+    tbody.innerHTML = filtered.map(renderRow).join('');
+  }
+  document.getElementById('rowCount').textContent = filtered.length + ' из ' + state.rows.length;
+
+  // Подсветка активной колонки сортировки
+  document.querySelectorAll('table.members th[data-sort]').forEach(function(th) {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.sort === state.sort.key) {
+      th.classList.add(state.sort.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+    }
+  });
+}
+
+// ============================================================
+// EXPORT CSV
+// ============================================================
+function exportCSV() {
+  var filtered = sortRows(applyFilters(state.rows));
+  var cols = ['customer_id','holder','card_type','bucket','paid_until','days_to_expire',
+              'phone','whatsapp','telegram','email','birthday',
+              'amount_all','amount_90d','hours_90d','bookings_90d','fee'];
+  var head = cols.join(';');
+  var lines = filtered.map(function(r) {
+    return cols.map(function(k) {
+      var v = r[k] == null ? '' : String(r[k]);
+      if (v.indexOf(';') !== -1 || v.indexOf('"') !== -1) v = '"' + v.replace(/"/g,'""') + '"';
+      return v;
+    }).join(';');
+  });
+  var csv = '\ufeff' + head + '\n' + lines.join('\n');
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'club-members-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  setTimeout(function() { URL.revokeObjectURL(url); }, 0);
+}
+
+// ============================================================
+// EVENT WIRING
+// ============================================================
+document.querySelectorAll('.chip.f-card').forEach(function(b) {
+  b.addEventListener('click', function() {
+    document.querySelectorAll('.chip.f-card').forEach(function(x) { x.classList.remove('active'); });
+    b.classList.add('active');
+    state.filters.card = b.dataset.card;
+    render();
+  });
+});
+document.querySelectorAll('.chip.f-bucket').forEach(function(b) {
+  b.addEventListener('click', function() {
+    document.querySelectorAll('.chip.f-bucket').forEach(function(x) { x.classList.remove('active'); });
+    b.classList.add('active');
+    state.filters.bucket = b.dataset.bucket;
+    render();
+  });
+});
+document.getElementById('f-search').addEventListener('input', function(e) {
+  state.filters.q = e.target.value.trim();
+  render();
+});
+document.querySelectorAll('table.members th[data-sort]').forEach(function(th) {
+  th.addEventListener('click', function() {
+    var k = th.dataset.sort;
+    if (state.sort.key === k) {
+      state.sort.dir = state.sort.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      state.sort.key = k;
+      // для чисел — убывание по умолчанию, для строк/дат — возрастание
+      var numericKeys = ['fee','amount_all','amount_90d','hours_90d','days_to_expire'];
+      state.sort.dir = (numericKeys.indexOf(k) >= 0) ? 'desc' : 'asc';
+    }
+    render();
+  });
+});
+document.getElementById('btn-export').addEventListener('click', exportCSV);
+
+// Default sort — by card_type then amount_90d (VIP first, then Club; внутри — по выручке)
+state.sort.key = 'amount_90d';
+state.sort.dir = 'desc';
+
+// Запуск
+document.getElementById('ts').textContent = 'загружаю…';
+load().then(function() {
+  document.getElementById('ts').textContent = 'обновлено: ' + new Date().toLocaleString('ru-RU');
+});
+</script>
+</body>
+</html>

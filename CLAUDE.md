@@ -26,6 +26,7 @@
 | `docs/09_DECISIONS.md` | ADR-лог: почему X, а не Y |
 | `docs/10_PRICES_AND_HOURS.md` | Цены и часы работы (реальные, из транзакций) |
 | `docs/11_MARKETING.md` | Аватар клиента, каналы, месседжинг — WIP |
+| `docs/12_WORKING_WITH_CLAUDE.md` | **Как Володимир ставит задачи + как Claude работает**. Двусторонние правила. |
 
 ## Update cadence (обязательно)
 

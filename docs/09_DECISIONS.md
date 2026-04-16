@@ -103,6 +103,73 @@
 
 ---
 
+## ADR-007 · 2026-04-16 · Двухpass парсер credit notes (Venta + Abonos)
+
+**Контекст**: В `sync_client_transactions.py` мы тянули только `ListadoTickets_Venta.aspx`. Админы часто фиксят ошибки паттерном `+charge + credit-note + правильный charge` (см. кейс Ivanna VIP: A26-03796 +109k → A26-03797 −109k → A26-03805 +109k). Credit notes (A26-03797) живут в **отдельном листинге** `ListadoAbonos_Venta.aspx` и не попадали в наши данные. В результате `client_transactions` по клиенту показывал **удвоенные суммы** (виден +109k+109k=+218k вместо реальных +109k).
+
+**Варианты**:
+1. Заплатка через `manual_entries kind=void` — ручное сторнирование каждого фантомного charge → не масштабируется (69 credit notes за 120 дней) + ломается когда парсер починится
+2. Детектировать credit note по DOM: в ячейке `Cancel` листинга Venta есть `<input checked disabled>` на тикетах с применённой credit note → видим "это отменённый charge", но НЕ видим сторно-запись и её cid (хотя в Venta cid тот же)
+3. **Двух-pass парсинг**: Venta (charges) + Abonos (credit notes, инверсия знака total) в одну таблицу `client_transactions` с флагом `is_credit_note`. SUM(total) по клиенту автоматически даёт нетто.
+
+**Выбор**: вариант 3.
+
+**Почему**: полная картина аудита (обе проводки видны), нетто считается естественно через сумму, флаг `is_credit_note` даёт возможность при желании показывать разбивку charges vs credits. Manual voids остаются только для редких случаев когда credit note **не создана** в Matchpoint.
+
+**Побочные эффекты**: удалили 3 ad-hoc void и 2 income-с-cid для Ivanna из `manual_entries` — они дублировали новую автоматическую логику. Income без cid (клубная выручка) оставили, т.к. реальная оплата 120.9k прошла через банк/кэш, а Matchpoint charges — это phantom-учёт VIP членства и балансов.
+
+---
+
+## ADR-008 · 2026-04-16 · Пополнения баланса как отдельный источник дохода (`matchpoint_topup`)
+
+**Контекст**: Клиенты пополняют баланс онлайн/кэшем. В Matchpoint это тикеты с Description = "Recharge of X to balance for NAME" (пример: Ivanna Rykova 11900 ₺, 15.04). В Excel 1GDRZ этих строк нет (Excel фиксирует только admin-entered). Значит выручка клуба занижена на сумму top-up.
+
+**Варианты**:
+1. Добавить парсинг прямо в `etl.py` — нарушит "ETL does NOT touch Matchpoint tabs" (docstring etl.py#L4).
+2. Новый отдельный скрипт `sync_topup_to_transactions.py` между `sync_client_transactions.py` и `build_cache.py` в `run_all_etl.py`.
+3. Считать top-up только как "фактическую выручку от usage" (когда клиент тратит с баланса) — требует парсера `ListadoMovimientosSaldo`.
+
+**Выбор**: вариант 2.
+
+**Почему**: данные уже есть в `client_transactions` (description startswith 'Recharge of'), остаётся только upsert в `transactions` с `source='matchpoint_topup'`, `category='Пополнение баланса'`, `transaction_id='topup_{ticket_num}'`. Вариант 3 теоретически правильнее (accrual vs cash), но требует ETL для saldo-движений (не сделан) и перестроит всю логику учёта. Пока double-count невозможен — balance_movement не парсится. Когда парсер saldo появится — см. ADR-XXX (TODO) про перевод top-up в not-revenue и переход на usage-based учёт.
+
+**Побочные эффекты**:
+- `categorize_revenue` дополнен ключом `"пополнение баланса"` → label `"Пополнение баланса"`.
+- `cats_order` в `compute_rev_by_month_cat` и `compute_rev_mix` расширены новой категорией.
+- Этот скрипт ОБЯЗАН запускаться после `etl.py` (который делает full rebuild `transactions` и стёр бы top-up'ы). Порядок зафиксирован в `run_all_etl.py`.
+
+---
+
+## ADR-009 · 2026-04-16 · Двусторонние правила работы Володимир ↔ Claude (`12_WORKING_WITH_CLAUDE.md`)
+
+**Контекст**: Накопился опыт: ошибки в постановке задач (5 багов в одном сообщении → теряется контекст, фиксится симптом вместо причины), ошибки Claude (гадает вместо того чтобы прочитать данные). Нужен закрепляющий документ.
+
+**Варианты**:
+1. Расширить `06_PRINCIPLES.md` секцией «работа с Claude» — короче, но смешивает стратегические принципы с мета-правилами коммуникации.
+2. Отдельный документ `12_WORKING_WITH_CLAUDE.md` с двусторонней структурой (как Володимир ставит задачи · как Claude работает · чек-листы).
+3. Записать только в user-memory — не увидит другой ИИ, открывший проект.
+
+**Выбор**: вариант 2.
+
+**Почему**: мета-правила коммуникации — самостоятельная тема с растущим объёмом опыта. Оф. карта в `CLAUDE.md` обновлена, короткая выжимка в user-memory `feedback_working_with_claude.md` даёт контекст следующим сессиям без раздувания MEMORY.md. Живой документ — дополняем по мере новых кейсов.
+
+---
+
+## ADR-010 · 2026-04-16 · Авто-синк Club/VIP карт из Matchpoint + двойной счёт «Active»
+
+**Контекст**: Таб `memberships` в v7padel_db заполнялся вручную и отставал от Matchpoint (Ivanna Rykova, VIP 15.04.2026, 40-й член — не было в Sheets, хотя уже оплатила). Плюс: в Matchpoint статус «Active» живёт дольше подписки — 6 из 39 карт формально Active, но `paid_until` < today.
+
+**Варианты**:
+1. Продолжать руками, давать напоминания → стабильно отстаёт, ломает метрики дашборда
+2. Один ежедневный sync + статус «Active = status=Active» (как раньше) → актуально, но 6 истёкших плавают как активные
+3. Один ежедневный sync + двойной счёт: «формально Active» и «реально оплачено» (`paid_until ≥ today`)
+
+**Выбор**: вариант 3 — `etl/sync_memberships_matchpoint.py` (rebuild из `ListadoAbonados.aspx`, 13 полей) + `compute_membership_kpis` возвращает обе тройки (club/vip/total и club_paid/vip_paid/total_paid). Dashboard показывает paid как основное число, истёкшие — в sub-label.
+
+**Почему**: источник правды один (Matchpoint), обновление атомарное (полный rebuild, 39 записей ≪ квот Sheets). Двойной счёт спасает от скрытой дельты «Matchpoint не закрыл статус сразу»: руководитель видит 33, а не 39, и сразу понимает 6 просрочек. Пригодится на странице `club-members.html` — expiring<14д будет отдельным бакетом.
+
+---
+
 ## Шаблон новой записи
 
 ```markdown

@@ -18,6 +18,7 @@
     'revenue.html':              ['admin'],
     'management.html':           ['admin'],
     'clients.html':              ['admin', 'manager', 'coach', 'administrator'],
+    'club-members.html':         ['admin', 'manager'],
     'recall.html':               ['admin', 'manager'],
     'data.html':                 ['admin'],
     'team.html':                 ['admin'],

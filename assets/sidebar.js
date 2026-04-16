@@ -28,6 +28,7 @@
     collapse:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/></svg>',
     menu:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>',
     recall:  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+    members: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.39 4.84L20 7.77l-4 3.9.94 5.5L12 14.55l-4.94 2.6L8 11.67 4 7.77l5.61-.93z"/></svg>',
   };
 
   // ── Navigation structure: groups → items ──
@@ -44,6 +45,7 @@
     ]},
     { group: 'Клуб', items: [
       { label: 'Клиенты',    href: 'clients.html',             icon: 'clients',     roles: ['admin', 'manager', 'coach', 'administrator'] },
+      { label: 'Участники',  href: 'club-members.html',        icon: 'members',     roles: ['admin', 'manager'] },
       { label: 'Recall',     href: 'recall.html',              icon: 'recall',      roles: ['admin', 'manager'] },
       { label: 'Турниры',    href: 'tournament-analytics.html', icon: 'tournaments', roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Управление', href: 'management.html',          icon: 'management',  roles: ['admin'] },
@@ -114,8 +116,10 @@
   html += '</div>';
 
   // Footer
+  var REFRESH_ICON = '<svg class="sb-refresh-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"/><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"/></svg>';
   html += '<div class="sb-footer">';
   html += '  <div class="sb-role" data-short="' + (ROLE_SHORT[role] || 'U') + '">' + (ROLE_LABELS[role] || role) + '</div>';
+  html += '  <button class="sb-refresh" id="sb-refresh-btn" title="Обновить данные (Lite — сбросить кеш и перезагрузить)">' + REFRESH_ICON + '<span class="sb-refresh-label">Обновить</span></button>';
   html += '  <button class="sb-logout" onclick="sessionStorage.clear();location.href=\'login.html\'">Выйти</button>';
   html += '</div>';
 
@@ -188,5 +192,36 @@
   // ── Remove old nav.js logout button if it was added ──
   var oldLogout = document.getElementById('nav-logout-btn');
   if (oldLogout) oldLogout.remove();
+
+  // ── Lite refresh: clear IndexedDB cache, then reload ──
+  var refreshBtn = document.getElementById('sb-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', function() {
+      if (refreshBtn.disabled) return;
+      refreshBtn.disabled = true;
+      refreshBtn.classList.add('spinning');
+      var labelEl = refreshBtn.querySelector('.sb-refresh-label');
+      if (labelEl) labelEl.textContent = 'Обновляю…';
+      var finish = function() {
+        try {
+          // cache-bust: force reload ignoring HTTP cache
+          location.reload();
+        } catch(e) { location.href = location.href; }
+      };
+      try {
+        if (window.V7 && typeof window.V7.clearCache === 'function') {
+          Promise.resolve(window.V7.clearCache()).then(finish, finish);
+        } else {
+          // Fallback: drop the whole IDB DB by name
+          if (window.indexedDB && indexedDB.deleteDatabase) {
+            var req = indexedDB.deleteDatabase('v7_cache');
+            req.onsuccess = finish; req.onerror = finish; req.onblocked = finish;
+          } else {
+            finish();
+          }
+        }
+      } catch(e) { finish(); }
+    });
+  }
 
 })();

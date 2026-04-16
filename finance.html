@@ -573,15 +573,15 @@ async function renderBlock4() {
   }
 
   // Average check from NON-cancelled bookings (using real column: price)
+  // Если цен нет — показываем "—" вместо выдуманной 600 (не искажаем убыток).
   let avgCheck = 0;
   const activePrices = bookings.filter(b => !isCancelled(b.status)).map(b => num(b.price)).filter(x => x > 0);
   if (activePrices.length) avgCheck = activePrices.reduce((a,b)=>a+b,0) / activePrices.length;
-  if (!avgCheck) avgCheck = 600; // fallback if all prices are 0
 
-  const lostMoney = cancelled.length * avgCheck;
+  const lostMoney = avgCheck ? cancelled.length * avgCheck : 0;
   document.getElementById('cn-total').textContent = cancelled.length + ' / ' + all;
-  document.getElementById('cn-money').textContent = fmtMoney(lostMoney);
-  document.getElementById('cn-avg').textContent = fmtMoney(avgCheck);
+  document.getElementById('cn-money').textContent = avgCheck ? fmtMoney(lostMoney) : '—';
+  document.getElementById('cn-avg').textContent   = avgCheck ? fmtMoney(avgCheck)  : '—';
 
   // Monthly chart (using start_ts for date)
   const byMonth = {};

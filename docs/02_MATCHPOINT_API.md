@@ -46,12 +46,13 @@ JSON-эндпоинт (PageMethod). Альтернатива.
 ### Финансы
 
 #### `GET/POST /Facturacion/ListadoTickets_Venta.aspx`
-**Тикеты продаж (все транзакции кроме saldo/bono).** HTML-таблица с пагинацией.
+**Тикеты продаж (charges).** HTML-таблица с пагинацией.
 
 Фильтры:
 - `ctl01$ctl00$CC$ContentPlaceHolderFiltros$TextBoxFechaInicio` — дата от (`DD/MM/YYYY`)
 - `ctl01$ctl00$CC$ContentPlaceHolderFiltros$TextBoxFechaFinBusqueda` — дата до
 - Применение фильтра: `__EVENTTARGET=ctl01$ctl00$CC$ContentPlaceHolderAcciones$LinkButtonRecargar`
+- `DropDownListAbonado` — фильтр "к тикету применена credit note": пусто/`si`/`no`
 
 Пагинация:
 - `__EVENTTARGET=ctl01$ctl00$CC$ContentPlaceHolderListado$GridViewListado`
@@ -61,9 +62,26 @@ JSON-эндпоинт (PageMethod). Альтернатива.
 
 ⚠️ **Подводные камни**:
 - В таблицу попадают мусорные строки пагинации (первая ячейка `...` или цифра). **Регекс тикета**: `^[A-Z]\d{2}-\d+$` (например `A26-03777`). Любая строка не прошедшая регекс — отбрасывается.
-- Колонки `Paid`/`Cancel` парсятся криво — `is_paid`/`is_cancel` в нашей таблице всегда 0. Известный баг, см. `07_ANTI_PATTERNS.md`.
+- Колонки `Paid`/`Cancel` парсятся криво — `is_paid`/`is_cancel` в нашей таблице всегда 0. Признак "к тикету выпущена credit note" рендерится как `<input checked disabled>` в ячейке Cancel, `get_text()` даёт пустую строку. Не полагаться на эту колонку — использовать отдельный листинг Abonos (ниже).
+- **Credit notes (сторно) в этом листинге НЕ отображаются.** Если админ выпустил credit note к тикету, исходный charge остаётся в Venta, а сторно-запись живёт в `ListadoAbonos_Venta.aspx`. Без второго pass-а парсер видит только положительную сторону → получает двукратную сумму при pattern "+/−/+".
 
-Используется: `sync_client_transactions.py`.
+Используется: `sync_client_transactions.py` (Pass 1).
+
+#### `GET/POST /Facturacion/ListadoAbonos_Venta.aspx`
+**Credit notes (сторно тикетов продаж).** HTML layout идентичен Venta, только без колонки `Cancel` (credit note нельзя отменить).
+
+В листинге Total показан **положительным** (абсолютная величина сторно). В нашей выдаче `sync_client_transactions.py` инвертирует знак → total=-109000 и ставит `is_credit_note=1`.
+
+Description credit note ссылается на исходный тикет в формате:
+```
+Credit note A26-03796 - V7 VIP 1 year (12 months) fee 10...
+```
+
+Префикс `A` у ссылки — серия Venta; бывает также `AF` (facturas — инвойсы).
+
+Используется: `sync_client_transactions.py` (Pass 2).
+
+**Зачем важно:** админы в Matchpoint часто фиксят свои ошибки паттерном `+charge +credit-note +правильный charge`. Без Abonos-листинга клиенты показывают неверные (удвоенные) суммы в карточках. См. memory `project_matchpoint_corrections.md` и `09_DECISIONS.md` #003.
 
 #### `GET/POST /Facturacion/ListadoMovimientosSaldo.aspx`
 **Движения по saldo-балансам** клиентов. Отдельный источник выручки. **Не скрейпится сейчас**, только прозондировано (`probe_saldo.py`). При необходимости точного revenue per client — добавить в ETL.

@@ -90,6 +90,23 @@
   table.weekly th { font-size: 10px; padding: 8px 8px; }
   table.weekly tr.current-week { outline: 2px solid var(--accent); outline-offset: -1px; border-radius: 4px; }
   table.weekly td.heat { border-radius: 4px; font-weight: 500; color: var(--text); }
+  table.weekly td.heat[data-tx] { cursor: help; }
+  /* Кастомный тултип с топ-3 чеков */
+  .tx-tooltip {
+    position: fixed; z-index: 9999; pointer-events: none;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+    padding: 10px 12px; font-size: 12px; color: var(--text);
+    min-width: 220px; max-width: 360px;
+    opacity: 0; transition: opacity 120ms ease;
+  }
+  .tx-tooltip.on { opacity: 1; }
+  .tx-tooltip .tt-head { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .tx-tooltip .tt-row { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+  .tx-tooltip .tt-row .tt-name { color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tx-tooltip .tt-row .tt-val { font-variant-numeric: tabular-nums; font-weight: 600; white-space: nowrap; }
+  .tx-tooltip .tt-rest { color: var(--text3); font-size: 11px; margin-top: 4px; border-top: 1px dashed var(--border); padding-top: 4px; }
+  .tx-tooltip .tt-sum { display: flex; justify-content: space-between; margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-weight: 700; }
   table.weekly tr.month-subtotal { background: var(--surface2); font-weight: 700; }
   table.weekly tr.month-subtotal td { border-top: 2px solid var(--border); border-bottom: 2px solid var(--border); color: var(--text); }
   table.weekly tfoot td { font-weight: 600; background: var(--surface2); color: var(--text); border-top: 2px solid var(--border); }
@@ -234,6 +251,9 @@
     <button class="pf-btn" data-months="3">3М</button>
     <button class="pf-btn" data-months="6">6М</button>
     <button class="pf-btn" data-months="0">Всё</button>
+    <span class="pf-label" style="margin-left:16px">Режим:</span>
+    <button class="pf-btn active" id="mode-calendar" data-mode="calendar" title="Календарный месяц (с 1 числа текущего месяца)">Календарь</button>
+    <button class="pf-btn" id="mode-rolling" data-mode="rolling" title="Rolling period (последние N·30 дней от сегодня)">Rolling</button>
   </div>
 
   <!-- TAB SWITCHER -->
@@ -260,7 +280,7 @@
       <div class="kpi-delta muted" id="inc-kpi-avg-hint"></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Средний чек / день</div>
+      <div class="kpi-label">Средний чек клуба <small class="muted">(выручка / транзакции)</small></div>
       <div class="kpi-value" id="inc-kpi-check">—</div>
       <div class="kpi-delta muted" id="inc-kpi-check-hint"></div>
     </div>
@@ -386,7 +406,7 @@
       <div class="kpi-delta muted" id="gds-kpi-avg-hint"></div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">Средний чек / день</div>
+      <div class="kpi-label">Средний чек клуба <small class="muted">(продажи / транзакции)</small></div>
       <div class="kpi-value" id="gds-kpi-check">—</div>
       <div class="kpi-delta muted" id="gds-kpi-check-hint"></div>
     </div>
@@ -754,11 +774,12 @@ function isGoods(cat) { return categorizeRevenue(cat) === 'Товары'; }
 var _marginsRendered = false;
 var _utilizationRendered = false;
 var _periodMonths = 1; // default: current month
+var _periodMode = 'calendar'; // 'calendar' | 'rolling'
 
 /* ---- Period filter ---- */
-document.querySelectorAll('#period-filter .pf-btn').forEach(function(btn) {
+document.querySelectorAll('#period-filter .pf-btn[data-months]').forEach(function(btn) {
   btn.addEventListener('click', function() {
-    document.querySelectorAll('#period-filter .pf-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('#period-filter .pf-btn[data-months]').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
     _periodMonths = parseInt(btn.dataset.months) || 0;
     // Re-render weekly tables AND KPIs with period filter
@@ -773,6 +794,31 @@ document.querySelectorAll('#period-filter .pf-btn').forEach(function(btn) {
     if (window._allGoodsTxnsRaw) _renderMarginsData(window._allGoodsTxnsRaw);
     // Recalc utilization KPIs + all charts/tables
     if (window._utlParsed) { recalcUtilizationKPIs(); _renderUtilizationCharts(); loadPerCourtData(); }
+    // Safety-net: гарантированно пересчитать ₺/корто-час (если где-то в пути его пропустили).
+    if (typeof updateRevPerHourKPI === 'function' && document.getElementById('inc-kpi-rev-hour')) {
+      updateRevPerHourKPI();
+    }
+  });
+});
+
+/* ---- Period mode toggle (calendar vs rolling) ---- */
+document.querySelectorAll('#period-filter .pf-btn[data-mode]').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('#period-filter .pf-btn[data-mode]').forEach(function(b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    _periodMode = btn.dataset.mode;
+    // Full re-render (same as months-button handler)
+    renderWeeklyTable('inc');
+    renderWeeklyTable('gds');
+    recalcKPIs('inc');
+    recalcKPIs('gds');
+    _renderPeriodCharts('inc');
+    _renderPeriodCharts('gds');
+    if (window._allGoodsTxnsRaw) _renderMarginsData(window._allGoodsTxnsRaw);
+    if (window._utlParsed) { recalcUtilizationKPIs(); _renderUtilizationCharts(); loadPerCourtData(); }
+    if (typeof updateRevPerHourKPI === 'function' && document.getElementById('inc-kpi-rev-hour')) {
+      updateRevPerHourKPI();
+    }
   });
 });
 
@@ -847,12 +893,28 @@ function recalcUtilizationKPIs() {
   document.getElementById('utl-kpi-rev-hour-courts').textContent = fmtInt(Math.round(revTotal)) + ' ₺';
 }
 
-/* ---- Recalculate KPIs based on period filter ---- */
+/* ---- Recalculate KPIs based on period filter ----
+   Режим КАЛЕНДАРЬ (по умолчанию):
+     1M = только текущий месяц (с 1 числа)
+     3M = предыдущие 2 месяца + текущий (с 1 числа 2 месяца назад)
+     6M = предыдущие 5 + текущий
+     Всё = нет cutoff.
+   Режим ROLLING:
+     1M = последние 30 дней (today-30 … today)
+     3M = последние 90 дней
+     6M = последние 180 дней
+     Всё = нет cutoff.
+*/
 function getPeriodCutoff() {
   if (_periodMonths <= 0) return null; // "All" — no cutoff
   var cutoff = new Date();
-  cutoff.setMonth(cutoff.getMonth() - _periodMonths);
-  cutoff.setDate(1); cutoff.setHours(0,0,0,0);
+  if (_periodMode === 'rolling') {
+    cutoff.setHours(0,0,0,0);
+    cutoff.setDate(cutoff.getDate() - _periodMonths * 30);
+  } else {
+    cutoff.setDate(1); cutoff.setHours(0,0,0,0);
+    cutoff.setMonth(cutoff.getMonth() - (_periodMonths - 1));
+  }
   return cutoff;
 }
 
@@ -881,16 +943,20 @@ function recalcKPIs(prefix) {
   var totalRev = dayValues.reduce(function(s, d) { return s + d.val; }, 0);
 
   // Period label
-  var periodLabel = _periodMonths === 1 ? 'текущий месяц' : _periodMonths === 3 ? '3 месяца' : _periodMonths === 6 ? '6 месяцев' : 'всё время';
+  var periodLabel;
+  if (_periodMonths <= 0) periodLabel = 'всё время';
+  else if (_periodMode === 'rolling') periodLabel = 'посл. ' + (_periodMonths * 30) + ' дн. (rolling)';
+  else periodLabel = _periodMonths === 1 ? 'текущий месяц' : _periodMonths === 3 ? '3 месяца' : _periodMonths === 6 ? '6 месяцев' : 'всё время';
 
   var $ = function(id) { return document.getElementById(prefix + '-' + id); };
 
-  // If period is current month (1M), use the smart formula with prev month comparison
-  if (_periodMonths === 1) {
+  // If period is current month (1M) in CALENDAR mode, use the smart formula with prev month comparison.
+  // Rolling 1M = последние 30 дней — идёт общим путём ниже.
+  if (_periodMonths === 1 && _periodMode === 'calendar') {
     var curMonth = today.getMonth(), curYear = today.getFullYear();
     var dimCur = daysInMonth(curYear, curMonth);
     var completedDays = Math.max(today.getDate() - 1, 1);
-    var monthSoFar = 0, txCount = 0;
+    var monthSoFar = 0, txCount = 0, daysWithRev = 0;
     var prevM = curMonth === 0 ? 11 : curMonth - 1;
     var prevY = curMonth === 0 ? curYear - 1 : curYear;
     var prevMonthFull = 0;
@@ -898,7 +964,11 @@ function recalcKPIs(prefix) {
       for (var d = 0; d < 7; d++) {
         var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
         if (dd.getMonth() === curMonth && dd.getFullYear() === curYear) {
-          monthSoFar += w.days[d]; if (w.days[d] > 0) txCount++;
+          monthSoFar += w.days[d];
+          if (w.days[d] > 0) daysWithRev++;
+          // Реальное количество транзакций — из dayTx (появляется после _lazyBackfillTxDetails).
+          // Если ещё не загружены — txCount останется 0 и мы покажем fallback в renderKPIs.
+          if (w.dayTx && w.dayTx[d]) txCount += w.dayTx[d].length;
         }
         if (dd.getMonth() === prevM && dd.getFullYear() === prevY) prevMonthFull += w.days[d];
       }
@@ -906,12 +976,24 @@ function recalcKPIs(prefix) {
     var prevDim = daysInMonth(prevY, prevM);
     var prevPace = prevDim > 0 ? (prevMonthFull / prevDim) * completedDays : 0;
     renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevPace, txCount, _goals[tabName] || 0);
+    // ₺/корто-час — пересчёт по текущему периоду и в 1M ветке (раньше был ранний return до вызова).
+    if (prefix === 'inc') updateRevPerHourKPI();
     return;
   }
 
   // For other periods — show period totals
   var avgDay = totalDays > 0 ? totalRev / totalDays : 0;
-  var avgCheck = daysWithRevenue > 0 ? totalRev / daysWithRevenue : 0;
+
+  // Реальное количество транзакций — из dayTx (появляется после _lazyBackfillTxDetails)
+  var txCountPeriod = 0;
+  Object.values(wMap).forEach(function(w) {
+    for (var d = 0; d < 7; d++) {
+      var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+      if (dd >= today) continue;
+      if (cutoff && dd < cutoff) continue;
+      if (w.dayTx && w.dayTx[d]) txCountPeriod += w.dayTx[d].length;
+    }
+  });
 
   $('kpi-month-total').textContent = fmtMoney(totalRev);
   $('kpi-month-label').textContent = (prefix === 'inc' ? 'Доход' : 'Продажи') + ' за ' + periodLabel;
@@ -922,8 +1004,14 @@ function recalcKPIs(prefix) {
   $('kpi-avg-label').textContent = 'Средняя в день';
   $('kpi-avg-hint').textContent = 'все дни периода (вкл. нулевые)';
 
-  $('kpi-check').textContent = fmtMoney(avgCheck);
-  $('kpi-check-hint').textContent = daysWithRevenue + ' дней с выручкой';
+  // Средний чек — по реальным транзакциям (а не «доход / дни с выручкой»)
+  if (txCountPeriod > 0) {
+    $('kpi-check').textContent = fmtMoney(totalRev / txCountPeriod);
+    $('kpi-check-hint').textContent = txCountPeriod + ' транзакций за ' + totalDays + ' дн.';
+  } else {
+    $('kpi-check').textContent = '—';
+    $('kpi-check-hint').textContent = 'загружаются транзакции…';
+  }
 
   // Forecast — проекция на 30 дней
   var forecast30 = avgDay * 30;
@@ -938,6 +1026,9 @@ function recalcKPIs(prefix) {
     $('kpi-goal-bar').style.width = Math.min(goalPct, 100) + '%';
     $('kpi-goal-hint').textContent = 'цель: ' + fmtMoney(goal);
   }
+
+  // ₺/корто-час — пересчёт по текущему периоду (только на вкладке income)
+  if (prefix === 'inc') updateRevPerHourKPI();
 }
 var _allGoodsTxns = null; // set by mainFromSheet or lazy-loaded
 
@@ -1168,7 +1259,12 @@ function renderWeeklyTable(prefix) {
       const val = w.days[d];
       var isBest = val > 0 && val === bestDayVal;
       var bestStyle = isBest ? ';border-bottom:2px solid var(--accent);font-weight:700' : '';
-      html += '<td class="heat num" style="background:' + heatColor(val, maxDay[d]) + bestStyle + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">0</span>') + '</td>';
+      var dayDate = new Date(w.mon); dayDate.setDate(dayDate.getDate() + d);
+      var dayKey = dayDate.toISOString().slice(0,10);
+      // data-tx атрибут только если есть детализация чеков в weekMap
+      var hasDetails = w.dayTx && w.dayTx[d] && w.dayTx[d].length;
+      var txAttr = (val > 0 && hasDetails) ? ' data-tx="' + wk + '|' + d + '" data-day="' + dayKey + '" data-tab="' + prefix + '"' : '';
+      html += '<td class="heat num"' + txAttr + ' style="background:' + heatColor(val, maxDay[d]) + bestStyle + '">' + (val > 0 ? fmtInt(Math.round(val)) : '<span class="muted">0</span>') + '</td>';
     }
     html += '<td class="num" style="font-weight:700;background:' + heatColor(w.total, maxTotal) + '">' + fmtInt(Math.round(w.total)) + '</td>';
     html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
@@ -1228,6 +1324,94 @@ function renderWeeklyTable(prefix) {
   }
 }
 
+/* ---- Tx tooltip (top-3 чеков для ячеек weekly table) ---- */
+var _txTooltipEl = null;
+function _getTxTooltipEl() {
+  if (_txTooltipEl) return _txTooltipEl;
+  _txTooltipEl = document.createElement('div');
+  _txTooltipEl.className = 'tx-tooltip';
+  document.body.appendChild(_txTooltipEl);
+  return _txTooltipEl;
+}
+function _buildTxTooltipHtml(prefix, wk, dow, dayKey) {
+  var tabName = prefix === 'inc' ? 'income' : 'goods';
+  var wMap = tabData[tabName] && tabData[tabName].weekMap;
+  if (!wMap || !wMap[wk] || !wMap[wk].dayTx) return '';
+  var txs = (wMap[wk].dayTx[dow] || []).slice().sort(function(a, b) { return b.total - a.total; });
+  if (!txs.length) return '';
+  var total = txs.reduce(function(s, t) { return s + t.total; }, 0);
+
+  // Разные правила показа для income и goods:
+  // income — топ-3 самых крупных чеков
+  // goods — все чеки ≥1000 ₺ (крупные доп.продажи: ракетки, одежда; мячи на 200 ₺ и т.п. сворачиваем)
+  var BIG_GOODS_THRESHOLD = 1000;
+  var shown, rest;
+  if (prefix === 'gds') {
+    shown = txs.filter(function(t) { return t.total >= BIG_GOODS_THRESHOLD; });
+    rest = txs.filter(function(t) { return t.total < BIG_GOODS_THRESHOLD; });
+  } else {
+    shown = txs.slice(0, 3);
+    rest = txs.slice(3);
+  }
+  var restSum = rest.reduce(function(s, t) { return s + t.total; }, 0);
+  var parts = dayKey.split('-');
+  var dateLabel = parts[2] + '.' + parts[1];
+  var chekWord = txs.length === 1 ? 'чек' : (txs.length < 5 ? 'чека' : 'чеков');
+  var headLabel = prefix === 'gds'
+    ? dateLabel + ' · ' + txs.length + ' ' + chekWord + ' (крупные ≥1000 ₺)'
+    : dateLabel + ' · ' + txs.length + ' ' + chekWord;
+  var html = '<div class="tt-head">' + headLabel + '</div>';
+  if (!shown.length) {
+    html += '<div class="tt-rest">нет чеков ≥1000 ₺</div>';
+  } else {
+    shown.forEach(function(t) {
+      var name = t.subcategory || t.category || 'Без названия';
+      if (t.comment) name += ' · ' + t.comment;
+      html += '<div class="tt-row"><span class="tt-name">' + _esc(name) + '</span><span class="tt-val">' + fmtInt(Math.round(t.total)) + ' ₺</span></div>';
+    });
+  }
+  if (rest.length) {
+    html += '<div class="tt-rest">+ ещё ' + rest.length + ' мелких на ' + fmtInt(Math.round(restSum)) + ' ₺</div>';
+  }
+  html += '<div class="tt-sum"><span>Итого</span><span>' + fmtInt(Math.round(total)) + ' ₺</span></div>';
+  return html;
+}
+function _esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function _bindTxTooltip() {
+  if (window._txTooltipBound) return;
+  window._txTooltipBound = true;
+  document.body.addEventListener('mouseover', function(e) {
+    var td = e.target.closest && e.target.closest('td.heat[data-tx]');
+    if (!td) return;
+    var parts = (td.getAttribute('data-tx') || '').split('|');
+    if (parts.length !== 2) return;
+    var html = _buildTxTooltipHtml(td.getAttribute('data-tab'), parts[0], parseInt(parts[1], 10), td.getAttribute('data-day'));
+    if (!html) return;
+    var tt = _getTxTooltipEl();
+    tt.innerHTML = html;
+    tt.classList.add('on');
+  });
+  document.body.addEventListener('mousemove', function(e) {
+    if (!_txTooltipEl || !_txTooltipEl.classList.contains('on')) return;
+    var tt = _txTooltipEl;
+    var pad = 14;
+    var x = e.clientX + pad, y = e.clientY + pad;
+    var w = tt.offsetWidth, h = tt.offsetHeight;
+    if (x + w > window.innerWidth) x = e.clientX - w - pad;
+    if (y + h > window.innerHeight) y = e.clientY - h - pad;
+    tt.style.left = Math.max(6, x) + 'px';
+    tt.style.top = Math.max(6, y) + 'px';
+  });
+  document.body.addEventListener('mouseout', function(e) {
+    var td = e.target.closest && e.target.closest('td.heat[data-tx]');
+    if (!td) return;
+    if (_txTooltipEl) _txTooltipEl.classList.remove('on');
+  });
+}
+_bindTxTooltip();
+
 /* ---- Goals: sliding trend (avg of available months starting March 2026) + 15% ---- */
 var _goals = { income: 0, goods: 0 };
 
@@ -1277,9 +1461,15 @@ function renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, tx
   $('kpi-avg-hint').textContent = 'за ' + completedDays + ' дн. из ' + dimCur;
 
   // KPI 3: Average check per transaction
-  var avgCheck = txCount > 0 ? monthSoFar / txCount : 0;
-  $('kpi-check').textContent = fmtMoney(avgCheck);
-  $('kpi-check-hint').textContent = txCount + ' транзакций за ' + completedDays + ' дн.';
+  // txCount приходит из dayTx; если ещё не загружены (cache-path до _lazyBackfillTxDetails) — показываем плейсхолдер
+  if (txCount > 0) {
+    var avgCheck = monthSoFar / txCount;
+    $('kpi-check').textContent = fmtMoney(avgCheck);
+    $('kpi-check-hint').textContent = txCount + ' транзакций за ' + completedDays + ' дн.';
+  } else {
+    $('kpi-check').textContent = '—';
+    $('kpi-check-hint').textContent = 'загружаются транзакции…';
+  }
 
   // KPI 4: Forecast
   var forecast = completedDays > 0 ? (monthSoFar / completedDays) * dimCur : 0;
@@ -1297,41 +1487,136 @@ function renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevMonthPace, tx
     $('kpi-goal-hint').textContent = 'мало данных для цели';
   }
 
-  // KPI 6: ₺/корто-час (only on income tab)
+  // KPI 6: ₺/корто-час (only on income tab) — используем helper, который учитывает период
   if (prefix === 'inc') {
-    var utl = window._utlParsed;
-    var revHourEl = document.getElementById('inc-kpi-rev-hour');
-    var revHourDelta = document.getElementById('inc-kpi-rev-hour-delta');
-    if (utl && utl.length) {
-      var today2 = new Date(); today2.setHours(0,0,0,0);
-      var cm = today2.getMonth(), cy = today2.getFullYear();
-      // Current month hours
-      var curMonthHours = utl.filter(function(r) { return r.dt.getMonth() === cm && r.dt.getFullYear() === cy && r.hours > 0; }).reduce(function(s,r){return s+r.hours},0);
-      var curMonthDays = utl.filter(function(r) { return r.dt.getMonth() === cm && r.dt.getFullYear() === cy && r.hours > 0; }).length;
-      var revPerH = curMonthHours > 0 ? monthSoFar / curMonthHours : 0;
-      revHourEl.textContent = fmtInt(Math.round(revPerH)) + ' ₺';
-      // Last 30 days revenue + hours
-      var d30ago = new Date(today2); d30ago.setDate(d30ago.getDate() - 30);
-      var last30Hours = utl.filter(function(r) { return r.dt >= d30ago && r.dt <= today2 && r.hours > 0; }).reduce(function(s,r){return s+r.hours},0);
-      var last30Rev = 0;
-      var _wMap = tabData.income && tabData.income.weekMap;
-      if (_wMap) {
-        Object.values(_wMap).forEach(function(w) {
-          for (var d = 0; d < 7; d++) {
-            var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
-            if (dd >= d30ago && dd <= today2) last30Rev += w.days[d];
-          }
-        });
-      }
-      var last30PerH = last30Hours > 0 ? last30Rev / last30Hours : 0;
-      var hint = curMonthHours > 0 ? Math.round(curMonthHours) + ' ч / ' + curMonthDays + ' дн. (мес.)' : 'нет данных';
-      if (last30Hours > 0) hint += ' · 30д: ' + fmtInt(Math.round(last30PerH)) + ' ₺/ч';
-      revHourDelta.textContent = hint;
-    } else {
-      revHourEl.textContent = '—';
-      revHourDelta.textContent = 'загрузите вкладку Загрузка';
-    }
+    updateRevPerHourKPI();
   }
+}
+
+/* ---- Helper: donut категорий дохода для текущего периода (cache-path).
+       Источник — window._revMC (rev_by_month_cat, WIDE). ==== */
+function renderIncCatDonutFromPeriod() {
+  var revMC = window._revMC;
+  if (!revMC || !revMC.length) return;
+  var CAT_COLS = REV_CAT_ORDER;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var curYM = ymKey(today);
+  var cutoff = getPeriodCutoff();
+  var cutoffYM = cutoff ? ymKey(cutoff) : null;
+  var incCatMap = {}, incCatTotal = 0;
+  revMC.forEach(function(r) {
+    // Период 1M = только текущий месяц (как было), иначе от cutoff до current
+    if (_periodMonths === 1) {
+      if (r.month !== curYM) return;
+    } else if (cutoffYM) {
+      if (r.month < cutoffYM) return;
+    }
+    CAT_COLS.forEach(function(cat) {
+      if (cat === 'Товары') return;
+      var v = num(r[cat]);
+      if (v > 0) { incCatMap[cat] = (incCatMap[cat] || 0) + v; incCatTotal += v; }
+    });
+  });
+  renderCatBlock('inc-cat-donut', 'inc-cat-table', incCatMap, incCatTotal);
+  renderCatMinibar(incCatMap);
+}
+
+/* ---- Helper: donut категорий для full (slow) пути, источник incomeTxns. ==== */
+function renderIncCatDonutFromTxns() {
+  var txns = window._incomeTxns;
+  if (!txns) return;
+  var today = new Date(); today.setHours(0,0,0,0);
+  var cutoff = getPeriodCutoff();
+  var curM = today.getMonth(), curY = today.getFullYear();
+  var incCatMap = {}, incCatTotal = 0;
+  txns.forEach(function(t) {
+    if (_periodMonths === 1) {
+      if (t.date.getMonth() !== curM || t.date.getFullYear() !== curY) return;
+    } else if (cutoff) {
+      if (t.date < cutoff) return;
+    }
+    var cat = categorizeRevenue(t.category);
+    if (!cat) return;
+    incCatMap[cat] = (incCatMap[cat] || 0) + t.total;
+    incCatTotal += t.total;
+  });
+  renderCatBlock('inc-cat-donut', 'inc-cat-table', incCatMap, incCatTotal);
+  renderCatMinibar(incCatMap);
+}
+
+/* ---- Helper: ₺/корто-час для текущего периода + сравнение 30 дней.
+       Вызывать после любого изменения периода или окончания сборки данных. ==== */
+function updateRevPerHourKPI() {
+  var utl = window._utlParsed;
+  var revHourEl = document.getElementById('inc-kpi-rev-hour');
+  var revHourDelta = document.getElementById('inc-kpi-rev-hour-delta');
+  if (!revHourEl || !revHourDelta) return;
+  if (!utl || !utl.length) {
+    revHourEl.textContent = '—';
+    revHourDelta.textContent = 'загрузите вкладку Загрузка';
+    return;
+  }
+  var today = new Date(); today.setHours(0,0,0,0);
+  var cutoff = getPeriodCutoff(); // null для "всё время", иначе начало периода
+  var wMap = tabData.income && tabData.income.weekMap;
+  if (!wMap) { revHourEl.textContent = '—'; return; }
+
+  // Период: revenue из weekMap + часы из utl
+  var periodRev = 0;
+  Object.values(wMap).forEach(function(w) {
+    for (var d = 0; d < 7; d++) {
+      var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+      if (dd >= today) continue;
+      if (cutoff && dd < cutoff) continue;
+      periodRev += w.days[d];
+    }
+  });
+  var periodHoursArr = utl.filter(function(r) {
+    if (r.hours <= 0) return false;
+    if (r.dt >= today) return false;
+    if (cutoff && r.dt < cutoff) return false;
+    return true;
+  });
+  var periodHours = periodHoursArr.reduce(function(s, r) { return s + r.hours; }, 0);
+  var periodDays = periodHoursArr.length;
+  var periodPerH = periodHours > 0 ? periodRev / periodHours : 0;
+
+  // Диагностика (смотреть в DevTools Console, чтобы убедиться что значение реально меняется)
+  try {
+    console.log('[rev/h]', { periodMonths: _periodMonths, cutoff: cutoff ? cutoff.toISOString().slice(0,10) : null,
+                             rev: Math.round(periodRev), hours: Math.round(periodHours), days: periodDays,
+                             perHour: Math.round(periodPerH) });
+  } catch (e) {}
+
+  // Форсируем перерисовку: очищаем и ставим заново через rAF — иначе браузер иногда «сливает» два одинаковых кадра
+  revHourEl.textContent = '';
+  revHourDelta.textContent = '';
+  requestAnimationFrame(function() {
+    revHourEl.textContent = periodHours > 0 ? fmtInt(Math.round(periodPerH)) + ' ₺' : '—';
+
+    // Подсказка: часы периода + справка за 30 дней
+    var periodLabel = _periodMonths === 1 ? 'текущий мес.'
+                    : _periodMonths === 3 ? '3 мес.'
+                    : _periodMonths === 6 ? '6 мес.'
+                    : 'всё';
+    var hint = periodHours > 0 ? Math.round(periodHours) + ' ч / ' + periodDays + ' дн. (' + periodLabel + ')' : 'нет данных';
+
+    // Всегда показываем справку за последние 30 дней (бенчмарк)
+    var d30ago = new Date(today); d30ago.setDate(d30ago.getDate() - 30);
+    var last30Hours = utl.filter(function(r) { return r.dt >= d30ago && r.dt < today && r.hours > 0; }).reduce(function(s, r) { return s + r.hours; }, 0);
+    var last30Rev = 0;
+    Object.values(wMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd >= d30ago && dd < today) last30Rev += w.days[d];
+      }
+    });
+    var last30PerH = last30Hours > 0 ? last30Rev / last30Hours : 0;
+    if (last30Hours > 0 && _periodMonths !== 1) {
+      hint += ' · 30д: ' + fmtInt(Math.round(last30PerH)) + ' ₺/ч';
+    }
+    revHourDelta.textContent = hint;
+  });
 }
 
 function renderDowChartDual(canvasId, dowAvgNoZero, dowAvgWithZero) {
@@ -1691,6 +1976,9 @@ async function renderUtilizationTab(occRows) {
 
   // Save data for period recalculation
   window._utlParsed = parsed;
+
+  // Теперь когда utl есть — пересчитать ₺/корто-час на вкладке Выручка
+  if (typeof updateRevPerHourKPI === 'function') updateRevPerHourKPI();
 
   // Render all charts/tables
   _renderUtilizationCharts();
@@ -2652,6 +2940,11 @@ function _renderPeriodMonthly(prefix) {
 function _renderPeriodCharts(prefix) {
   _renderPeriodDow(prefix);
   _renderPeriodMonthly(prefix);
+  // Donut категорий дохода — тоже реагирует на период (только для income tab)
+  if (prefix === 'inc') {
+    if (window._incomeTxns) renderIncCatDonutFromTxns();
+    else if (window._revMC) renderIncCatDonutFromPeriod();
+  }
 }
 
 async function mainFromCache() {
@@ -2688,6 +2981,10 @@ async function mainFromCache() {
     });
     occParsed.sort(function(a, b) { return a.date < b.date ? -1 : 1; });
     window._utlParsed = occParsed;
+    // utl теперь есть — если KPI уже отрисованы, пересчитать ₺/корто-час
+    if (typeof updateRevPerHourKPI === 'function' && document.getElementById('inc-kpi-rev-hour')) {
+      updateRevPerHourKPI();
+    }
     console.log('[revenue] occupancy pre-loaded:', occParsed.length, 'days');
   } catch (e) { throw new Error('cache tabs missing: ' + e.message); }
 
@@ -2822,21 +3119,10 @@ async function mainFromCache() {
   var today = new Date(); today.setHours(0,0,0,0);
   var curYM = ymKey(today);
   var CAT_COLS = REV_CAT_ORDER; // ['Корты','Инвентарь','Клубные карты','Тренировки','Турниры','Товары','Прочее']
+  // Сохраняем для пересчёта по периоду
+  window._revMC = revMC;
   if (revMC && revMC.length) {
-    var incCatMap = {}, incCatTotal = 0;
-    revMC.forEach(function(r) {
-      if (r.month !== curYM) return;
-      CAT_COLS.forEach(function(cat) {
-        if (cat === 'Товары') return;
-        var v = num(r[cat]);
-        if (v > 0) {
-          incCatMap[cat] = (incCatMap[cat] || 0) + v;
-          incCatTotal += v;
-        }
-      });
-    });
-    renderCatBlock('inc-cat-donut', 'inc-cat-table', incCatMap, incCatTotal);
-    renderCatMinibar(incCatMap);
+    renderIncCatDonutFromPeriod();
 
     // Stacked chart from rev_by_month_cat (wide format)
     var monthCats = {};
@@ -2954,6 +3240,56 @@ async function mainFromCache() {
     }
   });
   renderSummaryHeader(incMonthTotal, gdsMonthTotal);
+
+  // Лениво подгружаем полные транзакции для тултипов top-3 чеков
+  _lazyBackfillTxDetails();
+}
+
+/* ---- Ленивый backfill: после отрисовки из cache подгружаем полную таблицу transactions,
+       впиливаем dayTx-детализацию в уже существующий weekMap, перерисовываем weekly tables
+       (суммы не меняются — только включаем hover-тултипы).
+   ==== */
+async function _lazyBackfillTxDetails() {
+  try {
+    var rows = await loadSheet('transactions');
+    if (!rows || !rows.length) return;
+    // Инициализируем dayTx на существующих weekMap
+    ['income','goods'].forEach(function(tn) {
+      var wm = tabData[tn] && tabData[tn].weekMap;
+      if (!wm) return;
+      Object.values(wm).forEach(function(w) {
+        if (!w.dayTx) w.dayTx = [[],[],[],[],[],[],[]];
+      });
+    });
+    rows.forEach(function(r) {
+      var d = parseDate(r.date);
+      if (!d) return;
+      var total = num(r.total);
+      if (!total) return;
+      var cat = r.category || '';
+      var tn = isIncome(cat) ? 'income' : (isGoods(cat) ? 'goods' : null);
+      if (!tn) return;
+      var wk = weekKey(d);
+      var wm = tabData[tn].weekMap;
+      if (!wm[wk]) return; // неделю из кеша не знаем — пропускаем
+      var dow = isoWeekDow(d);
+      wm[wk].dayTx[dow].push({
+        total: total,
+        category: cat,
+        subcategory: r.subcategory || '',
+        comment: r.comment || ''
+      });
+    });
+    // Перерисовываем, чтобы data-tx атрибуты появились
+    renderWeeklyTable('inc');
+    renderWeeklyTable('gds');
+    // Пересчитываем KPI — теперь txCount будет корректным (а не fallback '—')
+    try { recalcKPIs('inc'); } catch (e) { console.warn('recalcKPIs inc failed:', e); }
+    try { recalcKPIs('gds'); } catch (e) { console.warn('recalcKPIs gds failed:', e); }
+  } catch (err) {
+    // Бэкфил опционален — если не получилось, тултип просто не появится
+    console.warn('tx tooltip backfill failed:', err);
+  }
 }
 
 /* =========================================================================
@@ -2965,10 +3301,17 @@ function buildTabData(tabName, txns) {
   td.weekMap = {}; td.weekKeys = [];
   txns.forEach(function(t) {
     var wk = weekKey(t.date);
-    if (!td.weekMap[wk]) td.weekMap[wk] = { mon: getMonday(t.date), days: [0,0,0,0,0,0,0], total: 0 };
+    if (!td.weekMap[wk]) td.weekMap[wk] = { mon: getMonday(t.date), days: [0,0,0,0,0,0,0], total: 0, dayTx: [[],[],[],[],[],[],[]] };
     var dow = isoWeekDow(t.date);
     td.weekMap[wk].days[dow] += t.total;
     td.weekMap[wk].total += t.total;
+    // Сохраняем транзакцию для тултипа (топ-3 + остальное)
+    td.weekMap[wk].dayTx[dow].push({
+      total: t.total,
+      category: t.category || '',
+      subcategory: t.subcategory || '',
+      comment: t.comment || ''
+    });
   });
   td.weekKeys = Object.keys(td.weekMap).sort().reverse();
 }
@@ -3170,6 +3513,9 @@ async function mainFromSheet() {
     });
     parsed.sort(function(a, b) { return a.date < b.date ? -1 : 1; });
     window._utlParsed = parsed;
+    if (typeof updateRevPerHourKPI === 'function' && document.getElementById('inc-kpi-rev-hour')) {
+      updateRevPerHourKPI();
+    }
     console.log('[revenue] occupancy pre-loaded:', parsed.length, 'days');
   }).catch(function(e) { console.warn('[revenue] occupancy pre-load failed:', e); });
 
@@ -3194,7 +3540,7 @@ async function mainFromSheet() {
     if (!d) return;
     const total = num(r.total);
     if (!total) return;
-    txns.push({ date: d, total, category: r.category || '', subcategory: r.subcategory || '' });
+    txns.push({ date: d, total, category: r.category || '', subcategory: r.subcategory || '', comment: r.comment || '' });
   });
   txns.sort((a, b) => a.date - b.date);
 
@@ -3215,19 +3561,9 @@ async function mainFromSheet() {
   renderTabMonthly('inc', incomeTxns);
   renderRevPerHourChart(incomeTxns);
 
-  // Income category donut
-  var today = new Date(); today.setHours(0,0,0,0);
-  var curYM = ymKey(today);
-  var incCatMap = {}, incCatTotal = 0;
-  incomeTxns.forEach(function(t) {
-    if (ymKey(t.date) !== curYM) return;
-    var cat = categorizeRevenue(t.category);
-    if (!cat) return;
-    incCatMap[cat] = (incCatMap[cat] || 0) + t.total;
-    incCatTotal += t.total;
-  });
-  renderCatBlock('inc-cat-donut', 'inc-cat-table', incCatMap, incCatTotal);
-  renderCatMinibar(incCatMap);
+  // Income category donut — сохраняем источник для пересчёта по периоду
+  window._incomeTxns = incomeTxns;
+  renderIncCatDonutFromTxns();
   renderStackedChart(txns);
 
   /* ═══ GOODS TAB ═══ */

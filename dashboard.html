@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260414f"></script>
+<script src="assets/data.js?v=20260416m"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -119,6 +119,17 @@
   .card.clickable { cursor:pointer; transition:transform .15s, border-color .15s; }
   .card.clickable:hover { transform:translateY(-2px); border-color:var(--accent); }
 
+  /* Модальный фильтр периода */
+  .modal-period { display:flex; gap:6px; margin-bottom:14px; flex-wrap:wrap; }
+  .modal-period button {
+    flex:0 0 auto; padding:6px 12px; font-size:12px; font-weight:500;
+    background:var(--bg); border:1px solid var(--border); color:var(--text2);
+    border-radius:8px; cursor:pointer; transition:all .15s;
+  }
+  .modal-period button:hover { border-color:var(--accent); color:var(--text); }
+  .modal-period button.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .modal-period-hint { font-size:11px; color:var(--text3); margin-bottom:10px; }
+
   @media (max-width: 900px) {
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
     .grid, .grid.equal, .grid.three { grid-template-columns: 1fr; }
@@ -162,7 +173,7 @@
     <div class="kpi clickable" id="kpi-rev-card" title="Клик — разбивка по категориям"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span><span class="sub" id="kpi-rev-avg"></span><span class="sub" id="kpi-rev-forecast"></span></div>
     <div class="kpi"><span class="label">OPEX (посл. месяц)</span><span class="value" id="kpi-opex">—</span><span class="sub" id="kpi-opex-mo"></span></div>
     <div class="kpi"><span class="label">Операц. P&L</span><span class="value" id="kpi-pnl">—</span><span class="sub" id="kpi-pnl-mo"></span></div>
-    <div class="kpi"><span class="label">Клиентов всего</span><span class="value" id="kpi-clients">—</span><span class="sub" id="kpi-clients-sub"></span></div>
+    <div class="kpi"><span class="label">Клиентов всего</span><span class="value" id="kpi-clients">—</span><span class="sub" id="kpi-clients-active"></span><span class="sub" id="kpi-clients-sub"></span></div>
   </div>
 
   <!-- Revenue / OPEX by month + P&L -->
@@ -343,14 +354,23 @@ function renderCourts(months, p1, p2, p3, p4) {
 }
 
 // --- Memberships ---
-function renderMemberships(club, vip) {
+function renderMemberships(club, vip, clubPaid, vipPaid) {
   var total = club + vip;
+  // Если передали "paid" значения — используем их как основной счёт
+  // (status=Active + paid_until >= today). Fallback: формально active.
+  var hasPaid = (clubPaid != null && vipPaid != null);
+  var clubShown = hasPaid ? clubPaid : club;
+  var vipShown = hasPaid ? vipPaid : vip;
+  var totalShown = clubShown + vipShown;
+  var expired = hasPaid ? (total - totalShown) : 0;
   var CAP = 55;
-  document.getElementById("mem-total").textContent = total;
-  document.getElementById("mem-club").textContent = club;
-  document.getElementById("mem-vip").textContent = vip;
-  document.getElementById("mem-free").textContent = "свободно: " + Math.max(0, CAP - total);
-  document.getElementById("mem-fill").style.width = Math.min(100, total * 100 / CAP).toFixed(1) + "%";
+  document.getElementById("mem-total").textContent = totalShown;
+  document.getElementById("mem-club").textContent = clubShown;
+  document.getElementById("mem-vip").textContent = vipShown;
+  var freeText = "свободно: " + Math.max(0, CAP - totalShown);
+  if (expired > 0) freeText += " · " + expired + " истекли";
+  document.getElementById("mem-free").textContent = freeText;
+  document.getElementById("mem-fill").style.width = Math.min(100, totalShown * 100 / CAP).toFixed(1) + "%";
   new Chart(document.getElementById("chart-mem-type"), {
     type: "doughnut",
     data: {
@@ -504,14 +524,28 @@ async function loadSlowCourts() {
 
 async function loadSlowMemberships() {
   var rows = await gviz("memberships");
-  var club = 0, vip = 0;
+  var today = new Date();
+  var todayStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
+  var club = 0, vip = 0, clubPaid = 0, vipPaid = 0;
   rows.forEach(function(r) {
     if ((r.status || "").toLowerCase() !== "active") return;
     var t = (r.card_type || "").toLowerCase();
-    if (t.indexOf("vip") >= 0) vip++;
-    else if (t.indexOf("club") >= 0) club++;
+    var isVip = t.indexOf("vip") >= 0;
+    var isClub = !isVip && t.indexOf("club") >= 0;
+    if (isVip) vip++;
+    else if (isClub) club++;
+    // Parse paid_until (dd/mm/yyyy or yyyy-mm-dd)
+    var pu = (r.paid_until || "").trim();
+    var puIso = "";
+    var dm = pu.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (dm) puIso = dm[3] + "-" + ("0" + dm[2]).slice(-2) + "-" + ("0" + dm[1]).slice(-2);
+    else if (/^\d{4}-\d{2}-\d{2}$/.test(pu)) puIso = pu;
+    if (puIso && puIso >= todayStr) {
+      if (isVip) vipPaid++;
+      else if (isClub) clubPaid++;
+    }
   });
-  renderMemberships(club, vip);
+  renderMemberships(club, vip, clubPaid, vipPaid);
 }
 
 async function loadSlowClients() {
@@ -582,6 +616,7 @@ async function loadSlowLiabilities() {
       pnlEl.classList.add(pnlVal >= 0 ? "good" : "bad");
       document.getElementById("kpi-pnl-mo").textContent = kpis.last_month || '';
       document.getElementById("kpi-clients").textContent = fmt(kpis.clients_total);
+      document.getElementById("kpi-clients-active").textContent = "активных 30д: " + (kpis.clients_active_30d || 0);
       document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + kpis.clients_new_30d;
 
       // ── PNL CHART (from monthly_series) ──
@@ -610,7 +645,11 @@ async function loadSlowLiabilities() {
         cMonths.map(function(m) { return sMap[m].courts_p4; }));
 
       // ── MEMBERSHIPS (from kpis) ──
-      renderMemberships(kpis.memberships_club, kpis.memberships_vip);
+      // Предпочитаем paid-варианты (paid_until >= today); fallback — формально active.
+      renderMemberships(
+        kpis.memberships_club, kpis.memberships_vip,
+        kpis.memberships_club_paid, kpis.memberships_vip_paid
+      );
 
       // ── CLIENTS (from monthly_series) ──
       var clMonths = sMonths.slice(-12);
@@ -650,7 +689,9 @@ async function loadSlowLiabilities() {
 })();
 
 // ── MODAL FUNCTIONS ──
-var _revMixCache = null; // {labels:[], data:[]}
+var _revMixCache = null; // {labels:[], data:[]} — legacy, для совместимости
+var _revByCatMonthly = null; // массив {month, Корты, ...} из rev_by_month_cat
+var _revModalPeriod = 1; // месяцев в модале: 1, 3, 6, 0 (всё)
 
 function closeDashModal() {
   document.getElementById('dash-modal').classList.remove('active');
@@ -660,24 +701,99 @@ document.getElementById('dash-modal').addEventListener('click', function(e) {
 });
 document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeDashModal(); });
 
-// Revenue KPI click → category breakdown
-document.getElementById('kpi-rev-card').addEventListener('click', function() {
-  if (!_revMixCache) return;
-  var labels = _revMixCache.labels;
-  var data = _revMixCache.data;
-  var total = data.reduce(function(s, v) { return s + v; }, 0);
-  var html = '<table><thead><tr><th>Категория</th><th style="text-align:right">Сумма</th><th style="text-align:right">Доля</th></tr></thead><tbody>';
-  // Sort by amount descending
-  var pairs = labels.map(function(l, i) { return { label: l, amount: data[i] }; });
-  pairs.sort(function(a, b) { return b.amount - a.amount; });
+// Лениво подгружаем rev_by_month_cat при первом клике (чтобы не трогать init path)
+async function _ensureRevByCatLoaded() {
+  if (_revByCatMonthly) return _revByCatMonthly;
+  try {
+    var rows = await V7.loadCacheTab('rev_by_month_cat');
+    _revByCatMonthly = (rows || []).filter(function(r) { return r.month; })
+      .sort(function(a,b) { return a.month < b.month ? -1 : 1; });
+  } catch (e) {
+    console.warn('rev_by_month_cat load failed:', e);
+    _revByCatMonthly = [];
+  }
+  return _revByCatMonthly;
+}
+
+// Рендер таблицы категорий по выбранному периоду
+function _renderRevModalBody() {
+  var container = document.getElementById('rev-modal-table');
+  if (!container) return;
+  var rows = _revByCatMonthly || [];
+  if (!rows.length) {
+    container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных</div>';
+    return;
+  }
+  // Определяем список месяцев под период.
+  // N месяцев = последние N месяцев из имеющихся (включая текущий). 0 = все.
+  var selected;
+  if (_revModalPeriod <= 0) selected = rows.slice();
+  else selected = rows.slice(-_revModalPeriod);
+
+  if (!selected.length) {
+    container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных за период</div>';
+    return;
+  }
+
+  // Собираем все категории (по колонкам кроме month)
+  var cats = Object.keys(selected[0]).filter(function(k) { return k !== 'month'; });
+  var agg = {};
+  cats.forEach(function(c) { agg[c] = 0; });
+  selected.forEach(function(r) {
+    cats.forEach(function(c) { agg[c] += toNum(r[c]); });
+  });
+  // Отсортируем по сумме убывающую; пустые не показываем
+  var pairs = cats.map(function(c) { return { label: c, amount: agg[c] }; })
+                  .filter(function(p) { return p.amount > 0; })
+                  .sort(function(a, b) { return b.amount - a.amount; });
+  var total = pairs.reduce(function(s, p) { return s + p.amount; }, 0);
+
+  var periodLabel = selected.length === 1
+    ? ('месяц ' + selected[0].month)
+    : (selected[0].month + ' … ' + selected[selected.length-1].month + ' (' + selected.length + ' мес.)');
+
+  var html = '<div class="modal-period-hint">Период: ' + periodLabel + ' · Итого: <b>' + fmtK(total) + ' ₺</b></div>';
+  html += '<table><thead><tr><th>Категория</th><th style="text-align:right">Сумма</th><th style="text-align:right">Доля</th></tr></thead><tbody>';
   pairs.forEach(function(p) {
     var pct = total > 0 ? (p.amount / total * 100).toFixed(1) + '%' : '—';
     html += '<tr><td>' + p.label + '</td><td class="num">' + fmtK(p.amount) + ' ₺</td><td class="num">' + pct + '</td></tr>';
   });
   html += '</tbody><tfoot><tr><td style="font-weight:700">Итого</td><td class="num" style="font-weight:700">' + fmtK(total) + ' ₺</td><td></td></tr></tfoot></table>';
-  document.getElementById('modal-title').textContent = 'Структура выручки за месяц';
-  document.getElementById('modal-body').innerHTML = html;
+  container.innerHTML = html;
+}
+
+// Revenue KPI click → category breakdown с выбором периода
+document.getElementById('kpi-rev-card').addEventListener('click', async function() {
+  document.getElementById('modal-title').textContent = 'Структура выручки по периодам';
+  document.getElementById('modal-body').innerHTML =
+    '<div class="modal-period">' +
+    '  <button data-months="1">Месяц</button>' +
+    '  <button data-months="3">3 мес.</button>' +
+    '  <button data-months="6">6 мес.</button>' +
+    '  <button data-months="0">Всё</button>' +
+    '</div>' +
+    '<div id="rev-modal-table"><div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div></div>';
   document.getElementById('dash-modal').classList.add('active');
+
+  await _ensureRevByCatLoaded();
+
+  // Подсветим активную кнопку
+  function _setActive() {
+    document.querySelectorAll('#modal-body .modal-period button').forEach(function(b) {
+      b.classList.toggle('active', parseInt(b.dataset.months, 10) === _revModalPeriod);
+    });
+  }
+  _setActive();
+  _renderRevModalBody();
+
+  // Обработчики переключения периода
+  document.querySelectorAll('#modal-body .modal-period button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      _revModalPeriod = parseInt(btn.dataset.months, 10) || 0;
+      _setActive();
+      _renderRevModalBody();
+    });
+  });
 });
 
 // Active Cards click → member list

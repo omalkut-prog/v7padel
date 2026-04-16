@@ -407,6 +407,7 @@
    *   Rows 12-36 = OPEX breakdown
    * ----------------------------------------------------------------------- */
   // Month mapping: column header prefix → YYYY-MM
+  // ВАЖНО: при смене сезона таблицы PnL (после сентября) расширить mapping вниз.
   var PNL_MONTH_MAP = {
     'октябрь':  '2025-10',
     'ноябрь':   '2025-11',
@@ -419,7 +420,20 @@
     'июнь':     '2026-06',
     'июль':     '2026-07',
     'август':   '2026-08',
-    'сентябрь': '2026-09'
+    'сентябрь': '2026-09',
+    // Следующий сезон — чтобы сайт не ломался автоматически.
+    'октябрь 2026':  '2026-10',
+    'ноябрь 2026':   '2026-11',
+    'декабрь 2026':  '2026-12',
+    'январь 2027':   '2027-01',
+    'февраль 2027':  '2027-02',
+    'март 2027':     '2027-03',
+    'апрель 2027':   '2027-04',
+    'май 2027':      '2027-05',
+    'июнь 2027':     '2027-06',
+    'июль 2027':     '2027-07',
+    'август 2027':   '2027-08',
+    'сентябрь 2027': '2027-09'
   };
 
   async function loadPnL(opts) {
@@ -508,7 +522,7 @@
     for (var ri = 1; ri < rawRows.length; ri++) {
       var art = (rawRows[ri][2] || '').trim().toLowerCase();
       if (art.indexOf('доход от деятельности') >= 0 && REV_ROW < 0) REV_ROW = ri;
-      if (art.indexOf('условно-постоянные расход') >= 0 && OPEX_ROW < 0) OPEX_ROW = ri;
+      if (art.indexOf('условно-постоянные расходы') >= 0 && OPEX_ROW < 0) OPEX_ROW = ri;
       if (art.indexOf('прибыль') >= 0 && PNL_ROW < 0) PNL_ROW = ri;
 
       // Revenue breakdown
@@ -674,8 +688,9 @@
       if (!kpiRows || !kpiRows.length) return null;
       var kpis = kpiRows[0];
       ['revenue_last_month','opex_last_month','pnl_last_month',
-       'clients_total','clients_new_30d','bookings_30d',
+       'clients_total','clients_new_30d','bookings_30d','clients_active_30d',
        'memberships_club','memberships_vip','memberships_total',
+       'memberships_club_paid','memberships_vip_paid','memberships_total_paid',
        'liabilities_total'].forEach(function(k) {
         if (kpis[k] !== undefined) kpis[k] = num(kpis[k]);
       });
