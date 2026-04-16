@@ -2,7 +2,7 @@
 
 > **Авто-генерируется** скриптом `etl/generate_state_doc.py`.
 > **Не редактировать руками** — изменения будут перезаписаны при следующем ETL.
-> Generated: `2026-04-16 21:07`
+> Generated: `2026-04-16 21:25`
 
 ## Клиенты
 
@@ -50,7 +50,7 @@
 
 ## Известные проблемы ETL
 
-- `bookings.customer_id` пустой для **74%** (5 601 из 7 538) — баг парсера, см. `07_ANTI_PATTERNS.md`
+- `bookings.customer_id` пустой для **71%** (4 377 из 6 148) — баг парсера, см. `07_ANTI_PATTERNS.md`
 - `client_transactions.is_paid` всегда 0 (из 1 405 tx) — парсер Paid сломан
 - `client_transactions.is_cancel` всегда 0 — парсер Cancel сломан
 

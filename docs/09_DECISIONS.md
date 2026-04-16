@@ -215,6 +215,12 @@
 
 **Почему**: это единственный путь к 100% точному cid в `bookings` без эвристик. Ключевое открытие — параметр tooltip-метода называется `id`, а не `idReserva` (вычислено по JS-сигнатуре в HTML). С ним tooltip возвращает полный `Usuarios[]` с `IdCliente, Nombre, ImporteTotal, ImportePendientePago`. Плюсы: реальное покрытие 100% на `reserva_individual/partida/clase_suelta`, 77% на `actividad_abierta`, 0% на клубных ивентах (by design). Минусы: N+1 запросов (≈1500 tooltip’ов за 151 день), решено ThreadPoolExecutor(WORKERS=3, 50 ms throttle) → ~2 мин полный sync. Upsert-стратегия: окно −90/+60 дней перезаписывается целиком, старые брони вне окна сохраняются в legacy-схеме. fuzzy_match удалён из `run_all_etl.py`. Phase F union оставлен как страховка: если грид tooltip-аут — KPI не ломается, считаем по `client_transactions`.
 
+**Аудит первого прогона выявил два бага** (2026-04-16, пофикшено):
+1. **Legacy-дубли**: 6029 старых xlsx-строк имели другой формат `booking_id`, upsert их не перезаписывал → 1390 дублей бронирований в окне скрапа. Фикс: дополнил `write_to_sheets` удалением legacy-строк, чей `start_ts` попадает в окно.
+2. **`parse_date` не понимал `'YYYY-MM-DD HH:MM'`** (новый формат start_ts без секунд) → в `compute_client_kpis` источник из bookings давал 0 активных клиентов. Фикс: добавил формат в список парсеров в `build_cache.py`.
+
+После фикса: `bookings_30d = 592`, `clients_active_30d = 353` (до фиксов всей линейки было 68 — рост ×5.2).
+
 ---
 
 ## Шаблон новой записи
