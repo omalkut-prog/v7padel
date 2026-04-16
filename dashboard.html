@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260416m"></script>
+<script src="assets/data.js?v=20260416n"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -584,6 +584,16 @@ function renderRetention(rows) {
   }
 }
 
+// --- Helper: cell с wa.me-ссылкой (через V7.waHref, турецкая локаль) ---
+function phoneWaCell(phone) {
+  if (!phone) return '';
+  var href = V7.waHref(phone);
+  return href ? ('<a href="' + href + '" target="_blank">' + phone + '</a>') : phone;
+}
+
+// Единый лимит строк в recall-списках (совпадает с limit на сервере).
+var RECALL_LIST_LIMIT = 15;
+
 // --- Список Под риском ---
 function renderAtRisk(rows) {
   var tbody = document.querySelector("#tbl-atrisk tbody");
@@ -592,14 +602,12 @@ function renderAtRisk(rows) {
     tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет клиентов под риском</td></tr>';
     return;
   }
-  rows.forEach(function(r) {
+  rows.slice(0, RECALL_LIST_LIMIT).forEach(function(r) {
     var tr = document.createElement("tr");
-    var phone = (r.phone || '').replace(/\D/g, '');
-    var phoneCell = phone ? ('<a href="https://wa.me/' + phone + '" target="_blank">' + r.phone + '</a>') : '';
     tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
                    '<td class="num">' + fmt(toNum(r.amount_90d)) + '</td>' +
                    '<td class="num">' + (r.days_since_last_tx || '—') + 'д</td>' +
-                   '<td>' + phoneCell + '</td>';
+                   '<td>' + phoneWaCell(r.phone) + '</td>';
     tbody.appendChild(tr);
   });
 }
@@ -612,14 +620,12 @@ function renderMemCandidates(rows) {
     tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет кандидатов</td></tr>';
     return;
   }
-  rows.slice(0, 10).forEach(function(r) {
+  rows.slice(0, RECALL_LIST_LIMIT).forEach(function(r) {
     var tr = document.createElement("tr");
-    var phone = (r.phone || '').replace(/\D/g, '');
-    var phoneCell = phone ? ('<a href="https://wa.me/' + phone + '" target="_blank">' + r.phone + '</a>') : '';
     tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
                    '<td class="num">' + fmt(toNum(r.amount_30d)) + '</td>' +
                    '<td class="num">' + fmt(toNum(r.amount_90d)) + '</td>' +
-                   '<td>' + phoneCell + '</td>';
+                   '<td>' + phoneWaCell(r.phone) + '</td>';
     tbody.appendChild(tr);
   });
 }

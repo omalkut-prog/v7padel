@@ -327,6 +327,22 @@
     return Math.round(n).toLocaleString('ru-RU');
   }
 
+  // waHref — нормализация телефона для https://wa.me/ ссылок.
+  // Обрабатывает: `+90 555 123 45 67`, `90 555 ...`, `0555...` (турецкий local).
+  // Возвращает полный URL или null если номер не валиден.
+  function waHref(phone) {
+    if (!phone) return null;
+    var digits = String(phone).replace(/[^\d+]/g, '');
+    if (!digits) return null;
+    digits = digits.replace(/^\+/, '');
+    // Турецкий мобильный 0XXXXXXXXXX → prepend 90
+    if (digits.length === 11 && digits.charAt(0) === '0') {
+      digits = '90' + digits.slice(1);
+    }
+    if (digits.length < 10) return null;
+    return 'https://wa.me/' + digits;
+  }
+
   // parseDate: explicit DD/MM/YYYY priority, then fall back to native Date().
   // Rationale: `new Date("08/04/2026")` in JS is US MM/DD, so August 4 — wrong.
   function parseDate(s) {
@@ -766,7 +782,7 @@
     loadFullCache,
     loadCacheTab,
     renderReloadNotice,
-    num, fmt, fmtMoney, fmtPct, fmtSigned, fmtInt,
+    num, fmt, fmtMoney, fmtPct, fmtSigned, fmtInt, waHref,
     parseDate, ymKey, ymLabel, nameKey,
     cssVar, accent,
     pnlByMonth, categorizeRevenue,
