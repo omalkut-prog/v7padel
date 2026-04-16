@@ -201,6 +201,22 @@
 
 ---
 
+## ADR-013 · 2026-04-16 · `sync_bookings_matchpoint.py`: прямой API вместо fuzzy-match
+
+**Контекст**: `bookings.customer_id` был пустой для ~93% записей. Причина — таб заполнялся из stale xlsx-дампа без привязки к клиентам, а `fuzzy_match.py` по имени клиента не срабатывал (в сетке броней имён часто нет, только «Cancha libre» / номер турнира). `clients_active_30d` показывал 68 из 934 броней в месяц — аномально мало, ломало воронку, recall и retention-метрики.
+
+**Варианты**:
+1. Починить `fuzzy_match.py` (добавить fuzzy по телефону, etc.) → не решает проблему в корне — в самом grid cid нет
+2. Union `bookings ∪ client_transactions` в `build_cache` (Phase F, быстрая заплатка) → чинит KPI, но сами `bookings` остаются кривыми
+3. Новый sync-скрипт через два Matchpoint API: `ObtenerCuadro` (сетка) + `ObtenerInformacionReservaTooltip(id=BID)` (Usuarios[].IdCliente) → точные данные, но × N запросов (N = число броней)
+4. Скрейпить HTML `/Reservas/ListadoReservas.aspx` → в HTML-grid колонки cid нет (проверено probe), fall-back через tooltip всё равно нужен
+
+**Выбор**: вариант 3 (Phase D) поверх варианта 2 (Phase F оставлен как defence-in-depth).
+
+**Почему**: это единственный путь к 100% точному cid в `bookings` без эвристик. Ключевое открытие — параметр tooltip-метода называется `id`, а не `idReserva` (вычислено по JS-сигнатуре в HTML). С ним tooltip возвращает полный `Usuarios[]` с `IdCliente, Nombre, ImporteTotal, ImportePendientePago`. Плюсы: реальное покрытие 100% на `reserva_individual/partida/clase_suelta`, 77% на `actividad_abierta`, 0% на клубных ивентах (by design). Минусы: N+1 запросов (≈1500 tooltip’ов за 151 день), решено ThreadPoolExecutor(WORKERS=3, 50 ms throttle) → ~2 мин полный sync. Upsert-стратегия: окно −90/+60 дней перезаписывается целиком, старые брони вне окна сохраняются в legacy-схеме. fuzzy_match удалён из `run_all_etl.py`. Phase F union оставлен как страховка: если грид tooltip-аут — KPI не ломается, считаем по `client_transactions`.
+
+---
+
 ## Шаблон новой записи
 
 ```markdown

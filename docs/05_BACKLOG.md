@@ -14,11 +14,12 @@
 
 ## NOW (5 max)
 
-### 1. Fix `bookings.customer_id` пустой для ~XX% записей
-- **Impact on NS**: средний. Без customer_id невозможно корректно считать воронку «бронирование → клиент → повтор» и рекалл по активности.
-- **Effort**: 2 ч
-- **Owner**: Claude
-- **Детали**: разобраться в парсере ListadoReservas, где теряется Cod. клиента. После фикса — пересчитать `clients_active_30d` (сейчас 68 из 936 броней ≈ 7%, это аномально мало → вероятно именно дефолт пустых customer_id).
+### 1. ~~Fix `bookings.customer_id` пустой для ~XX% записей~~ ✅ DONE (2026-04-16)
+- Закрыто: см. ADR в `09_DECISIONS.md` / запись `sync_bookings_matchpoint.py`.
+- Было: stale xlsx-дамп, `customer_id` пустой для ~93%, fuzzy_match не помогал (мало имён в карточке).
+- **Phase F (временная заплатка)**: в `build_cache.compute_client_kpis` union cid из `bookings ∪ client_transactions` (последний имеет точные cid). `clients_active_30d`: 68 → 199.
+- **Phase D (основное решение)**: новый скрипт `sync_bookings_matchpoint.py` — два Matchpoint API (`ObtenerCuadro` + `ObtenerInformacionReservaTooltip`), окно −90 / +60 дней, расширенная схема (`customer_ids, amount, debt, origen, reg_*`). Покрытие cid: 100% на `reserva_individual/partida/clase_suelta`, 77% на `actividad_abierta`, 0% на `reserva_club/mantenimiento` (by design).
+- Следствие: можно считать воронку «бронирование → клиент → повтор» и точный recall по активности.
 
 ### 2. Заполнить стратегические блоки `00_NORTH_STAR.md`
 - **Impact on NS**: высокий. Без этого другой ИИ и сам Володимир не имеют опорных цифр для приоритизации.

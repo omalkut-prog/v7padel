@@ -130,9 +130,49 @@ Response (внутри `{"d": {...}}`):
 
 ### Бронирования
 
+#### `POST /Reservas/CuadroReservasNuevo.aspx/ObtenerCuadro`
+JSON PageMethod. Сетка дня: все Ocupaciones по всем кортам. Требует контекста (GET grid-страницы).
+
+Request:
+```json
+{"idCuadro": "3", "fecha": "DD/MM/YYYY"}
+```
+
+Response (`d.Columnas[]`):
+- `Id` — id корта (2/5/6/7)
+- `TextoPrincipal` — имя корта (P1/P2/P3/P4)
+- `Ocupaciones[]` — брони дня:
+  - `Id` — **booking_id** (Matchpoint внутренний, строка)
+  - `StrHoraInicio, StrHoraFin` (`HH:MM`), `Minutos`
+  - `Tipo` — `reserva_individual / reserva_partida / clase_suelta / reserva_actividad_abierta / reserva_club / reserva_mantenimiento`
+  - `Texto1` — отображаемый текст брони (имя клиента/ивент)
+  - `Observaciones`
+  - ⚠️ **cid в сетке НЕТ** — нужен второй вызов.
+
+Использует: `sync_bookings_matchpoint.py` (этап 1).
+
+#### `POST /Reservas/CuadroReservasNuevo.aspx/ObtenerInformacionReservaTooltip`
+JSON PageMethod. Детали конкретной брони с полным списком игроков.
+
+Request:
+```json
+{"id": "BOOKING_ID"}
+```
+⚠️ Параметр называется **`id`**, не `idReserva`. Вычислено через JS-сигнатуру в HTML: `ObtenerInformacionReservaTooltip: function(id, ...)`. С неправильным именем endpoint возвращает пустой `Usuarios[]`.
+
+Response (`d`):
+- `Usuarios[]` — игроки: `IdCliente, Nombre, Telefono, ImporteTotal, ImportePendientePago`
+- `Origen` — `administracion / movil / web`
+- `Usuario_Registro` — кто создал бронь
+- `StrFecha_Registro, StrHora_Registro`
+- `Texto1, Observaciones` (уточнение над сеткой)
+
+Используется: `sync_bookings_matchpoint.py` (этап 2, параллельно по N броней из сетки).
+
+**Покрытие cid** (см. `01_ARCHITECTURE.md → bookings`): 100% на `reserva_individual/partida/clase_suelta`, ~77% на `actividad_abierta`, 0% на клубных ивентах / мейнтенансе.
+
 #### `GET/POST /Reservas/ListadoReservas.aspx`
-HTML-таблица бронирований. Использует `scrape_debts.py`, bookings ETL (если есть).
-⚠️ `customer_id` в наших `bookings` часто пустой — надо чинить парсинг.
+HTML-таблица бронирований (legacy). Используется `scrape_debts.py`. **Не содержит колонки `customer_id`** в grid — поэтому парсить его бессмысленно, ходим сразу в JSON API выше.
 
 ### Долги
 

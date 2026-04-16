@@ -19,6 +19,7 @@
 | `sync_client_revenue.py` | Wide-format агрегат выручки | Ежедневно | `ListadoClientesMasGasto.aspx` |
 | `sync_client_visits.py` | Визиты клиента | Ежедневно | (уточнить endpoint в скрипте) |
 | `sync_client_categories.py` | Топ-категории клиента | Ежедневно | Matchpoint |
+| `sync_bookings_matchpoint.py` | Брони (−90 / +60 дней) с `customer_id` через tooltip | Ежедневно | `CuadroReservasNuevo/ObtenerCuadro` + `ObtenerInformacionReservaTooltip` |
 | `scrape_occupancy.py` | Загрузка кортов по дням | Ежедневно | `CuadroReservasNuevo` PageMethod |
 | `scrape_debts.py` | Задолженности | Ежедневно | Matchpoint |
 
@@ -61,13 +62,14 @@
 4. sync_client_revenue        (обязательно)
 5. sync_client_visits         (обязательно)
 6. sync_client_categories     (обязательно)
-7. scrape_occupancy           (обязательно)
-8. scrape_debts               (обязательно)
-9. etl.py                     (reads 1GDRZ → transactions; полный rebuild)
-10. sync_topup_to_transactions (после etl.py! — добавляет top-up'ы, которые etl.py удаляет при rebuild)
-11. sync_memberships_matchpoint (обновление Club/VIP карт — перед build_cache)
-12. build_cache                (в КОНЦЕ — читает всё выше)
-13. generate_state_doc         (после build_cache — обновляет 04_CURRENT_STATE.md)
+7. sync_bookings_matchpoint   (обязательно — брони с cid; заменил fuzzy_match)
+8. scrape_occupancy           (обязательно)
+9. scrape_debts               (обязательно)
+10. etl.py                    (reads 1GDRZ → transactions; полный rebuild)
+11. sync_topup_to_transactions (после etl.py! — добавляет top-up'ы, которые etl.py удаляет при rebuild)
+12. sync_memberships_matchpoint (обновление Club/VIP карт — перед build_cache)
+13. build_cache               (в КОНЦЕ — читает всё выше)
+14. generate_state_doc        (после build_cache — обновляет 04_CURRENT_STATE.md)
 ```
 
 ⚠️ **Порядок #9 → #10 критичен**: `etl.py` делает full rebuild `transactions` (стирает всё, пишет заново из 1GDRZ). Если `sync_topup_to_transactions` запустить ДО etl.py — top-up'ы потеряются. Всегда строго после.
