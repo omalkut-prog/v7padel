@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260417p"></script>
+<script src="assets/data.js?v=20260417q"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -243,7 +243,25 @@
     </div>
   </div>
 
-  <!-- Отмены по дням недели + вчера/сегодня -->
+  <!-- Анализ отмен: 3 среза + dow + вчера -->
+  <div class="grid three">
+    <div class="card">
+      <h3>Отмены по типу <small>часы за 4 недели</small></h3>
+      <div class="chart-wrap short"><canvas id="chart-cancel-tipo"></canvas></div>
+      <div style="margin-top:6px; font-size:11px; color:#6b7b8c;" id="cancel-tipo-note">—</div>
+    </div>
+    <div class="card">
+      <h3>Отмены по источнику <small>откуда отменяют</small></h3>
+      <div class="chart-wrap short"><canvas id="chart-cancel-origen"></canvas></div>
+      <div style="margin-top:6px; font-size:11px; color:#6b7b8c;" id="cancel-origen-note">—</div>
+    </div>
+    <div class="card">
+      <h3>Отмены по часу <small>когда в течение дня</small></h3>
+      <div class="chart-wrap short"><canvas id="chart-cancel-hour"></canvas></div>
+      <div style="margin-top:6px; font-size:11px; color:#6b7b8c;" id="cancel-hour-note">—</div>
+    </div>
+  </div>
+
   <div class="grid equal">
     <div class="card">
       <h3>Отмены по дням недели <small>% за последние 4 недели</small></h3>
@@ -622,6 +640,108 @@ function phoneWaCell(phone) {
 // Единый лимит строк в recall-списках (совпадает с limit на сервере).
 var RECALL_LIST_LIMIT = 15;
 
+// --- Отмены по типу (horizontal bar, часы) ---
+function renderCancelTipo(rows) {
+  if (!rows || !rows.length) return;
+  var labels = rows.map(function(r) { return r.tipo_label || r.tipo; });
+  var hours = rows.map(function(r) { return toNum(r.hours); });
+  var counts = rows.map(function(r) { return toNum(r.count); });
+  new Chart(document.getElementById("chart-cancel-tipo"), {
+    type: 'bar',
+    data: { labels: labels, datasets: [{
+      label: 'Часов отменено', data: hours,
+      backgroundColor: '#e74c3c', borderRadius: 3,
+    }] },
+    options: {
+      indexAxis: 'y',
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c) {
+          return c.parsed.x.toFixed(1) + ' ч (' + counts[c.dataIndex] + ' броней)';
+        } } }
+      },
+      scales: {
+        x: { beginAtZero: true, grid: { color: "#eef2f4" }, ticks: { callback: function(v) { return v + 'ч'; } } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+  // Тотал + топ
+  var tot = hours.reduce(function(a, b) { return a + b; }, 0);
+  var top = labels[0] || '—';
+  document.getElementById("cancel-tipo-note").textContent =
+    'Всего ' + Math.round(tot) + ' ч отменено · лидер: ' + top;
+}
+
+// --- Отмены по источнику (origen, doughnut) ---
+function renderCancelOrigen(rows) {
+  if (!rows || !rows.length) return;
+  var labels = rows.map(function(r) { return r.origen; });
+  var counts = rows.map(function(r) { return toNum(r.count); });
+  var hours = rows.map(function(r) { return toNum(r.hours); });
+  var palette = { 'Application': '#e74c3c', 'Mobile': '#f39c12', 'Website': '#9b59b6', 'Web': '#9b59b6', 'Other': '#7f8c8d' };
+  var colors = labels.map(function(l) { return palette[l] || '#95a5a6'; });
+  var total = counts.reduce(function(a, b) { return a + b; }, 0);
+  new Chart(document.getElementById("chart-cancel-origen"), {
+    type: 'doughnut',
+    data: { labels: labels, datasets: [{ data: counts, backgroundColor: colors, borderColor: '#fff', borderWidth: 2 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, padding: 8, font: { size: 11 } } },
+        tooltip: { callbacks: { label: function(c) {
+          var pct = total > 0 ? (c.parsed * 100 / total).toFixed(1) : 0;
+          return c.label + ': ' + c.parsed + ' броней (' + pct + '%, ' + hours[c.dataIndex].toFixed(0) + ' ч)';
+        } } }
+      }
+    }
+  });
+  // Подпись: главный источник
+  if (labels.length) {
+    var mainPct = total > 0 ? (counts[0] * 100 / total).toFixed(0) : 0;
+    document.getElementById("cancel-origen-note").textContent =
+      mainPct + '% отмен из ' + labels[0];
+  }
+}
+
+// --- Отмены по часу дня (line chart) ---
+function renderCancelHour(rows) {
+  if (!rows || !rows.length) return;
+  var hours = rows.map(function(r) { return r.hour + ':00'; });
+  var counts = rows.map(function(r) { return toNum(r.count); });
+  new Chart(document.getElementById("chart-cancel-hour"), {
+    type: 'bar',
+    data: { labels: hours, datasets: [{
+      label: 'Отмен в час', data: counts,
+      backgroundColor: 'rgba(231, 76, 60, 0.7)', borderRadius: 2,
+    }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: function(c) {
+          return c.parsed.y + ' броней отменено в ' + c.label;
+        } } }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 } },
+        y: { beginAtZero: true, grid: { color: "#eef2f4" }, ticks: { precision: 0 } }
+      }
+    }
+  });
+  // Найти пиковый час
+  var peak = 0, peakHour = '';
+  rows.forEach(function(r) {
+    var c = toNum(r.count);
+    if (c > peak) { peak = c; peakHour = r.hour; }
+  });
+  if (peak > 0) {
+    document.getElementById("cancel-hour-note").textContent =
+      'Пик отмен: ' + peakHour + ':00 (' + peak + ' броней)';
+  }
+}
+
 // --- Отмены по дням недели (bar chart %) ---
 function renderCancelDow(rows) {
   if (!rows || !rows.length) return;
@@ -960,6 +1080,9 @@ async function loadSlowLiabilities() {
         V7.loadCacheTab('membership_candidates').catch(function() { return []; }),
         V7.loadCacheTab('cancellations_dow').catch(function() { return []; }),
         V7.loadCacheTab('occupancy_planfact').catch(function() { return []; }),
+        V7.loadCacheTab('cancel_by_tipo').catch(function() { return []; }),
+        V7.loadCacheTab('cancel_by_origen').catch(function() { return []; }),
+        V7.loadCacheTab('cancel_by_hour').catch(function() { return []; }),
       ]).then(function(results) {
         renderBookingTypes(results[0]);
         renderRetention(results[1]);
@@ -967,6 +1090,9 @@ async function loadSlowLiabilities() {
         renderMemCandidates(results[3]);
         renderCancelDow(results[4]);
         renderCancelYesterday(results[5]);
+        renderCancelTipo(results[6]);
+        renderCancelOrigen(results[7]);
+        renderCancelHour(results[8]);
       });
 
       // ── TIMESTAMP ──
