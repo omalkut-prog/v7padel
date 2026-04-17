@@ -3,7 +3,7 @@
   if (PAGE === '') PAGE = 'index.html';
   var role = sessionStorage.getItem('v7role');
 
-  var PUBLIC = ['login.html'];
+  var PUBLIC = ['login.html', 'intensive.html'];
   if (PUBLIC.indexOf(PAGE) !== -1) return;
 
   if (!role) {
