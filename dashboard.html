@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260417q"></script>
+<script src="assets/data.js?v=20260417r"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -286,6 +286,25 @@
         <div id="cancel-worst-day">—</div>
         <div id="cancel-best-day" style="margin-top:4px">—</div>
       </div>
+    </div>
+  </div>
+
+  <!-- Топ клиентов по отменам (эвристика имён из booking_text) -->
+  <div class="grid equal">
+    <div class="card">
+      <h3>ТОП-20 по отменам <small>8 нед · эвристика имён, покрытие ~<span id="cancel-topc-pct">—</span>%</small></h3>
+      <table class="mini" id="tbl-cancel-topc">
+        <thead><tr><th>Клиент</th><th class="num">Отмен</th><th class="num">Часов</th><th>Чаще отменяет</th></tr></thead>
+        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h3>Топ-5 чаще отменяемого <small>типы/мероприятия</small></h3>
+      <table class="mini" id="tbl-cancel-top5">
+        <thead><tr><th>Категория</th><th class="num">Отмен</th><th class="num">Часов</th></tr></thead>
+        <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+      <div style="margin-top:10px; font-size:12px; color:#6b7b8c;" id="cancel-top5-note">—</div>
     </div>
   </div>
 
@@ -639,6 +658,58 @@ function phoneWaCell(phone) {
 
 // Единый лимит строк в recall-списках (совпадает с limit на сервере).
 var RECALL_LIST_LIMIT = 15;
+
+// --- ТОП-20 клиентов по отменам (table) ---
+function renderCancelTopClients(rows) {
+  var tbody = document.querySelector("#tbl-cancel-topc tbody");
+  tbody.innerHTML = "";
+  if (!rows || !rows.length) {
+    tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет данных</td></tr>';
+    return;
+  }
+  if (rows[0] && rows[0].recognized_pct) {
+    var el = document.getElementById("cancel-topc-pct");
+    if (el) el.textContent = rows[0].recognized_pct;
+  }
+  rows.forEach(function(r) {
+    var tr = document.createElement("tr");
+    var topInfo = r.top_tipo
+      ? (r.top_tipo + ' · ' + (r.top_tipo_count || '') + ' из ' + (r.count || ''))
+      : '—';
+    tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
+                   '<td class="num" style="color:#c0392b;font-weight:600">' + r.count + '</td>' +
+                   '<td class="num">' + toNum(r.hours).toFixed(1) + '</td>' +
+                   '<td style="font-size:12px;color:var(--text2)">' + topInfo + '</td>';
+    tbody.appendChild(tr);
+  });
+}
+
+// --- Топ-5 чаще всего отменяемого (из cancel_by_tipo — просто первые 5) ---
+function renderCancelTop5(tipoRows) {
+  var tbody = document.querySelector("#tbl-cancel-top5 tbody");
+  tbody.innerHTML = "";
+  if (!tipoRows || !tipoRows.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="loading">Нет данных</td></tr>';
+    return;
+  }
+  var top5 = tipoRows.slice(0, 5);
+  var totalH = tipoRows.reduce(function(s, r) { return s + toNum(r.hours); }, 0);
+  top5.forEach(function(r) {
+    var tr = document.createElement("tr");
+    var share = totalH > 0 ? ((toNum(r.hours) / totalH) * 100).toFixed(0) + '%' : '';
+    tr.innerHTML = '<td>' + (r.tipo_label || r.tipo) + '</td>' +
+                   '<td class="num">' + r.count + '</td>' +
+                   '<td class="num" style="color:#c0392b"><b>' + toNum(r.hours).toFixed(0) + ' ч</b> · ' + share + '</td>';
+    tbody.appendChild(tr);
+  });
+  // Нижняя подпись: общее
+  var leader = top5[0];
+  if (leader) {
+    var leaderShare = totalH > 0 ? ((toNum(leader.hours) / totalH) * 100).toFixed(0) : 0;
+    document.getElementById("cancel-top5-note").textContent =
+      'Главный канал отмен: ' + (leader.tipo_label || leader.tipo) + ' — ' + leaderShare + '% всех отменённых часов';
+  }
+}
 
 // --- Отмены по типу (horizontal bar, часы) ---
 function renderCancelTipo(rows) {
@@ -1083,6 +1154,7 @@ async function loadSlowLiabilities() {
         V7.loadCacheTab('cancel_by_tipo').catch(function() { return []; }),
         V7.loadCacheTab('cancel_by_origen').catch(function() { return []; }),
         V7.loadCacheTab('cancel_by_hour').catch(function() { return []; }),
+        V7.loadCacheTab('cancel_top_clients').catch(function() { return []; }),
       ]).then(function(results) {
         renderBookingTypes(results[0]);
         renderRetention(results[1]);
@@ -1093,6 +1165,8 @@ async function loadSlowLiabilities() {
         renderCancelTipo(results[6]);
         renderCancelOrigen(results[7]);
         renderCancelHour(results[8]);
+        renderCancelTopClients(results[9]);
+        renderCancelTop5(results[6]);   // top-5 из того же cancel_by_tipo
       });
 
       // ── TIMESTAMP ──
