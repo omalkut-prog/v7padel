@@ -1,0 +1,127 @@
+# 13 · Правила учёта выручки — как не двоить и не терять
+
+> **Статус**: живой документ. Обновлять когда появляются новые источники/категории.
+> Создан: 2026-04-17 · повод: ревизия среды 15.04 (469k было, 325k реально).
+
+## TL;DR
+
+**Одна транзакция = один источник.** Источники перечислены ниже по убыванию приоритета.
+Писать в `manual_entries` (kind=`income`) — **только если** платежа нет ни в одном автоматическом источнике. Если есть — писать в `info`.
+
+Система теперь имеет два слоя защиты:
+1. **`sync_topup_to_transactions`** — dedup Matchpoint top-up против 1GDRZ ручных top-up.
+2. **`merge_manual_entries`** — auto-downgrade `income`→`info` при совпадении `(date, total)` с уже имеющейся строкой в `transactions`.
+
+Оба слоя **не теряют записей** — дубль становится `info` (виден в manual, но не идёт в агрегаты).
+
+## Карта источников → таблица `transactions`
+
+```
+┌────────────────────────────┬────────────────┬──────────────────────────────────────┐
+│ Источник                   │ source-тег     │ Что содержит                         │
+├────────────────────────────┼────────────────┼──────────────────────────────────────┤
+│ 1GDRZ Income (Google Sheet)│ new_inc        │ ручной ввод админа: корты/тренировки/│
+│                            │                │ турниры/Club cards/Top-up/Sale-goods │
+├────────────────────────────┼────────────────┼──────────────────────────────────────┤
+│ 1jLgif (legacy Income)     │ old_inc        │ архив до марта 2026, не трогаем      │
+├────────────────────────────┼────────────────┼──────────────────────────────────────┤
+│ Matchpoint POS (API)       │matchpoint_topup│ пополнение баланса клиента (кэш/карта│
+│                            │                │ через POS в клубе)                   │
+├────────────────────────────┼────────────────┼──────────────────────────────────────┤
+│ manual_entries таб         │ manual_<tag>   │ только то, чего нет в двух выше:     │
+│                            │                │ Camp/Intensive (Bob), внешние турниры│
+│                            │                │ со сторонним сбором, сторно и т.п.   │
+└────────────────────────────┴────────────────┴──────────────────────────────────────┘
+```
+
+Bookings Matchpoint (корт-часы) **не пишутся в `transactions`**. Выручка за корт уже попадает в 1GDRZ Income админом (строки `Rent from 07 to 11 ...`). Бронирования лежат отдельно в `bookings` таб — только для загрузки кортов и клиентской активности.
+
+## Зоны перекрытия (где возможен дубль) и правило
+
+| Категория | Где может появиться параллельно | Канон источник | Что делать |
+|---|---|---|---|
+| **Top-up** (`Пополнение баланса` / `Top-up`) | 1GDRZ Income + Matchpoint POS | Matchpoint POS (точно знает cash/card) | `sync_topup_to_transactions` **автоматом скипает** Matchpoint-копию, если админ уже вбил в 1GDRZ на ту же дату с той же суммой. |
+| **Club cards / VIP fee** (109k, 67k, ...) | 1GDRZ Income + manual_entries | 1GDRZ Income (если оплата прошла как транзакция) | В `manual_entries` ставить `kind=info`, если карта уже в 1GDRZ. Иначе `income`. |
+| **Tournaments** (entry fee) | 1GDRZ Income + manual_entries | 1GDRZ Income | Аналогично. |
+| **Camp / Intensive** (Bob 19-25.04, 140k) | Только manual_entries | manual_entries | `kind=income`. Деньги получены аванс — датой поступления, не датой услуги. |
+| **Сторно / credit note** | Matchpoint ListadoTickets | manual_entries с `kind=void`, `linked_ticket=<ID>` | Ошибочный тикет Matchpoint в клиентских отчётах вычитается через `apply_voids_to_clients`. |
+| **Payroll** | Salary sheet | `expenses` (не `transactions`) | Не пересекается с transactions. |
+| **Rent / OPEX** | Expense sheet + fixed_opex.json | для агрегата live-месяца объединяется в compute_live_month | Правила в `fixed_opex.json`. |
+
+## Правила ввода в `manual_entries`
+
+Перед тем как ставить `kind=income`:
+
+1. **Проверь 1GDRZ Income** за ту дату. Если админ вбил Club card / Tournament / Top-up — ничего в `manual_entries` писать НЕ надо (или писать `kind=info` для разбивки).
+2. **Проверь Matchpoint POS** (вкладка «Cobros» или `client_transactions`). Если оплата прошла через терминал — это уже будет в `new_inc` (когда Оля перенесёт в 1GDRZ) или автоматом через `matchpoint_topup`.
+3. **Только если нигде нет** — ставь `income`.
+4. Если «хочется видеть разбивку, но сумма уже учтена» — ставь **`info`**. Такая запись появится в отчёте manual_entries, но не прибавится к выручке.
+
+### Поля `manual_entries`
+
+```
+date            YYYY-MM-DD  — дата поступления денег (не дата услуги!)
+kind            income | expense | void | info
+category        свободный текст, но ориентируйся на категории transactions
+subcategory     уточнение
+amount          положительное для income, отрицательное для expense
+currency        TRY (по умолчанию)
+customer_id     cid из Matchpoint если есть
+customer_name   имя клиента
+players         кол-во игроков (для events/training)
+method          cash | transfer | card
+linked_ticket   для kind=void: ID тикета Matchpoint, который сторнируем
+source          свободный tag для поиска: ivanna_vip_apr15, bob_camp_apr19
+comment         свободный текст; ПИШИ ЗДЕСЬ что именно и почему
+recorded_at     timestamp
+recorded_by     кто внёс
+```
+
+### Чек-лист перед `income`-записью
+
+- [ ] Проверил 1GDRZ Income за эту дату? Нет записи с той же суммой?
+- [ ] Проверил Matchpoint POS (если оплата была в клубе)?
+- [ ] Сумма корректна (не путай авансы с датой услуги)?
+- [ ] Клиент (если есть) привязан к cid?
+- [ ] Если оплата за будущую услугу (Camp, VIP) — в comment указал период?
+- [ ] Уникальный `source` тег (ivanna_vip_apr15 = дата + имя + повод)?
+
+Если хотя бы на первые два вопроса «да, есть в источнике» — **ставь `info`**, не `income`.
+
+## Техническая защита (реализовано)
+
+### 1. `sync_topup_to_transactions.py` · top-up dedup
+
+```python
+# Для каждого Matchpoint top-up проверяем:
+# в existing_keep (transactions без matchpoint_topup) есть ли строка
+# с category ∈ ('Top-up', 'Пополнение баланса') на ту же date+total?
+# Да → skip, log. Нет → add.
+```
+
+Сработало на 2026-04-15: пропустило `Ivanna 11900` и `Volodymyr 11000` (они уже в 1GDRZ Income).
+
+### 2. `merge_manual_entries` · auto-downgrade
+
+```python
+# Для каждого manual kind=income перед добавлением:
+# Ключ (date, round(total, 2)). Если уже в индексе transactions — skip,
+# stats['auto_downgraded'] += 1, stats['info'] += 1, warning в лог.
+```
+
+Это не «тихий дубляж», а видимая диагностика: если что-то auto-downgrade'нулось, надо понять, почему админ ввёл дубль, и починить процесс (или перевести запись в `info` явно).
+
+## Как проверить что всё ок
+
+```bash
+python etl/build_cache.py 2>&1 | grep -E "manual_entries|dedup"
+# Пример ожидаемого вывода:
+# manual_entries: 8 строк → +3 income, +1 void, +1 expense, 3 info (skipped 0, auto-downgraded 0 дублей)
+```
+
+Если `auto-downgraded > 0` — значит кто-то записал в manual то, что уже в автоматических источниках. Посмотри лог выше, найди запись, переведи её в `kind=info` или удали.
+
+## История изменений
+
+- **2026-04-17** · Создан документ. Повод: ревизия среды 15.04 — двойной учёт Ivanna VIP (1GDRZ + manual) + тройной учёт top-up (1GDRZ + Matchpoint + manual). ADR-015.
+- **2026-04-17** · `sync_topup_to_transactions` + `merge_manual_entries` получили dedup-защиту.
