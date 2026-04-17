@@ -1627,23 +1627,33 @@ function updateRevPerHourKPI() {
 
   // KPI «Средняя загрузка» — часов/день за период (прошлые дни, hours > 0).
   // Формула: periodHours / periodDays. Benchmark: последние 30 дн.
-  var avgHrsEl = document.getElementById('inc-kpi-avg-hours');
-  var avgHrsHint = document.getElementById('inc-kpi-avg-hours-hint');
-  if (avgHrsEl) {
-    var avgHoursPerDay = periodDays > 0 ? periodHours / periodDays : 0;
-    avgHrsEl.textContent = avgHoursPerDay > 0
-      ? avgHoursPerDay.toFixed(1) + ' ч'
-      : '—';
-    if (avgHrsHint) {
-      var last30Days = utl.filter(function(r) { return r.dt >= d30ago && r.dt < today && r.hours > 0; }).length;
-      var last30Avg = last30Days > 0 ? last30Hours / last30Days : 0;
-      var parts = [];
-      parts.push(Math.round(periodHours) + ' ч / ' + periodDays + ' дн.');
-      if (last30Days > 0 && _periodMonths !== 1) {
-        parts.push('30д: ' + last30Avg.toFixed(1) + ' ч/дн');
+  // Переменные d30ago/last30Hours объявлены внутри rAF выше и НЕ доступны
+  // здесь — считаем заново локально. Обёрнуто в try/catch чтобы единичный
+  // баг не ломал всю страницу /revenue (defensive UI).
+  try {
+    var avgHrsEl = document.getElementById('inc-kpi-avg-hours');
+    var avgHrsHint = document.getElementById('inc-kpi-avg-hours-hint');
+    if (avgHrsEl) {
+      var avgHoursPerDay = periodDays > 0 ? periodHours / periodDays : 0;
+      avgHrsEl.textContent = avgHoursPerDay > 0
+        ? avgHoursPerDay.toFixed(1) + ' ч'
+        : '—';
+      if (avgHrsHint) {
+        var d30ago2 = new Date(today); d30ago2.setDate(d30ago2.getDate() - 30);
+        var last30Arr = utl.filter(function(r) { return r.dt >= d30ago2 && r.dt < today && r.hours > 0; });
+        var last30Hours2 = last30Arr.reduce(function(s, r) { return s + r.hours; }, 0);
+        var last30Days = last30Arr.length;
+        var last30Avg = last30Days > 0 ? last30Hours2 / last30Days : 0;
+        var parts = [];
+        parts.push(Math.round(periodHours) + ' ч / ' + periodDays + ' дн.');
+        if (last30Days > 0 && _periodMonths !== 1) {
+          parts.push('30д: ' + last30Avg.toFixed(1) + ' ч/дн');
+        }
+        avgHrsHint.textContent = parts.join(' · ');
       }
-      avgHrsHint.textContent = parts.join(' · ');
     }
+  } catch (e) {
+    console.warn('[revenue] KPI avg-hours failed:', e);
   }
 }
 
