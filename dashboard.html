@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260417s"></script>
+<script src="assets/data.js?v=20260417t"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260417mobile">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -255,63 +255,7 @@
     </div>
   </div>
 
-  <!-- Анализ отмен: 3 среза + dow + вчера -->
-  <div class="grid three">
-    <div class="card">
-      <h3>Отмены по типу <small>часы за 4 недели</small></h3>
-      <div class="chart-wrap short"><canvas id="chart-cancel-tipo"></canvas></div>
-      <div style="margin-top:6px; font-size:11px; color:#6b7b8c;" id="cancel-tipo-note">—</div>
-    </div>
-    <div class="card">
-      <h3>Отмены по источнику <small>откуда отменяют</small></h3>
-      <div class="chart-wrap short"><canvas id="chart-cancel-origen"></canvas></div>
-      <div style="margin-top:6px; font-size:11px; color:#6b7b8c;" id="cancel-origen-note">—</div>
-    </div>
-    <div class="card">
-      <h3>Отмены по часу <small>когда в течение дня</small></h3>
-      <div class="chart-wrap short"><canvas id="chart-cancel-hour"></canvas></div>
-      <div style="margin-top:6px; font-size:11px; color:#6b7b8c;" id="cancel-hour-note">—</div>
-    </div>
-  </div>
-
-  <div class="grid equal">
-    <div class="card">
-      <h3>Отмены по дням недели <small>% за последние 4 недели</small></h3>
-      <div class="chart-wrap"><canvas id="chart-cancel-dow"></canvas></div>
-      <div style="margin-top:10px; font-size:12px; color:#6b7b8c;" id="cancel-dow-note">—</div>
-    </div>
-    <div class="card">
-      <h3>Вчера — план vs факт <small>часы корта + % отмен</small></h3>
-      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:10px">
-        <div>
-          <div style="font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px">Вчера</div>
-          <div style="font-size:22px; font-weight:700; margin-top:4px" id="cancel-y-pct">—</div>
-          <div style="font-size:12px; color:var(--text2)" id="cancel-y-hrs">—</div>
-        </div>
-        <div>
-          <div style="font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px">Ср. 4 нед.</div>
-          <div style="font-size:22px; font-weight:700; margin-top:4px" id="cancel-avg-pct">—</div>
-          <div style="font-size:12px; color:var(--text2)" id="cancel-avg-hrs">—</div>
-        </div>
-      </div>
-      <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text2)">
-        <div id="cancel-worst-day">—</div>
-        <div id="cancel-best-day" style="margin-top:4px">—</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Топ-5 чаще отменяемого (единственная достоверная метрика из cancel_by_tipo) -->
-  <div class="grid equal">
-    <div class="card" style="grid-column: 1 / -1">
-      <h3>Топ-5 чаще отменяемого <small>типы/мероприятия · 4 недели, полные данные</small></h3>
-      <table class="mini" id="tbl-cancel-top5">
-        <thead><tr><th>Категория</th><th class="num">Отмен</th><th class="num">Часов</th></tr></thead>
-        <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
-      </table>
-      <div style="margin-top:10px; font-size:12px; color:#6b7b8c;" id="cancel-top5-note">—</div>
-    </div>
-  </div>
+  <!-- Блоки отмен перенесены на /clients (раздел «4 · Отмены») 2026-04-17 -->
 
   <!-- Списки под ручной recall -->
   <div class="grid equal">
@@ -664,36 +608,11 @@ function phoneWaCell(phone) {
 // Единый лимит строк в recall-списках (совпадает с limit на сервере).
 var RECALL_LIST_LIMIT = 15;
 
-// --- Топ-5 чаще всего отменяемого (из cancel_by_tipo — просто первые 5) ---
-// Note: ТОП-20 клиентов по отменам удалён — Matchpoint не отдаёт cid для
-// cancelled броней, а эвристика по booking_text давала только 28% покрытия
-// (не репрезентативно). См. 05_BACKLOG — вернёмся когда будет snapshot-based
-// tracking bookings→cid до отмены.
-function renderCancelTop5(tipoRows) {
-  var tbody = document.querySelector("#tbl-cancel-top5 tbody");
-  tbody.innerHTML = "";
-  if (!tipoRows || !tipoRows.length) {
-    tbody.innerHTML = '<tr><td colspan="3" class="loading">Нет данных</td></tr>';
-    return;
-  }
-  var top5 = tipoRows.slice(0, 5);
-  var totalH = tipoRows.reduce(function(s, r) { return s + toNum(r.hours); }, 0);
-  top5.forEach(function(r) {
-    var tr = document.createElement("tr");
-    var share = totalH > 0 ? ((toNum(r.hours) / totalH) * 100).toFixed(0) + '%' : '';
-    tr.innerHTML = '<td>' + (r.tipo_label || r.tipo) + '</td>' +
-                   '<td class="num">' + r.count + '</td>' +
-                   '<td class="num" style="color:#c0392b"><b>' + toNum(r.hours).toFixed(0) + ' ч</b> · ' + share + '</td>';
-    tbody.appendChild(tr);
-  });
-  // Нижняя подпись: общее
-  var leader = top5[0];
-  if (leader) {
-    var leaderShare = totalH > 0 ? ((toNum(leader.hours) / totalH) * 100).toFixed(0) : 0;
-    document.getElementById("cancel-top5-note").textContent =
-      'Главный канал отмен: ' + (leader.tipo_label || leader.tipo) + ' — ' + leaderShare + '% всех отменённых часов';
-  }
-}
+// --- Блок render-функций отмен перенесён на /clients (раздел «4 · Отмены»)
+// 2026-04-17: дашборд про операционный здоровье клуба (финансы/клиенты/
+// загрузка), отмены лучше смотреть в разделе «Клиенты» как подраздел.
+// eslint-disable: keep if you want to restore — просто раскомментируй.
+/* BEGIN DEPRECATED: renderCancel* functions moved to clients.html
 
 // --- Отмены по типу (horizontal bar, часы) ---
 function renderCancelTipo(rows) {
@@ -875,6 +794,8 @@ function renderCancelYesterday(rows) {
   document.getElementById("cancel-y-pct").style.color = pct >= 45 ? 'var(--bad)' : (pct >= 30 ? '#f39c12' : 'var(--good)');
   document.getElementById("cancel-y-hrs").textContent = last.date + ": " + cancH.toFixed(0) + " ч из " + planH.toFixed(0) + " ч";
 }
+
+END DEPRECATED: renderCancel* moved to clients.html */
 
 // --- Список Под риском ---
 function renderAtRisk(rows) {
@@ -1127,28 +1048,17 @@ async function loadSlowLiabilities() {
       // ── LIABILITIES (from liabilities tab) ──
       renderLiabilities(cache.liabilities);
 
-      // ── NEW: Mix броней + Retention + списки + отмены (parallel) ──
+      // Mix броней + Retention + recall-списки (без отмен — они на /clients).
       Promise.all([
         V7.loadCacheTab('booking_types_monthly').catch(function() { return []; }),
         V7.loadCacheTab('new_clients_retention').catch(function() { return []; }),
         V7.loadCacheTab('at_risk_top').catch(function() { return []; }),
         V7.loadCacheTab('membership_candidates').catch(function() { return []; }),
-        V7.loadCacheTab('cancellations_dow').catch(function() { return []; }),
-        V7.loadCacheTab('occupancy_planfact').catch(function() { return []; }),
-        V7.loadCacheTab('cancel_by_tipo').catch(function() { return []; }),
-        V7.loadCacheTab('cancel_by_origen').catch(function() { return []; }),
-        V7.loadCacheTab('cancel_by_hour').catch(function() { return []; }),
       ]).then(function(results) {
         renderBookingTypes(results[0]);
         renderRetention(results[1]);
         renderAtRisk(results[2]);
         renderMemCandidates(results[3]);
-        renderCancelDow(results[4]);
-        renderCancelYesterday(results[5]);
-        renderCancelTipo(results[6]);
-        renderCancelOrigen(results[7]);
-        renderCancelHour(results[8]);
-        renderCancelTop5(results[6]);   // top-5 из cancel_by_tipo (полные данные)
       });
 
       // ── TIMESTAMP ──
@@ -1288,23 +1198,75 @@ document.getElementById('kpi-rev-card').addEventListener('click', async function
 });
 
 // Active Cards click → member list
+// Источник: club_members (там есть paid_until, days_to_expire, bucket).
+// Колонки: ФИО · Телефон · Карта · Срок истечения (с подсветкой истёк/истекает).
 document.getElementById('mem-card').addEventListener('click', async function() {
   document.getElementById('modal-title').textContent = 'Активные карты — Club & VIP';
   document.getElementById('modal-body').innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div>';
   document.getElementById('dash-modal').classList.add('active');
   try {
-    var rows = await V7.loadCacheTab('clients_enriched');
+    var rows = await V7.loadCacheTab('club_members');
     if (!rows || !rows.length) throw new Error('no cache');
-    var members = rows.filter(function(r) { return r.card === 'Club' || r.card === 'VIP'; });
-    members.sort(function(a, b) { return (a.card || '').localeCompare(b.card || '') || (a.name || '').localeCompare(b.name || ''); });
+    // Только действительно Active + приоритет действующим (paid_ok=1 сверху,
+    // потом истекшие), внутри групп — по дате истечения возрастания.
+    var members = rows.filter(function(r) { return (r.status || '').toLowerCase() === 'active'; });
+    members.sort(function(a, b) {
+      // paid_ok=1 выше paid_ok=0 (истекшие — внизу)
+      var pa = (a.paid_ok === '1' || a.paid_ok === 1) ? 0 : 1;
+      var pb = (b.paid_ok === '1' || b.paid_ok === 1) ? 0 : 1;
+      if (pa !== pb) return pa - pb;
+      // Внутри — по days_to_expire возрастания (ближе к истечению — сверху)
+      var da = parseInt(a.days_to_expire, 10);
+      var db = parseInt(b.days_to_expire, 10);
+      if (!isNaN(da) && !isNaN(db)) return da - db;
+      return (a.holder || '').localeCompare(b.holder || '');
+    });
     if (!members.length) {
       document.getElementById('modal-body').innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет активных карт</div>';
       return;
     }
-    var html = '<table><thead><tr><th>Имя</th><th>Телефон</th><th>Карта</th><th>Дата подключения</th></tr></thead><tbody>';
+    // Сводка сверху: сколько действующих, сколько истёкших.
+    var paidOkCount = members.filter(function(m) { return m.paid_ok === '1' || m.paid_ok === 1; }).length;
+    var expiredCount = members.length - paidOkCount;
+    var summary = '<div style="padding:10px 14px; background:var(--bg); border-bottom:1px solid var(--border); font-size:13px; color:var(--text2)">'
+                + '<b style="color:var(--text)">' + members.length + '</b> всего Active · '
+                + '<b style="color:var(--good)">' + paidOkCount + '</b> оплачено · '
+                + (expiredCount > 0 ? '<b style="color:var(--bad)">' + expiredCount + '</b> истекли' : '')
+                + '</div>';
+    var html = summary;
+    html += '<table><thead><tr><th>ФИО</th><th>Телефон</th><th>Карта</th><th>Срок истечения</th></tr></thead><tbody>';
     members.forEach(function(m) {
-      var badge = m.card === 'VIP' ? '<span style="color:#0e8a87;font-weight:600">VIP</span>' : '<span style="color:var(--accent);font-weight:600">Club</span>';
-      html += '<tr><td>' + (m.name || '—') + '</td><td>' + (m.phone || '—') + '</td><td>' + badge + '</td><td>' + (m.subs_date || '—') + '</td></tr>';
+      var badge = m.card_type === 'VIP'
+        ? '<span style="color:#0e8a87;font-weight:600">VIP</span>'
+        : '<span style="color:var(--accent);font-weight:600">Club</span>';
+      // Срок: paid_until + статус (истёк / через N дней / через N мес)
+      var days = parseInt(m.days_to_expire, 10);
+      var expireText = m.paid_until || '—';
+      var expireColor = '';
+      if (!isNaN(days)) {
+        if (days < 0) { expireText += ' <span style="color:var(--bad);font-size:11px">истёк ' + Math.abs(days) + 'д назад</span>'; expireColor = 'color:var(--bad);font-weight:500'; }
+        else if (days <= 7) { expireText += ' <span style="color:var(--bad);font-size:11px">через ' + days + 'д</span>'; expireColor = 'color:var(--bad);font-weight:500'; }
+        else if (days <= 30) { expireText += ' <span style="color:#f39c12;font-size:11px">через ' + days + 'д</span>'; expireColor = 'color:#f39c12'; }
+        else if (days <= 90) { expireText += ' <span style="color:var(--text3);font-size:11px">через ' + days + 'д</span>'; }
+        else { expireText += ' <span style="color:var(--text3);font-size:11px">через ' + Math.round(days / 30) + ' мес</span>'; }
+      }
+      // Phone → wa.me link
+      var phone = (m.phone || '').trim();
+      var phoneHtml = '—';
+      if (phone && V7.waHref) {
+        var waUrl = V7.waHref(phone);
+        phoneHtml = waUrl
+          ? '<a href="' + waUrl + '" target="_blank" style="color:var(--accent)">' + phone + '</a>'
+          : phone;
+      } else if (phone) {
+        phoneHtml = phone;
+      }
+      html += '<tr>'
+           + '<td>' + (m.holder || '—') + '</td>'
+           + '<td>' + phoneHtml + '</td>'
+           + '<td>' + badge + '</td>'
+           + '<td style="' + expireColor + '">' + expireText + '</td>'
+           + '</tr>';
     });
     html += '</tbody></table>';
     document.getElementById('modal-body').innerHTML = html;

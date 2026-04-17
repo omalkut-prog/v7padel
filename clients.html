@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260414k"></script>
+<script src="assets/data.js?v=20260417cancel"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260417mobile">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -328,6 +329,76 @@
           <button id="pag-next">Вперёд →</button>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- BLOCK 4: ОТМЕНЫ (перенесено с /dashboard 2026-04-17) -->
+  <section class="section" id="cancel-section">
+    <div class="section-head">
+      <h2>4 · Отмены броней</h2>
+      <span class="hint">динамика, каналы, пиковые часы · источник: Matchpoint ListadoReservas Estado=anulada</span>
+    </div>
+
+    <!-- 3 среза: тип / источник / час -->
+    <div class="grid three" style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:16px;">
+      <div class="panel">
+        <h3 style="font-size:15px; font-weight:600; margin-bottom:12px">Отмены по типу <small style="color:var(--text3); font-weight:400; font-size:12px; margin-left:6px">часы за 4 недели</small></h3>
+        <div class="chart-wrap short" style="position:relative; height:220px"><canvas id="chart-cancel-tipo"></canvas></div>
+        <div style="margin-top:6px; font-size:11px; color:var(--text3);" id="cancel-tipo-note">—</div>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:15px; font-weight:600; margin-bottom:12px">Отмены по источнику <small style="color:var(--text3); font-weight:400; font-size:12px; margin-left:6px">откуда отменяют</small></h3>
+        <div class="chart-wrap short" style="position:relative; height:220px"><canvas id="chart-cancel-origen"></canvas></div>
+        <div style="margin-top:6px; font-size:11px; color:var(--text3);" id="cancel-origen-note">—</div>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:15px; font-weight:600; margin-bottom:12px">Отмены по часу <small style="color:var(--text3); font-weight:400; font-size:12px; margin-left:6px">когда в течение дня</small></h3>
+        <div class="chart-wrap short" style="position:relative; height:220px"><canvas id="chart-cancel-hour"></canvas></div>
+        <div style="margin-top:6px; font-size:11px; color:var(--text3);" id="cancel-hour-note">—</div>
+      </div>
+    </div>
+
+    <!-- dow + вчера план vs факт -->
+    <div class="grid equal" style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;">
+      <div class="panel">
+        <h3 style="font-size:15px; font-weight:600; margin-bottom:12px">Отмены по дням недели <small style="color:var(--text3); font-weight:400; font-size:12px; margin-left:6px">% за 4 недели</small></h3>
+        <div class="chart-wrap" style="position:relative; height:280px"><canvas id="chart-cancel-dow"></canvas></div>
+      </div>
+      <div class="panel">
+        <h3 style="font-size:15px; font-weight:600; margin-bottom:12px">Вчера — план vs факт <small style="color:var(--text3); font-weight:400; font-size:12px; margin-left:6px">часы + % отмен</small></h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:10px">
+          <div>
+            <div style="font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px">Вчера</div>
+            <div style="font-size:22px; font-weight:700; margin-top:4px" id="cancel-y-pct">—</div>
+            <div style="font-size:12px; color:var(--text2)" id="cancel-y-hrs">—</div>
+          </div>
+          <div>
+            <div style="font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px">Ср. 4 нед.</div>
+            <div style="font-size:22px; font-weight:700; margin-top:4px" id="cancel-avg-pct">—</div>
+            <div style="font-size:12px; color:var(--text2)" id="cancel-avg-hrs">—</div>
+          </div>
+        </div>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text2)">
+          <div id="cancel-worst-day">—</div>
+          <div id="cancel-best-day" style="margin-top:4px">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Топ-5 чаще отменяемого -->
+    <div class="panel">
+      <h3 style="font-size:15px; font-weight:600; margin-bottom:12px">Топ-5 чаще отменяемого <small style="color:var(--text3); font-weight:400; font-size:12px; margin-left:6px">типы/мероприятия · 4 недели</small></h3>
+      <div style="overflow-x:auto">
+        <table class="fin" id="tbl-cancel-top5" style="width:100%; font-size:13px; border-collapse:collapse">
+          <thead><tr>
+            <th style="text-align:left; padding:8px; border-bottom:1px solid var(--border); font-weight:500; color:var(--text3); font-size:11px; text-transform:uppercase">Категория</th>
+            <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border); font-weight:500; color:var(--text3); font-size:11px; text-transform:uppercase">Отмен</th>
+            <th style="text-align:right; padding:8px; border-bottom:1px solid var(--border); font-weight:500; color:var(--text3); font-size:11px; text-transform:uppercase">Часов</th>
+          </tr></thead>
+          <tbody><tr><td colspan="3" style="padding:16px; text-align:center; color:var(--text3)">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px; font-size:12px; color:var(--text3);" id="cancel-top5-note">—</div>
     </div>
   </section>
 </main>
@@ -977,6 +1048,184 @@ openCard = function(c) {
     console.warn('top_clients load failed:', e);
     document.getElementById('top-tbody').innerHTML =
       '<tr><td colspan="8" class="error">Ошибка загрузки кэша</td></tr>';
+  }
+})();
+
+/* ========================================================================
+ * BLOCK 4: Отмены (перенесено с /dashboard 2026-04-17)
+ * Источники: v7padel_cache.{cancel_by_tipo, cancel_by_origen, cancel_by_hour,
+ *            cancellations_dow, occupancy_planfact}
+ * ====================================================================== */
+var CANCEL_ACCENT = '#0ABAB5';
+var CANCEL_TONUM = function(v) {
+  if (v == null || v === '') return 0;
+  if (typeof v === 'number') return v;
+  var n = parseFloat(String(v).replace(/\s|\u00a0/g, '').replace(',', '.'));
+  return isNaN(n) ? 0 : n;
+};
+
+function renderCancelTipo(rows) {
+  if (!rows || !rows.length) return;
+  var labels = rows.map(function(r) { return r.tipo_label || r.tipo; });
+  var hours = rows.map(function(r) { return CANCEL_TONUM(r.hours); });
+  var counts = rows.map(function(r) { return CANCEL_TONUM(r.count); });
+  new Chart(document.getElementById('chart-cancel-tipo'), {
+    type: 'bar',
+    data: { labels: labels, datasets: [{ label: 'Часов', data: hours, backgroundColor: '#e74c3c', borderRadius: 3 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: function(c) { return c.parsed.x.toFixed(1) + ' ч (' + counts[c.dataIndex] + ' броней)'; } } } },
+      scales: { x: { beginAtZero: true, ticks: { callback: function(v) { return v + 'ч'; } } }, y: { grid: { display: false }, ticks: { font: { size: 11 } } } }
+    }
+  });
+  var tot = hours.reduce(function(a, b) { return a + b; }, 0);
+  document.getElementById('cancel-tipo-note').textContent = 'Всего ' + Math.round(tot) + ' ч · лидер: ' + (labels[0] || '—');
+}
+
+function renderCancelOrigen(rows) {
+  if (!rows || !rows.length) return;
+  var labels = rows.map(function(r) { return r.origen; });
+  var counts = rows.map(function(r) { return CANCEL_TONUM(r.count); });
+  var hours = rows.map(function(r) { return CANCEL_TONUM(r.hours); });
+  var palette = { 'Application': '#e74c3c', 'Mobile': '#f39c12', 'Website': '#9b59b6', 'Web': '#9b59b6', 'Other': '#7f8c8d' };
+  var colors = labels.map(function(l) { return palette[l] || '#95a5a6'; });
+  var total = counts.reduce(function(a, b) { return a + b; }, 0);
+  new Chart(document.getElementById('chart-cancel-origen'), {
+    type: 'doughnut',
+    data: { labels: labels, datasets: [{ data: counts, backgroundColor: colors, borderColor: '#fff', borderWidth: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '60%',
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, padding: 8, font: { size: 11 } } },
+        tooltip: { callbacks: { label: function(c) {
+          var pct = total > 0 ? (c.parsed * 100 / total).toFixed(1) : 0;
+          return c.label + ': ' + c.parsed + ' броней (' + pct + '%, ' + hours[c.dataIndex].toFixed(0) + ' ч)';
+        } } } }
+    }
+  });
+  if (labels.length) {
+    var mainPct = total > 0 ? (counts[0] * 100 / total).toFixed(0) : 0;
+    document.getElementById('cancel-origen-note').textContent = mainPct + '% отмен из ' + labels[0];
+  }
+}
+
+function renderCancelHour(rows) {
+  if (!rows || !rows.length) return;
+  var hours = rows.map(function(r) { return r.hour + ':00'; });
+  var counts = rows.map(function(r) { return CANCEL_TONUM(r.count); });
+  new Chart(document.getElementById('chart-cancel-hour'), {
+    type: 'bar',
+    data: { labels: hours, datasets: [{ label: 'Отмен', data: counts, backgroundColor: 'rgba(231, 76, 60, 0.7)', borderRadius: 2 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: function(c) { return c.parsed.y + ' броней отменено в ' + c.label; } } } },
+      scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 } },
+        y: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  });
+  var peak = 0, peakHour = '';
+  rows.forEach(function(r) { var c = CANCEL_TONUM(r.count); if (c > peak) { peak = c; peakHour = r.hour; } });
+  if (peak > 0) document.getElementById('cancel-hour-note').textContent = 'Пик отмен: ' + peakHour + ':00 (' + peak + ' броней)';
+}
+
+function renderCancelDow(rows) {
+  if (!rows || !rows.length) return;
+  var weekdays = rows.map(function(r) { return r.weekday; });
+  var pct = rows.map(function(r) { return CANCEL_TONUM(r.pct_cancel); });
+  var canc = rows.map(function(r) { return CANCEL_TONUM(r.cancelled_hours); });
+  var plan = rows.map(function(r) { return CANCEL_TONUM(r.plan_hours); });
+  var colors = pct.map(function(p) {
+    if (p >= 50) return '#e74c3c';
+    if (p >= 35) return '#f39c12';
+    return CANCEL_ACCENT;
+  });
+  new Chart(document.getElementById('chart-cancel-dow'), {
+    type: 'bar',
+    data: { labels: weekdays, datasets: [{ label: '% отмен', data: pct, backgroundColor: colors, borderRadius: 4 }] },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false },
+        tooltip: { callbacks: { label: function(c) {
+          return [c.parsed.y.toFixed(1) + '% отмен', 'Отменено: ' + canc[c.dataIndex].toFixed(1) + ' ч из ' + plan[c.dataIndex].toFixed(1) + ' ч'];
+        } } } },
+      scales: { x: { grid: { display: false } }, y: { beginAtZero: true, max: 100, ticks: { callback: function(v) { return v + '%'; } } } }
+    }
+  });
+  var sorted = rows.slice().sort(function(a, b) { return CANCEL_TONUM(b.pct_cancel) - CANCEL_TONUM(a.pct_cancel); });
+  var worst = sorted[0], best = sorted[sorted.length - 1];
+  if (worst) document.getElementById('cancel-worst-day').textContent =
+    '🔴 Худший: ' + worst.weekday + ' — ' + CANCEL_TONUM(worst.pct_cancel).toFixed(0) + '% отмен (' + CANCEL_TONUM(worst.cancelled_hours).toFixed(0) + ' ч из ' + CANCEL_TONUM(worst.plan_hours).toFixed(0) + ')';
+  if (best) document.getElementById('cancel-best-day').textContent =
+    '🟢 Лучший: ' + best.weekday + ' — ' + CANCEL_TONUM(best.pct_cancel).toFixed(0) + '% отмен';
+  var withData = rows.filter(function(r) { return CANCEL_TONUM(r.plan_hours) > 0; });
+  if (withData.length) {
+    var totPlan = withData.reduce(function(s, r) { return s + CANCEL_TONUM(r.plan_hours); }, 0);
+    var totCanc = withData.reduce(function(s, r) { return s + CANCEL_TONUM(r.cancelled_hours); }, 0);
+    var avgPct = totPlan > 0 ? (totCanc / totPlan * 100) : 0;
+    document.getElementById('cancel-avg-pct').textContent = avgPct.toFixed(0) + '%';
+    document.getElementById('cancel-avg-pct').style.color = avgPct >= 45 ? 'var(--bad)' : (avgPct >= 30 ? '#f39c12' : 'var(--good)');
+    document.getElementById('cancel-avg-hrs').textContent = totCanc.toFixed(0) + ' ч из ' + totPlan.toFixed(0) + ' ч (4 нед)';
+  }
+}
+
+function renderCancelYesterday(rows) {
+  if (!rows || !rows.length) return;
+  var finalized = rows.filter(function(r) { return (r.is_final || '') === '1'; });
+  finalized.sort(function(a, b) { return a.date < b.date ? 1 : -1; });
+  var last = finalized[0];
+  if (!last) {
+    document.getElementById('cancel-y-pct').textContent = '—';
+    document.getElementById('cancel-y-hrs').textContent = 'нет финализированных дней';
+    return;
+  }
+  var pct = CANCEL_TONUM(last.pct_cancel);
+  var cancH = CANCEL_TONUM(last.cancelled_hours);
+  var planH = CANCEL_TONUM(last.plan_hours);
+  document.getElementById('cancel-y-pct').textContent = pct.toFixed(0) + '%';
+  document.getElementById('cancel-y-pct').style.color = pct >= 45 ? 'var(--bad)' : (pct >= 30 ? '#f39c12' : 'var(--good)');
+  document.getElementById('cancel-y-hrs').textContent = last.date + ': ' + cancH.toFixed(0) + ' ч из ' + planH.toFixed(0) + ' ч';
+}
+
+function renderCancelTop5(tipoRows) {
+  var tbody = document.querySelector('#tbl-cancel-top5 tbody');
+  tbody.innerHTML = '';
+  if (!tipoRows || !tipoRows.length) {
+    tbody.innerHTML = '<tr><td colspan="3" style="padding:16px; text-align:center; color:var(--text3)">Нет данных</td></tr>';
+    return;
+  }
+  var top5 = tipoRows.slice(0, 5);
+  var totalH = tipoRows.reduce(function(s, r) { return s + CANCEL_TONUM(r.hours); }, 0);
+  top5.forEach(function(r) {
+    var tr = document.createElement('tr');
+    var share = totalH > 0 ? ((CANCEL_TONUM(r.hours) / totalH) * 100).toFixed(0) + '%' : '';
+    tr.innerHTML = '<td style="padding:10px 8px; border-bottom:1px solid var(--border)">' + (r.tipo_label || r.tipo) + '</td>'
+                 + '<td style="padding:10px 8px; border-bottom:1px solid var(--border); text-align:right; font-variant-numeric:tabular-nums">' + r.count + '</td>'
+                 + '<td style="padding:10px 8px; border-bottom:1px solid var(--border); text-align:right; color:#c0392b; font-variant-numeric:tabular-nums"><b>' + CANCEL_TONUM(r.hours).toFixed(0) + ' ч</b> · ' + share + '</td>';
+    tbody.appendChild(tr);
+  });
+  var leader = top5[0];
+  if (leader) {
+    var leaderShare = totalH > 0 ? ((CANCEL_TONUM(leader.hours) / totalH) * 100).toFixed(0) : 0;
+    document.getElementById('cancel-top5-note').textContent =
+      'Главный канал отмен: ' + (leader.tipo_label || leader.tipo) + ' — ' + leaderShare + '% всех отменённых часов';
+  }
+}
+
+(async function initCancellations() {
+  try {
+    var results = await Promise.all([
+      V7.loadCacheTab('cancel_by_tipo').catch(function() { return []; }),
+      V7.loadCacheTab('cancel_by_origen').catch(function() { return []; }),
+      V7.loadCacheTab('cancel_by_hour').catch(function() { return []; }),
+      V7.loadCacheTab('cancellations_dow').catch(function() { return []; }),
+      V7.loadCacheTab('occupancy_planfact').catch(function() { return []; }),
+    ]);
+    renderCancelTipo(results[0]);
+    renderCancelOrigen(results[1]);
+    renderCancelHour(results[2]);
+    renderCancelDow(results[3]);
+    renderCancelYesterday(results[4]);
+    renderCancelTop5(results[0]);  // top-5 = первые 5 из cancel_by_tipo
+  } catch (e) {
+    console.warn('[cancellations] load failed:', e);
   }
 })();
 </script>
