@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260416n"></script>
+<script src="assets/data.js?v=20260417p"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -240,6 +240,34 @@
       <h3>Новички → возврат <small>% когорты с ≥2 визитами в 14 дней</small></h3>
       <div class="chart-wrap"><canvas id="chart-retention"></canvas></div>
       <div style="margin-top:10px; font-size:12px; color:#6b7b8c;" id="ret-note">—</div>
+    </div>
+  </div>
+
+  <!-- Отмены по дням недели + вчера/сегодня -->
+  <div class="grid equal">
+    <div class="card">
+      <h3>Отмены по дням недели <small>% за последние 4 недели</small></h3>
+      <div class="chart-wrap"><canvas id="chart-cancel-dow"></canvas></div>
+      <div style="margin-top:10px; font-size:12px; color:#6b7b8c;" id="cancel-dow-note">—</div>
+    </div>
+    <div class="card">
+      <h3>Вчера — план vs факт <small>часы корта + % отмен</small></h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:10px">
+        <div>
+          <div style="font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px">Вчера</div>
+          <div style="font-size:22px; font-weight:700; margin-top:4px" id="cancel-y-pct">—</div>
+          <div style="font-size:12px; color:var(--text2)" id="cancel-y-hrs">—</div>
+        </div>
+        <div>
+          <div style="font-size:12px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px">Ср. 4 нед.</div>
+          <div style="font-size:22px; font-weight:700; margin-top:4px" id="cancel-avg-pct">—</div>
+          <div style="font-size:12px; color:var(--text2)" id="cancel-avg-hrs">—</div>
+        </div>
+      </div>
+      <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border); font-size:12px; color:var(--text2)">
+        <div id="cancel-worst-day">—</div>
+        <div id="cancel-best-day" style="margin-top:4px">—</div>
+      </div>
     </div>
   </div>
 
@@ -594,6 +622,85 @@ function phoneWaCell(phone) {
 // Единый лимит строк в recall-списках (совпадает с limit на сервере).
 var RECALL_LIST_LIMIT = 15;
 
+// --- Отмены по дням недели (bar chart %) ---
+function renderCancelDow(rows) {
+  if (!rows || !rows.length) return;
+  var weekdays = rows.map(function(r) { return r.weekday; });
+  var pct = rows.map(function(r) { return toNum(r.pct_cancel); });
+  var canc = rows.map(function(r) { return toNum(r.cancelled_hours); });
+  var plan = rows.map(function(r) { return toNum(r.plan_hours); });
+  var colors = pct.map(function(p) {
+    if (p >= 50) return '#e74c3c';
+    if (p >= 35) return '#f39c12';
+    return ACCENT;
+  });
+  new Chart(document.getElementById("chart-cancel-dow"), {
+    type: "bar",
+    data: { labels: weekdays, datasets: [{
+      label: '% отмен', data: pct, backgroundColor: colors, borderRadius: 4,
+    }] },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          label: function(c) {
+            return [
+              c.parsed.y.toFixed(1) + '% отмен',
+              'Отменено: ' + canc[c.dataIndex].toFixed(1) + ' ч из ' + plan[c.dataIndex].toFixed(1) + ' ч запланированных',
+            ];
+          }
+        }}
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, max: 100, grid: { color: "#eef2f4" }, ticks: { callback: function(v) { return v + '%'; } } }
+      }
+    }
+  });
+  // Лучший и худший день недели
+  var sorted = rows.slice().sort(function(a, b) { return toNum(b.pct_cancel) - toNum(a.pct_cancel); });
+  var worst = sorted[0], best = sorted[sorted.length - 1];
+  if (worst) {
+    document.getElementById("cancel-worst-day").textContent =
+      "🔴 Худший: " + worst.weekday + " — " + toNum(worst.pct_cancel).toFixed(0) + "% отмен (" + toNum(worst.cancelled_hours).toFixed(0) + " ч из " + toNum(worst.plan_hours).toFixed(0) + ")";
+  }
+  if (best) {
+    document.getElementById("cancel-best-day").textContent =
+      "🟢 Лучший: " + best.weekday + " — " + toNum(best.pct_cancel).toFixed(0) + "% отмен";
+  }
+  // Среднее 4 недели (без учёта дней с 0 plan)
+  var withData = rows.filter(function(r) { return toNum(r.plan_hours) > 0; });
+  if (withData.length) {
+    var totPlan = withData.reduce(function(s, r) { return s + toNum(r.plan_hours); }, 0);
+    var totCanc = withData.reduce(function(s, r) { return s + toNum(r.cancelled_hours); }, 0);
+    var avgPct = totPlan > 0 ? (totCanc / totPlan * 100) : 0;
+    document.getElementById("cancel-avg-pct").textContent = avgPct.toFixed(0) + "%";
+    document.getElementById("cancel-avg-pct").style.color = avgPct >= 45 ? 'var(--bad)' : (avgPct >= 30 ? '#f39c12' : 'var(--good)');
+    document.getElementById("cancel-avg-hrs").textContent = totCanc.toFixed(0) + " ч из " + totPlan.toFixed(0) + " ч (4 нед)";
+  }
+}
+
+// --- Вчера: plan/fact/cancel из occupancy_planfact ---
+function renderCancelYesterday(rows) {
+  if (!rows || !rows.length) return;
+  // Берём самую свежую is_final='1' строку (финализированный день)
+  var finalized = rows.filter(function(r) { return (r.is_final || '') === '1'; });
+  finalized.sort(function(a, b) { return a.date < b.date ? 1 : -1; });
+  var last = finalized[0];
+  if (!last) {
+    document.getElementById("cancel-y-pct").textContent = "—";
+    document.getElementById("cancel-y-hrs").textContent = "нет финализированных дней";
+    return;
+  }
+  var pct = toNum(last.pct_cancel);
+  var cancH = toNum(last.cancelled_hours);
+  var planH = toNum(last.plan_hours);
+  document.getElementById("cancel-y-pct").textContent = pct.toFixed(0) + "%";
+  document.getElementById("cancel-y-pct").style.color = pct >= 45 ? 'var(--bad)' : (pct >= 30 ? '#f39c12' : 'var(--good)');
+  document.getElementById("cancel-y-hrs").textContent = last.date + ": " + cancH.toFixed(0) + " ч из " + planH.toFixed(0) + " ч";
+}
+
 // --- Список Под риском ---
 function renderAtRisk(rows) {
   var tbody = document.querySelector("#tbl-atrisk tbody");
@@ -845,17 +952,21 @@ async function loadSlowLiabilities() {
       // ── LIABILITIES (from liabilities tab) ──
       renderLiabilities(cache.liabilities);
 
-      // ── NEW: Mix броней + Retention + списки (parallel) ──
+      // ── NEW: Mix броней + Retention + списки + отмены (parallel) ──
       Promise.all([
         V7.loadCacheTab('booking_types_monthly').catch(function() { return []; }),
         V7.loadCacheTab('new_clients_retention').catch(function() { return []; }),
         V7.loadCacheTab('at_risk_top').catch(function() { return []; }),
         V7.loadCacheTab('membership_candidates').catch(function() { return []; }),
+        V7.loadCacheTab('cancellations_dow').catch(function() { return []; }),
+        V7.loadCacheTab('occupancy_planfact').catch(function() { return []; }),
       ]).then(function(results) {
         renderBookingTypes(results[0]);
         renderRetention(results[1]);
         renderAtRisk(results[2]);
         renderMemCandidates(results[3]);
+        renderCancelDow(results[4]);
+        renderCancelYesterday(results[5]);
       });
 
       // ── TIMESTAMP ──

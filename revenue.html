@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260414f"></script>
+<script src="assets/data.js?v=20260417p"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -669,7 +669,7 @@
     <div class="panel">
       <table class="fin" id="utl-days-table">
         <thead>
-          <tr><th>Дата</th><th>День</th><th>Часов</th><th>%</th><th>Чел.</th><th>Брони</th><th>Трен.</th><th>Турниры</th></tr>
+          <tr><th>Дата</th><th>День</th><th>Факт</th><th>%</th><th>Отмены</th><th>Чел.</th><th>Брони</th><th>Трен.</th><th>Турниры</th></tr>
         </thead>
         <tbody><tr><td colspan="9" class="loading">Загрузка…</td></tr></tbody>
       </table>
@@ -1848,7 +1848,24 @@ var OPERATING_HOURS = 15; // 8:00-23:00
 
 async function lazyLoadUtilization() {
   try {
-    // If already pre-loaded by mainFromSheet, just render the KPIs and charts
+    // Параллельно подгружаем planfact (для overlay отмен) — не блокирует
+    // основной рендер, кеш-мисс не критичен.
+    if (!window._utlPlanfact) {
+      loadCacheTab('occupancy_planfact').then(function(rows) {
+        window._utlPlanfact = {};
+        (rows || []).forEach(function(r) {
+          if (!r.date) return;
+          window._utlPlanfact[r.date] = {
+            plan: num(r.plan_hours), cancel: num(r.cancelled_hours),
+            fact: num(r.fact_hours), pct: num(r.pct_cancel),
+            isFinal: (r.is_final || '') === '1',
+          };
+        });
+        console.log('[utilization] planfact loaded:', Object.keys(window._utlPlanfact).length, 'days');
+        // Перерендер если charts уже нарисованы
+        if (window._utlParsed && window._utlParsed.length) _renderUtilizationCharts();
+      }).catch(function(e) { console.warn('[utilization] planfact load failed:', e); });
+    }
     if (window._utlParsed && window._utlParsed.length) {
       renderUtilizationTabFromParsed(window._utlParsed);
       return;
@@ -2113,26 +2130,52 @@ function _renderUtilizationCharts() {
     : allDays.map(function(d) { return parseInt(d.date.slice(8,10)) + ''; });
   var pastDaysArr = allDays.filter(function(d) { return d.isPast && d.hours > 0; });
 
-  // Bar chart — hours per day
-  var dayTotals = allDays.map(function(d) { return Math.round(d.hours * 10) / 10; });
-  var dayColors = allDays.map(function(d) {
+  // Bar chart — hours per day (stacked: факт снизу, отмены сверху)
+  var pf = window._utlPlanfact || {};
+  var dayFact = allDays.map(function(d) { return Math.round(d.hours * 10) / 10; });
+  var dayCancel = allDays.map(function(d) {
+    var p = pf[d.date];
+    return p ? Math.round(p.cancel * 10) / 10 : 0;
+  });
+  var factColors = allDays.map(function(d) {
     return d.hours > 0 ? (accent() || '#0ABAB5') : 'rgba(138,155,168,0.15)';
   });
 
   createChart('utl-days-chart', {
     type: 'bar', data: { labels: dayLabels, datasets: [
-      { label: 'Часов загрузки', data: dayTotals, backgroundColor: dayColors, borderRadius: 4, maxBarThickness: multiMonth ? 16 : 28 }
+      {
+        label: 'Факт (активные)', data: dayFact,
+        backgroundColor: factColors, borderRadius: 4, stack: 'hours',
+        maxBarThickness: multiMonth ? 16 : 28,
+      },
+      {
+        label: 'Отмены', data: dayCancel,
+        backgroundColor: 'rgba(231, 76, 60, 0.55)', borderRadius: 4, stack: 'hours',
+        maxBarThickness: multiMonth ? 16 : 28,
+      },
     ] },
     options: { responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false },
-        tooltip: { callbacks: { label: function(it) {
-          var d = allDays[it.dataIndex];
-          var parts = [it.raw + ' ч. (' + d.pct.toFixed(0) + '%)'];
-          if (d.persons > 0) parts.push(d.persons + ' чел.');
-          return parts.join(' · ');
-        } } } },
-      scales: { y: { beginAtZero: true, max: maxDayHours, ticks: { color: chartTextColor(), callback: function(v) { return v + 'ч'; } }, grid: { color: chartGridColor() } },
-        x: { ticks: { color: chartTextColor(), font: { size: multiMonth ? 8 : 10 }, maxRotation: multiMonth ? 90 : 0, autoSkip: true, maxTicksLimit: multiMonth ? 30 : 31 }, grid: { display: false } } }
+      plugins: { legend: { display: true, position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, padding: 10, font: { size: 11 }, color: chartTextColor() } },
+        tooltip: { callbacks: {
+          label: function(it) {
+            var d = allDays[it.dataIndex];
+            var p = pf[d.date];
+            if (it.dataset.label === 'Факт (активные)') {
+              var parts = ['Факт: ' + it.raw + ' ч. (' + d.pct.toFixed(0) + '%)'];
+              if (d.persons > 0) parts.push(d.persons + ' чел.');
+              return parts.join(' · ');
+            }
+            if (it.dataset.label === 'Отмены') {
+              if (!p || !p.cancel) return '';
+              return 'Отменено: ' + it.raw + ' ч. (план ' + p.plan.toFixed(1) + ', отмен ' + p.pct.toFixed(0) + '%)';
+            }
+            return it.raw;
+          }
+        } } },
+      scales: {
+        y: { stacked: true, beginAtZero: true, max: maxDayHours, ticks: { color: chartTextColor(), callback: function(v) { return v + 'ч'; } }, grid: { color: chartGridColor() } },
+        x: { stacked: true, ticks: { color: chartTextColor(), font: { size: multiMonth ? 8 : 10 }, maxRotation: multiMonth ? 90 : 0, autoSkip: true, maxTicksLimit: multiMonth ? 30 : 31 }, grid: { display: false } }
+      }
     }
   });
 
@@ -2145,11 +2188,20 @@ function _renderUtilizationCharts() {
   reversedDays.forEach(function(d, idx) {
     var dayNum = multiMonth ? (d.date.slice(8,10) + '.' + d.date.slice(5,7)) : parseInt(d.date.slice(8,10));
     var rowClass = d.isPast ? '' : ' style="opacity:0.5"';
+    var pfd = pf[d.date];
+    var cancelCell;
+    if (pfd && pfd.cancel > 0) {
+      cancelCell = '<span title="план ' + pfd.plan.toFixed(1) + ' ч">'
+                 + pfd.cancel.toFixed(1) + ' ч · ' + pfd.pct.toFixed(0) + '%</span>';
+    } else {
+      cancelCell = '—';
+    }
     dtHtml += '<tr' + rowClass + '>';
     dtHtml += '<td style="font-weight:600">' + dayNum + '</td>';
     dtHtml += '<td>' + DOW_SHORT[d.dow] + '</td>';
     dtHtml += '<td class="num" style="font-weight:600">' + (d.hours > 0 ? d.hours.toFixed(1) : '—') + '</td>';
     dtHtml += '<td class="num">' + (d.hours > 0 ? d.pct.toFixed(0) + '%' : '—') + '</td>';
+    dtHtml += '<td class="num" style="color:#c0392b">' + cancelCell + '</td>';
     dtHtml += '<td class="num">' + (d.persons > 0 ? d.persons : '—') + '</td>';
     dtHtml += '<td class="num">' + ((d.h_reserva + d.h_partida) > 0 ? (d.h_reserva + d.h_partida).toFixed(1) : '—') + '</td>';
     dtHtml += '<td class="num">' + (d.h_clases > 0 ? d.h_clases.toFixed(1) : '—') + '</td>';
@@ -2159,15 +2211,22 @@ function _renderUtilizationCharts() {
     // In reverse order: emit week subtotal after Monday (dow=1) or at end
     if (d.dow === 1 || idx === reversedDays.length - 1) {
       var weekAvg = weekDays > 0 ? weekSum / weekDays : 0;
-      dtHtml += '<tr class="month-subtotal"><td colspan="3" style="font-weight:600">Итого: ' + weekSum.toFixed(1) + ' ч.</td><td colspan="2" class="muted">ср. ' + weekAvg.toFixed(1) + ' ч/дн, ' + weekPers + ' чел.</td><td colspan="3"></td></tr>';
+      dtHtml += '<tr class="month-subtotal"><td colspan="3" style="font-weight:600">Итого: ' + weekSum.toFixed(1) + ' ч.</td><td colspan="3" class="muted">ср. ' + weekAvg.toFixed(1) + ' ч/дн, ' + weekPers + ' чел.</td><td colspan="3"></td></tr>';
       weekSum = 0; weekDays = 0; weekPers = 0;
     }
   });
   var grandAvg = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d){return s+d.hours},0) / pastDaysArr.length : 0;
   var grandPers = pastDaysArr.length > 0 ? Math.round(pastDaysArr.reduce(function(s,d){return s+d.persons},0) / pastDaysArr.length) : 0;
+  // Среднее по отменам (только за прошлые дни с planfact данными)
+  var pastWithPf = pastDaysArr.filter(function(d) { var p = pf[d.date]; return p && p.isFinal && p.plan > 0; });
+  var avgCancelPct = pastWithPf.length > 0
+    ? pastWithPf.reduce(function(s,d){return s+pf[d.date].pct},0) / pastWithPf.length : 0;
+  var avgCancelHrs = pastWithPf.length > 0
+    ? pastWithPf.reduce(function(s,d){return s+pf[d.date].cancel},0) / pastWithPf.length : 0;
   dtHtml += '<tr class="month-subtotal" style="font-weight:700"><td colspan="2">СРЕДНЕЕ / ДЕНЬ</td>';
   dtHtml += '<td class="num">' + grandAvg.toFixed(1) + '</td>';
   dtHtml += '<td class="num">' + (maxDayHours > 0 ? (grandAvg/maxDayHours*100).toFixed(0) + '%' : '') + '</td>';
+  dtHtml += '<td class="num" style="color:#c0392b">' + (pastWithPf.length > 0 ? avgCancelHrs.toFixed(1) + ' ч · ' + avgCancelPct.toFixed(0) + '%' : '—') + '</td>';
   dtHtml += '<td class="num">' + grandPers + '</td>';
   var avgBook = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d){return s+d.h_reserva+d.h_partida},0)/pastDaysArr.length : 0;
   var avgCls = pastDaysArr.length > 0 ? pastDaysArr.reduce(function(s,d){return s+d.h_clases},0)/pastDaysArr.length : 0;
