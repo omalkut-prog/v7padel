@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260417r"></script>
+<script src="assets/data.js?v=20260417s"></script>
 <link rel="stylesheet" href="assets/theme.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -289,17 +289,10 @@
     </div>
   </div>
 
-  <!-- Топ клиентов по отменам (эвристика имён из booking_text) -->
+  <!-- Топ-5 чаще отменяемого (единственная достоверная метрика из cancel_by_tipo) -->
   <div class="grid equal">
-    <div class="card">
-      <h3>ТОП-20 по отменам <small>8 нед · эвристика имён, покрытие ~<span id="cancel-topc-pct">—</span>%</small></h3>
-      <table class="mini" id="tbl-cancel-topc">
-        <thead><tr><th>Клиент</th><th class="num">Отмен</th><th class="num">Часов</th><th>Чаще отменяет</th></tr></thead>
-        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
-      </table>
-    </div>
-    <div class="card">
-      <h3>Топ-5 чаще отменяемого <small>типы/мероприятия</small></h3>
+    <div class="card" style="grid-column: 1 / -1">
+      <h3>Топ-5 чаще отменяемого <small>типы/мероприятия · 4 недели, полные данные</small></h3>
       <table class="mini" id="tbl-cancel-top5">
         <thead><tr><th>Категория</th><th class="num">Отмен</th><th class="num">Часов</th></tr></thead>
         <tbody><tr><td colspan="3" class="loading">Загрузка…</td></tr></tbody>
@@ -659,32 +652,11 @@ function phoneWaCell(phone) {
 // Единый лимит строк в recall-списках (совпадает с limit на сервере).
 var RECALL_LIST_LIMIT = 15;
 
-// --- ТОП-20 клиентов по отменам (table) ---
-function renderCancelTopClients(rows) {
-  var tbody = document.querySelector("#tbl-cancel-topc tbody");
-  tbody.innerHTML = "";
-  if (!rows || !rows.length) {
-    tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет данных</td></tr>';
-    return;
-  }
-  if (rows[0] && rows[0].recognized_pct) {
-    var el = document.getElementById("cancel-topc-pct");
-    if (el) el.textContent = rows[0].recognized_pct;
-  }
-  rows.forEach(function(r) {
-    var tr = document.createElement("tr");
-    var topInfo = r.top_tipo
-      ? (r.top_tipo + ' · ' + (r.top_tipo_count || '') + ' из ' + (r.count || ''))
-      : '—';
-    tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
-                   '<td class="num" style="color:#c0392b;font-weight:600">' + r.count + '</td>' +
-                   '<td class="num">' + toNum(r.hours).toFixed(1) + '</td>' +
-                   '<td style="font-size:12px;color:var(--text2)">' + topInfo + '</td>';
-    tbody.appendChild(tr);
-  });
-}
-
 // --- Топ-5 чаще всего отменяемого (из cancel_by_tipo — просто первые 5) ---
+// Note: ТОП-20 клиентов по отменам удалён — Matchpoint не отдаёт cid для
+// cancelled броней, а эвристика по booking_text давала только 28% покрытия
+// (не репрезентативно). См. 05_BACKLOG — вернёмся когда будет snapshot-based
+// tracking bookings→cid до отмены.
 function renderCancelTop5(tipoRows) {
   var tbody = document.querySelector("#tbl-cancel-top5 tbody");
   tbody.innerHTML = "";
@@ -1154,7 +1126,6 @@ async function loadSlowLiabilities() {
         V7.loadCacheTab('cancel_by_tipo').catch(function() { return []; }),
         V7.loadCacheTab('cancel_by_origen').catch(function() { return []; }),
         V7.loadCacheTab('cancel_by_hour').catch(function() { return []; }),
-        V7.loadCacheTab('cancel_top_clients').catch(function() { return []; }),
       ]).then(function(results) {
         renderBookingTypes(results[0]);
         renderRetention(results[1]);
@@ -1165,8 +1136,7 @@ async function loadSlowLiabilities() {
         renderCancelTipo(results[6]);
         renderCancelOrigen(results[7]);
         renderCancelHour(results[8]);
-        renderCancelTopClients(results[9]);
-        renderCancelTop5(results[6]);   // top-5 из того же cancel_by_tipo
+        renderCancelTop5(results[6]);   // top-5 из cancel_by_tipo (полные данные)
       });
 
       // ── TIMESTAMP ──
