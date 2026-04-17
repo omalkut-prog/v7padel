@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260414k"></script>
-<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/theme.css?v=20260417mobile">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
   /* Variables from theme.css :root */
@@ -171,8 +171,13 @@
   @media (max-width: 760px)  {
     .kpi-grid { grid-template-columns: repeat(2, 1fr); }
     .filters input { min-width: 0; width: 100%; }
-    table.clients th:nth-child(3), table.clients td:nth-child(3) { display: none; }
-    table.clients th:nth-child(4), table.clients td:nth-child(4) { display: none; }
+    /* Убрано display:none для колонок 3/4 (2026-04-17): на мобилке
+       пользователь не может листать вправо чтобы увидеть скрытые колонки.
+       Теперь .table-wrap получает overflow-x: auto (глобально в theme.css),
+       и таблица скроллится свайпом. Все колонки видны. */
+    .table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+    table.clients { min-width: 700px; }
+    table.clients th, table.clients td { padding: 10px 10px; white-space: nowrap; }
   }
   @media (max-width: 520px) {
     .kpi-grid { grid-template-columns: 1fr; }

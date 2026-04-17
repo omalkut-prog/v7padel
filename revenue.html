@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260417r"></script>
-<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/theme.css?v=20260417mobile">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
   /* Variables from theme.css :root */
@@ -55,7 +55,10 @@
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 
   /* KPI row */
-  .kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 28px; }
+  /* auto-fit — чтобы 6 карточек умещались на десктопе и плавно перестраивались
+     на планшете/мобилке. Раньше было repeat(5, 1fr) — 6-я «Средняя загрузка»
+     уезжала во вторую строку. */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: 28px; }
   .kpi-card {
     background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
     padding: 22px 24px; box-shadow: var(--shadow);
@@ -196,10 +199,16 @@
     h1.page-title { font-size: 22px; }
     main { padding: 16px 12px 60px; }
     .panel { padding: 18px 16px; }
-    .kpi-row { grid-template-columns: 1fr; }
     .kpi-card .kpi-value { font-size: 22px; }
+    /* Таблицы .fin и .weekly на мобилке — horizontal scroll, не сжатие.
+       Убирает проблему «числа слиплись / обрезаны». */
+    .panel table.fin, .panel table.weekly {
+      display: block; overflow-x: auto; -webkit-overflow-scrolling: touch;
+      white-space: nowrap;
+    }
+    table.fin { min-width: 540px; }
+    table.weekly { min-width: 600px; font-size: 10px; }
     table.fin th, table.fin td { padding: 8px 6px; font-size: 11px; }
-    table.weekly { font-size: 10px; }
     table.weekly td, table.weekly th { padding: 5px 3px; }
     .chart-box { height: 240px; }
     .chart-box.short { height: 200px; }

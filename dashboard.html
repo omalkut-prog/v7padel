@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260417s"></script>
-<link rel="stylesheet" href="assets/theme.css">
+<link rel="stylesheet" href="assets/theme.css?v=20260417mobile">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
   /* Variables from theme.css :root; only page-specific overrides here */
@@ -137,10 +137,22 @@
     .page-title { font-size: 22px; }
     .kpi .value { font-size: 22px; }
   }
+  @media (max-width: 600px) {
+    /* Таблицы .mini получают горизонтальный scroll. Убирает «обрезанные»
+       колонки wa.me/amount на мобилке. */
+    .card table.mini { min-width: 480px; }
+    .card > table.mini { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    /* Chart.js — minimum height чтобы не схлопывались в 60px */
+    .chart-wrap { min-height: 200px; }
+    .chart-wrap.short { min-height: 160px; }
+    .chart-wrap.tall { min-height: 240px; }
+  }
   @media (max-width: 500px) {
     .kpi-row { grid-template-columns: 1fr 1fr; gap: 12px; }
     .kpi { padding: 14px; }
     .card { padding: 16px; }
+    .card h3 { font-size: 14px; }
+    .card h3 small { display: block; margin-left: 0; margin-top: 2px; }
   }
 </style>
 </head>

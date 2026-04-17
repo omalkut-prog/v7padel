@@ -290,3 +290,59 @@ html[data-theme="tiffany"] .v7-sidebar .brain-link { display: none !important; }
 .role-picker-btn strong { display: block; font-size: 15px; font-weight: 600; margin-bottom: 4px; color: var(--text); }
 .role-picker-btn span { display: block; font-size: 11px; color: var(--text3); letter-spacing: .3px; }
 @media (max-width: 560px) { .role-picker-options { grid-template-columns: 1fr; } .role-picker { padding: 32px 20px 24px; } .role-picker h2 { font-size: 24px; } }
+
+
+/* =========================================================================
+   MOBILE RESPONSIVE HELPERS (добавлено 2026-04-17 после жалобы «таблицы не
+   листаются вправо», правил # 10 в 12_WORKING_WITH_CLAUDE.md).
+
+   Правила:
+   1. Любая .table-wrap получает horizontal scroll на узких экранах, вместо
+      скрытия колонок через display:none — пусть пользователь свайпает.
+   2. Chart.js канвасы имеют minimum-height чтобы не схлопнулись + touch-
+      friendly legend labels.
+   3. KPI-grid на очень узких экранах — 1 колонка.
+   ========================================================================= */
+
+/* Мобильный горизонтальный scroll для широких таблиц */
+@media (max-width: 760px) {
+  .table-wrap, .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .table-wrap table, .table-responsive table {
+    min-width: 640px;  /* хватит чтобы все колонки были читаемы */
+  }
+  /* Подсказка «можно свайпать» — тонкая тень справа */
+  .table-wrap {
+    background-image:
+      linear-gradient(to right, var(--surface, #fff), var(--surface, #fff)),
+      linear-gradient(to right, var(--surface, #fff), var(--surface, #fff)),
+      linear-gradient(to right, rgba(0,0,0,0.08), rgba(255,255,255,0)),
+      linear-gradient(to left,  rgba(0,0,0,0.08), rgba(255,255,255,0));
+    background-position: left center, right center, left center, right center;
+    background-repeat: no-repeat;
+    background-size: 20px 100%, 20px 100%, 10px 100%, 10px 100%;
+    background-attachment: local, local, scroll, scroll;
+  }
+}
+
+/* Графики Chart.js: удерживаем minimum height чтобы не схлопывались */
+@media (max-width: 600px) {
+  .chart-wrap, .chart-box {
+    min-height: 220px;
+  }
+  .chart-wrap.short {
+    min-height: 180px;
+  }
+  .chart-wrap.tall {
+    min-height: 260px;
+  }
+}
+
+/* KPI ряд на очень узком экране — 1 колонка, без сжатия цифр */
+@media (max-width: 480px) {
+  .kpi-row, .kpi-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
