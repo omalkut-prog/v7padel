@@ -93,6 +93,31 @@
   .action-bar .btn { background: var(--bg); border: 1px solid var(--border); color: var(--text2); font-size: 12px; padding: 7px 14px; border-radius: 8px; cursor: pointer; font-family: inherit; transition: all .15s; }
   .action-bar .btn:hover { border-color: var(--accent-border); color: var(--text); }
   .action-bar .btn.primary { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+
+  /* MOBILE — добавлено 2026-04-18 после deep code review.
+     До этого страница была сломана на мобиле: KPI grid не адаптировался,
+     таблица recall не скроллилась горизонтально. */
+  @media (max-width: 900px) {
+    .kpi-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .kpi { padding: 14px; }
+    .kpi .value { font-size: 20px; }
+    main { padding: 16px 14px 60px; }
+    h1.page-title { font-size: 22px; }
+    .filters { gap: 6px; }
+    .chip { font-size: 11px; padding: 5px 10px; }
+    .action-bar { flex-wrap: wrap; padding: 10px 12px; gap: 8px; }
+    .action-bar .btn { font-size: 11px; padding: 6px 10px; }
+  }
+  @media (max-width: 760px) {
+    /* Таблица recall на мобиле — горизонтальный скролл, чтобы все колонки видны */
+    .table-wrap { overflow-x: auto !important; -webkit-overflow-scrolling: touch; }
+    table.recall { min-width: 720px; }
+    table.recall th, table.recall td { padding: 10px 10px; white-space: nowrap; }
+  }
+  @media (max-width: 480px) {
+    .kpi-grid { grid-template-columns: 1fr; }
+    .kpi .value { font-size: 22px; }
+  }
 </style>
 </head>
 <body>
