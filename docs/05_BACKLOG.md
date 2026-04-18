@@ -82,6 +82,7 @@
 
 ## LATER
 
+- **[REVIEW 2026-04-18 · P0] Login.html — заменить hardcoded пароли на нормальную auth**. Сейчас в `login.html` JS-объект `PASSWORDS` со всеми паролями (`V7admin2026`, `V7manager2026`, `V7coach2026`, `V7clubadmin2026`) виден в DevTools любому. Володимир (2026-04-18): пока никому доступы не раздаём — отложено. Когда придёт время раздавать команде — реализовать OAuth Google (рекомендация: ~3-4ч, у всех в команде есть Google, whitelist email-ов в коде). Альтернативы — Supabase password-based (~5-6ч) или просто менее очевидные пароли (минимум, риск остаётся).
 - **[REVIEW 2026-04-18 · P1] Решение по `manager-*.html` страницам** (4 заглушки ~3KB). Нужна ли вообще роль manager? Если нет — удалить 4 HTML + nav-ссылки. Если да — приоритизировать наполнение (2-6ч работы). Impact: низкий · Effort: зависит от решения.
 - **[REVIEW 2026-04-18 · P1] `scrape_debts.py` в cron или removal**. Скрипт для debts/balance_log существует, не вызывается. Проверить используются ли `debts` / `balance_log` табы на сайте. Если да — добавить в run_all_etl (10 мин). Если нет — пометить как ad-hoc в docstring.
 - **[REVIEW 2026-04-18 · P1] Рефакторинг `revenue.html`** (179KB, 3500 строк inline JS). Вынести общие helpers в `revenue-helpers.js`. Дубли между табами (income/goods/margins/utilization). Effort: 2-3ч. Impact: mobile performance.
