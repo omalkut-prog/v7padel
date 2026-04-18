@@ -1701,10 +1701,14 @@ function _renderPerCourtKpisInPulse() {
   var rpc = num(k.revenue_per_court_lm);
   var opc = num(k.opex_per_court_lm);
   var pnlpc = num(k.pnl_per_court_lm);
+  var rpch = num(k.rpch_lm);
   var courtsN = num(k.courts_count) || 4;
   if (rpcEl && rpc > 0) {
     rpcEl.textContent = fmtInt(Math.round(rpc)) + ' ₺';
-    if (rpcSub) rpcSub.textContent = 'PnL ' + (k.last_month || '') + ' / ' + courtsN;
+    if (rpcSub) {
+      var rpchTxt = rpch > 0 ? ' · RPCH ' + fmtInt(Math.round(rpch)) + ' ₺/ч' : '';
+      rpcSub.textContent = 'PnL ' + (k.last_month || '') + ' / ' + courtsN + rpchTxt;
+    }
   }
   if (opcEl && opc > 0) {
     opcEl.textContent = fmtInt(Math.round(opc)) + ' ₺';

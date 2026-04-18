@@ -381,6 +381,49 @@
 
 ---
 
+## ADR-018 · 2026-04-18 · Per-court KPIs (RPCH, Revenue/court, OPEX/court)
+
+**Контекст**: Володимир указал что в индустрии падел-клубов **главная экономическая метрика** — это Revenue per Court Hour (RPCH = ₺ / корт-час). И отдельно нужно мерить per-court (P1/P2/P3/P4), потому что P4 — открытый, без крыши, погода влияет, экономика может отличаться.
+
+**Сложность**: точная атрибуция выручки к конкретному корту **невозможна** с нашими данными. Тренировки оплачиваются клиентом тренеру/абонементу — не привязаны к корту. Клубные карты — общий взнос. Open games — каждый игрок платит свой слот через players × price. В bookings.amount у этих типов часто 0.
+
+**Первая попытка (ошибочная)**: посчитал per-court RPCH как `bookings.amount[court=X] / hours[court=X]`. Получил P1=2020, P2=905, P3=1312, P4=985 ₺/ч — заметная разница. Володимир обоснованно указал что **загрузка P1/P2/P3 практически одинаковая**, такая разница невозможна. Причина: `bookings.amount` сильно занижен у клубных событий и тренировок, особенно у P2 (47 club-броней) и P3 (86 тренировок).
+
+**Вторая попытка (текущая)**:
+- **RPCH = revenue(last_pnl_month) / hours(того же месяца, occupancy_daily)** — одна общая метрика для клуба. ~2488 ₺/ч за апрель 2026 (1 470 323 ₺ / 591 ч).
+- **Revenue per court** = **PnL_lm / 4** = простое среднее (367k ₺ за апрель). Подходит для KPI «сколько средний корт зарабатывает».
+- **Per-court breakdown в модалке**: только **часы по кортам** (точно из bookings) + **оценка ₺** = `часы × RPCH общий`. Это пропорциональная оценка, не точная атрибуция, но **честная** в рамках доступных данных.
+- **OPEX per court** = OPEX_lm / 4. Грубо, но даёт сравнение с industry бенчмарками.
+- **P&L per court** = P&L_lm / 4 — операционная маржа корта.
+
+**Источники данных**:
+- `lm["revenue"]` = revenue из бухгалтерского PnL (последний полный месяц или live-month если cur не закрыт).
+- `total_hrs_lm` = sum(occupancy_daily.hours) за last_pnl_month (точная цифра из Matchpoint snapshot).
+- `hrs_by_court_30d/90d` = sum(bookings.duration_min where court=X, status=active) / 60.
+
+**Что не делаем**:
+- Не пытаемся приписать revenue от тренировок/абонементов/турниров к конкретному корту через эвристики. Слишком много предположений → ложная точность.
+- Не считаем per-court RPCH (имеет смысл только если бы знали revenue per court).
+- Не делим OPEX по типу корта (P4 без крыши требует меньше electricity, но для упрощения пока поровну).
+
+**Где живёт**:
+- Backend: `etl/build_cache.py::compute_court_occupancy_for_month()` + `compute_court_hours_by_court()`. Поля в `dashboard_kpis`: `revenue_per_court_lm`, `opex_per_court_lm`, `pnl_per_court_lm`, `rpch_lm`, `total_hours_lm`, `courts_count`. Отдельный таб `kpis_per_court` с per-court разбивкой.
+- UI `/dashboard`: 2 KPI карточки (Выручка/корт + OPEX/корт), кликабельная модалка с per-court таблицей.
+- UI `/revenue` Пульс: 2 KPI карточки (те же).
+
+**Расписание обновления**: per-court KPIs **обязательны в ежедневном cron** (`run_all_etl.py` шаг 15 = `build_cache`). Считаются автоматически вместе со всеми остальными агрегатами. Никакой отдельной обработки не требуется — работают пока работает основной ETL.
+
+**Формула как памятка**:
+```
+RPCH = total_revenue / total_occupied_hours       (общая метрика клуба)
+Revenue per court = total_revenue / N courts      (среднее по 4)
+Estimated revenue of court X = hours[X] × RPCH    (пропорциональная оценка)
+P&L per court = (revenue - opex) / N courts       (операционная маржа)
+OPEX per court = total_opex / N courts            (удельные затраты)
+```
+
+---
+
 ## Шаблон новой записи
 
 ```markdown

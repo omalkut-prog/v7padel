@@ -836,19 +836,24 @@ async function loadSlowLiabilities() {
       document.getElementById("kpi-clients-active").textContent = "активных 30д: " + (kpis.clients_active_30d || 0);
       document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + kpis.clients_new_30d;
 
-      // Per-court KPIs
+      // Per-court KPIs.
+      // RPCH = revenue(last_pnl_month) / hours(того же месяца) — главная
+      // индустриальная метрика клуба.
+      // Revenue/court = PnL/4 (среднее по 4); per-court estimate = hours × RPCH.
       var rpc = toNum(kpis.revenue_per_court_lm);
       var opc = toNum(kpis.opex_per_court_lm);
       var pnlpc = toNum(kpis.pnl_per_court_lm);
-      var rpch = toNum(kpis.rpch_30d);
+      var rpch = toNum(kpis.rpch_lm);
+      var totalHrs = toNum(kpis.total_hours_lm);
       var courtsCount = toNum(kpis.courts_count) || 4;
       if (rpc > 0) {
         document.getElementById("kpi-rev-per-court").textContent = fmtK(rpc) + " ₺";
         document.getElementById("kpi-rev-per-court-sub").textContent =
-          "среднее по " + courtsCount + " кортам · " + (kpis.last_month || '');
+          "PnL " + (kpis.last_month || '') + " / " + courtsCount + " кортов";
       }
       if (rpch > 0) {
-        document.getElementById("kpi-rpch").textContent = "₺/корт-час: " + fmtInt(Math.round(rpch));
+        document.getElementById("kpi-rpch").textContent =
+          "₺/корт-час: " + fmtInt(Math.round(rpch)) + (totalHrs > 0 ? " · " + Math.round(totalHrs) + " ч" : "");
       }
       if (opc > 0) {
         document.getElementById("kpi-opex-per-court").textContent = fmtK(opc) + " ₺";
@@ -1060,37 +1065,41 @@ document.getElementById('kpi-rpc-card').addEventListener('click', async function
   try {
     var rows = await V7.loadCacheTab('kpis_per_court');
     if (!rows || !rows.length) throw new Error('no per-court data');
-    var html = '<div class="modal-period-hint">Только <b>rent-брони</b> (reserva_individual + reserva_partida). '
-             + 'Тренировки/клубные/open games исключены — у них amount часто 0 (оплата через коуч/абонемент/players).</div>';
+    var html = '<div class="modal-period-hint">Часы из <code>bookings.duration_min</code> по корту. '
+             + 'Оценка ₺ = часы × RPCH (общий по клубу). RPCH = revenue(посл. мес PnL) / часы(того же месяца).</div>';
     html += '<table><thead><tr>'
          + '<th>Корт</th>'
-         + '<th class="num">Выручка rent 30д</th>'
-         + '<th class="num">Часы rent 30д</th>'
-         + '<th class="num">₺/час 30д</th>'
-         + '<th class="num">₺/час 90д</th>'
+         + '<th class="num">Часы 30д</th>'
+         + '<th class="num">Доля</th>'
+         + '<th class="num">Оценка ₺ 30д</th>'
+         + '<th class="num">Часы 90д</th>'
          + '</tr></thead><tbody>';
     rows.forEach(function(r) {
-      var rpch30 = toNum(r.rpch_30d);
-      var rpch90 = toNum(r.rpch_90d);
-      var trend = rpch30 > rpch90 * 1.1 ? '↑' : (rpch30 < rpch90 * 0.9 ? '↓' : '→');
-      var trendColor = rpch30 > rpch90 * 1.1 ? 'var(--good)' : (rpch30 < rpch90 * 0.9 ? 'var(--bad)' : 'var(--text3)');
+      var h30 = toNum(r.hours_30d);
+      var h90 = toNum(r.hours_90d);
+      var share = toNum(r.share_pct_30d);
+      var est = toNum(r.est_revenue_30d);
       html += '<tr>'
            + '<td><b>' + r.label + '</b></td>'
-           + '<td class="num">' + fmtInt(toNum(r.revenue_30d)) + ' ₺</td>'
-           + '<td class="num">' + toNum(r.hours_30d).toFixed(0) + '</td>'
-           + '<td class="num"><b>' + fmtInt(Math.round(rpch30)) + '</b> ₺</td>'
-           + '<td class="num" style="color:' + trendColor + '">' + fmtInt(Math.round(rpch90)) + ' ₺ ' + trend + '</td>'
+           + '<td class="num">' + h30.toFixed(0) + '</td>'
+           + '<td class="num">' + share.toFixed(0) + '%</td>'
+           + '<td class="num"><b>' + fmtInt(Math.round(est)) + '</b> ₺</td>'
+           + '<td class="num">' + h90.toFixed(0) + '</td>'
            + '</tr>';
     });
     html += '</tbody></table>';
+    if (rows.length && rows[0].rpch_used) {
+      html += '<div style="margin-top:8px;font-size:12px;color:var(--text3);text-align:right">'
+           + 'RPCH использован: <b>' + fmtInt(Math.round(toNum(rows[0].rpch_used))) + ' ₺/час</b></div>';
+    }
     html += '<div style="margin-top:14px;font-size:12px;color:var(--text2);line-height:1.5">'
          + '<b>Как читать:</b><br>'
-         + '• <b>₺/час</b> = выручка с rent-брони / часы rent. Главная метрика чистой аренды корта.<br>'
-         + '• Загрузка кортов P1/P2/P3 практически одинаковая (~108-114 rent-часов).<br>'
-         + '• <b>P4 (открытый)</b> занят меньше (~67 ч rent) — погода/предпочтения; RPCH сравнимый.<br>'
-         + '• <b>30д vs 90д</b> с трендом — улучшается/ухудшается ли корт.<br>'
-         + '<br><b>Метрика «Выручка / корт» в KPI-карточке</b> другая: это PnL последнего месяца / 4 — '
-         + 'ВКЛЮЧАЕТ всё (членство, тренировки, товары, турниры). А RPCH здесь — только rent.'
+         + '• <b>Часы</b> = реально занятые корт-часы из bookings (status=active).<br>'
+         + '• <b>Доля</b> — % часов корта в общем utilization клуба.<br>'
+         + '• <b>Оценка ₺</b> = часы × общий RPCH. Точная атрибуция revenue к корту невозможна '
+         + '(тренировки/абонементы/турниры не привязаны к корту). Это пропорциональная оценка.<br>'
+         + '• <b>P4 (открытый)</b> — без крыши, погода влияет; обычно меньше часов чем P1-P3.<br>'
+         + '• <b>RPCH общий</b> для клуба = одна цифра, перемножается на часы каждого корта.'
          + '</div>';
     document.getElementById('modal-body').innerHTML = html;
   } catch (e) {
