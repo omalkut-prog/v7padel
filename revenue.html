@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260418"></script>
+<script src="assets/data.js?v=20260418b"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -471,7 +471,7 @@
   <section class="section">
     <div class="section-head">
       <h2>3 &middot; Месячная сводка (продажи)</h2>
-      <span class="hint">последние 8 месяцев</span>
+      <span class="hint">последние 8 месяцев · stacked по категориям · клик по легенде = on/off</span>
     </div>
     <div class="panel">
       <div class="chart-box"><canvas id="gds-monthly-chart"></canvas></div>
@@ -479,7 +479,7 @@
     <div class="panel">
       <table class="fin" id="gds-monthly-table">
         <thead>
-          <tr><th>Месяц</th><th>Итого</th><th>Ср/день</th><th>Лучшая нед.</th><th>Худшая нед.</th></tr>
+          <tr><th>Месяц</th><th class="num">Итого</th><th>Топ категория</th><th class="num">Доля топа</th><th class="num">Категорий</th></tr>
         </thead>
         <tbody><tr><td colspan="5" class="loading">Загрузка…</td></tr></tbody>
       </table>
@@ -1722,6 +1722,148 @@ function renderMonthlyChart(canvasId, monthKeys, monthTotals) {
       }
     }
   });
+}
+
+/* ----------------------------------------------------------------
+   Месячная сводка goods — stacked bar по категориям, кликом по
+   легенде можно скрыть/показать категорию (встроенный Chart.js
+   toggle). Таблица — строки по месяцам с колонкой топ-категории.
+   Источник: transactions с category='Sale of goods'.
+   ---------------------------------------------------------------- */
+function _goodsCategoryFromSub(sub) {
+  // 'Padel Balls / Head (3 pcs)' → 'Мячи'
+  // 'Drinks / Fusetea peach' → 'Напитки'
+  // 'Padel rackets Babolat / ...' → 'Ракетки'
+  // и т.д.
+  var s = (sub || '').trim();
+  var head = s.split(' / ')[0].trim().toLowerCase();
+  if (!head) return 'Прочее';
+  if (head.indexOf('ball') >= 0 || head.indexOf('мяч') >= 0) return 'Мячи';
+  if (head.indexOf('racket') >= 0 || head.indexOf('ракет') >= 0) return 'Ракетки';
+  if (head.indexOf('t-shirt') >= 0 || head.indexOf('shirt') >= 0 || head.indexOf('apparel') >= 0
+      || head.indexOf('cap') >= 0 || head.indexOf('hat') >= 0 || head.indexOf('одежд') >= 0) return 'Одежда';
+  if (head.indexOf('drink') >= 0 || head.indexOf('water') >= 0 || head.indexOf('напит') >= 0
+      || head.indexOf('coffee') >= 0 || head.indexOf('tea') >= 0 || head.indexOf('coca') >= 0) return 'Напитки';
+  if (head.indexOf('protein') >= 0 || head.indexOf('snack') >= 0 || head.indexOf('granola') >= 0
+      || head.indexOf('bar') >= 0 || head.indexOf('батонч') >= 0) return 'Снеки';
+  if (head.indexOf('winding') >= 0 || head.indexOf('overgrip') >= 0 || head.indexOf('grip') >= 0
+      || head.indexOf('обмотк') >= 0) return 'Обмотки';
+  if (head.indexOf('giftbox') >= 0 || head.indexOf('подароч') >= 0) return 'Подарочные';
+  if (head.indexOf('accessor') >= 0 || head.indexOf('аксесс') >= 0) return 'Аксессуары';
+  return 'Прочее';
+}
+
+// Палитра для категорий goods (стабильные цвета между перезагрузками)
+var GOODS_CAT_COLORS = {
+  'Мячи':         '#0ABAB5',   // accent
+  'Ракетки':      '#0e8a87',   // accent dark
+  'Одежда':       '#9b59b6',   // purple
+  'Напитки':      '#3498db',   // blue
+  'Снеки':        '#f39c12',   // orange
+  'Обмотки':      '#16a085',   // teal
+  'Подарочные':   '#e74c3c',   // red
+  'Аксессуары':   '#7f8c8d',   // grey
+  'Прочее':       '#bdc3c7',   // light grey
+};
+
+function renderGoodsMonthlyByCategory(canvasId, tableId, goodsTxns) {
+  // Группируем: month → category → total
+  var byMonthCat = {};
+  goodsTxns.forEach(function(t) {
+    if (!t.date) return;
+    var d = (t.date instanceof Date) ? t.date : new Date(t.date);
+    if (isNaN(d)) return;
+    var ym = ymKey(d);
+    var cat = _goodsCategoryFromSub(t.subcategory || t.sub || '');
+    if (!byMonthCat[ym]) byMonthCat[ym] = {};
+    byMonthCat[ym][cat] = (byMonthCat[ym][cat] || 0) + (Number(t.total) || 0);
+  });
+
+  // Последние 8 месяцев
+  var monthKeys = Object.keys(byMonthCat).sort().slice(-8);
+  if (!monthKeys.length) return;
+
+  // Все категории встретившиеся в окне, отсортированные по убыванию total за период
+  var catTotals = {};
+  monthKeys.forEach(function(ym) {
+    Object.entries(byMonthCat[ym] || {}).forEach(function(p) {
+      catTotals[p[0]] = (catTotals[p[0]] || 0) + p[1];
+    });
+  });
+  var cats = Object.keys(catTotals).sort(function(a, b) { return catTotals[b] - catTotals[a]; });
+
+  // Datasets — по одному на категорию, stacked
+  var datasets = cats.map(function(cat) {
+    return {
+      label: cat,
+      data: monthKeys.map(function(ym) { return Math.round((byMonthCat[ym][cat] || 0)); }),
+      backgroundColor: GOODS_CAT_COLORS[cat] || '#95a5a6',
+      borderRadius: 3,
+      maxBarThickness: 60,
+    };
+  });
+
+  createChart(canvasId, {
+    type: 'bar',
+    data: { labels: monthKeys.map(ymLabel), datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: {
+            color: chartTextColor(), boxWidth: 12, boxHeight: 12, padding: 10,
+            font: { size: 11 }
+          },
+          // Подсказка: клик скрывает/показывает категорию (встроенное поведение Chart.js)
+        },
+        tooltip: {
+          callbacks: {
+            label: function(item) {
+              return item.dataset.label + ': ' + fmtInt(Math.round(item.raw)) + ' ₺';
+            },
+            footer: function(items) {
+              var sum = items.reduce(function(s, i) { return s + i.raw; }, 0);
+              return 'Всего: ' + fmtInt(Math.round(sum)) + ' ₺';
+            }
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: chartTextColor() }, grid: { display: false } },
+        y: {
+          stacked: true, beginAtZero: true,
+          ticks: { color: chartTextColor(), callback: function(v) { return fmt(v) + ' ₺'; } },
+          grid: { color: chartGridColor() }
+        }
+      }
+    }
+  });
+
+  // Таблица: Месяц | Итого | Топ категория | 2-я категория | Кол-во категорий
+  var tbody = document.querySelector('#' + tableId + ' tbody');
+  if (!tbody) return;
+  // Меняем заголовок таблицы под новые колонки
+  var thead = document.querySelector('#' + tableId + ' thead tr');
+  if (thead) {
+    thead.innerHTML = '<th>Месяц</th><th class="num">Итого</th><th>Топ категория</th><th class="num">Доля топа</th><th class="num">Категорий</th>';
+  }
+  var html = '';
+  monthKeys.slice().reverse().forEach(function(ym) {
+    var monCats = byMonthCat[ym] || {};
+    var total = Object.values(monCats).reduce(function(s, v) { return s + v; }, 0);
+    var sorted = Object.entries(monCats).sort(function(a, b) { return b[1] - a[1]; });
+    var top = sorted[0];
+    var topShare = top && total > 0 ? (top[1] / total * 100).toFixed(0) + '%' : '—';
+    html += '<tr>'
+         + '<td style="font-weight:500">' + ymLabel(ym) + '</td>'
+         + '<td class="num">' + fmtInt(Math.round(total)) + ' ₺</td>'
+         + '<td>' + (top ? top[0] + ' (' + fmtInt(Math.round(top[1])) + ' ₺)' : '—') + '</td>'
+         + '<td class="num">' + topShare + '</td>'
+         + '<td class="num">' + Object.keys(monCats).length + '</td>'
+         + '</tr>';
+  });
+  tbody.innerHTML = html;
 }
 
 function renderCatBlock(donutId, tableId, catMap, catTotal) {
@@ -3291,8 +3433,16 @@ async function mainFromCache() {
     renderDowChartDual('gds-dow-chart', gdsDowAvg, gdsDowAvgAll);
   }
 
-  // Goods monthly from goods weekly
-  if (gdsWeekly && gdsWeekly.length) {
+  // Goods monthly — stacked bar по категориям (последние 8 месяцев).
+  // Источник: _allGoodsTxns (transactions с category='Sale of goods'),
+  // группируем по высокоуровневой категории из subcategory ("Padel Balls / Head" → "Мячи").
+  // Кликом по легенде Chart.js — toggle категорий on/off.
+  // Запрошено пользователем 2026-04-18: «сделай категории чтобы я мог выделять
+  // отдельно и видеть по каждой помесячную статистику».
+  if (window._allGoodsTxns && window._allGoodsTxns.length) {
+    renderGoodsMonthlyByCategory('gds-monthly-chart', 'gds-monthly-table', window._allGoodsTxns);
+  } else if (gdsWeekly && gdsWeekly.length) {
+    // Fallback (старая логика) если транзакции ещё не загружены
     var gdsMonthMap = {};
     gdsWeekly.forEach(function(r) {
       var mon = new Date(r.week_mon + 'T00:00:00');
@@ -3305,13 +3455,11 @@ async function mainFromCache() {
     var gmTotals = gmKeys.map(function(ym) { return gdsMonthMap[ym]; });
     renderMonthlyChart('gds-monthly-chart', gmKeys, gmTotals);
     var gmTbody = document.querySelector('#gds-monthly-table tbody');
-    var gmHtml = '';
-    gmKeys.forEach(function(ym) {
-      gmHtml += '<tr><td style="font-weight:500">' + ymLabel(ym) + '</td>';
-      gmHtml += '<td class="num">' + fmtInt(Math.round(gdsMonthMap[ym])) + ' ₺</td>';
-      gmHtml += '<td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>';
-    });
-    gmTbody.innerHTML = gmHtml;
+    gmTbody.innerHTML = gmKeys.map(function(ym) {
+      return '<tr><td style="font-weight:500">' + ymLabel(ym) + '</td>'
+           + '<td class="num">' + fmtInt(Math.round(gdsMonthMap[ym])) + ' ₺</td>'
+           + '<td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>';
+    }).join('');
   }
 
   // Goods items table from rev_goods_weekly
