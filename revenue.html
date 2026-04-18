@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260418c"></script>
+<script src="assets/data.js?v=20260418d"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -1820,6 +1820,93 @@ var GOODS_CAT_COLORS = {
   'Прочее':       '#bdc3c7',   // light grey
 };
 
+/* renderGoodsMonthlyFromMC — stacked bar по категориям из готового
+   серверного таба `goods_by_month_cat` (wide format).
+   Зеркалит inc-stacked-chart для income trend.
+   Используется на /revenue → tab Goods → секция «3 · Месячная сводка».
+   Категории: Мячи / Ракетки / Одежда / Напитки / Снеки / Обмотки /
+   Подарочные / Аксессуары / Прочее. Клик по легенде = on/off. */
+function renderGoodsMonthlyFromMC(canvasId, tableId, goodsMC) {
+  if (!goodsMC || !goodsMC.length) return;
+  // goodsMC — массив объектов {month, Мячи, Ракетки, ...}
+  var monthKeys = goodsMC.map(function(r) { return r.month; })
+                          .filter(Boolean).sort().slice(-8);
+  var monthMap = {};
+  goodsMC.forEach(function(r) { if (r.month) monthMap[r.month] = r; });
+
+  var allCats = ["Мячи", "Ракетки", "Одежда", "Напитки", "Снеки",
+                 "Обмотки", "Подарочные", "Аксессуары", "Прочее"];
+  // Только категории с ненулевым total за окно
+  var catTotals = {};
+  monthKeys.forEach(function(ym) {
+    var r = monthMap[ym] || {};
+    allCats.forEach(function(c) { catTotals[c] = (catTotals[c] || 0) + num(r[c]); });
+  });
+  var cats = allCats.filter(function(c) { return catTotals[c] > 0; });
+  cats.sort(function(a, b) { return catTotals[b] - catTotals[a]; });
+
+  var datasets = cats.map(function(cat) {
+    return {
+      label: cat,
+      data: monthKeys.map(function(ym) { return Math.round(num((monthMap[ym] || {})[cat])); }),
+      backgroundColor: GOODS_CAT_COLORS[cat] || '#95a5a6',
+      borderRadius: 3,
+      maxBarThickness: 60,
+    };
+  });
+
+  createChart(canvasId, {
+    type: 'bar',
+    data: { labels: monthKeys.map(ymLabel), datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: chartTextColor(), boxWidth: 12, padding: 10, font: { size: 11 } } },
+        tooltip: { callbacks: {
+          label: function(it) { return it.dataset.label + ': ' + fmtInt(Math.round(it.raw)) + ' ₺'; },
+          footer: function(items) {
+            var s = items.reduce(function(a, b) { return a + b.raw; }, 0);
+            return 'Всего: ' + fmtInt(Math.round(s)) + ' ₺';
+          }
+        }}
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: chartTextColor() }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true,
+             ticks: { color: chartTextColor(), callback: function(v) { return fmt(v) + ' ₺'; } },
+             grid: { color: chartGridColor() } }
+      }
+    }
+  });
+
+  // Таблица: Месяц | Итого | Топ категория | Доля топа | Категорий
+  var tbody = document.querySelector('#' + tableId + ' tbody');
+  if (!tbody) return;
+  var thead = document.querySelector('#' + tableId + ' thead tr');
+  if (thead) {
+    thead.innerHTML = '<th>Месяц</th><th class="num">Итого</th><th>Топ категория</th><th class="num">Доля топа</th><th class="num">Категорий</th>';
+  }
+  var html = '';
+  monthKeys.slice().reverse().forEach(function(ym) {
+    var r = monthMap[ym] || {};
+    var monCats = {};
+    cats.forEach(function(c) { var v = num(r[c]); if (v > 0) monCats[c] = v; });
+    var total = Object.values(monCats).reduce(function(s, v) { return s + v; }, 0);
+    var sorted = Object.entries(monCats).sort(function(a, b) { return b[1] - a[1]; });
+    var top = sorted[0];
+    var topShare = top && total > 0 ? (top[1] / total * 100).toFixed(0) + '%' : '—';
+    html += '<tr>'
+         + '<td style="font-weight:500">' + ymLabel(ym) + '</td>'
+         + '<td class="num">' + fmtInt(Math.round(total)) + ' ₺</td>'
+         + '<td>' + (top ? top[0] + ' (' + fmtInt(Math.round(top[1])) + ' ₺)' : '—') + '</td>'
+         + '<td class="num">' + topShare + '</td>'
+         + '<td class="num">' + Object.keys(monCats).length + '</td>'
+         + '</tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+
 function renderGoodsMonthlyByCategory(canvasId, tableId, goodsTxns) {
   // Группируем: month → category → total
   var byMonthCat = {};
@@ -3252,7 +3339,7 @@ function _renderPeriodCharts(prefix) {
 async function mainFromCache() {
   // Load cache tabs + occupancy in parallel
   var occParsed = [];
-  var incWeekly, gdsWeekly, revDow, revMonthly, revMC, goodsWeeklyData;
+  var incWeekly, gdsWeekly, revDow, revMonthly, revMC, goodsWeeklyData, goodsMC;
   try {
     var results = await Promise.all([
       loadCacheTab('rev_weekly_income'),
@@ -3262,9 +3349,11 @@ async function mainFromCache() {
       loadCacheTab('rev_by_month_cat'),
       loadCacheTab('rev_goods_weekly'),
       loadSheet('occupancy_daily').catch(function() { return []; }),
+      loadCacheTab('goods_by_month_cat').catch(function() { return []; }),
     ]);
     incWeekly = results[0]; gdsWeekly = results[1]; revDow = results[2];
     revMonthly = results[3]; revMC = results[4]; goodsWeeklyData = results[5];
+    goodsMC = results[7] || [];
     var occRows = results[6] || [];
     occRows.forEach(function(r) {
       var d = (r.date || '').trim();
@@ -3493,37 +3582,25 @@ async function mainFromCache() {
   // Кликом по легенде Chart.js — toggle категорий on/off.
   // Запрошено пользователем 2026-04-18: «сделай категории чтобы я мог выделять
   // отдельно и видеть по каждой помесячную статистику».
-  if (window._allGoodsTxns && window._allGoodsTxns.length) {
-    renderGoodsMonthlyByCategory('gds-monthly-chart', 'gds-monthly-table', window._allGoodsTxns);
-  } else {
-    // Cache-path: _allGoodsTxns ещё не загружен (он только в slow-path).
-    // Делаем lazy-load transactions для категорий + сразу рендерим
-    // временный fallback из gdsWeekly чтобы пользователь не видел loading
-    // дольше нужного.
-    if (gdsWeekly && gdsWeekly.length) {
-      var gdsMonthMapTmp = {};
-      gdsWeekly.forEach(function(r) {
-        var mon = new Date(r.week_mon + 'T00:00:00');
-        var thu = new Date(mon); thu.setDate(thu.getDate() + 3);
-        var ym = ymKey(thu);
-        if (!gdsMonthMapTmp[ym]) gdsMonthMapTmp[ym] = 0;
-        gdsMonthMapTmp[ym] += num(r.total);
-      });
-      var gmKeysTmp = Object.keys(gdsMonthMapTmp).sort().slice(-8);
-      var gmTotalsTmp = gmKeysTmp.map(function(ym) { return gdsMonthMapTmp[ym]; });
-      renderMonthlyChart('gds-monthly-chart', gmKeysTmp, gmTotalsTmp);
-    }
-    // Параллельно подгружаем transactions для категоризации
-    loadSheet('transactions').then(function(rows) {
-      var txns = rows.map(function(r) {
-        return {
-          date: V7.parseDate(r.date), category: r.category, subcategory: r.subcategory,
-          total: num(r.total), method: r.method1 || r.method, sub: r.subcategory,
-        };
-      }).filter(function(t) { return t.date && isGoods(t.category); });
-      window._allGoodsTxns = txns;
-      renderGoodsMonthlyByCategory('gds-monthly-chart', 'gds-monthly-table', txns);
-    }).catch(function(e) { console.warn('[goods monthly] lazy load failed:', e); });
+  // Stacked bar по высокоуровневым категориям товаров (Мячи / Ракетки / ...).
+  // Источник: серверный таб v7padel_cache.goods_by_month_cat (wide format,
+  // строки [month, Мячи, Ракетки, ...]). Готовится в build_cache.py
+  // через compute_goods_by_month_cat — точно так же как rev_by_month_cat
+  // для Income Trend (см. ADR-018 / inc-stacked-chart).
+  if (goodsMC && goodsMC.length) {
+    renderGoodsMonthlyFromMC('gds-monthly-chart', 'gds-monthly-table', goodsMC);
+  } else if (gdsWeekly && gdsWeekly.length) {
+    // Fallback: общий бар без категорий
+    var gdsMonthMapTmp = {};
+    gdsWeekly.forEach(function(r) {
+      var mon = new Date(r.week_mon + 'T00:00:00');
+      var thu = new Date(mon); thu.setDate(thu.getDate() + 3);
+      var ym = ymKey(thu);
+      gdsMonthMapTmp[ym] = (gdsMonthMapTmp[ym] || 0) + num(r.total);
+    });
+    var gmKeysTmp = Object.keys(gdsMonthMapTmp).sort().slice(-8);
+    renderMonthlyChart('gds-monthly-chart', gmKeysTmp,
+      gmKeysTmp.map(function(ym) { return gdsMonthMapTmp[ym]; }));
   }
 
   // Goods items table from rev_goods_weekly
