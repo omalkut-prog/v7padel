@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>V7 Padel — Coach Brief · May 2025</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --nv:#0B1F3A;--gd:#C8941A;
+  --lime:#C9E82B;
+  --gb:#EAF3DE;--gt:#27500A;
+  --rb:#FDECEA;--rt:#791F1F;
+  --bb:#E6F1FB;--bt:#0C447C;--bd:#85B7EB;
+  --ab:#FAEEDA;--at:#633806;--ad:#EF9F27;
+  --lv:#F0FFD0;--lk:#4A7C20;
+  --pur:#F3EEFE;--pt:#3C3489;
+  --c:#fff;--bg:#f3f4f6;--b:#e0e0e0;--t:#111;--t2:#666;--t3:#aaa
+}
+@media(prefers-color-scheme:dark){:root{
+  --c:#1c1c1c;--bg:#121212;--b:#2e2e2e;--t:#eee;--t2:#999;--t3:#555;
+  --gb:#162810;--gt:#7ECB55;--bb:#0C1E30;--bt:#85B7EB;
+  --ab:#2A1E08;--at:#EF9F27;--lv:#1A2E0A;--lk:#7ECB55
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;font-size:15px;line-height:1.6;color:var(--t);background:var(--bg);overflow-x:hidden;-webkit-text-size-adjust:100%;padding-bottom:3rem}
+
+/* LANG BAR */
+.lbar{position:sticky;top:0;z-index:200;background:rgba(11,31,58,.97);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;gap:6px;padding:10px;border-bottom:.5px solid rgba(255,255,255,.08)}
+.lb{padding:6px 18px;border-radius:100px;font-size:12px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.5);background:transparent;border:none;letter-spacing:.05em;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.lb.on{background:var(--lime);color:#000}
+[data-lang]{display:none}[data-lang].on{display:block}
+span[data-lang].on{display:inline}
+
+/* HERO */
+.hero{background:var(--nv);padding:2rem 1.25rem 1.75rem;text-align:center;position:relative}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(201,232,43,.12);border:.5px solid rgba(201,232,43,.3);border-radius:100px;padding:5px 14px;font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px}
+.hero h1{font-size:clamp(1.6rem,5vw,2.4rem);font-weight:900;color:#fff;line-height:1.1;letter-spacing:-.02em;margin-bottom:.5rem}
+.hero h1 span{color:var(--lime)}
+.hero-sub{font-size:13px;color:#85B7EB;margin-bottom:16px;line-height:1.5}
+.hero-pills{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:10px}
+.hp{background:rgba(255,255,255,.09);border:.5px solid rgba(255,255,255,.15);border-radius:8px;padding:7px 14px;text-align:center}
+.hp .v{font-size:15px;font-weight:700;color:#fff}
+.hp .l{font-size:10px;color:#85B7EB;margin-top:1px}
+.hero-note{font-size:11px;color:rgba(255,255,255,.4);margin-top:8px}
+
+/* NAV */
+.nav{position:sticky;top:46px;z-index:100;background:var(--c);border-bottom:.5px solid var(--b);display:flex;overflow-x:auto;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nb{flex:1;min-width:80px;padding:12px 6px;font-size:13px;font-weight:500;color:var(--t2);background:transparent;border:none;border-bottom:2.5px solid transparent;cursor:pointer;white-space:nowrap;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.nb.on{color:var(--bt);border-bottom-color:var(--bt);font-weight:700}
+.tab{display:none;padding:.875rem .875rem 0}.tab.on{display:block}
+
+/* SECTION TITLE */
+.stitle{font-size:clamp(1.3rem,3.5vw,1.9rem);font-weight:900;letter-spacing:-.02em;margin-bottom:.5rem}
+.sdesc{font-size:.875rem;color:var(--t2);line-height:1.65;margin-bottom:1.5rem;max-width:560px}
+.slbl{font-size:10px;font-weight:700;color:var(--t2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
+.dl{width:36px;height:3px;background:var(--lime);border-radius:2px;margin-bottom:1rem}
+
+/* CARD */
+.card{background:var(--c);border:.5px solid var(--b);border-radius:14px;padding:1.125rem 1.25rem;margin-bottom:.75rem}
+
+/* KPI GRID */
+.kg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:.75rem}
+.kpi{background:var(--bg);border-radius:8px;padding:9px 8px;text-align:center}
+.kl{font-size:10px;color:var(--t2);margin-bottom:2px}.kv{font-size:1.1rem;font-weight:800}.ks{font-size:10px;color:var(--t3)}
+.kpi.bl .kv{color:var(--bt)}.kpi.gd .kv{color:var(--gd)}.kpi.gn .kv{color:var(--lk)}
+
+/* LIST ITEMS */
+.ii{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:.5px solid var(--b);font-size:13px;color:var(--t2);line-height:1.55}
+.ii:last-child{border-bottom:none}
+.idot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:6px}
+.ii strong{color:var(--t)}
+
+/* COACH CARD */
+.cc{background:var(--c);border:.5px solid var(--b);border-radius:16px;overflow:hidden;margin-bottom:.75rem}
+.cc-head{padding:14px 16px;display:flex;align-items:center;gap:12px}
+.cc-head.j{background:var(--nv)}
+.cc-head.p{background:#0F2A4A}
+.cc-av{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.cc-name{font-size:1rem;font-weight:800;color:#fff}
+.cc-role{font-size:11px;color:rgba(255,255,255,.55);margin-top:2px}
+.cc-tag{background:var(--lime);color:#000;font-size:10px;font-weight:700;padding:2px 9px;border-radius:100px;margin-top:4px;display:inline-block;letter-spacing:.04em}
+.cc-body{padding:14px 16px}
+.cr{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:.5px solid var(--b);font-size:13px}
+.cr:last-child{border-bottom:none}
+.crn{flex:1;color:var(--t);font-weight:500}.crd{font-size:11px;color:var(--t2);margin-top:2px}
+.cra{font-weight:700;color:#A32D2D;flex-shrink:0}
+.cr.hl{background:var(--lv);margin:0 -16px;padding:7px 16px}
+.cr.hl .crn{color:var(--lk)}.cr.hl .cra{color:var(--lk)}
+.cc-total{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:var(--bg);font-weight:700;font-size:14px;border-top:.5px solid var(--b)}
+.cc-total .v{color:#A32D2D;font-size:16px}
+
+/* BOTH TOTAL */
+.both-total{background:var(--nv);border-radius:12px;padding:14px;text-align:center;margin-bottom:.75rem}
+.both-row{display:flex;justify-content:space-around;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.bt-item{text-align:center}
+.bt-item .n{font-size:10px;color:#85B7EB;margin-bottom:3px}
+.bt-item .v{font-size:1.3rem;font-weight:800}
+.bt-note{font-size:10px;color:rgba(255,255,255,.4);line-height:1.5;padding-top:8px;border-top:.5px solid rgba(255,255,255,.08)}
+
+/* SCHEDULE */
+.day-block{background:var(--c);border:.5px solid var(--b);border-radius:12px;overflow:hidden;margin-bottom:.625rem}
+.day-head{padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
+.day-head.d1{background:var(--nv)}.day-title-d1{font-size:12px;font-weight:700;color:var(--gd)}
+.day-head.work{background:var(--bg)}.day-title{font-size:12px;font-weight:700;color:var(--t)}
+.day-head.gt{background:rgba(201,232,43,.08)}.day-title-gt{font-size:12px;font-weight:700;color:var(--lk)}
+.day-badge{font-size:10px;color:var(--t2)}
+.day-badge.d1{color:#85B7EB}.day-badge.gt{color:var(--lk)}
+.srow{display:flex;gap:8px;padding:8px 14px;border-bottom:.5px solid var(--b);font-size:12px;align-items:flex-start}
+.srow:last-child{border-bottom:none}
+.stime{min-width:72px;flex-shrink:0;color:var(--t2);font-size:11px;font-weight:600;line-height:1.4}
+.stag{display:inline-block;border-radius:5px;padding:2px 7px;font-size:11px;font-weight:600;margin-right:4px;margin-bottom:2px}
+.stag.j{background:rgba(12,68,124,.1);color:var(--bt)}
+.stag.p{background:rgba(99,56,6,.1);color:var(--at)}
+.stag.both{background:rgba(11,31,58,.08);color:var(--nv)}
+.stag.klb{background:rgba(127,119,221,.12);color:#5B54CC}
+.stag.gt{background:rgba(201,232,43,.12);color:#5A7200}
+.sdesc-s{color:var(--t);line-height:1.5;font-size:12px}
+.sdesc-s span{color:var(--t2)}
+.section-hdr{padding:6px 14px;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase}
+.section-hdr.am{background:rgba(12,68,124,.05);color:var(--bt)}
+.section-hdr.pm{background:rgba(99,56,6,.05);color:var(--at)}
+.section-hdr.sp{background:rgba(201,232,43,.06);color:var(--lk)}
+.load-bar{display:flex;gap:5px;padding:8px 14px;border-top:.5px solid var(--b);background:var(--bg);flex-wrap:wrap}
+.lb-item{font-size:10px;color:var(--t2)}
+.lb-item strong{color:var(--t)}
+
+/* TABLE */
+.htbl{width:100%;border-collapse:collapse;font-size:12px}
+.htbl th{padding:5px 6px;text-align:left;font-size:10px;color:var(--t2);font-weight:500;border-bottom:.5px solid var(--b);white-space:nowrap}
+.htbl td{padding:5px 6px;border-bottom:.5px solid var(--b)}
+.htbl tr:last-child td{border-bottom:none}
+
+/* SUMMARY BOXES */
+.sum-grid{display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin-bottom:.75rem}
+.sum-box{border-radius:10px;padding:12px;text-align:center}
+.sum-box.j{background:var(--nv)}.sum-box.p{background:#0F2A4A}
+.sum-box .sn{font-size:10px;margin-bottom:4px}
+.sum-box.j .sn{color:#85B7EB}.sum-box.p .sn{color:#FAC775}
+.sum-box .sv{font-size:1.4rem;font-weight:800}
+.sum-box.j .sv{color:var(--gd)}.sum-box.p .sv{color:#FAC775}
+.sum-box .sd{font-size:9px;margin-top:3px}
+.sum-box.j .sd{color:rgba(133,183,235,.7)}.sum-box.p .sd{color:rgba(250,199,117,.6)}
+
+/* CONTACTS */
+.contact-box{background:rgba(201,232,43,.06);border:.5px solid rgba(201,232,43,.2);border-radius:12px;padding:14px;text-align:center;margin-bottom:.75rem}
+.c-title{font-size:11px;font-weight:700;color:var(--lime);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px}
+.c-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.cbtn-wa{background:var(--lime);color:#000;font-weight:800;font-size:13px;padding:10px 20px;border-radius:100px;text-decoration:none;display:flex;align-items:center;gap:6px}
+.cbtn-tg{background:rgba(255,255,255,.08);color:var(--t);font-weight:600;font-size:13px;padding:10px 18px;border-radius:100px;text-decoration:none;border:.5px solid rgba(255,255,255,.15);display:flex;align-items:center;gap:6px}
+
+/* INFO BOX */
+.info-box{border-radius:9px;padding:10px 13px;margin-bottom:.5rem;font-size:12px;line-height:1.6}
+.info-box.blue{background:var(--bb);border:.5px solid var(--bd);color:var(--bt)}
+.info-box.green{background:var(--gb);border:.5px solid #97C459;color:var(--gt)}
+.info-box.gold{background:var(--ab);border:.5px solid var(--ad);color:var(--at)}
+.info-box.purple{background:var(--pur);border:.5px solid #C9B7FF;color:var(--pt)}
+</style>
+</head>
+<body>
+
+<!-- LANG BAR -->
+<div class="lbar">
+  <button class="lb on" onclick="setLang('ru')">RU</button>
+  <button class="lb" onclick="setLang('en')">EN</button>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-badge">
+    <span>⚡</span>
+    <span data-lang="ru" class="on">Брифинг тренеров · Конфиденциально</span>
+    <span data-lang="en">Coach Brief · Confidential</span>
+  </div>
+  <h1>
+    <span data-lang="ru" class="on">Испанский интенсив<br><span>V7 Padel</span></span>
+    <span data-lang="en">Spanish Intensive<br><span>V7 Padel</span></span>
+  </h1>
+  <div class="hero-sub">
+    <span data-lang="ru" class="on">17–22 мая 2025 · Анталья · 18 участников · 6 групп<br>Гранд Турнир 23–24 мая (организуют тренеры)</span>
+    <span data-lang="en">May 17–22, 2025 · Antalya · 18 participants · 6 groups<br>Grand Tournament May 23–24 (organised by coaches)</span>
+  </div>
+  <div class="hero-pills">
+    <div class="hp"><div class="v">2</div><div class="l"><span data-lang="ru" class="on">тренера NAC</span><span data-lang="en">NAC coaches</span></div></div>
+    <div class="hp"><div class="v">6</div><div class="l"><span data-lang="ru" class="on">групп × 3 чел.</span><span data-lang="en">groups × 3 ppl</span></div></div>
+    <div class="hp"><div class="v">$45</div><div class="l"><span data-lang="ru" class="on">ставка/час</span><span data-lang="en">rate/hour</span></div></div>
+    <div class="hp"><div class="v">4</div><div class="l"><span data-lang="ru" class="on">корта в клубе</span><span data-lang="en">courts in club</span></div></div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="nav">
+  <button class="nb on" id="nb0">
+    <span data-lang="ru" class="on">Расписание</span><span data-lang="en">Schedule</span>
+  </button>
+  <button class="nb" id="nb1">
+    <span data-lang="ru" class="on">Гонорары</span><span data-lang="en">Fees</span>
+  </button>
+  <button class="nb" id="nb2">
+    <span data-lang="ru" class="on">Что подготовить</span><span data-lang="en">To Prepare</span>
+  </button>
+</div>
+
+<!-- ═══ TAB 0 — PROGRAMME ═══ -->
+<div class="tab on" id="T0">
+
+  <!-- FORMAT OVERVIEW -->
+  <div class="card">
+    <div class="slbl"><span data-lang="ru" class="on">Формат интенсива</span><span data-lang="en">Intensive format</span></div>
+    <div class="kg">
+      <div class="kpi bl"><div class="kl">Juanpi</div><div class="kv">D,E,F</div><div class="ks"><span data-lang="ru" class="on">группы</span><span data-lang="en">groups</span></div></div>
+      <div class="kpi gd"><div class="kl">Patrikas</div><div class="kv">A,B,C</div><div class="ks"><span data-lang="ru" class="on">группы</span><span data-lang="en">groups</span></div></div>
+      <div class="kpi gn"><div class="kl"><span data-lang="ru" class="on">В группе</span><span data-lang="en">Group size</span></div><div class="kv">3</div><div class="ks"><span data-lang="ru" class="on">участника</span><span data-lang="en">players</span></div></div>
+      <div class="kpi bl"><div class="kl"><span data-lang="ru" class="on">Груп. занятий</span><span data-lang="en">Group sess.</span></div><div class="kv">5</div><div class="ks"><span data-lang="ru" class="on">на группу</span><span data-lang="en">per group</span></div></div>
+      <div class="kpi bl"><div class="kl"><span data-lang="ru" class="on">Инд. занятий</span><span data-lang="en">Individual</span></div><div class="kv">2</div><div class="ks"><span data-lang="ru" class="on">на участника</span><span data-lang="en">per player</span></div></div>
+      <div class="kpi gd"><div class="kl"><span data-lang="ru" class="on">Ставка</span><span data-lang="en">Rate</span></div><div class="kv">$45</div><div class="ks"><span data-lang="ru" class="on">час</span><span data-lang="en">hour</span></div></div>
+    </div>
+    <div class="info-box blue">
+      <strong><span data-lang="ru" class="on">Параллельная работа:</span><span data-lang="en">Parallel work:</span></strong>
+      <span data-lang="ru" class="on"> Juanpi и Patrikas работают на разных кортах одновременно. В клубе 4 корта — пространства достаточно.</span>
+      <span data-lang="en"> Juanpi and Patrikas work on different courts at the same time. The club has 4 courts — plenty of space.</span>
+    </div>
+  </div>
+
+  <!-- DAY 1 -->
+  <div class="day-block">
+    <div class="day-head d1">
+      <div class="day-title-d1">17 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span> (Mon) — <span data-lang="ru" class="on">День 1</span><span data-lang="en">Day 1</span></div>
+      <div class="day-badge d1">6 <span data-lang="ru" class="on">ч Juanpi · 5 ч Patrikas</span><span data-lang="en">h Juanpi · 5 h Patrikas</span></div>
+    </div>
+    <div class="section-hdr sp">⭐ <span data-lang="ru" class="on">ОСОБЫЙ ДЕНЬ — только Juanpi</span><span data-lang="en">SPECIAL — Juanpi only</span></div>
+    <div class="srow">
+      <div class="stime">16:00–17:00</div>
+      <div><span class="stag klb"><span data-lang="ru" class="on">Тренинг клуба 🎓</span><span data-lang="en">Club Training 🎓</span></span><div class="sdesc-s"><span data-lang="ru" class="on">Тренинг тренеров клуба #1 — только Juanpi <span>(Patrikas не участвует)</span></span><span data-lang="en">Club coaches training #1 — Juanpi only <span>(Patrikas not involved)</span></span></div></div>
+    </div>
+    <div class="section-hdr pm">🌙 <span data-lang="ru" class="on">ВЕЧЕР — оба тренера</span><span data-lang="en">EVENING — both coaches</span></div>
+    <div class="srow">
+      <div class="stime">17:00–18:00</div>
+      <div><span class="stag both"><span data-lang="ru" class="on">Оба</span><span data-lang="en">Both</span></span><div class="sdesc-s"><strong><span data-lang="ru" class="on">Шоу-матч</span><span data-lang="en">Show Match</span></strong> — Juanpi + Patrikas vs <span data-lang="ru" class="on">тренеры клуба</span><span data-lang="en">club coaches</span></div></div>
+    </div>
+    <div class="srow">
+      <div class="stime">18:00–21:00</div>
+      <div><span class="stag both"><span data-lang="ru" class="on">Оба</span><span data-lang="en">Both</span></span><div class="sdesc-s"><strong>Mexicano</strong> — 18 <span data-lang="ru" class="on">участников · 4 корта · ~6–7 раундов по ~25 мин</span><span data-lang="en">players · 4 courts · ~6–7 rounds ~25 min each</span></div></div>
+    </div>
+    <div class="srow">
+      <div class="stime">21:00–22:00</div>
+      <div><span class="stag both"><span data-lang="ru" class="on">Оба</span><span data-lang="en">Both</span></span><div class="sdesc-s"><span data-lang="ru" class="on"><strong>Презентация программы</strong> · распределение по группам A–F</span><span data-lang="en"><strong>Program presentation</strong> · group assignment A–F</span></div></div>
+    </div>
+    <div class="load-bar">
+      <span class="lb-item"><span data-lang="ru" class="on">Juanpi: </span><span data-lang="en">Juanpi: </span><strong>6 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong> (1 <span data-lang="ru" class="on">тренинг</span><span data-lang="en">training</span> + 5 <span data-lang="ru" class="on">события</span><span data-lang="en">events</span>)</span>
+      <span class="lb-item"> · Patrikas: <strong>5 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></span>
+    </div>
+  </div>
+
+  <!-- DAYS 18-22 JUANPI -->
+  <div class="card" style="padding-bottom:.5rem">
+    <div class="slbl">👤 JUANPI — <span data-lang="ru" class="on">детальное расписание 18–22 мая</span><span data-lang="en">detailed schedule May 18–22</span></div>
+    <div class="info-box purple" style="margin-bottom:.875rem">
+      <span data-lang="ru" class="on"><strong>Группы D, E, F</strong> · 9 участников · 5 групповых + 2 инд. на каждого<br>Утро: 09:00–13:00 (4 занятия) · Вечер: 17:00–20:00 (3 занятия)</span>
+      <span data-lang="en"><strong>Groups D, E, F</strong> · 9 players · 5 group + 2 individual sessions each<br>Morning: 09:00–13:00 (4 sessions) · Evening: 17:00–20:00 (3 sessions)</span>
+    </div>
+
+    <!-- 18 May -->
+    <div class="day-block" style="margin-bottom:.5rem">
+      <div class="day-head work"><div class="day-title">18 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span> (Tue)</div><div class="day-badge"><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></div></div>
+      <div class="section-hdr am">☀ <span data-lang="ru" class="on">УТРО</span><span data-lang="en">MORNING</span> 09:00–13:00</div>
+      <div class="srow"><div class="stime">09:00–10:00</div><div><span class="stag j">Гр. D #1</span><div class="sdesc-s"><span data-lang="ru" class="on">Групповая тренировка · 3 участника</span><span data-lang="en">Group session · 3 players</span></div></div></div>
+      <div class="srow"><div class="stime">10:00–11:00</div><div><span class="stag j">Гр. E #1</span><div class="sdesc-s"><span data-lang="ru" class="on">Групповая тренировка · 3 участника</span><span data-lang="en">Group session · 3 players</span></div></div></div>
+      <div class="srow"><div class="stime">11:00–12:00</div><div><span class="stag j">Гр. F #1</span><div class="sdesc-s"><span data-lang="ru" class="on">Групповая тренировка · 3 участника</span><span data-lang="en">Group session · 3 players</span></div></div></div>
+      <div class="srow"><div class="stime">12:00–13:00</div><div><span class="stag j"><span data-lang="ru" class="on">Инд. #1</span><span data-lang="en">Ind. #1</span></span><div class="sdesc-s"><span data-lang="ru" class="on">Индивидуальное занятие 1:1</span><span data-lang="en">Individual session 1:1</span></div></div></div>
+      <div class="section-hdr pm">🌙 <span data-lang="ru" class="on">ВЕЧЕР</span><span data-lang="en">EVENING</span> 17:00–20:00</div>
+      <div class="srow"><div class="stime">17:00–18:00</div><div><span class="stag j"><span data-lang="ru" class="on">Инд. #2</span><span data-lang="en">Ind. #2</span></span></div></div>
+      <div class="srow"><div class="stime">18:00–19:00</div><div><span class="stag j"><span data-lang="ru" class="on">Инд. #3</span><span data-lang="en">Ind. #3</span></span></div></div>
+      <div class="srow"><div class="stime">19:00–20:00</div><div><span class="stag j"><span data-lang="ru" class="on">Инд. #4</span><span data-lang="en">Ind. #4</span></span></div></div>
+    </div>
+
+    <!-- 19-21 May compressed -->
+    <div style="overflow-x:auto;margin-bottom:.5rem">
+    <table class="htbl">
+      <tr><th>19 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></th><th>20 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></th><th>21 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></th></tr>
+      <tr><td>09–10 Гр. D #2</td><td>09–10 Гр. D #3</td><td>09–10 Гр. D #4</td></tr>
+      <tr><td>10–11 Гр. E #2</td><td>10–11 Гр. E #3</td><td>10–11 Гр. E #4</td></tr>
+      <tr><td>11–12 Гр. F #2</td><td>11–12 Гр. F #3</td><td>11–12 Гр. F #4</td></tr>
+      <tr><td>12–13 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #5</td><td>12–13 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #9</td><td>12–13 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #13</td></tr>
+      <tr style="background:var(--bg)"><td colspan="3" style="font-size:10px;color:var(--t2);padding:4px 6px">🌙 17–20</td></tr>
+      <tr><td>17–18 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #6</td><td>17–18 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #10</td><td>17–18 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #14</td></tr>
+      <tr><td>18–19 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #7</td><td>18–19 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #11</td><td>18–19 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #15</td></tr>
+      <tr><td>19–20 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #8</td><td>19–20 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #12</td><td>19–20 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #16</td></tr>
+    </table>
+    <div style="font-size:10px;color:var(--t2);padding:5px 6px;background:var(--bg);border-radius:0 0 7px 7px;border:.5px solid var(--b);border-top:none">
+      <span data-lang="ru" class="on">Каждый день: 3 групповых + 4 индивидуальных = 7 ч</span>
+      <span data-lang="en">Each day: 3 group + 4 individual = 7 h</span>
+    </div>
+    </div>
+
+    <!-- 22 May -->
+    <div class="day-block" style="margin-bottom:.5rem">
+      <div class="day-head work"><div class="day-title">22 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span> (Sat)</div><div class="day-badge"><strong>6 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></div></div>
+      <div class="section-hdr am">☀ <span data-lang="ru" class="on">УТРО</span><span data-lang="en">MORNING</span></div>
+      <div class="srow"><div class="stime">09:00–10:00</div><div><span class="stag j">Гр. D #5 ✓</span></div></div>
+      <div class="srow"><div class="stime">10:00–11:00</div><div><span class="stag j">Гр. E #5 ✓</span></div></div>
+      <div class="srow"><div class="stime">11:00–12:00</div><div><span class="stag j">Гр. F #5 ✓</span></div></div>
+      <div class="srow"><div class="stime">12:00–13:00</div><div><span class="stag j"><span data-lang="ru" class="on">Инд. #17</span><span data-lang="en">Ind. #17</span></span></div></div>
+      <div class="section-hdr pm">🌙 <span data-lang="ru" class="on">ВЕЧЕР</span><span data-lang="en">EVENING</span></div>
+      <div class="srow"><div class="stime">17:00–18:00</div><div><span class="stag j"><span data-lang="ru" class="on">Инд. #18 ✓</span><span data-lang="en">Ind. #18 ✓</span></span><div class="sdesc-s"><span data-lang="ru" class="on">Последнее индивидуальное занятие</span><span data-lang="en">Last individual session</span></div></div></div>
+      <div class="srow"><div class="stime">19:00–20:00</div><div><span class="stag klb"><span data-lang="ru" class="on">Тренинг клуба 🎓 #2 ✓</span><span data-lang="en">Club Training 🎓 #2 ✓</span></span></div></div>
+    </div>
+
+    <div class="info-box green">
+      <span data-lang="ru" class="on">✓ Juanpi итого: <strong>15 групповых + 18 индивидуальных + 4 тренинга клуба = 42 рабочих часа</strong></span>
+      <span data-lang="en">✓ Juanpi total: <strong>15 group + 18 individual + 4 club training = 42 working hours</strong></span>
+    </div>
+  </div>
+
+  <!-- DAYS 18-22 PATRIKAS -->
+  <div class="card" style="padding-bottom:.5rem">
+    <div class="slbl">👤 PATRIKAS — <span data-lang="ru" class="on">детальное расписание 18–22 мая</span><span data-lang="en">detailed schedule May 18–22</span></div>
+    <div class="info-box gold" style="margin-bottom:.875rem">
+      <span data-lang="ru" class="on"><strong>Группы A, B, C</strong> · 9 участников · 5 групповых + 2 инд. на каждого<br>Утро: 09:00–13:00 (4 занятия) · Вечер: 17:00–20:00 (3 занятия)</span>
+      <span data-lang="en"><strong>Groups A, B, C</strong> · 9 players · 5 group + 2 individual sessions each<br>Morning: 09:00–13:00 (4 sessions) · Evening: 17:00–20:00 (3 sessions)</span>
+    </div>
+
+    <!-- 18 May P -->
+    <div class="day-block" style="margin-bottom:.5rem">
+      <div class="day-head work"><div class="day-title">18 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span> (Tue)</div><div class="day-badge"><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></div></div>
+      <div class="section-hdr am">☀ <span data-lang="ru" class="on">УТРО</span><span data-lang="en">MORNING</span> 09:00–13:00</div>
+      <div class="srow"><div class="stime">09:00–10:00</div><div><span class="stag p">Гр. A #1</span></div></div>
+      <div class="srow"><div class="stime">10:00–11:00</div><div><span class="stag p">Гр. B #1</span></div></div>
+      <div class="srow"><div class="stime">11:00–12:00</div><div><span class="stag p">Гр. C #1</span></div></div>
+      <div class="srow"><div class="stime">12:00–13:00</div><div><span class="stag p"><span data-lang="ru" class="on">Инд. #1</span><span data-lang="en">Ind. #1</span></span></div></div>
+      <div class="section-hdr pm">🌙 <span data-lang="ru" class="on">ВЕЧЕР</span><span data-lang="en">EVENING</span> 17:00–20:00</div>
+      <div class="srow"><div class="stime">17:00–18:00</div><div><span class="stag p"><span data-lang="ru" class="on">Инд. #2</span><span data-lang="en">Ind. #2</span></span></div></div>
+      <div class="srow"><div class="stime">18:00–19:00</div><div><span class="stag p"><span data-lang="ru" class="on">Инд. #3</span><span data-lang="en">Ind. #3</span></span></div></div>
+      <div class="srow"><div class="stime">19:00–20:00</div><div><span class="stag p"><span data-lang="ru" class="on">Инд. #4</span><span data-lang="en">Ind. #4</span></span></div></div>
+    </div>
+
+    <div style="overflow-x:auto;margin-bottom:.5rem">
+    <table class="htbl">
+      <tr><th>19 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></th><th>20 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></th><th>21 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></th></tr>
+      <tr><td>09–10 Гр. A #2</td><td>09–10 Гр. A #3</td><td>09–10 Гр. A #4</td></tr>
+      <tr><td>10–11 Гр. B #2</td><td>10–11 Гр. B #3</td><td>10–11 Гр. B #4</td></tr>
+      <tr><td>11–12 Гр. C #2</td><td>11–12 Гр. C #3</td><td>11–12 Гр. C #4</td></tr>
+      <tr><td>12–13 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #5</td><td>12–13 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #9</td><td>12–13 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #13</td></tr>
+      <tr style="background:var(--bg)"><td colspan="3" style="font-size:10px;color:var(--t2);padding:4px 6px">🌙 17–20</td></tr>
+      <tr><td>17–18 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #6</td><td>17–18 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #10</td><td>17–18 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #14</td></tr>
+      <tr><td>18–19 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #7</td><td>18–19 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #11</td><td>18–19 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #15</td></tr>
+      <tr><td>19–20 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #8</td><td>19–20 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #12</td><td>19–20 <span data-lang="ru" class="on">Инд.</span><span data-lang="en">Ind.</span> #16</td></tr>
+    </table>
+    </div>
+
+    <div class="day-block" style="margin-bottom:.5rem">
+      <div class="day-head work"><div class="day-title">22 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span> (Sat)</div><div class="day-badge"><strong>5 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></div></div>
+      <div class="section-hdr am">☀ <span data-lang="ru" class="on">УТРО</span><span data-lang="en">MORNING</span></div>
+      <div class="srow"><div class="stime">09:00–10:00</div><div><span class="stag p">Гр. A #5 ✓</span></div></div>
+      <div class="srow"><div class="stime">10:00–11:00</div><div><span class="stag p">Гр. B #5 ✓</span></div></div>
+      <div class="srow"><div class="stime">11:00–12:00</div><div><span class="stag p">Гр. C #5 ✓</span></div></div>
+      <div class="srow"><div class="stime">12:00–13:00</div><div><span class="stag p"><span data-lang="ru" class="on">Инд. #17</span><span data-lang="en">Ind. #17</span></span></div></div>
+      <div class="section-hdr pm">🌙 <span data-lang="ru" class="on">ВЕЧЕР</span><span data-lang="en">EVENING</span></div>
+      <div class="srow"><div class="stime">17:00–18:00</div><div><span class="stag p"><span data-lang="ru" class="on">Инд. #18 ✓</span><span data-lang="en">Ind. #18 ✓</span></span><div class="sdesc-s"><span data-lang="ru" class="on">Последнее индивидуальное занятие</span><span data-lang="en">Last individual session</span></div></div></div>
+      <div class="srow"><div class="stime">18:00–20:00</div><div style="color:var(--t3);font-size:12px"><span data-lang="ru" class="on">— свободно —</span><span data-lang="en">— free —</span></div></div>
+    </div>
+
+    <div class="info-box green">
+      <span data-lang="ru" class="on">✓ Patrikas итого: <strong>15 групповых + 18 индивидуальных = 38 рабочих часов</strong></span>
+      <span data-lang="en">✓ Patrikas total: <strong>15 group + 18 individual = 38 working hours</strong></span>
+    </div>
+  </div>
+
+  <!-- GRAND TOURNAMENT -->
+  <div class="day-block">
+    <div class="day-head gt">
+      <div class="day-title-gt">23–24 <span data-lang="ru" class="on">мая — Гранд Турнир</span><span data-lang="en">May — Grand Tournament</span></div>
+      <div class="day-badge gt"><span data-lang="ru" class="on">оба организуют</span><span data-lang="en">both organise</span></div>
+    </div>
+    <div class="section-hdr sp">🎓 <span data-lang="ru" class="on">ТРЕНИНГ ТРЕНЕРОВ КЛУБА — ДО ТУРНИРА</span><span data-lang="en">CLUB COACHES TRAINING — BEFORE TOURNAMENT</span></div>
+    <div class="srow">
+      <div class="stime">08:00–09:00<br><span style="font-size:9px;color:var(--lk)">23 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></span></div>
+      <div><span class="stag klb"><span data-lang="ru" class="on">Тренинг клуба 🎓 #3 · только Juanpi</span><span data-lang="en">Club Training 🎓 #3 · Juanpi only</span></span></div>
+    </div>
+    <div class="srow">
+      <div class="stime">08:00–09:00<br><span style="font-size:9px;color:var(--lk)">24 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></span></div>
+      <div><span class="stag klb"><span data-lang="ru" class="on">Тренинг клуба 🎓 #4 · только Juanpi ✓</span><span data-lang="en">Club Training 🎓 #4 · Juanpi only ✓</span></span></div>
+    </div>
+    <div class="section-hdr sp">🏆 <span data-lang="ru" class="on">ГРАНД ТУРНИР</span><span data-lang="en">GRAND TOURNAMENT</span></div>
+    <div class="srow">
+      <div class="stime">09:00+</div>
+      <div><span class="stag gt"><span data-lang="ru" class="on">Оба организуют</span><span data-lang="en">Both organise</span></span><div class="sdesc-s"><span data-lang="ru" class="on">Открытый турнир · участники интенсива бесплатно · сертификаты и награждение</span><span data-lang="en">Open tournament · intensive players free · certificates and awards ceremony</span></div></div>
+    </div>
+    <div class="load-bar">
+      <span class="lb-item"><span data-lang="ru" class="on">Гонорар: </span><span data-lang="en">Fee: </span><strong>$250 <span data-lang="ru" class="on">каждому (фикс)</span><span data-lang="en">each (fixed)</span></strong></span>
+    </div>
+  </div>
+
+  <!-- WORKLOAD SUMMARY -->
+  <div class="card">
+    <div class="slbl"><span data-lang="ru" class="on">Сводка нагрузки по дням</span><span data-lang="en">Daily workload summary</span></div>
+    <div style="overflow-x:auto">
+    <table class="htbl">
+      <tr>
+        <th><span data-lang="ru" class="on">День</span><span data-lang="en">Day</span></th>
+        <th>Juanpi</th>
+        <th>Patrikas</th>
+      </tr>
+      <tr style="background:rgba(201,232,43,.04)">
+        <td>17 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></td>
+        <td><strong>6 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong> <span style="font-size:10px;color:var(--t2)">(клуб+шоу+мекс.+призент.)</span></td>
+        <td><strong>5 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong> <span style="font-size:10px;color:var(--t2)">(шоу+мекс.+призент.)</span></td>
+      </tr>
+      <tr><td>18 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></td><td><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></td><td><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></td></tr>
+      <tr style="background:var(--bg)"><td>19 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></td><td><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></td><td><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></td></tr>
+      <tr><td>20 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></td><td><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></td><td><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></td></tr>
+      <tr style="background:var(--bg)"><td>21 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></td><td><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></td><td><strong>7 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></td></tr>
+      <tr><td>22 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></td><td><strong>6 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong> <span style="font-size:10px;color:var(--lk)">(+тренинг клуба)</span></td><td><strong>5 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span></strong></td></tr>
+      <tr style="background:rgba(201,232,43,.04)"><td>23 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></td><td><span style="color:var(--lk);font-size:11px">08: Клуб🎓#3 + </span><span data-lang="ru" class="on">Гранд Турнир</span><span data-lang="en">Grand Tournament</span></td><td><span data-lang="ru" class="on">Гранд Турнир</span><span data-lang="en">Grand Tournament</span></td></tr>
+      <tr><td>24 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></td><td><span style="color:var(--lk);font-size:11px">08: Клуб🎓#4 + </span><span data-lang="ru" class="on">Гранд Турнир</span><span data-lang="en">Grand Tournament</span></td><td><span data-lang="ru" class="on">Гранд Турнир</span><span data-lang="en">Grand Tournament</span></td></tr>
+      <tr style="background:var(--gb)">
+        <td style="color:var(--gt);font-weight:700"><span data-lang="ru" class="on">ИТОГО</span><span data-lang="en">TOTAL</span></td>
+        <td style="color:var(--gt);font-weight:700">42 <span data-lang="ru" class="on">ч · $2 240</span><span data-lang="en">h · $2 240</span></td>
+        <td style="color:var(--gt);font-weight:700">38 <span data-lang="ru" class="on">ч · $2 060</span><span data-lang="en">h · $2 060</span></td>
+      </tr>
+    </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ TAB 1 — FEES ═══ -->
+<div class="tab" id="T1">
+
+  <!-- JUANPI FEES -->
+  <div class="cc">
+    <div class="cc-head j">
+      <div class="cc-av">🎾</div>
+      <div>
+        <div class="cc-name">Juan Pablo Vanella</div>
+        <div class="cc-role"><span data-lang="ru" class="on">Тренер · группы D, E, F</span><span data-lang="en">Coach · groups D, E, F</span></div>
+        <div class="cc-tag">$45/h · <span data-lang="ru" class="on">42 ч + фикс</span><span data-lang="en">42 h + fixed</span></div>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cr">
+        <div><div class="crn"><span data-lang="ru" class="on">День 1 — шоу-матч + Mexicano + презентация</span><span data-lang="en">Day 1 — show match + Mexicano + presentation</span></div><div class="crd">5 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> × $45</div></div>
+        <div class="cra">$225</div>
+      </div>
+      <div class="cr">
+        <div><div class="crn"><span data-lang="ru" class="on">Групповые тренировки (группы D, E, F)</span><span data-lang="en">Group sessions (groups D, E, F)</span></div><div class="crd">3 <span data-lang="ru" class="on">гр</span><span data-lang="en">gr</span> × 5 × 1<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> = 15<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> × $45</div></div>
+        <div class="cra">$675</div>
+      </div>
+      <div class="cr">
+        <div><div class="crn"><span data-lang="ru" class="on">Индивидуальные занятия 1:1</span><span data-lang="en">Individual sessions 1:1</span></div><div class="crd">9 <span data-lang="ru" class="on">уч.</span><span data-lang="en">pl.</span> × 2 × 1<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> = 18<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> × $45</div></div>
+        <div class="cra">$810</div>
+      </div>
+      <div class="cr hl">
+        <div><div class="crn"><span data-lang="ru" class="on">Тренинг тренеров клуба (только Juanpi)</span><span data-lang="en">Club coaches training (Juanpi only)</span></div><div class="crd">4<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> × $45 · 17/22/23/24 <span data-lang="ru" class="on">мая</span><span data-lang="en">May</span></div></div>
+        <div class="cra">$180</div>
+      </div>
+      <div class="cr">
+        <div><div class="crn"><span data-lang="ru" class="on">Гранд Турнир — организатор</span><span data-lang="en">Grand Tournament — organiser</span></div><div class="crd"><span data-lang="ru" class="on">фиксированный гонорар</span><span data-lang="en">fixed fee</span></div></div>
+        <div class="cra">$250</div>
+      </div>
+      <div class="cr" style="background:var(--gb)">
+        <div><div class="crn" style="color:var(--gt)"><span data-lang="ru" class="on">Материалы (видео + карточки развития)</span><span data-lang="en">Materials (video + development cards)</span></div><div class="crd"><span data-lang="ru" class="on">Personal Video Review + Tactical Blueprint</span><span data-lang="en">Personal Video Review + Tactical Blueprint</span></div></div>
+        <div class="cra" style="color:var(--gt)">$100</div>
+      </div>
+    </div>
+    <div class="cc-total">
+      <div>
+        <div><span data-lang="ru" class="on">ИТОГО · 42 рабочих часа</span><span data-lang="en">TOTAL · 42 working hours</span></div>
+        <div style="font-size:10px;color:var(--t2)">(38 + 4 <span data-lang="ru" class="on">тренинг клуба</span><span data-lang="en">club training</span>)</div>
+      </div>
+      <div class="v">$2 240</div>
+    </div>
+  </div>
+
+  <!-- PATRIKAS FEES -->
+  <div class="cc">
+    <div class="cc-head p">
+      <div class="cc-av" style="color:#FAC775">🎾</div>
+      <div>
+        <div class="cc-name">Patrikas Freimantas</div>
+        <div class="cc-role"><span data-lang="ru" class="on">Тренер · группы A, B, C</span><span data-lang="en">Coach · groups A, B, C</span></div>
+        <div class="cc-tag" style="background:rgba(250,199,117,.2);color:#FAC775;border:.5px solid rgba(250,199,117,.3)">$45/h · 38 <span data-lang="ru" class="on">ч + фикс</span><span data-lang="en">h + fixed</span></div>
+      </div>
+    </div>
+    <div class="cc-body">
+      <div class="cr">
+        <div><div class="crn"><span data-lang="ru" class="on">День 1 — шоу-матч + Mexicano + презентация</span><span data-lang="en">Day 1 — show match + Mexicano + presentation</span></div><div class="crd">5<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> × $45</div></div>
+        <div class="cra">$225</div>
+      </div>
+      <div class="cr">
+        <div><div class="crn"><span data-lang="ru" class="on">Групповые тренировки (группы A, B, C)</span><span data-lang="en">Group sessions (groups A, B, C)</span></div><div class="crd">3<span data-lang="ru" class="on">гр</span><span data-lang="en">gr</span> × 5 × 1<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> = 15<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> × $45</div></div>
+        <div class="cra">$675</div>
+      </div>
+      <div class="cr">
+        <div><div class="crn"><span data-lang="ru" class="on">Индивидуальные занятия 1:1</span><span data-lang="en">Individual sessions 1:1</span></div><div class="crd">9<span data-lang="ru" class="on">уч.</span><span data-lang="en">pl.</span> × 2 × 1<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> = 18<span data-lang="ru" class="on">ч</span><span data-lang="en">h</span> × $45</div></div>
+        <div class="cra">$810</div>
+      </div>
+      <div class="cr" style="background:var(--bg)">
+        <div><div class="crn" style="color:var(--t3)"><span data-lang="ru" class="on">Тренинг тренеров клуба</span><span data-lang="en">Club coaches training</span></div><div class="crd"><span data-lang="ru" class="on">Не проводит</span><span data-lang="en">Not involved</span></div></div>
+        <div class="cra" style="color:var(--t3)">—</div>
+      </div>
+      <div class="cr">
+        <div><div class="crn"><span data-lang="ru" class="on">Гранд Турнир — организатор</span><span data-lang="en">Grand Tournament — organiser</span></div><div class="crd"><span data-lang="ru" class="on">фиксированный гонорар</span><span data-lang="en">fixed fee</span></div></div>
+        <div class="cra">$250</div>
+      </div>
+      <div class="cr" style="background:var(--gb)">
+        <div><div class="crn" style="color:var(--gt)"><span data-lang="ru" class="on">Материалы (видео + карточки развития)</span><span data-lang="en">Materials (video + development cards)</span></div></div>
+        <div class="cra" style="color:var(--gt)">$100</div>
+      </div>
+    </div>
+    <div class="cc-total" style="background:#F0E8FF">
+      <div>
+        <div><span data-lang="ru" class="on">ИТОГО · 38 рабочих часов</span><span data-lang="en">TOTAL · 38 working hours</span></div>
+      </div>
+      <div class="v">$2 060</div>
+    </div>
+  </div>
+
+  <!-- BOTH TOTAL -->
+  <div class="both-total">
+    <div class="slbl" style="color:#85B7EB;margin-bottom:10px"><span data-lang="ru" class="on">Итого на двух тренеров · $45/ч</span><span data-lang="en">Combined total · $45/h</span></div>
+    <div class="both-row">
+      <div class="bt-item">
+        <div class="n">Juanpi (42 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span>)</div>
+        <div class="v" style="color:var(--gd)">$2 240</div>
+        <div style="font-size:9px;color:rgba(133,183,235,.7)">38×$45 + 4×$45 + $250 + $100</div>
+      </div>
+      <div style="color:rgba(255,255,255,.2);align-self:center;font-size:1.5rem">+</div>
+      <div class="bt-item">
+        <div class="n">Patrikas (38 <span data-lang="ru" class="on">ч</span><span data-lang="en">h</span>)</div>
+        <div class="v" style="color:#FAC775">$2 060</div>
+        <div style="font-size:9px;color:rgba(250,199,117,.6)">38×$45 + $250 + $100</div>
+      </div>
+      <div style="color:rgba(255,255,255,.2);align-self:center;font-size:1.5rem">=</div>
+      <div class="bt-item">
+        <div class="n" style="color:#9FE1CB"><span data-lang="ru" class="on">Оба вместе</span><span data-lang="en">Both total</span></div>
+        <div class="v" style="color:#9FE1CB">$4 300</div>
+      </div>
+    </div>
+    <div class="bt-note">
+      <span data-lang="ru" class="on">Разница: только тренинг тренеров клуба (4 ч × $45 = $180) — исключительно Juanpi</span>
+      <span data-lang="en">Difference: club coaches training only (4 h × $45 = $180) — Juanpi exclusively</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══ TAB 2 — TO PREPARE ═══ -->
+<div class="tab" id="T2">
+
+  <!-- INTRO -->
+  <div class="card" style="background:var(--nv)">
+    <div class="slbl" style="color:#85B7EB"><span data-lang="ru" class="on">От команды V7 Padel</span><span data-lang="en">From the V7 Padel team</span></div>
+    <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:.5rem;line-height:1.4">
+      <span data-lang="ru" class="on">Что нам нужно от вас для подготовки интенсива</span>
+      <span data-lang="en">What we need from you to prepare the intensive</span>
+    </div>
+    <div style="font-size:12px;color:#85B7EB;line-height:1.65">
+      <span data-lang="ru" class="on">Регистрация участников закрывается <strong style="color:var(--lime)">10 мая</strong> — чтобы успеть согласовать расписание с каждым и распределить по группам до вашего приезда.</span>
+      <span data-lang="en">Participant registration closes <strong style="color:var(--lime)">May 10</strong> — to have time to confirm the schedule with each player and assign groups before your arrival.</span>
+    </div>
+  </div>
+
+  <!-- 1. ПРОГРАММА ТРЕНИРОВОК -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:32px;height:32px;border-radius:8px;background:var(--bb);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📋</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--bt);text-transform:uppercase;letter-spacing:.07em"><span data-lang="ru" class="on">Пункт 1</span><span data-lang="en">Item 1</span></div>
+        <div style="font-size:1rem;font-weight:800;color:var(--t)"><span data-lang="ru" class="on">Программа тренировок</span><span data-lang="en">Training programme</span></div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:10px">
+      <span data-lang="ru" class="on">Просим вас подготовить <strong>авторскую программу интенсива</strong> на основе методики NAC. Интенсив состоит из:</span>
+      <span data-lang="en">We ask you to prepare the <strong>intensive training programme</strong> based on NAC methodology. The intensive consists of:</span>
+    </div>
+    <div class="ii"><div class="idot" style="background:var(--bt)"></div><span data-lang="ru" class="on"><strong>5 групповых тренировок</strong> на группу (3 человека) — каждая по 1 часу</span><span data-lang="en"><strong>5 group sessions</strong> per group (3 players) — 1 hour each</span></div>
+    <div class="ii"><div class="idot" style="background:var(--bt)"></div><span data-lang="ru" class="on"><strong>2 индивидуальных занятия</strong> для каждого участника — 1 час каждое</span><span data-lang="en"><strong>2 individual sessions</strong> per participant — 1 hour each</span></div>
+    <div class="ii"><div class="idot" style="background:var(--gd)"></div><span data-lang="ru" class="on">Программа должна учитывать <strong>прогрессию от занятия к занятию</strong> — от знакомства с игроком в День 1 до финального результата</span><span data-lang="en">The programme should include <strong>session-to-session progression</strong> — from meeting the player on Day 1 to final results</span></div>
+    <div style="margin-top:10px;padding:9px 12px;background:var(--lv);border-radius:8px;font-size:12px;color:var(--lk);border:.5px solid #97C459">
+      <span data-lang="ru" class="on">💡 Если у вас уже есть готовая программа для подобных интенсивов — отлично! Если нужна помощь с адаптацией — мы готовы обсудить.</span>
+      <span data-lang="en">💡 If you already have a programme for similar intensives — great! If you need help adapting it — we're happy to discuss.</span>
+    </div>
+  </div>
+
+  <!-- 2. АНКЕТА УРОВНЯ -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:32px;height:32px;border-radius:8px;background:var(--ab);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📝</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--at);text-transform:uppercase;letter-spacing:.07em"><span data-lang="ru" class="on">Пункт 2</span><span data-lang="en">Item 2</span></div>
+        <div style="font-size:1rem;font-weight:800;color:var(--t)"><span data-lang="ru" class="on">Анкета для определения уровня</span><span data-lang="en">Level assessment questionnaire</span></div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:10px">
+      <span data-lang="ru" class="on">При регистрации на интенсив мы хотим предложить каждому участнику заполнить анкету — чтобы <strong>вы заранее могли определить уровень</strong> и сформировать группы A–F до приезда.<br><br>Просим вас подготовить <strong>список вопросов</strong>, которые помогут понять уровень игрока. Мы также можем попросить участников прислать <strong>короткое видео своих ударов</strong> — это даст вам более точное представление об их игре.</span>
+      <span data-lang="en">At registration, we want to offer each participant a questionnaire — so that <strong>you can determine the level in advance</strong> and form groups A–F before arrival.<br><br>Please prepare a <strong>list of questions</strong> that will help assess a player's level. We can also ask participants to send a <strong>short video of their strokes</strong> — this will give you a more accurate picture of their game.</span>
+    </div>
+    <div class="ii"><div class="idot" style="background:var(--at)"></div><span data-lang="ru" class="on"><strong>Пример вопросов:</strong> сколько лет играете · сколько раз в неделю · участвовали ли в турнирах · самооценка уровня · что хотите улучшить</span><span data-lang="en"><strong>Example questions:</strong> years playing · sessions per week · tournament experience · self-assessed level · what you want to improve</span></div>
+    <div class="ii"><div class="idot" style="background:var(--gd)"></div><span data-lang="ru" class="on">Видео ударов — по желанию участника, но <strong>очень приветствуется</strong></span><span data-lang="en">Stroke video — optional for the player, but <strong>highly encouraged</strong></span></div>
+    <div style="margin-top:10px;padding:9px 12px;background:var(--ab);border-radius:8px;font-size:12px;color:var(--at);border:.5px solid var(--ad)">
+      <span data-lang="ru" class="on">⏰ <strong>Дедлайн регистрации — 10 мая.</strong> После этого вы получите заполненные анкеты и видео (если пришлют), чтобы успеть сформировать группы и согласовать расписание до 17 мая.</span>
+      <span data-lang="en">⏰ <strong>Registration deadline — May 10.</strong> After this you'll receive the questionnaires and videos (if sent) to form groups and confirm the schedule before May 17.</span>
+    </div>
+  </div>
+
+  <!-- 3. PERSONAL VIDEO REVIEW -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:32px;height:32px;border-radius:8px;background:var(--bb);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🎬</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--bt);text-transform:uppercase;letter-spacing:.07em"><span data-lang="ru" class="on">Пункт 3</span><span data-lang="en">Item 3</span></div>
+        <div style="font-size:1rem;font-weight:800;color:var(--t)">Personal Video Review</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:10px">
+      <span data-lang="ru" class="on">По завершении интенсива просим вас записать <strong>персональное видео для каждого участника</strong> — примерно 2–3 минуты.</span>
+      <span data-lang="en">After the intensive, we ask you to record a <strong>personal video for each participant</strong> — approximately 2–3 minutes.</span>
+    </div>
+    <div class="ii"><div class="idot" style="background:var(--bt)"></div><span data-lang="ru" class="on">Краткий <strong>разбор прогресса</strong> за неделю интенсива</span><span data-lang="en">Brief <strong>progress review</strong> over the intensive week</span></div>
+    <div class="ii"><div class="idot" style="background:var(--bt)"></div><span data-lang="ru" class="on"><strong>Конкретные точки роста</strong> — что именно улучшать дальше</span><span data-lang="en"><strong>Specific growth points</strong> — what exactly to work on next</span></div>
+    <div class="ii"><div class="idot" style="background:var(--bt)"></div><span data-lang="ru" class="on"><strong>Персональный план</strong> развития на следующие месяцы</span><span data-lang="en"><strong>Personal development plan</strong> for the coming months</span></div>
+    <div class="ii"><div class="idot" style="background:var(--gd)"></div><span data-lang="ru" class="on">Запись можно сделать прямо у нас в клубе — мы обеспечим место и технику</span><span data-lang="en">Recording can be done right at our club — we'll provide the space and equipment</span></div>
+    <div style="margin-top:10px;padding:9px 12px;background:var(--bb);border-radius:8px;font-size:12px;color:var(--bt);border:.5px solid var(--bd)">
+      <span data-lang="ru" class="on">18 видео — по одному для каждого участника. Это очень ценная часть программы, которая участники запоминают надолго.</span>
+      <span data-lang="en">18 videos — one per participant. This is a very valuable part of the programme that players remember for a long time.</span>
+    </div>
+  </div>
+
+  <!-- 4. TACTICAL BLUEPRINT -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:32px;height:32px;border-radius:8px;background:var(--pur);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">📋</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--pt);text-transform:uppercase;letter-spacing:.07em"><span data-lang="ru" class="on">Пункт 4</span><span data-lang="en">Item 4</span></div>
+        <div style="font-size:1rem;font-weight:800;color:var(--t)">Tactical Blueprint</div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:10px">
+      <span data-lang="ru" class="on"><strong>Тактическая карточка развития</strong> с личными пометками тренера для каждого участника.</span>
+      <span data-lang="en"><strong>Tactical development card</strong> with personal coach notes for each participant.</span>
+    </div>
+    <div class="ii"><div class="idot" style="background:var(--pt)"></div><span data-lang="ru" class="on">Мы разработаем <strong>готовый шаблон карточки</strong> — вам нужно будет только заполнить его своими рекомендациями в письменном виде</span><span data-lang="en">We will design a <strong>ready-made card template</strong> — you just need to fill it in with your written recommendations</span></div>
+    <div class="ii"><div class="idot" style="background:var(--pt)"></div><span data-lang="ru" class="on">Карточки будут <strong>напечатаны и вручены</strong> вместе с сертификатами на церемонии награждения Гранд Турнира</span><span data-lang="en">Cards will be <strong>printed and presented</strong> together with certificates at the Grand Tournament awards ceremony</span></div>
+    <div class="ii"><div class="idot" style="background:var(--gd)"></div><span data-lang="ru" class="on">Шаблон карточки согласуем с вами заранее — до 17 мая</span><span data-lang="en">We will agree the card template with you in advance — before May 17</span></div>
+  </div>
+
+  <!-- 5. GRAND TOURNAMENT -->
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <div style="width:32px;height:32px;border-radius:8px;background:rgba(201,232,43,.12);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🏆</div>
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--lk);text-transform:uppercase;letter-spacing:.07em"><span data-lang="ru" class="on">Пункт 5</span><span data-lang="en">Item 5</span></div>
+        <div style="font-size:1rem;font-weight:800;color:var(--t)"><span data-lang="ru" class="on">Формат Гранд Турнира — 23–24 мая</span><span data-lang="en">Grand Tournament format — May 23–24</span></div>
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--t2);line-height:1.7;margin-bottom:10px">
+      <span data-lang="ru" class="on">Мы полностью <strong>закрываем клуб</strong> под этот турнир. Все 4 корта в вашем распоряжении на 2 дня. <strong>Хотим довериться вашему опыту</strong> в организации турниров такого формата.</span>
+      <span data-lang="en">We are <strong>closing the club entirely</strong> for this tournament. All 4 courts are at your disposal for 2 days. <strong>We trust your experience</strong> in organising tournaments of this format.</span>
+    </div>
+    <div style="padding:10px 12px;background:rgba(201,232,43,.06);border:.5px solid rgba(201,232,43,.2);border-radius:9px;margin-bottom:10px">
+      <div style="font-size:11px;font-weight:700;color:var(--lk);margin-bottom:6px"><span data-lang="ru" class="on">Наше видение (ориентировочно):</span><span data-lang="en">Our vision (approximate):</span></div>
+      <div class="ii" style="padding:5px 0"><div class="idot" style="background:var(--lk)"></div><span data-lang="ru" class="on"><strong>Открытый турнир</strong> без ограничений · цель — <strong>60+ участников</strong> за 2 дня</span><span data-lang="en"><strong>Open tournament</strong> with no limits · goal — <strong>60+ participants</strong> over 2 days</span></div>
+      <div class="ii" style="padding:5px 0"><div class="idot" style="background:var(--lk)"></div><span data-lang="ru" class="on">Участники интенсива играют <strong>бесплатно</strong> (это их бонус)</span><span data-lang="en">Intensive players compete <strong>free of charge</strong> (their bonus)</span></div>
+      <div class="ii" style="padding:5px 0"><div class="idot" style="background:var(--lk)"></div><span data-lang="ru" class="on">Деление по уровням — <strong>Beginner / Intermediate / Advanced</strong></span><span data-lang="en">Level divisions — <strong>Beginner / Intermediate / Advanced</strong></span></div>
+      <div class="ii" style="padding:5px 0"><div class="idot" style="background:var(--lk)"></div><span data-lang="ru" class="on"><strong>День 1 (23 мая)</strong> — отборочные туры / групповой этап</span><span data-lang="en"><strong>Day 1 (May 23)</strong> — qualifying rounds / group stage</span></div>
+      <div class="ii" style="padding:5px 0;border-bottom:none"><div class="idot" style="background:var(--lk)"></div><span data-lang="ru" class="on"><strong>День 2 (24 мая)</strong> — полуфиналы, финалы, церемония · вручение сертификатов интенсива</span><span data-lang="en"><strong>Day 2 (May 24)</strong> — semi-finals, finals, ceremony · intensive certificates presented</span></div>
+    </div>
+    <div style="padding:9px 12px;background:var(--rb);border-radius:8px;font-size:12px;color:var(--rt);border:.5px solid var(--rd);margin-bottom:8px">
+      <span data-lang="ru" class="on">🙏 Мы полностью полагаемся на ваш опыт в разработке финального формата. Если у вас есть проверенные форматы турниров такого масштаба — пожалуйста, поделитесь своими идеями. Важно, чтобы мы успели подготовиться вовремя.</span>
+      <span data-lang="en">🙏 We fully rely on your experience in developing the final format. If you have proven tournament formats at this scale — please share your ideas. It's important that we have time to prepare properly.</span>
+    </div>
+    <div style="padding:9px 12px;background:var(--ab);border-radius:8px;font-size:12px;color:var(--at);border:.5px solid var(--ad)">
+      <span data-lang="ru" class="on">⏰ <strong>Просим обсудить формат как можно скорее</strong> — чтобы успеть запустить регистрацию на турнир параллельно с регистрацией на интенсив.</span>
+      <span data-lang="en">⏰ <strong>Please discuss the format as soon as possible</strong> — so we can open tournament registration in parallel with intensive registration.</span>
+    </div>
+  </div>
+
+  <!-- SUMMARY + CONTACTS -->
+  <div class="card" style="background:var(--nv)">
+    <div class="slbl" style="color:#85B7EB"><span data-lang="ru" class="on">Резюме — что от вас нужно</span><span data-lang="en">Summary — what we need from you</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="min-width:22px;height:22px;border-radius:50%;background:var(--lime);color:#000;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</div>
+        <div style="font-size:12px;color:#ccc"><span data-lang="ru" class="on">Программа 5 групповых + 2 инд. тренировок</span><span data-lang="en">Programme of 5 group + 2 individual sessions</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="min-width:22px;height:22px;border-radius:50%;background:var(--lime);color:#000;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</div>
+        <div style="font-size:12px;color:#ccc"><span data-lang="ru" class="on">Вопросы для анкеты определения уровня</span><span data-lang="en">Questions for level assessment questionnaire</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="min-width:22px;height:22px;border-radius:50%;background:var(--lime);color:#000;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</div>
+        <div style="font-size:12px;color:#ccc"><span data-lang="ru" class="on">Personal Video Review (18 видео, после интенсива)</span><span data-lang="en">Personal Video Review (18 videos, after intensive)</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="min-width:22px;height:22px;border-radius:50%;background:var(--lime);color:#000;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">4</div>
+        <div style="font-size:12px;color:#ccc"><span data-lang="ru" class="on">Заполнить Tactical Blueprint (шаблон сделаем мы)</span><span data-lang="en">Fill Tactical Blueprint (we'll design the template)</span></div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="min-width:22px;height:22px;border-radius:50%;background:var(--lime);color:#000;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">5</div>
+        <div style="font-size:12px;color:#ccc"><span data-lang="ru" class="on">Предложить формат Гранд Турнира 23–24 мая</span><span data-lang="en">Propose Grand Tournament format May 23–24</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTACTS -->
+  <div class="contact-box">
+    <div class="c-title">V7 Padel Club · <span data-lang="ru" class="on">Связаться с нами</span><span data-lang="en">Contact us</span></div>
+    <div class="c-btns">
+      <a href="https://wa.me/905467800877" class="cbtn-wa" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.77.46 3.43 1.26 4.88L2 22l5.25-1.38A9.95 9.95 0 0012 22c5.52 0 10-4.48 10-10S17.52 2 12 2zm4.93 13.44c-.2.56-1.18 1.09-1.63 1.15-.42.06-.95.08-1.53-.1-.35-.11-.8-.25-1.38-.5-2.42-1.05-4-3.49-4.12-3.66-.12-.17-.99-1.32-.99-2.52s.63-1.79.85-2.03c.23-.24.5-.3.67-.3l.48.01c.15 0 .36-.06.56.43l.72 1.74c.06.14.1.3.01.48l-.3.44-.45.52c-.13.14-.27.3-.12.58.16.28.7 1.15 1.5 1.87.97.88 1.8 1.15 2.06 1.28.26.13.41.11.56-.07l.67-.79c.17-.22.33-.17.56-.1l1.77.83c.26.12.43.18.5.28.06.1.06.57-.14 1.13z"/></svg>
+        WhatsApp
+      </a>
+      <a href="https://t.me/V7padel_manager" class="cbtn-tg" target="_blank">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8l-1.7 8c-.12.54-.44.67-.88.42l-2.44-1.8-1.18 1.13c-.13.13-.24.24-.49.24l.18-2.5 4.6-4.15c.2-.18-.04-.28-.31-.1L7.66 14.6l-2.4-.75c-.52-.16-.53-.52.11-.77l9.4-3.62c.43-.16.81.1.87.34z"/></svg>
+        Telegram
+      </a>
+    </div>
+    <div style="margin-top:10px;font-size:11px;color:var(--t2)">v7padel.com · Antalya, Turkey</div>
+  </div>
+
+</div>
+<script>
+// TABS
+var _nbs = document.querySelectorAll('.nb');
+function showTab(i){
+  ['T0','T1','T2'].forEach(function(id,j){
+    document.getElementById(id).classList[j===i?'add':'remove']('on');
+    _nbs[j].classList[j===i?'add':'remove']('on');
+  });
+}
+_nbs[0].onclick=function(){showTab(0);};
+_nbs[1].onclick=function(){showTab(1);};
+_nbs[2].onclick=function(){showTab(2);};
+
+// LANGUAGE
+var _lbs = document.querySelectorAll('.lb');
+function setLang(lang){
+  _lbs.forEach(function(b){ b.classList.toggle('on', b.textContent.trim().toLowerCase()===lang); });
+  document.querySelectorAll('[data-lang]').forEach(function(el){
+    el.classList.toggle('on', el.getAttribute('data-lang')===lang);
+  });
+  document.documentElement.lang=lang;
+  try{ localStorage.setItem('v7cl',lang); }catch(e){}
+}
+_lbs.forEach(function(b){ b.onclick=function(){ setLang(this.textContent.trim().toLowerCase()); }; });
+try{ var s=localStorage.getItem('v7cl'); if(s) setLang(s); }catch(e){}
+</script>
+</body>
+</html>
