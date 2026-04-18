@@ -82,6 +82,10 @@
 
 ## LATER
 
+- **[REVIEW 2026-04-18 · P1] Решение по `manager-*.html` страницам** (4 заглушки ~3KB). Нужна ли вообще роль manager? Если нет — удалить 4 HTML + nav-ссылки. Если да — приоритизировать наполнение (2-6ч работы). Impact: низкий · Effort: зависит от решения.
+- **[REVIEW 2026-04-18 · P1] `scrape_debts.py` в cron или removal**. Скрипт для debts/balance_log существует, не вызывается. Проверить используются ли `debts` / `balance_log` табы на сайте. Если да — добавить в run_all_etl (10 мин). Если нет — пометить как ad-hoc в docstring.
+- **[REVIEW 2026-04-18 · P1] Рефакторинг `revenue.html`** (179KB, 3500 строк inline JS). Вынести общие helpers в `revenue-helpers.js`. Дубли между табами (income/goods/margins/utilization). Effort: 2-3ч. Impact: mobile performance.
+- **[REVIEW 2026-04-18 · P1] Проверить `intensive.html`** (2 МB!). Что внутри, почему такой большой. Возможно embedded base64 или старая версия. Effort: 30 мин.
 - **Snapshot-based tracking для отмен → cid**. Сейчас ТОП-20 клиентов по отменам невозможен: Matchpoint удаляет связь `booking_id → customer_id` при отмене, tooltip/FichaReserva не работают для cancelled. Эвристика парсинга `booking_text` дала только ~28% покрытия → метрика снята с сайта как не репрезентативная (2026-04-17). Решение: расширить `sync_bookings_matchpoint` чтобы при исчезновении booking_id из ObtenerCuadro — помечать его `status=cancelled` в табе `bookings` (не удалять), сохраняя `customer_ids`. Тогда для новых отмен будет 100% покрытие. История не восстановится — только с момента внедрения. Функция `compute_cancel_top_clients` сохранена в `build_cache.py`, но не вызывается. Impact: средний · Effort: 2-3ч · Owner: Claude
 - Telegram/WhatsApp bot для recall (отправка по одной кнопке)
 - AI-предсказание churn risk (фича по activity_bucket + сегмент + частота визитов)

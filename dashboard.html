@@ -9,8 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260417t"></script>
-<link rel="stylesheet" href="assets/theme.css?v=20260417mobile">
+<script src="assets/data.js?v=20260418"></script>
+<link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
   /* Variables from theme.css :root; only page-specific overrides here */
@@ -302,7 +302,7 @@
 //   3. expenses tab — detail only; DO NOT sum for OPEX (contains capex + loans)
 //   4. bookings / customers / memberships — Matchpoint (read-only)
 //   5. Divergences → display PnL figure (never expenses total)
-// --- Shared helpers from assets/data.js ---
+// --- Shared helpers from assets/data.js?v=20260418 ---
 const gviz   = V7.loadSheet;    // drop-in: gviz(sheetName) → Promise<rows>
 const toNum  = V7.num;
 const fmt    = V7.fmtInt;       // full number with locale separators (1 525 887)
@@ -609,194 +609,9 @@ function phoneWaCell(phone) {
 var RECALL_LIST_LIMIT = 15;
 
 // --- Блок render-функций отмен перенесён на /clients (раздел «4 · Отмены»)
-// 2026-04-17: дашборд про операционный здоровье клуба (финансы/клиенты/
-// загрузка), отмены лучше смотреть в разделе «Клиенты» как подраздел.
-// eslint-disable: keep if you want to restore — просто раскомментируй.
-/* BEGIN DEPRECATED: renderCancel* functions moved to clients.html
-
-// --- Отмены по типу (horizontal bar, часы) ---
-function renderCancelTipo(rows) {
-  if (!rows || !rows.length) return;
-  var labels = rows.map(function(r) { return r.tipo_label || r.tipo; });
-  var hours = rows.map(function(r) { return toNum(r.hours); });
-  var counts = rows.map(function(r) { return toNum(r.count); });
-  new Chart(document.getElementById("chart-cancel-tipo"), {
-    type: 'bar',
-    data: { labels: labels, datasets: [{
-      label: 'Часов отменено', data: hours,
-      backgroundColor: '#e74c3c', borderRadius: 3,
-    }] },
-    options: {
-      indexAxis: 'y',
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function(c) {
-          return c.parsed.x.toFixed(1) + ' ч (' + counts[c.dataIndex] + ' броней)';
-        } } }
-      },
-      scales: {
-        x: { beginAtZero: true, grid: { color: "#eef2f4" }, ticks: { callback: function(v) { return v + 'ч'; } } },
-        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
-      }
-    }
-  });
-  // Тотал + топ
-  var tot = hours.reduce(function(a, b) { return a + b; }, 0);
-  var top = labels[0] || '—';
-  document.getElementById("cancel-tipo-note").textContent =
-    'Всего ' + Math.round(tot) + ' ч отменено · лидер: ' + top;
-}
-
-// --- Отмены по источнику (origen, doughnut) ---
-function renderCancelOrigen(rows) {
-  if (!rows || !rows.length) return;
-  var labels = rows.map(function(r) { return r.origen; });
-  var counts = rows.map(function(r) { return toNum(r.count); });
-  var hours = rows.map(function(r) { return toNum(r.hours); });
-  var palette = { 'Application': '#e74c3c', 'Mobile': '#f39c12', 'Website': '#9b59b6', 'Web': '#9b59b6', 'Other': '#7f8c8d' };
-  var colors = labels.map(function(l) { return palette[l] || '#95a5a6'; });
-  var total = counts.reduce(function(a, b) { return a + b; }, 0);
-  new Chart(document.getElementById("chart-cancel-origen"), {
-    type: 'doughnut',
-    data: { labels: labels, datasets: [{ data: counts, backgroundColor: colors, borderColor: '#fff', borderWidth: 2 }] },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: '60%',
-      plugins: {
-        legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, padding: 8, font: { size: 11 } } },
-        tooltip: { callbacks: { label: function(c) {
-          var pct = total > 0 ? (c.parsed * 100 / total).toFixed(1) : 0;
-          return c.label + ': ' + c.parsed + ' броней (' + pct + '%, ' + hours[c.dataIndex].toFixed(0) + ' ч)';
-        } } }
-      }
-    }
-  });
-  // Подпись: главный источник
-  if (labels.length) {
-    var mainPct = total > 0 ? (counts[0] * 100 / total).toFixed(0) : 0;
-    document.getElementById("cancel-origen-note").textContent =
-      mainPct + '% отмен из ' + labels[0];
-  }
-}
-
-// --- Отмены по часу дня (line chart) ---
-function renderCancelHour(rows) {
-  if (!rows || !rows.length) return;
-  var hours = rows.map(function(r) { return r.hour + ':00'; });
-  var counts = rows.map(function(r) { return toNum(r.count); });
-  new Chart(document.getElementById("chart-cancel-hour"), {
-    type: 'bar',
-    data: { labels: hours, datasets: [{
-      label: 'Отмен в час', data: counts,
-      backgroundColor: 'rgba(231, 76, 60, 0.7)', borderRadius: 2,
-    }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: { label: function(c) {
-          return c.parsed.y + ' броней отменено в ' + c.label;
-        } } }
-      },
-      scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 } },
-        y: { beginAtZero: true, grid: { color: "#eef2f4" }, ticks: { precision: 0 } }
-      }
-    }
-  });
-  // Найти пиковый час
-  var peak = 0, peakHour = '';
-  rows.forEach(function(r) {
-    var c = toNum(r.count);
-    if (c > peak) { peak = c; peakHour = r.hour; }
-  });
-  if (peak > 0) {
-    document.getElementById("cancel-hour-note").textContent =
-      'Пик отмен: ' + peakHour + ':00 (' + peak + ' броней)';
-  }
-}
-
-// --- Отмены по дням недели (bar chart %) ---
-function renderCancelDow(rows) {
-  if (!rows || !rows.length) return;
-  var weekdays = rows.map(function(r) { return r.weekday; });
-  var pct = rows.map(function(r) { return toNum(r.pct_cancel); });
-  var canc = rows.map(function(r) { return toNum(r.cancelled_hours); });
-  var plan = rows.map(function(r) { return toNum(r.plan_hours); });
-  var colors = pct.map(function(p) {
-    if (p >= 50) return '#e74c3c';
-    if (p >= 35) return '#f39c12';
-    return ACCENT;
-  });
-  new Chart(document.getElementById("chart-cancel-dow"), {
-    type: "bar",
-    data: { labels: weekdays, datasets: [{
-      label: '% отмен', data: pct, backgroundColor: colors, borderRadius: 4,
-    }] },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: { callbacks: {
-          label: function(c) {
-            return [
-              c.parsed.y.toFixed(1) + '% отмен',
-              'Отменено: ' + canc[c.dataIndex].toFixed(1) + ' ч из ' + plan[c.dataIndex].toFixed(1) + ' ч запланированных',
-            ];
-          }
-        }}
-      },
-      scales: {
-        x: { grid: { display: false } },
-        y: { beginAtZero: true, max: 100, grid: { color: "#eef2f4" }, ticks: { callback: function(v) { return v + '%'; } } }
-      }
-    }
-  });
-  // Лучший и худший день недели
-  var sorted = rows.slice().sort(function(a, b) { return toNum(b.pct_cancel) - toNum(a.pct_cancel); });
-  var worst = sorted[0], best = sorted[sorted.length - 1];
-  if (worst) {
-    document.getElementById("cancel-worst-day").textContent =
-      "🔴 Худший: " + worst.weekday + " — " + toNum(worst.pct_cancel).toFixed(0) + "% отмен (" + toNum(worst.cancelled_hours).toFixed(0) + " ч из " + toNum(worst.plan_hours).toFixed(0) + ")";
-  }
-  if (best) {
-    document.getElementById("cancel-best-day").textContent =
-      "🟢 Лучший: " + best.weekday + " — " + toNum(best.pct_cancel).toFixed(0) + "% отмен";
-  }
-  // Среднее 4 недели (без учёта дней с 0 plan)
-  var withData = rows.filter(function(r) { return toNum(r.plan_hours) > 0; });
-  if (withData.length) {
-    var totPlan = withData.reduce(function(s, r) { return s + toNum(r.plan_hours); }, 0);
-    var totCanc = withData.reduce(function(s, r) { return s + toNum(r.cancelled_hours); }, 0);
-    var avgPct = totPlan > 0 ? (totCanc / totPlan * 100) : 0;
-    document.getElementById("cancel-avg-pct").textContent = avgPct.toFixed(0) + "%";
-    document.getElementById("cancel-avg-pct").style.color = avgPct >= 45 ? 'var(--bad)' : (avgPct >= 30 ? '#f39c12' : 'var(--good)');
-    document.getElementById("cancel-avg-hrs").textContent = totCanc.toFixed(0) + " ч из " + totPlan.toFixed(0) + " ч (4 нед)";
-  }
-}
-
-// --- Вчера: plan/fact/cancel из occupancy_planfact ---
-function renderCancelYesterday(rows) {
-  if (!rows || !rows.length) return;
-  // Берём самую свежую is_final='1' строку (финализированный день)
-  var finalized = rows.filter(function(r) { return (r.is_final || '') === '1'; });
-  finalized.sort(function(a, b) { return a.date < b.date ? 1 : -1; });
-  var last = finalized[0];
-  if (!last) {
-    document.getElementById("cancel-y-pct").textContent = "—";
-    document.getElementById("cancel-y-hrs").textContent = "нет финализированных дней";
-    return;
-  }
-  var pct = toNum(last.pct_cancel);
-  var cancH = toNum(last.cancelled_hours);
-  var planH = toNum(last.plan_hours);
-  document.getElementById("cancel-y-pct").textContent = pct.toFixed(0) + "%";
-  document.getElementById("cancel-y-pct").style.color = pct >= 45 ? 'var(--bad)' : (pct >= 30 ? '#f39c12' : 'var(--good)');
-  document.getElementById("cancel-y-hrs").textContent = last.date + ": " + cancH.toFixed(0) + " ч из " + planH.toFixed(0) + " ч";
-}
-
-END DEPRECATED: renderCancel* moved to clients.html */
-
+// 2026-04-17: дашборд про финансы и клиентов, отмены отдельно на /clients.
+// История: если нужно восстановить — git log и найти коммит "feat(dashboard):
+// 3 среза отмен" от 2026-04-17.
 // --- Список Под риском ---
 function renderAtRisk(rows) {
   var tbody = document.querySelector("#tbl-atrisk tbody");

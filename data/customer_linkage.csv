@@ -1,15 +1,15 @@
 rid_user_id,rid_name,rid_rating,rid_phone,rid_participations,mp_code,mp_name,confidence,method
 K5m9AO5cn2z7kdUZhe,Anna Kravchenko,692.4445485978065,+380506462082,3,44,Anna Kravchenko,95,phone_exact
 O7PsQcpfkwMyc3OG1A,Mikle,1299.5709275696177,+905377283291,12,20,Mikle Marchenko,95,phone_exact
-dZfNiyTtM3AtfqtjLk,FeeL,1182.7340286417268,+905074462423,17,62,FeeL F,95,phone_exact
-wuPDMStNYOynD1DBom,ANDREY D,978.0441603511358,+445555555,17,,,0,
+dZfNiyTtM3AtfqtjLk,FeeL,1182.7340286417268,+905074462423,18,62,FeeL F,95,phone_exact
+wuPDMStNYOynD1DBom,ANDREY D,978.0441603511358,+445555555,18,,,0,
 CvJQIqoGnuItw5cdiM,Sergey Gromov,1172.4217979410394,+79216472343,2,113,Sergey Gromov,95,phone_exact
 gxvCjC693IgaHn07P4,Aleksandra,1070.787764190376,+380639605655,23,38,Oleksandra Ilina,95,phone_exact
 CWiD7DNu9rTEO7JE1k,Danya,636.6652341736135,+380937103241,1,,,0,
 ya4rrTV33k4Plm5RcD,Dmytro mar,955.5459111852166,+380674410076,7,59,Dmitry Dmitry,95,phone_exact
 G7BDskkLYl2ogJfhSh,Radomir,997.0490359472211,+380638885715,5,129,Radomir Drobilko,95,phone_exact
 iRGNemUvIVRFEs1R5W,Aleksei Shumilov,1248.8875821670817,+905315257318,49,56,Alex Shumilov,95,phone_exact
-2NoF0wCGJyOOG8G5iG,Ruslan Gabidullin,1344.4798631879203,+905356035442,17,51,Ruslan Gabidullin,95,phone_exact
+2NoF0wCGJyOOG8G5iG,Ruslan Gabidullin,1254.4181839717419,+905356035442,18,51,Ruslan Gabidullin,95,phone_exact
 ZWFMurtuzCNQY5Z5l9,Michael Marysenko,774.3183641303169,+380673249359,1,,,0,
 dNOFqPgdhTUYOYplBk,Chingis,1757.0757708703254,+905345447922,27,40,Chingis First,95,phone_exact
 cV1sTkG8oO9alzuDis,Igor Ishutin,1773.9787881664065,+34624189017,17,83,Igor Ishutin,95,phone_exact
@@ -20,54 +20,54 @@ EHVXQaKScEcOrqaM4H,Serhat Çerçiler,916.0437789146797,+905324014244,2,152,Çer�
 Vyb2wp0WAQYF6gVprg,Mustafa emre sezer,344.36403082208153,+905322900713,0,153,Mustafa emre Sezer,95,phone_exact
 YlW91YOKEPisEdqv7L,Enes sezer,344.36403082208153,,0,146,Enes Sezer,80,name_exact
 0Gqv4eGeTKpKzpiE8l,Artem,1377.8186649376507,+3805025929,33,,,0,
-pE4wa2CRsS5lXEAkyd,Aleksandr,2025.5269457829686,+380957973507,32,,,0,
+pE4wa2CRsS5lXEAkyd,Aleksandr,2025.5269457829686,+380957973507,33,,,0,
 o0sDpxGtzgSampVJV2,Roman Armon,1804.4802820501452,+905528834514,19,12,Roman Armon,90,phone_no_prefix
 9AJA5erQPcIIRVy6fy,Simon Wehlage,614.7124874895808,+491743940054,0,108,Simon Wehlage,95,phone_exact
-Nr4iBLLmGYlZoK7H6h,Volodimir Rykov,2030.4559391579119,+380681976711,51,6,Volodymyr Rykov,95,phone_exact
+Nr4iBLLmGYlZoK7H6h,Volodimir Rykov,2030.4559391579119,+380681976711,50,6,Volodymyr Rykov,95,phone_exact
 2IyTz42d1wDRnSEjtL,Roald D.,1768.2934510703526,+905394822303,9,116,Roald D.,80,name_exact
-QVMrNIG1xw21ds4E7f,Erik li,1551.6525299615046,+905393355324,22,115,Erik Li,80,name_exact
+QVMrNIG1xw21ds4E7f,Erik li,1551.6525299615046,+905393355324,23,115,Erik Li,80,name_exact
 pB4AhGpPMpnUpheDDE,Halil Tunç,1576.2264091841307,+905542504848,1,561,Halil Tunç,95,phone_exact
 8nOxlhkHFhTvNRBYat,Vitalii Volchenko,1337.3080874256575,+380990541213,9,17,Vitalii Volchenko,95,phone_exact
-j9KL6PNGJxB2tqsu3e,Burak Oner,1235.6734684016133,+905305055789,22,167,BURAK ÖNER,90,phone_no_prefix
+j9KL6PNGJxB2tqsu3e,Burak Oner,1235.6734684016133,+905305055789,21,167,BURAK ÖNER,90,phone_no_prefix
 WeUQA3oqDlLLagLtno,Ivanov Mykyta,1128.898503192349,+3809999999,8,,,0,
-YqFq98builTrAHDCxt,Marina Ivanova,907.3237977007328,+3805555588588,35,63,Marina Ivanova,80,name_exact
+YqFq98builTrAHDCxt,Marina Ivanova,843.453094365802,+3805555588588,35,63,Marina Ivanova,80,name_exact
 uXdkGwIv1GO5DQAIcX,Philip Dzu,728.2648437408748,+905532588467,5,16,Philip Dzu,80,name_exact
 2JglKBpjMonaWvdbhp,Maks Dychuk,1189.5183865213346,+380667619381,9,8,Maks Dychuk,95,phone_exact
 T9wnQtQLjLwZ7EErQ9,Konstantin Shpuniuk,926.7967227316273,+79214307612,1,124,Konstantin Shpuniuk,95,phone_exact
 223CgTXPCZYqtRJAQ8,Ilya,1323.223320774549,+905369291017,13,34,Ilya Zotov,95,phone_exact
 KTGknvQpM2M3YtYCBv,Aleksandr Grishin,1345.8197356622031,+905316879295,35,158,Aleksandr Grishin,95,phone_exact
-iCAbk9NwHcls9EXX2p,Ivashka,689.1291956668622,+380934352511,41,19,Ivanna Rykova,95,phone_exact
-qMgUVx2Jsj2HUdymBO,Nataliia Volchenko,688.5941041158048,+380502727791,23,39,Nataliia Volchenko,95,phone_exact
-VUWYY84rRbQoUnRfnM,Regina Kvitkova,1151.743884096123,+380663803390,8,13,Regina Kvitkova,95,phone_exact
-gX3n9Hc2siuy1jlVL6,Olena Dolzhenko,820.9810993636179,+380990388788,14,222,Olena Dolzhenko,95,phone_exact
-Eb1tmB9MOjoFhu2xn8,Dmitry Hozha,714.2705984595207,+380638848193,33,92,Dmitriy Hozha,95,phone_exact
+iCAbk9NwHcls9EXX2p,Ivashka,714.1031998095027,+380934352511,41,19,Ivanna Rykova,95,phone_exact
+qMgUVx2Jsj2HUdymBO,Nataliia Volchenko,767.5908457095454,+380502727791,23,39,Nataliia Volchenko,95,phone_exact
+VUWYY84rRbQoUnRfnM,Regina Kvitkova,1101.8399963497336,+380663803390,8,13,Regina Kvitkova,95,phone_exact
+gX3n9Hc2siuy1jlVL6,Olena Dolzhenko,752.7601065106858,+380990388788,14,222,Olena Dolzhenko,95,phone_exact
+Eb1tmB9MOjoFhu2xn8,Dmitry Hozha,722.4231699840459,+380638848193,33,92,Dmitriy Hozha,95,phone_exact
 22COw2WnCuBQ6h8GaI,Ol4ik,1057.9151529500923,+380665501287,1,90,Hrebeniuk Olga,95,phone_exact
 GIOkO7nEcmsDIRS2lc,Rita,1000,+79826163118,0,,,0,
 jRCdYCYth2ilZPapYq,Zafer Kuşcu,706.7594459094041,+905392880837,4,45,Zafer Kuscu,95,phone_exact
 vfdOfW0ncQNBIsuucW,Dima,1000,+79068152737,0,271,Dima Sokolov,50,first_name_unique
-NkjgKGTtrCqlZDbude,Artem Poplavko,1008.7080765848731,+380733236468,8,15,Artem Poplavko,95,phone_exact
+NkjgKGTtrCqlZDbude,Artem Poplavko,1008.7080765848731,+380733236468,9,15,Artem Poplavko,95,phone_exact
 siRqWzCh9dnZCx34N6,Olena,849.2511766292819,+380991818571,13,53,Olena LEV,95,phone_exact
-nPMo4lxaEf3mZiqCzI,Kateryna,1072.6481974779606,+380507608222,58,57,Kateryna Poplavko,95,phone_exact
+nPMo4lxaEf3mZiqCzI,Kateryna,993.9801252951091,+380507608222,59,57,Kateryna Poplavko,95,phone_exact
 7mNWShLt65vbTacC8X,Dmitrii F,1435.8753670228593,+905079417940,12,75,Dmitrii Fetisov,95,phone_exact
-dwNjAKqR4uFMz5MnC7,Vitalii Zakharov,1123.1850458816887,+905348359411,28,32,Vitalii Zakharov,95,phone_exact
+dwNjAKqR4uFMz5MnC7,Vitalii Zakharov,1123.1850458816887,+905348359411,30,32,Vitalii Zakharov,95,phone_exact
 EzHPKVins0o363TZvs,Albert Li,724.0498951661334,+905349867491,24,171,Albert Li,80,name_exact
 k8zUs91gXXJ1hMF6VC,Timur Vassilyev,995,+905015607886,1,,,0,
 moevPwM0ZEHs8qytfm,Edward,1146.6666666666667,+18088653601,1,,,0,
 Iv4vV5wUa7ddKoxith,Roman Ivanchenko,692.7374137479086,+380739933489,2,160,Roman Ivanchenko,95,phone_exact
 i6MHCmCY4HD5JTK77v,Hanna Mykolaienko,821.6666666666667,+380732161027,1,69,Hanna Fedorenko,50,first_name_unique
 8xgEMt59eVL7FE61lP,Yaroslav Maibenko,988.7017515161169,+905360553752,19,172,Yaroslav Maibenko,95,phone_exact
-QHBiTqB1jSylYT8HL7,Kateryna Vasylenko,966.3133546170301,+380969771993,3,42,Kateryna Vasylenko,95,phone_exact
+QHBiTqB1jSylYT8HL7,Kateryna Vasylenko,1038.6666805630148,+380969771993,3,42,Kateryna Vasylenko,95,phone_exact
 9KjRAXjVZN9oScEpTN,Sergey,1365.1261524719507,+442222222,12,,,0,
 zSMy7sfSlKPWCGTdan,Valerii P,1132.0986758866118,+905526674887,29,155,Valerii P,95,phone_exact
-XrssBiboxfGwraC4ok,Amy Wohl,814.7056969330603,+18453130616,0,,,0,
+XrssBiboxfGwraC4ok,Amy Wohl,714.6663984970751,+18453130616,0,,,0,
 9QgvzcQq7ukWYYpiBB,Anatolii Sakalo,868.0544661211004,+380671616676,1,173,Anatolii Sakalo,95,phone_exact
-GFDpxbjbxefdI38cBL,Yurii SHEF,985.6376937591662,+380931111888,16,35,Yurii Shef,80,name_exact
+GFDpxbjbxefdI38cBL,Yurii SHEF,1162.1475168267195,+380931111888,17,35,Yurii Shef,80,name_exact
 kGtxyXStCaCyOZioyk,Anton T,867.8280894457581,+380506699413,5,68,Anton Taranenko,95,phone_exact
 62maeS68KdaXj5L8i8,Oleksandr,1091.4410797103717,+905444945077,24,186,Oleksandr Tiukin,95,phone_exact
 x6bAgOsbhgbPuleGtT,Nikolai Kobzar,891.7285980966191,+905016056452,5,238,Nikolai Kobzar,80,name_exact
 HACSFOGW1b8RA7cwiO,James Lawton,1000,+447484206848,0,182,James Lawton,95,phone_exact
 BOUcLom4XGSW3IPCmZ,Johnny,1251.3777594622043,+46739258559,1,,,0,
-LatFA6QKLmAmBzTkOp,Natalia A,780.1323585090997,+905466605114,6,100,Natalia Averbukh,95,phone_exact
+LatFA6QKLmAmBzTkOp,Natalia A,788.447840779976,+905466605114,6,100,Natalia Averbukh,95,phone_exact
 EPKrxIBm6Ps6bVr6hD,Aliye Göbelek,723.72898832089,+905324086074,1,121,Aliye .,95,phone_exact
 Rf8WF33iPHXmofzmh7,Umut,1000,+905332658808,0,213,Umut Dagistanlioglu,95,phone_exact
 ksmut2HANsn8TG0jrv,Yulia,1000,,0,188,Yulia Butenko,50,first_name_unique
@@ -78,8 +78,8 @@ nSfaspLElXPoSHE6a2,Kostiantyn,1184.9364189714202,+380663256001,1,64,Kostiantyn P
 DrJtiacVU1lPLX2zje,Carmine Castaldi,1000,+905451209968,2,187,Carmine Castaldi,95,phone_exact
 BUoSa50qzP693N2RT3,Nina,1000,+380955905858,0,,,0,
 JnGVWij06RTTIOrPN5,Vladana,457.94094111556456,+380638713657,13,117,Vladana,95,phone_exact
-i7NAKop4KaEKSxwUMd,Nicolay,835.6899170417374,,42,,,0,
-66M1dzIycnaQ5H4341,Bob,2182.988153881007,+905518390667,13,220,Bob,95,phone_exact
+i7NAKop4KaEKSxwUMd,Nicolay,835.6899170417374,,44,,,0,
+66M1dzIycnaQ5H4341,Bob,2274.069440227398,+905518390667,15,220,Bob,95,phone_exact
 hVr0YASP9FWNMfpAUB,Vladyslav Samoiliuk,930.9910188297252,+48793457764,1,232,Vladyslav Samoiliuk,80,name_exact
 Z4OEMEWO8ld2qTt7Wb,Anna Zelna,855.4072645553724,+48537482625,1,234,Anna Zelna,95,phone_exact
 KBVkjxjMettab3WhmZ,Can Tibet,788.4467966224122,+905332447595,0,,,0,
@@ -88,8 +88,8 @@ h3bqpFqf11Rx8i5MhD,Anastasiia Ivanov,954.3014381678228,+905345484954,4,43,Anasta
 v3RK2S8swoGjkfbgHK,Artem Filatov,987.6425926364268,+79063735373,2,229,Artem Filatov,80,name_exact
 HYEauwWXDOftM6dtJE,Andrei,1021.4808219785785,,1,,,0,
 N59J04OtcSKzc1Zql0,Artem,873.2384096659858,,1,,,0,
-QKoDQlh5QfXmyz91AU,kristinalubenec595,779.3064082998404,+380633262146,30,130,Kristina Lubenets,95,phone_exact
-lKzUGuvzqGaN0OSuLn,Yuliia,608.8637737794181,+380956210705,64,107,Yuliia Kuzmenko,95,phone_exact
+QKoDQlh5QfXmyz91AU,kristinalubenec595,779.3064082998404,+380633262146,29,130,Kristina Lubenets,95,phone_exact
+lKzUGuvzqGaN0OSuLn,Yuliia,672.2386303001906,+380956210705,65,107,Yuliia Kuzmenko,95,phone_exact
 FQQ2eDMiIe8YiENKMn,Liuba Drobilko,925.2405976557708,+380931111887,4,230,Liubov Drobilko,95,phone_exact
 vQgBy9bgJz8qmOLn5B,Oleksandr Hrebeniuk,1333.0302308596717,+380660605114,2,49,Oleksandr Hrebeniuk,95,phone_exact
 gJC3FAvcMSZU6Hpf70,Volodymyr Tsiren,1051.6719568001683,+380637479015,12,25,Volodymyr Tsiren,95,phone_exact
@@ -101,10 +101,10 @@ aLSiVeE9EHwRevcd6v,Ranno,1000,+37258871900,0,,,0,
 qqwsFgX1gcwNLwnWAj,Tarmo Riivo Tsernjavski,1000,+37255532222,0,,,0,
 IzzTaeHD1oI6mEpGth,Mart Jõesaar,1000,+37256221713,0,,,0,
 huejrf7zoSUTF9xKGQ,Heli Melin,1000,,1,,,0,
-twgCHoOUVt8rZl4dMe,Umur Akman,1843.301148292431,+905312928195,28,255,Umur Akman,95,phone_exact
+twgCHoOUVt8rZl4dMe,Umur Akman,1843.301148292431,+905312928195,30,255,Umur Akman,95,phone_exact
 0JXntSXgDQKZA0e42J,Olga Y,1000,+79153234555,0,,,0,
 v1Y0OpNT1Mq3GhmIQH,Mesut Mert Davas,777.5929048044127,+905444166874,5,667,Mert Davas,90,phone_no_prefix
-me7mL1d7N6AOcIf1Ph,Dilara Akbıyık,745.8856244412003,+905304827311,34,141,Dilara Akbiyik,95,phone_exact
+me7mL1d7N6AOcIf1Ph,Dilara Akbıyık,745.8856244412003,+905304827311,33,141,Dilara Akbiyik,95,phone_exact
 226OyEbyjAZ2Ab5wui,Anna Tsiren,967.3834491171507,+44777777,1,106,Anna Tsiren,80,name_exact
 0EjqmO3UcEt4c6zKqI,Demid Hrytsun,1000,+34722324000,1,98,Demid Hrytsun,95,phone_exact
 Ha6Uq9Fv0B2BtydWx5,Anechka,1000,+380936601055,1,,,0,
@@ -120,8 +120,8 @@ knjy8644W3tFoItejq,Anna Kostromina,1000,+79030126462,0,332,Anna Kostromina,95,ph
 JRo5KQvNMpnEPDrur1,Vladimir Grankin,1000,+447846844524,2,331,Vladimir Grankin,95,phone_exact
 6uv8OMxf9yCBPpuoWN,Marcos Diaz,1459.3169912378594,+34626218183,2,166,Marcos Diaz Bajo,95,phone_exact
 8aT1bvd5uueRS1AiHH,Aleksei,897.4307936135488,+79162845194,1,1074,Aleksei Detistov,50,first_name_unique
-zSZhGuMiIDiEWPDVgu,Semion P,1192.5543807091335,+79873184640,39,390,Semion Pavlov,50,first_name_unique
-voIfGpKvrGpYj9G5EN,Yury Kryvenka,1351.6131045178943,+905364724109,4,61,Yury Kryvenka,95,phone_exact
+zSZhGuMiIDiEWPDVgu,Semion P,1192.5543807091335,+79873184640,40,390,Semion Pavlov,50,first_name_unique
+voIfGpKvrGpYj9G5EN,Yury Kryvenka,1279.544346099402,+905364724109,4,61,Yury Kryvenka,95,phone_exact
 2v6MaAqifgJnkyawUb,Cem Usluoglu,1000,+905358515354,0,603,Cem Usluoglu,95,phone_exact
 wNrOMnKNw06yjVUrxm,Dmytro Klymets,795.6612055793917,+380674066652,0,226,Dmytro Klymets,95,phone_exact
 ZHqmwAOR3h1eLunonn,Nadiya,1000,+995599402862,2,429,Nadiya Maiorova,95,phone_exact
@@ -138,8 +138,8 @@ JzyIXiG4DN0wYi92ig,aloshechkin.vlad,1040.9093111582567,+380999256314,1,,,0,
 0m8aY1UMcsrCNP6CVB,Nataliia Nataliia,720.4388147650386,+380953229439,60,268,Nataliia Nataliia,95,phone_exact
 tb3e4i1jSbunsVmdvL,Aleksandra,735.0797577210315,+79263253733,15,,,0,
 twKlpEHEMDqwFhv44v,Bohdan Levchuk,1429.318018280731,+436601176781,1,26,Bohdan Levchuk,95,phone_exact
-0YxzE9W9aghpBbYL3Y,Ilia,1000,+905343741989,4,58,Ilia Isakov,95,phone_exact
-Kfs7tyaFPvUVicgsL4,Assel,730.7117996132147,+9055217040,37,439,Assel Aldamzharova,50,first_name_unique
+0YxzE9W9aghpBbYL3Y,Ilia,1000,+905343741989,5,58,Ilia Isakov,95,phone_exact
+Kfs7tyaFPvUVicgsL4,Assel,749.6443597253219,+9055217040,38,439,Assel Aldamzharova,50,first_name_unique
 xpBTsCcN11AC8EnxUJ,Sergey Militsyn,1000,+79048959560,0,191,Sergey Militsyn,95,phone_exact
 JOnXujGJi9WYVqzYul,Yuliya,1000,+905059425911,2,277,Subbotina Iuliia,95,phone_exact
 VlCVgb4rSQ1K86DKct,Maryna Kovalova,913.1130687875367,+380953098305,19,434,Maryna Kovalova,95,phone_exact
@@ -162,7 +162,7 @@ vOEHa0CF4LjiwXQf07,Engin Emsen,1000,+905054028445,0,29,Engin Emsen,95,phone_exac
 Na8nv92qlILf3NJxkt,Serhii Rudnytskyi,1641.633949281832,+351912096191,0,86,Serhii Lutsiuk,50,first_name_unique
 KBlCb9yGAfG50i2VBq,Volodymyr Trofymenko,1915.335423818421,+380678679594,1,538,Volodymyr Trofymenko,80,name_exact
 9Mf29KBjyrexG91GUT,Nadezhda,805.0976401144547,+79918384125,11,539,Nadezhda Iziumova,50,first_name_unique
-8Kr3oQY5KAJDPLHNk2,Kadir aras,867.4004890943062,+905065453908,29,512,Kadir nursah Aras,95,phone_exact
+8Kr3oQY5KAJDPLHNk2,Kadir aras,867.4004890943062,+905065453908,30,512,Kadir nursah Aras,95,phone_exact
 gtdpntzB7hz601Ms3k,David,1036.0939959742534,+905427135999,3,,,0,
 PZbX9SYhqbvnZkvyYZ,Nejat Dolanay,1003.425155539658,+905334282820,6,284,Nejat Dolanay,95,phone_exact
 hKQLCKNSlCNDQQBIEm,Jeremy Care,885.0073485026871,+33695585164,7,,,0,
@@ -175,23 +175,23 @@ m4Q2MisSPc8zddSfuL,Pınar,1000,+905306577683,0,242,pinar özer,95,phone_exact
 Su09oWnYbM27yNo6jK,Barış Sivas,825.7358363672303,+905543339400,0,633,Baris Sivas,95,phone_exact
 voVynAE0v4QhbPlew9,Angelina,1000,+905072047407,3,,,0,
 C8rKCDaqrjFCRNkZnC,Fatma Yaprakdal,725.9770724283031,+905534804181,27,693,Fatma Yaprakdal,95,phone_exact
-y7wIJ2HYS9YQV8kySn,Olena LEV,937.5687421175818,+905074500859,37,53,Olena LEV,80,name_exact
+y7wIJ2HYS9YQV8kySn,Olena LEV,1021.3404155755334,+905074500859,37,53,Olena LEV,80,name_exact
 bFq9KsNlvDbn2MyZTt,Alina Burya,1000,+905356958251,3,,,0,
 bZzbUlsx760nj9BEHx,Guyon Natalia,1000,+33750209887,1,,,0,
-YLOiicfev3mCzbRvN6,Pars A. Hamitoğlu,1077.3179845506827,+905387464377,55,636,Pars A. Hamitoglu,95,phone_exact
+YLOiicfev3mCzbRvN6,Pars A. Hamitoğlu,1077.3179845506827,+905387464377,53,636,Pars A. Hamitoglu,95,phone_exact
 VG2iiLMr0ABYAypiHP,Marina Tifaniuk,1000,+905384522459,4,622,Marina Tifaniuk,95,phone_exact
-H3nHOOenr3xcu3u4ME,Anna Tsyrulnikova,562.9810059540631,+380973948442,38,134,Anna Tsyrulnikova,95,phone_exact
+H3nHOOenr3xcu3u4ME,Anna Tsyrulnikova,562.9810059540631,+380973948442,37,134,Anna Tsyrulnikova,95,phone_exact
 OzlefzN9cPv6jyhImi,Nataliya Prokopyuk,1000,+380971826099,4,644,Nataliya Prokopyuk,95,phone_exact
 YjzbKlq64a0tNrUqca,Saveliy,1000,+79818189648,1,666,Saveliy Dolgodrov,50,first_name_unique
-1U4rauZXdCdZKHWYNi,Caner karakaya,1188.8758346546406,+905051370707,52,445,Caner Karakaya,95,phone_exact
-yjADSM7UvidXD93IZe,Erdi Divarcı,1184.8949049866026,+905442379807,9,27,Erdi Divarci,95,phone_exact
+1U4rauZXdCdZKHWYNi,Caner karakaya,1188.8758346546406,+905051370707,49,445,Caner Karakaya,95,phone_exact
+yjADSM7UvidXD93IZe,Erdi Divarcı,1184.8949049866026,+905442379807,10,27,Erdi Divarci,95,phone_exact
 2ZbdTVFjbrFGKmBphy,Salavat Hamitoğlu,2318.303630432246,+905352551989,9,739,Salavat Hamitoglu,80,name_exact
 h37omPfaP5goBrjjhK,Jan Kjallstrom,613.6407398603167,+351913002864,0,,,0,
-nRdxRUhilIluN9nY2U,Misha S,1248.5175287428233,+905375200782,15,,,0,
+nRdxRUhilIluN9nY2U,Misha S,1248.5175287428233,+905375200782,16,,,0,
 FqSQKJkpDQU48HbgzJ,Anastasiia Novikova,1000,+905348326387,1,105,Anastasiia Novikova,80,name_exact
-wMhv1nKa7PHNtl6P2B,Nur kılıç,994.378441973927,+905388162385,51,,,0,
+wMhv1nKa7PHNtl6P2B,Nur kılıç,1071.4560401779922,+905388162385,51,,,0,
 jB0WBbsXap9LsAbem8,Dmitrii Tifaniuk,686.7507438544849,+905312767420,1,606,Dmitrii Tifaniuk,80,name_exact
-mRim19xGWdZqXbHlo4,KIRILL,1240.8520832391996,+905433255687,7,710,Kirill Tsemin,90,phone_no_prefix
+mRim19xGWdZqXbHlo4,KIRILL TS,1240.8520832391996,+905433255687,7,710,Kirill Tsemin,90,phone_no_prefix
 SIjy5le37lpjV6iKpx,Aleksey G,1041.6417769241698,+905063061289,5,1002,Aleksey Gusev,95,phone_exact
 zHByFbNmwCzRj9T9jn,Matthew Smith,1088.6215634102593,+447395261443,2,691,Matthew Smith,80,name_exact
 kuVIGwWXCs1SotwZSk,Mykhailo,1031.041495709269,+380504458220,1,,,0,
@@ -200,39 +200,39 @@ fZ36d28E97zDjp25cZ,Test user,1000,+380685054137,0,707,User Test,75,name_reversed
 F03UVOccdpkoaxCUFP,Test User,984.4585189668526,+380685054137,0,707,User Test,75,name_reversed
 pDXneOgCjiYZCxr46y,Yunus Goyuk,1111.6464226412359,+905306937888,8,33,Yunus Goyuk,95,phone_exact
 KgY9ivVvDCQHysphXX,Atakan Çakmak,1140.4851289013345,+905418734147,1,325,Atakan Cakmak,95,phone_exact
-gYJ6RGiConEiVe9CA5,Hilmi Batuhan Toy,821.8721480801896,+905438428640,9,714,Hilmi Batuhan Toy,90,phone_no_prefix
-ab5wuP0ju0GQtGQ5bU,Salih arkın,1060.1801359872256,+905465420742,13,,,0,
+gYJ6RGiConEiVe9CA5,Hilmi Batuhan Toy,821.8721480801896,+905438428640,16,714,Hilmi Batuhan Toy,90,phone_no_prefix
+ab5wuP0ju0GQtGQ5bU,Salih arkın,1020.1946923176058,+905465420742,15,,,0,
 CVeBfgaV68cShEQ6wW,Ceyhun Öztürk,635.544644338438,+905322326294,0,727,Ceyhun Öztürk,95,phone_exact
 RVYPTxh9FYIw9xRjqx,Ana,879.0241581798671,+79600096038,1,,,0,
 D6T7hlsXfZcR6qlAIo,Fatma Y,1000,+905534804181,0,693,Fatma Yaprakdal,95,phone_exact
-IJrbLQAMYM42RH7O8L,Daria,552.4028344358989,+905305002619,16,401,Daria Celik,95,phone_exact
-9B1zVq6SqSHHAZveZ8,Erdem Soykan,762.3262737450975,+905306841992,31,749,Erdem Soykan,95,phone_exact
+IJrbLQAMYM42RH7O8L,Daria,483.5485266252671,+905305002619,18,401,Daria Celik,95,phone_exact
+9B1zVq6SqSHHAZveZ8,Erdem Soykan,762.3262737450975,+905306841992,28,749,Erdem Soykan,95,phone_exact
 k6MUVnsTW8ylIMOoFk,Derin,1000,+905345164561,0,126,Derin Küzün,50,first_name_unique
-7qyHuM5qBy1soWkEjZ,Kateryna Vasylenko,1193.5580011340198,+380969771993,39,42,Kateryna Vasylenko,95,phone_exact
+7qyHuM5qBy1soWkEjZ,Kateryna Vasylenko,1206.2821719456394,+380969771993,39,42,Kateryna Vasylenko,95,phone_exact
 I8wBLmD1yzyL7jwK2e,🔥Andrey 🔥,1329.0574084279629,+34658026334,2,,,0,
 PVHT0Ih3lF8FbGT82Z,Can Gürdal,845.0068944466178,+905344131934,10,569,Can Gürdal,95,phone_exact
 lQTSXuj4GNIFNesl1y,Kemal Ozberk,700.2475408410983,+31612053474,1,754,Kemal Özberk,95,phone_exact
 LZ93oQIQwogRS1suZO,Vladyslav Kadyhrob,929.4936551652086,+380675700611,1,762,Vladyslav Kadyhrob,95,phone_exact
-zrXt94scIqWrv2Tji6,Gulnara,362.123544176589,+380683330303,9,761,Gulnara Sokol,95,phone_exact
+zrXt94scIqWrv2Tji6,Gulnara,376.16831334060964,+380683330303,10,761,Gulnara Sokol,95,phone_exact
 ovIoC9LwGFMVDe7PfE,Diana Ishutina,1117.6552065408907,+34624189030,12,128,Diana Ishutina,95,phone_exact
 3z78jAhzReLM3sYWHr,Kola Orekoya,1000,,0,755,Kola Orekoya,80,name_exact
 Y5h7RJ8tFVoZQ7uU5j,Emre Tezel,1000,+905350201609,0,765,Emre Tezel,80,name_exact
 BgrLh7cPxYmtc65x5L,Sefa,1041.3082645924676,+905060967237,6,625,Sefa Oruk,90,phone_no_prefix
 48VGFlCFLimcEBDn34,Nicolas,1000,+33679155179,1,,,0,
 U8otfUZYXnDHgDSFSH,Berk Nesvat,1000,+905388377478,1,779,Berk Nesvat,90,phone_no_prefix
-KmSvFAqRAlHKmK6127,Alex Del Piero,905.4293457498054,+79857693696,10,685,Alex Del Piero,95,phone_exact
+KmSvFAqRAlHKmK6127,Alex Del Piero,905.4293457498054,+79857693696,11,685,Alex Del Piero,95,phone_exact
 Q6fTuGZ8xxxv4nlfEp,Gordon Belch,1000,+4478103429643,1,780,Gordon Belch,80,name_exact
 qIcmONZBj5Dyl2HxNd,Alba,1000.7862776227213,+905416967491,7,171,Albert Li,95,phone_exact
-271rMqYOt7yReC9SrT,Ildar Abdullin,1081.270928426101,+905364750649,2,712,Ildar Abdullin,95,phone_exact
+271rMqYOt7yReC9SrT,Ildar Abdullin,1081.270928426101,+905364750649,3,712,Ildar Abdullin,95,phone_exact
 Z8PFSpRHBRy7OCqROd,Anastasiia Sh,1000,+905342295285,1,807,Anastasia Shabrova,90,phone_no_prefix
-v9gpESYsRVgfmRK8v6,olha malkut,1000,+380968257611,1,48,Olha Malkut,80,name_exact
-r2E58pBoVQujABkaFN,Valeria Plotnikova,837.1517614826006,+905062442397,26,1122,Valeria Plotnikova,90,phone_no_prefix
+v9gpESYsRVgfmRK8v6,olha malkut,1000,+380968257611,0,48,Olha Malkut,80,name_exact
+r2E58pBoVQujABkaFN,Valeria Plotnikova,837.1517614826006,+905062442397,28,1122,Valeria Plotnikova,90,phone_no_prefix
 LKby1a4Wbf4jhViJlY,Kubilay ORHAN,1000,+905427890769,0,788,Kubilay Orhan,95,phone_exact
 NJURZwOoMbnoq7nMJh,Liliia Akhmetova,691.3370807833917,+905431995896,16,750,Liliya Akhmetova,90,phone_no_prefix
 hOOYnea9b3lJhK742a,Lev D,1000,+34602419128,0,840,Lev Dy,95,phone_exact
 lN2aJausE8Iksnmoos,Evgeniya Karakus,767.9412465244617,+905525005901,5,140,Evgeniya Karakus,95,phone_exact
-sIRoeNJjphORRTwAcX,Valentyna Stasovska,1000,+380993696338,9,,,0,
-Gv3J0zlN0vdMJW5MvK,Muammer Taylı,916.6668742588798,+905458441210,10,71,Muammer Tayli,95,phone_exact
+sIRoeNJjphORRTwAcX,Valentyna Stasovska,1000,+380993696338,10,,,0,
+Gv3J0zlN0vdMJW5MvK,Muammer Taylı,916.6668742588798,+905458441210,9,71,Muammer Tayli,95,phone_exact
 np1ZMczMAqqyhl7agR,Liza Pavlenko,908.6369395532348,+48512161227,0,,,0,
 STGKlz6L6iBIEjnE1E,Michel Rolle,934.9869985510081,+995501500879,2,859,Michel Rolle,80,name_exact
 mugUX5YaeP08My9p8x,Nihan Gurkan Sari,705.2494577129394,+905418641210,2,966,Nihan Gürkan Sari,80,name_exact
@@ -247,37 +247,37 @@ LRE7j4xG4C0ItJx4EW,Elena Retunskaia,857.7248041392276,+79103467711,3,706,Elena R
 Tr4ieRgtxqmamZ0t90,Gülcan Yanar(main),1010.1356678010574,+905551983394,2,,,0,
 HKX8HFi7Y8o0xO0BmI,Dora Daglarasar,856.0355886772504,+905322335473,2,877,Dora Daglarasar,90,phone_no_prefix
 pcBQu1b7L5O2GIfI9l,Ezgi Öztürk,1000,+905378423015,1,585,Ezgi Erkan,50,first_name_unique
-7sWOGmK0M46FlSDf8J,Nebil,1018.9993983465648,+905552618441,13,1124,Nebil Tekin,95,phone_exact
+7sWOGmK0M46FlSDf8J,Nebil,1018.9993983465648,+905552618441,14,1124,Nebil Tekin,95,phone_exact
 sD1HY0iA84Y4hgYtJe,Tolga Sahin,1000,+447754044002,0,,,0,
 76YFNq5U4tjjFl8THO,Dolunay Çelik,817.639026506346,+905342965844,2,575,Dolunay Celik,80,name_exact
 IIHJkOV6sYW2H5Eqjl,Bekir Uğur,1000,+905326053030,1,894,Bekir Ugur,80,name_exact
-dd7pRV9PO0CMqYBZDf,Burcu Altunseçen,1000,+905337710701,9,885,Burcu,95,phone_exact
+dd7pRV9PO0CMqYBZDf,Burcu Altunseçen,1000,+905337710701,7,885,Burcu,95,phone_exact
 G6okIF0nx4hAgpG7oM,Aleksandra Lazareva,1010.6169746272753,+905167714273,1,887,Aleksandra Lazareva,80,name_exact
 UQ0TWFDgo0IFRK7kFS,Baur,990.0513194967676,+905364698580,3,177,Baur,95,phone_exact
 Ff4k5GsBMXegid0bJh,Konstantin,760.764690094406,+905010284916,9,,,0,
 Mt8JPkfLJDssnmZitd,Maiara,1000,+5553984043651,1,,,0,
-BmxENua1PwcnyNlom6,Göksel Gürpınar,1216.6547076531567,+905326905245,24,909,Göksel Gürpinar,90,phone_no_prefix
+BmxENua1PwcnyNlom6,Göksel Gürpınar,1216.6547076531567,+905326905245,23,909,Göksel Gürpinar,90,phone_no_prefix
 0xcB0lagBqriNhfsdt,Mikhail M,1000,+905368400108,3,,,0,
-MRMfssuC50C15J2WtH,Dmitry K.,1152.1140468310518,+380679850000,8,,,0,
-1BtkFM4STVhKzccm3M,Inna,1000,+380639709599,7,,,0,
+MRMfssuC50C15J2WtH,Dmitry K.,1108.942923637525,+380679850000,8,,,0,
+1BtkFM4STVhKzccm3M,Inna,937.5282550079446,+380639709599,10,,,0,
 FmsYCNm7g0P6bGkLH2,Rabia yıldırım,1000,+905366200167,1,,,0,
 sPi08I55PnHCBUNkkY,Roman Tsoi,1000,+79180733437,4,939,Roman Tsoi,80,name_exact
-h0sM3CyHNzJlPVYZft,Vika Naomi,1000,+79803435269,8,958,Vika Naomi,80,name_exact
+h0sM3CyHNzJlPVYZft,Vika Naomi,940.0802930177672,+79803435269,9,958,Vika Naomi,80,name_exact
 aRiqT7QVTqEVENSLpV,Jany Raeva,1078.0111179439696,+905314620309,1,954,Jany Raeva,80,name_exact
 jSdjo2SKzL6tVMTXlO,Oleg Raev,772.4478420626335,+905451320700,2,955,Oleg Raev,80,name_exact
 uWB0tLIJBUR2WK1R1D,Maria,1000,+905057864712,2,233,Maria Roslaya,95,phone_exact
 AKDa3LA8vhIWTT5zK0,Rustam,1002.4317300705136,+79119259259,3,,,0,
-IDKXvCyvrseEzw8mM9,Alina,691.1249078997332,+79816998105,13,1103,Alina Soroka,95,phone_exact
+IDKXvCyvrseEzw8mM9,Alina,691.1249078997332,+79816998105,14,1103,Alina Soroka,95,phone_exact
 UBSNfKFf66GE8TQ0MG,Musa Cavus,1000,+905466431789,1,411,Musa Cavus,80,name_exact
-tii5pEs0Bby5bGpqgp,Tuba Aysal,691.3030082259334,+905360609823,6,781,Tuba Aysal,95,phone_exact
+tii5pEs0Bby5bGpqgp,Tuba Aysal,691.3030082259334,+905360609823,7,781,Tuba Aysal,95,phone_exact
 Cw0s86YgcSesaPYgXe,Arda Ayata,989.9377951441967,+905307734131,13,973,Arda Ayata,90,phone_no_prefix
-M2qz8AZibPCsoYbXgk,Ksush,1000,+905422794789,13,,,0,
+M2qz8AZibPCsoYbXgk,Ksush,965.6653755141942,+905422794789,13,,,0,
 MotXBenJ2sZzvQzrUu,Ayşen,1000,+905538711671,0,965,zeynep çakmak (aysen),90,phone_no_prefix
 zq1y2tiyPVahgcDEkV,ERROR: HTTP Error 404: Not Found,0,,5,,,0,
 z2LW8TnaCDTCP8e20c,Berk yüregir,1000,+905383989540,0,,,0,
-FsMXXP9BqvZEuABn9G,Anna Kalashnikova,898.2810379244975,+905313525545,17,473,Anna Kalashnikova,80,name_exact
+FsMXXP9BqvZEuABn9G,Anna Kalashnikova,896.2563519158148,+905313525545,20,473,Anna Kalashnikova,80,name_exact
 Tx0vliyQEdSubX97Qp,Artemii Ivanov,1000,+79823050216,3,665,Artemii Ivanov,80,name_exact
-CKIxp48OZSmQ34AK6p,Ulunay polat,1025.1798289417663,+905335259495,5,361,Ulunay Polat,95,phone_exact
+CKIxp48OZSmQ34AK6p,Ulunay polat,1025.1798289417663,+905335259495,6,361,Ulunay Polat,95,phone_exact
 Bo49ktrR82ZdmqJlBG,Hilmi Muslu,1000,+905333606888,0,1001,Hilmi Muslu,95,phone_exact
 VTwElTaVXKdBWv17RR,Jelizaveta,1000,+905319454894,1,,,0,
 efnQBeJbY6psNuD8cb,Eva,1000,+905458030755,1,857,Eva Caliskan,90,phone_no_prefix
@@ -287,22 +287,22 @@ Oul2FkrK8xDWZBX2CA,Alina Kasim,1000,+905365513934,0,684,Alina Kasim,90,phone_no_
 Gmma4RC3LZlMkXgaGq,Bora özgür yandımata,1000,+905443921697,1,913,Bora ozgur yandimata,90,phone_no_prefix
 PMGQ5LR7hax9lveAaz,Bora özgür,1096.6672126463427,+905443921697,14,913,Bora ozgur yandimata,90,phone_no_prefix
 bzk0NMYmcSJrdducdN,Aurika Miro,1000,+79227550510,2,675,Aurika Miro,95,phone_exact
-eB85xzxKdHpnUCSiPD,Vitalii Grechishkin,830.5126273393151,+79031605893,7,940,Vitalii Grechishkin,95,phone_exact
+eB85xzxKdHpnUCSiPD,Vitalii Grechishkin,830.5126273393151,+79031605893,8,940,Vitalii Grechishkin,95,phone_exact
 EhBVHh1FtxcTo1XbAI,Kirill,1149.929617599506,+905360326759,12,495,Kirill Ogato,95,phone_exact
 OJEMAzQsOA2cgNvwaP,Nilay özsan,1000,+905326667265,2,1090,Nilay Özsan,90,phone_no_prefix
 v5WKkmLx555XcRBuUc,Anna RAV,1000,+79193045395,1,664,Anna Ryazanova,95,phone_exact
 YWzgysTzOGmNM3KBV6,Sergei Kochetov,1231.9656377458296,+79173429184,3,517,Sergei Kochetov,80,name_exact
 Kvxlyz0B6P8hP8hWiC,Hakan kösyanlı,993.7042454632182,+905534771170,2,1159,Hakan Kosyanli,95,phone_exact
-PRCKtsP95gWDfZDFkT,ENIS,983.0835653809551,+905455786688,3,1167,Enis .,50,first_name_unique
-G0AXjirzD0E7XQILzZ,Lütfü bayçöl,906.9840601675742,+905062461346,10,1051,Lütfü Bayçöl,95,phone_exact
+PRCKtsP95gWDfZDFkT,ENIS,983.0835653809551,+905455786688,4,1167,Enis .,50,first_name_unique
+G0AXjirzD0E7XQILzZ,Lütfü bayçöl,906.9840601675742,+905062461346,12,1051,Lütfü Bayçöl,95,phone_exact
 OGlijaWA4FVj2qgTyM,Murat Uc,1000,+905318428967,0,,,0,
-iDwrJlQf5ac8PU0Alh,Rustam,845.2819585751568,+79119259259,14,,,0,
+iDwrJlQf5ac8PU0Alh,Rustam,845.2819585751568,+79119259259,10,,,0,
 KBvkZPTTs2zCI2tOyD,Anastasia,1000,+79094445050,0,1118,Anastasiia Anastasiia,95,phone_exact
-K9Cxhjucx1bALbGZup,Elena,1000,+905370641686,5,,,0,
+K9Cxhjucx1bALbGZup,Elena,1000,+905370641686,7,,,0,
 3hj6gmDICeOLH221CF,salih sedat soysal,1000,+905330308791,0,74,Salih sedat Soysal,95,phone_exact
 jfzQc5QzrWmm8MxVw3,Tuncay tanrıkoloğlu,956.3691525585923,+905314718886,3,743,tuncay tanrikologlu,95,phone_exact
-jWjSBlYHh31I2XKVyL,Dmytro Gorlo,1025.7370528024987,+380503233072,7,1066,Dmytro Gorlo,80,name_exact
-l8f4Xtu7lWicWtwDdf,Arda Salman,965.1427559381984,+905425602007,5,205,Arda Salman,95,phone_exact
+jWjSBlYHh31I2XKVyL,Dmytro Gorlo,870.2258397553821,+380503233072,8,1066,Dmytro Gorlo,80,name_exact
+l8f4Xtu7lWicWtwDdf,Arda Salman,965.1427559381984,+905425602007,7,205,Arda Salman,95,phone_exact
 z6kQTfkhfUhY9D72jl,Polina,578.058139022171,+905346658210,5,,,0,
 lTGEmqVWN7DwECREwV,Cihan ŞAHİNBAY,1000,+905325412987,3,1085,Cihan Sahinbay,80,name_exact
 pWUhRbl0xN7tFA0uPv,Anikina,1000,+79262630152,1,1086,Anna Anikina,95,phone_exact
@@ -311,8 +311,8 @@ MeQjnlO6YF8cSD9wlz,Mehmet DURSUN,948.0214414800371,,1,97,Mehmet Dursun,80,name_e
 LEiLqTolzRdwhMi8xV,Semih Yörüten,970.6986506196343,+905535762222,1,,,0,
 fV2musDi2Sr9YpfpBL,Merve Yıldırım,897.0765774669121,+905347450010,1,,,0,
 vG5Z4ubTpMLwdTZ5Ve,Басель Хуари ,1000,+447418032070,1,,,0,
-BJRlAUxCVNTlHkNgMe,berke çelebi,1000,+905424326649,1,,,0,
-H8LJg0iL1jFrUBAZaZ,Ahmet yuva,1000,+905425619275,9,1099,Ahmet Yuva,80,name_exact
+BJRlAUxCVNTlHkNgMe,Berke Çelebi,1000,+905424326649,3,,,0,
+H8LJg0iL1jFrUBAZaZ,Ahmet yuva,1000,+905425619275,10,1099,Ahmet Yuva,80,name_exact
 8feCNLL2O8H0MCo1u2,Elena,1000,+905394964924,0,,,0,
 vTcuVNoviwsn8WTwbR,Elena Vol,1000,+79633030622,1,,,0,
 jvpuF3Ganpyo0BXUIv,Zukhra,1000,+905379976788,1,294,Zukhra Khaidarova,50,first_name_unique
@@ -324,7 +324,7 @@ mrFqm91pA2OHIqHWkl,Samuel Iskander,350,+33613883713,0,,,0,
 eDvfHTHyBwwSEp94uz,Любонька  АНТАЛИЯ,1000,+905013462118,1,,,0,
 UWeawvcD6v45F008ol,Emir Deveci,1000,+905300986339,0,,,0,
 GDkHOgs9YvTPhkgA4J,mustafa yoruk,1000,+905326839188,1,1134,Mustafa Yoruk,95,phone_exact
-Xxl0rgMBfq43rMa4jK,Igor,1056.092327505122,+79024194245,1,,,0,
+Xxl0rgMBfq43rMa4jK,Igor,1056.092327505122,+79024194245,2,,,0,
 aOWHNw1DWSnN9VRgPq,Vasiliy Laptev,900,+79610944446,0,,,0,
 PFF0b3NTayB5zIM3EB,Nick,500,+79032084820,1,1164,Nick Bragin,50,first_name_unique
 6D1VyKf3sLQVW7sM4O,Sergei M,1042.8552420454234,+995511108827,2,1140,Sergei Maklakov,95,phone_exact
@@ -343,7 +343,7 @@ P3m4ID26o3EHB44ELN,Sofia Iscan,1083.67173012751,+905301289515,2,1083,Sofia Iscan
 OwLrKYOrN9gnmSL8dL,Svetlana MIKHALEV,1069.6616032058232,+905511974046,2,207,Svetlana MIKHALEV,95,phone_exact
 HOBuT35YawJEuFYRUg,Guzel Osmanova,957.9690494160056,+905352347578,1,654,Guzel Osmanova,80,name_exact
 ayx8ugXP2KtDGoynWu,tamara Ozen,919.0360140448377,+905457700655,1,1212,tamara özen,80,name_exact
-JcJSKJhE2uEqRhTLtl,Hüseyin Köprücü,500,+905422947031,0,1227,Hüseyin Köprücü,95,phone_exact
+JcJSKJhE2uEqRhTLtl,Hüseyin Köprücü,748.1084795790059,+905422947031,1,1227,Hüseyin Köprücü,95,phone_exact
 nAP0i9FfxKTKc6pfer,Hüseyin Alperan Sudagezer,1000,+905057406874,0,1194,Hüseyin Alperan Sudagezer,90,phone_no_prefix
 HRXzdbREyHy37F8b5V,Oğuzhan Alsancak,1000,+905319208105,0,510,Oguzhan Ustundag,50,first_name_unique
 NBF4ED9UEl4yHFbgKy,ERROR: HTTP Error 404: Not Found,0,,2,,,0,
@@ -353,15 +353,27 @@ zlFOXIXfuS5N2fpBRj,Cina Germi,1100,+971525554455,1,,,0,
 Ee4vk6LN2DtwO5k5UK,ERROR: HTTP Error 404: Not Found,0,,0,,,0,
 PtTpvmNkJJ5uGmR0YY,Artem Vasyanin,1202.7905410761748,+79091830606,1,,,0,
 O8F4jxM7RRKg0OvwBY,Ali İhsan Doğan,1000,+905454059852,1,1195,Ali Ihsan Dogan,90,phone_no_prefix
-zR5RfJZfBuMaiya6cc,Dima Sokolov,1012.8764568105807,+447863482745,1,271,Dima Sokolov,95,phone_exact
+zR5RfJZfBuMaiya6cc,Dima Sokolov,1012.8764568105807,+447863482745,2,271,Dima Sokolov,95,phone_exact
 D1IpZ6czEJ7XVV3a3r,Emre Onay,970.7045292360242,+905326019474,2,,,0,
 dDOMWTWTBaCtCJzRQi,Alexey Betim,1000,+905387352632,0,515,Alex betim,95,phone_exact
 7RQyHWeisN0BU0uHNO,Eduard Berber,991.8902764047823,+79119329552,1,1180,EDUARD BERBER,95,phone_exact
 TQmHTlKEwBpS4YaXbj,Salih Manav,972.6470399083632,+905551512244,1,,,0,
 BQtqoup24E2dsQ9JOF,Maka Maka,900,+905318744779,1,878,Maka Maka,80,name_exact
-7Dt0HmvGQCYy0XmHks,Mustafa Kurt,1037.9890455273999,+905493971992,2,590,Mustafa Kurt,90,phone_no_prefix
+7Dt0HmvGQCYy0XmHks,Mustafa Kurt,1037.9890455273999,+905493971992,3,590,Mustafa Kurt,90,phone_no_prefix
 QHOPs935vfa15ZyAV7,Gizem Şahin,595.5756656461585,+905432192249,1,368,Gizem Sahin,95,phone_exact
-SnsuaMTDqex9a9Lbxd,Poplavko Kateryna,940.7623376024253,+380631918487,1,468,Amielia Poplavko,95,phone_exact
+SnsuaMTDqex9a9Lbxd,Poplavko Kateryna,958.1686795304105,+380631918487,1,468,Amielia Poplavko,95,phone_exact
 2Pr2HfvZ3Gmb6iSDJm,Ata Oz,1000,+905493101207,1,920,Ata Öz,90,phone_no_prefix
 t67Xl3bzEFHLgBM2KM,Ali Gürdoğan,1000,+905369965626,1,,,0,
 000TSf0UUkVBSmE6vT,OLHA MALKUT,1000,,0,48,Olha Malkut,80,name_exact
+YsAL04NMRny4aEvc4r,Viktoriia Kovzal,1000,+380958608846,0,570,Viktoriia Kovzal,80,name_exact
+iBjOVsNSTaGmoTiA65,Vitaly L,1000,+905075496530,1,138,Vitaly L,95,phone_exact
+oCLysCG2sZkGguzINu,Yasmina Kurbanova,1000,+905015490725,0,,,0,
+7bOpJq3L8MpOcGZQSh,Lili Akhmetova,878.9510535472467,+905431995896,1,750,Liliya Akhmetova,90,phone_no_prefix
+q4vVMOxk1twWnfPRLi,Orçun Orhan,1000,+905309717665,1,,,0,
+OKDCy36wYtpn49wu8u,Azamat,1067.4927767110735,+971585270909,1,,,0,
+iCChya4LjVyAHjNbNu,Danis Begishev,853.7720658058124,+79178950910,1,,,0,
+Sx6gxEmhxmAtMAMYaY,Alexey Krasilov,1000,+905354017264,1,,,0,
+02X09HGsStky7nBBbh,Murat Satır,1000,+905547514491,0,746,Murat Satir,95,phone_exact
+gArqKXZ0VeaBhuRkCw,Liuba Drobilko,1000,+380931111887,1,230,Liubov Drobilko,95,phone_exact
+c18myqRRmYMvKKS6a3,Svetlana Shem,1000,+905352296907,1,,,0,
+fLiP6fOMYELNIYiGnZ,Vitalii L,1401.513545653124,+351911126823,1,,,0,
