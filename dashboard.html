@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260418"></script>
+<script src="assets/data.js?v=20260418c"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -47,10 +47,11 @@
 
   .loading { color: var(--text3); font-size: 14px; padding: 20px; text-align: center; }
 
-  /* KPI CARDS */
+  /* KPI CARDS — auto-fit чтобы 6 карточек умещались на десктопе и плавно
+     перестраивались на планшете/мобилке. */
   .kpi-row {
     display: grid; gap: 16px; margin-bottom: 28px;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
   .kpi {
     background: var(--surface); border: 1px solid var(--border);
@@ -186,6 +187,19 @@
     <div class="kpi"><span class="label">OPEX (посл. месяц)</span><span class="value" id="kpi-opex">—</span><span class="sub" id="kpi-opex-mo"></span></div>
     <div class="kpi"><span class="label">Операц. P&L</span><span class="value" id="kpi-pnl">—</span><span class="sub" id="kpi-pnl-mo"></span></div>
     <div class="kpi"><span class="label">Клиентов всего</span><span class="value" id="kpi-clients">—</span><span class="sub" id="kpi-clients-active"></span><span class="sub" id="kpi-clients-sub"></span></div>
+    <!-- Per-court метрики (добавлено 2026-04-18, индустриальный must-have) -->
+    <div class="kpi clickable" id="kpi-rpc-card" title="Клик — разбивка по кортам P1-P4">
+      <span class="label">Выручка / корт</span>
+      <span class="value" id="kpi-rev-per-court">—</span>
+      <span class="sub" id="kpi-rev-per-court-sub">среднее по 4</span>
+      <span class="sub" id="kpi-rpch">—</span>
+    </div>
+    <div class="kpi">
+      <span class="label">OPEX / корт</span>
+      <span class="value" id="kpi-opex-per-court">—</span>
+      <span class="sub" id="kpi-opex-per-court-sub">мес.</span>
+      <span class="sub" id="kpi-pnl-per-court"></span>
+    </div>
   </div>
 
   <!-- Revenue / OPEX by month + P&L -->
@@ -822,6 +836,32 @@ async function loadSlowLiabilities() {
       document.getElementById("kpi-clients-active").textContent = "активных 30д: " + (kpis.clients_active_30d || 0);
       document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + kpis.clients_new_30d;
 
+      // Per-court KPIs
+      var rpc = toNum(kpis.revenue_per_court_lm);
+      var opc = toNum(kpis.opex_per_court_lm);
+      var pnlpc = toNum(kpis.pnl_per_court_lm);
+      var rpch = toNum(kpis.rpch_30d);
+      var courtsCount = toNum(kpis.courts_count) || 4;
+      if (rpc > 0) {
+        document.getElementById("kpi-rev-per-court").textContent = fmtK(rpc) + " ₺";
+        document.getElementById("kpi-rev-per-court-sub").textContent =
+          "среднее по " + courtsCount + " кортам · " + (kpis.last_month || '');
+      }
+      if (rpch > 0) {
+        document.getElementById("kpi-rpch").textContent = "₺/корт-час: " + fmtInt(Math.round(rpch));
+      }
+      if (opc > 0) {
+        document.getElementById("kpi-opex-per-court").textContent = fmtK(opc) + " ₺";
+        document.getElementById("kpi-opex-per-court-sub").textContent =
+          "мес. · " + (kpis.last_month || '');
+        var pnlEl2 = document.getElementById("kpi-pnl-per-court");
+        if (pnlEl2 && pnlpc) {
+          var sign = pnlpc >= 0 ? "+" : "";
+          pnlEl2.textContent = "P&L/корт: " + sign + fmtK(pnlpc) + " ₺";
+          pnlEl2.style.color = pnlpc >= 0 ? 'var(--good)' : 'var(--bad)';
+        }
+      }
+
       // ── PNL CHART (from monthly_series) ──
       var series = cache.series || [];
       var sMonths = series.filter(function(r) { return r.period_month >= V7.START_MONTH && (Number(r.revenue) !== 0 || Number(r.opex) !== 0 || r.source === 'live'); }).map(function(r) { return r.period_month; });
@@ -1010,6 +1050,52 @@ document.getElementById('kpi-rev-card').addEventListener('click', async function
       _renderRevModalBody();
     });
   });
+});
+
+// Per-court breakdown — клик по карточке «Выручка / корт»
+document.getElementById('kpi-rpc-card').addEventListener('click', async function() {
+  document.getElementById('modal-title').textContent = 'Выручка по кортам — последние 30 / 90 дней';
+  document.getElementById('modal-body').innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div>';
+  document.getElementById('dash-modal').classList.add('active');
+  try {
+    var rows = await V7.loadCacheTab('kpis_per_court');
+    if (!rows || !rows.length) throw new Error('no per-court data');
+    var html = '<div class="modal-period-hint">Только <b>rent-брони</b> (reserva_individual + reserva_partida). '
+             + 'Тренировки/клубные/open games исключены — у них amount часто 0 (оплата через коуч/абонемент/players).</div>';
+    html += '<table><thead><tr>'
+         + '<th>Корт</th>'
+         + '<th class="num">Выручка rent 30д</th>'
+         + '<th class="num">Часы rent 30д</th>'
+         + '<th class="num">₺/час 30д</th>'
+         + '<th class="num">₺/час 90д</th>'
+         + '</tr></thead><tbody>';
+    rows.forEach(function(r) {
+      var rpch30 = toNum(r.rpch_30d);
+      var rpch90 = toNum(r.rpch_90d);
+      var trend = rpch30 > rpch90 * 1.1 ? '↑' : (rpch30 < rpch90 * 0.9 ? '↓' : '→');
+      var trendColor = rpch30 > rpch90 * 1.1 ? 'var(--good)' : (rpch30 < rpch90 * 0.9 ? 'var(--bad)' : 'var(--text3)');
+      html += '<tr>'
+           + '<td><b>' + r.label + '</b></td>'
+           + '<td class="num">' + fmtInt(toNum(r.revenue_30d)) + ' ₺</td>'
+           + '<td class="num">' + toNum(r.hours_30d).toFixed(0) + '</td>'
+           + '<td class="num"><b>' + fmtInt(Math.round(rpch30)) + '</b> ₺</td>'
+           + '<td class="num" style="color:' + trendColor + '">' + fmtInt(Math.round(rpch90)) + ' ₺ ' + trend + '</td>'
+           + '</tr>';
+    });
+    html += '</tbody></table>';
+    html += '<div style="margin-top:14px;font-size:12px;color:var(--text2);line-height:1.5">'
+         + '<b>Как читать:</b><br>'
+         + '• <b>₺/час</b> = выручка с rent-брони / часы rent. Главная метрика чистой аренды корта.<br>'
+         + '• Загрузка кортов P1/P2/P3 практически одинаковая (~108-114 rent-часов).<br>'
+         + '• <b>P4 (открытый)</b> занят меньше (~67 ч rent) — погода/предпочтения; RPCH сравнимый.<br>'
+         + '• <b>30д vs 90д</b> с трендом — улучшается/ухудшается ли корт.<br>'
+         + '<br><b>Метрика «Выручка / корт» в KPI-карточке</b> другая: это PnL последнего месяца / 4 — '
+         + 'ВКЛЮЧАЕТ всё (членство, тренировки, товары, турниры). А RPCH здесь — только rent.'
+         + '</div>';
+    document.getElementById('modal-body').innerHTML = html;
+  } catch (e) {
+    document.getElementById('modal-body').innerHTML = '<div style="color:var(--bad);padding:20px;text-align:center">Ошибка: ' + e.message + '</div>';
+  }
 });
 
 // Active Cards click → member list

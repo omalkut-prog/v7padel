@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260418b"></script>
+<script src="assets/data.js?v=20260418c"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -313,6 +313,17 @@
       <div class="kpi-label">Средняя загрузка <small class="muted">(часов / день)</small></div>
       <div class="kpi-value" id="inc-kpi-avg-hours">—</div>
       <div class="kpi-delta muted" id="inc-kpi-avg-hours-hint"></div>
+    </div>
+    <!-- Per-court KPI (добавлено 2026-04-18, индустриальный must-have) -->
+    <div class="kpi-card">
+      <div class="kpi-label">Выручка / корт <small class="muted">(посл. мес)</small></div>
+      <div class="kpi-value" id="inc-kpi-rev-per-court">—</div>
+      <div class="kpi-delta muted" id="inc-kpi-rev-per-court-sub">из 4 кортов</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">OPEX / корт <small class="muted">(посл. мес)</small></div>
+      <div class="kpi-value" id="inc-kpi-opex-per-court">—</div>
+      <div class="kpi-delta muted" id="inc-kpi-opex-per-court-sub">маржа на корт</div>
     </div>
   </div>
 
@@ -1663,6 +1674,45 @@ function updateRevPerHourKPI() {
     }
   } catch (e) {
     console.warn('[revenue] KPI avg-hours failed:', e);
+  }
+
+  // Per-court KPIs (revenue/court, opex/court) — из dashboard_kpis cache.
+  // Загружаем lazy один раз и кешируем в window._dashKpisCache.
+  try {
+    if (!window._dashKpisCache) {
+      V7.loadCacheTab('dashboard_kpis').then(function(rows) {
+        window._dashKpisCache = (rows && rows[0]) || {};
+        _renderPerCourtKpisInPulse();
+      }).catch(function() {});
+    } else {
+      _renderPerCourtKpisInPulse();
+    }
+  } catch (e) {
+    console.warn('[revenue] per-court KPIs failed:', e);
+  }
+}
+
+function _renderPerCourtKpisInPulse() {
+  var k = window._dashKpisCache || {};
+  var rpcEl = document.getElementById('inc-kpi-rev-per-court');
+  var rpcSub = document.getElementById('inc-kpi-rev-per-court-sub');
+  var opcEl = document.getElementById('inc-kpi-opex-per-court');
+  var opcSub = document.getElementById('inc-kpi-opex-per-court-sub');
+  var rpc = num(k.revenue_per_court_lm);
+  var opc = num(k.opex_per_court_lm);
+  var pnlpc = num(k.pnl_per_court_lm);
+  var courtsN = num(k.courts_count) || 4;
+  if (rpcEl && rpc > 0) {
+    rpcEl.textContent = fmtInt(Math.round(rpc)) + ' ₺';
+    if (rpcSub) rpcSub.textContent = 'PnL ' + (k.last_month || '') + ' / ' + courtsN;
+  }
+  if (opcEl && opc > 0) {
+    opcEl.textContent = fmtInt(Math.round(opc)) + ' ₺';
+    if (opcSub) {
+      var sign = pnlpc >= 0 ? '+' : '';
+      opcSub.textContent = 'P&L/корт: ' + sign + fmtInt(Math.round(pnlpc)) + ' ₺';
+      opcSub.style.color = pnlpc >= 0 ? 'var(--good)' : 'var(--bad)';
+    }
   }
 }
 
@@ -3441,25 +3491,35 @@ async function mainFromCache() {
   // отдельно и видеть по каждой помесячную статистику».
   if (window._allGoodsTxns && window._allGoodsTxns.length) {
     renderGoodsMonthlyByCategory('gds-monthly-chart', 'gds-monthly-table', window._allGoodsTxns);
-  } else if (gdsWeekly && gdsWeekly.length) {
-    // Fallback (старая логика) если транзакции ещё не загружены
-    var gdsMonthMap = {};
-    gdsWeekly.forEach(function(r) {
-      var mon = new Date(r.week_mon + 'T00:00:00');
-      var thu = new Date(mon); thu.setDate(thu.getDate() + 3);
-      var ym = ymKey(thu);
-      if (!gdsMonthMap[ym]) gdsMonthMap[ym] = 0;
-      gdsMonthMap[ym] += num(r.total);
-    });
-    var gmKeys = Object.keys(gdsMonthMap).sort().slice(-8);
-    var gmTotals = gmKeys.map(function(ym) { return gdsMonthMap[ym]; });
-    renderMonthlyChart('gds-monthly-chart', gmKeys, gmTotals);
-    var gmTbody = document.querySelector('#gds-monthly-table tbody');
-    gmTbody.innerHTML = gmKeys.map(function(ym) {
-      return '<tr><td style="font-weight:500">' + ymLabel(ym) + '</td>'
-           + '<td class="num">' + fmtInt(Math.round(gdsMonthMap[ym])) + ' ₺</td>'
-           + '<td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>';
-    }).join('');
+  } else {
+    // Cache-path: _allGoodsTxns ещё не загружен (он только в slow-path).
+    // Делаем lazy-load transactions для категорий + сразу рендерим
+    // временный fallback из gdsWeekly чтобы пользователь не видел loading
+    // дольше нужного.
+    if (gdsWeekly && gdsWeekly.length) {
+      var gdsMonthMapTmp = {};
+      gdsWeekly.forEach(function(r) {
+        var mon = new Date(r.week_mon + 'T00:00:00');
+        var thu = new Date(mon); thu.setDate(thu.getDate() + 3);
+        var ym = ymKey(thu);
+        if (!gdsMonthMapTmp[ym]) gdsMonthMapTmp[ym] = 0;
+        gdsMonthMapTmp[ym] += num(r.total);
+      });
+      var gmKeysTmp = Object.keys(gdsMonthMapTmp).sort().slice(-8);
+      var gmTotalsTmp = gmKeysTmp.map(function(ym) { return gdsMonthMapTmp[ym]; });
+      renderMonthlyChart('gds-monthly-chart', gmKeysTmp, gmTotalsTmp);
+    }
+    // Параллельно подгружаем transactions для категоризации
+    loadSheet('transactions').then(function(rows) {
+      var txns = rows.map(function(r) {
+        return {
+          date: V7.parseDate(r.date), category: r.category, subcategory: r.subcategory,
+          total: num(r.total), method: r.method1 || r.method, sub: r.subcategory,
+        };
+      }).filter(function(t) { return t.date && isGoods(t.category); });
+      window._allGoodsTxns = txns;
+      renderGoodsMonthlyByCategory('gds-monthly-chart', 'gds-monthly-table', txns);
+    }).catch(function(e) { console.warn('[goods monthly] lazy load failed:', e); });
   }
 
   // Goods items table from rev_goods_weekly
