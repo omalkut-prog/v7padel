@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260418d"></script>
+<script src="assets/data.js?v=20260419a"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -698,6 +698,27 @@
         </thead>
         <tbody><tr><td colspan="9" class="loading">Загрузка…</td></tr></tbody>
       </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>1b &middot; Загрузка по неделям</h2>
+      <span class="hint">понедельник — воскресенье, последние 12 недель · аналог «Доход по неделям» только часы</span>
+    </div>
+    <div class="panel" style="overflow-x:auto">
+      <table class="fin weekly" id="utl-weekly-table">
+        <thead>
+          <tr>
+            <th>#</th><th>Период</th>
+            <th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th><th>Сб</th><th>Вс</th>
+            <th>Тотал ч</th><th>Ср ч/день</th><th>Загрузка%</th><th>Рост</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="13" class="loading">Загрузка…</td></tr></tbody>
+        <tfoot id="utl-weekly-foot"></tfoot>
+      </table>
+      <button class="toggle-btn" id="utl-toggle-weeks" style="display:none">Показать все</button>
     </div>
   </section>
 
@@ -2564,6 +2585,9 @@ function _renderUtilizationCharts() {
   dtHtml += '<td class="num">' + avgTour.toFixed(1) + '</td></tr>';
   dtBody.innerHTML = dtHtml;
 
+  // ═══ 1b. Weekly hours table (зеркало «Доход по неделям») ═══
+  renderUtilizationWeeklyTable(filtered, maxDayHours);
+
   // ═══ 2. Type breakdown stacked chart by month ═══
   var TYPE_LABELS = ['Бронирования', 'Тренировки', 'Турниры'];
   var TYPE_COLORS = ['#0ABAB5', '#9b59b6', '#f39c12'];
@@ -2708,6 +2732,166 @@ function _renderUtilizationCharts() {
   var grandAvgPct = Math.round(grandSum / grandCnt);
   hmBody += '<td class="num" style="font-weight:700;padding:6px 8px;font-size:12px">' + grandAvgPct + '%</td></tr>';
   hmTable.querySelector('tbody').innerHTML = hmBody;
+}
+
+/* ---- Weekly hours table (зеркальная «Доход по неделям», только часы).
+       Источник: filtered days из _utlParsed (occupancy_daily). Группируем
+       по неделям понедельник-воскресенье, агрегируем часы по дням недели,
+       считаем total / avg / % загрузки (hours / max_possible) / рост vs prev.
+       Запрошено 2026-04-19 пользователем: «1 в 1 как Доход по неделям только
+       загрузка». ---- */
+function renderUtilizationWeeklyTable(daysArr, maxDayHours) {
+  var tbody = document.querySelector('#utl-weekly-table tbody');
+  var tfoot = document.getElementById('utl-weekly-foot');
+  if (!tbody) return;
+  if (!daysArr || !daysArr.length) {
+    tbody.innerHTML = '<tr><td colspan="13" class="loading">Нет данных</td></tr>';
+    return;
+  }
+
+  // Группируем по понедельнику недели: week_key = YYYY-MM-DD понедельника
+  var wMap = {};
+  daysArr.forEach(function(r) {
+    if (r.dt > new Date()) return; // только прошедшие/текущий день
+    // DayOfWeek: 0=Вс..6=Сб. Переводим в Пн=0..Вс=6.
+    var js = r.dt.getDay(); var pnIdx = js === 0 ? 6 : js - 1;
+    var mon = new Date(r.dt); mon.setDate(mon.getDate() - pnIdx); mon.setHours(0,0,0,0);
+    var wk = localDateKey(mon);
+    if (!wMap[wk]) {
+      wMap[wk] = { mon: mon, days: [0,0,0,0,0,0,0], persons: [0,0,0,0,0,0,0] };
+    }
+    wMap[wk].days[pnIdx] = r.hours;
+    wMap[wk].persons[pnIdx] = r.persons;
+  });
+
+  var keysChron = Object.keys(wMap).sort();
+  var keysDesc = keysChron.slice().reverse();
+  if (!keysDesc.length) {
+    tbody.innerHTML = '<tr><td colspan="13" class="loading">Нет данных за период</td></tr>';
+    return;
+  }
+
+  // Текущая неделя (для подсветки)
+  var todayD = new Date(); todayD.setHours(0,0,0,0);
+  var jsT = todayD.getDay(); var pnT = jsT === 0 ? 6 : jsT - 1;
+  var curMon = new Date(todayD); curMon.setDate(curMon.getDate() - pnT);
+  var curWeekKey = localDateKey(curMon);
+
+  // Максимумы для heatmap (по колонкам Пн..Вс)
+  var maxDayCol = [0,0,0,0,0,0,0];
+  var maxTotal = 0;
+  keysDesc.forEach(function(wk) {
+    var w = wMap[wk];
+    for (var d = 0; d < 7; d++) {
+      if (w.days[d] > maxDayCol[d]) maxDayCol[d] = w.days[d];
+    }
+    var t = w.days.reduce(function(a, b) { return a + b; }, 0);
+    if (t > maxTotal) maxTotal = t;
+  });
+
+  // Показываем по умолчанию последние 12 недель (toggle позже)
+  var visible = keysDesc.slice(0, 12);
+  if (keysDesc.length > 12) {
+    document.getElementById('utl-toggle-weeks').style.display = '';
+  }
+
+  function fmtDateRU(d) {
+    return d.getDate().toString().padStart(2, '0') + '.' + (d.getMonth() + 1).toString().padStart(2, '0');
+  }
+
+  var MONTH_NAMES = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+  var html = '';
+  var lastMonth = '', monthTotalH = 0, monthDays = 0, monthName = '';
+
+  function flushMonth() {
+    if (!monthName) return '';
+    var avgPerDay = monthDays > 0 ? monthTotalH / monthDays : 0;
+    var maxWk = maxDayHours * 7;
+    var loadPct = maxWk > 0 ? (monthTotalH / (maxWk * (monthDays / 7)) * 100).toFixed(0) + '%' : '—';
+    return '<tr class="month-subtotal"><td></td><td>Итого ' + monthName + '</td>'
+         + '<td colspan="7"></td>'
+         + '<td class="num">' + monthTotalH.toFixed(0) + ' ч</td>'
+         + '<td class="num">' + avgPerDay.toFixed(1) + '</td>'
+         + '<td class="num">' + loadPct + '</td>'
+         + '<td></td></tr>';
+  }
+
+  visible.forEach(function(wk) {
+    var w = wMap[wk];
+    var sun = new Date(w.mon); sun.setDate(sun.getDate() + 6);
+    var thu = new Date(w.mon); thu.setDate(thu.getDate() + 3);
+    var wkMonth = thu.getFullYear() + '-' + (thu.getMonth() + 1);
+    var wkMonthLabel = MONTH_NAMES[thu.getMonth()];
+
+    if (wkMonth !== lastMonth && lastMonth) { html += flushMonth(); monthTotalH = 0; monthDays = 0; }
+    lastMonth = wkMonth; monthName = wkMonthLabel;
+
+    var weekTotal = w.days.reduce(function(a, b) { return a + b; }, 0);
+    monthTotalH += weekTotal;
+    monthDays += w.days.filter(function(d) { return d > 0; }).length || 7;
+
+    var rangeStr = fmtDateRU(w.mon) + ' – ' + fmtDateRU(sun);
+    var isCurrent = wk === curWeekKey;
+    var daysWithHrs = w.days.filter(function(d) { return d > 0; }).length || 1;
+    var avgH = weekTotal / daysWithHrs;
+    var weekMax = maxDayHours * 7;
+    var loadPctWeek = weekMax > 0 ? (weekTotal / weekMax * 100).toFixed(0) + '%' : '—';
+
+    // Рост vs prev week
+    var prevIdx = keysChron.indexOf(wk) - 1;
+    var prevW = prevIdx >= 0 ? wMap[keysChron[prevIdx]] : null;
+    var deltaStr = '—', deltaCls = 'muted';
+    if (prevW) {
+      var prevTotal = prevW.days.reduce(function(a, b) { return a + b; }, 0);
+      if (prevTotal > 0) {
+        var diff = weekTotal - prevTotal;
+        deltaStr = (diff >= 0 ? '+' : '') + diff.toFixed(1) + ' ч';
+        deltaCls = diff >= 0 ? 'pos' : 'neg';
+      }
+    }
+
+    var weekNum = keysChron.indexOf(wk) + 1;
+    var bestDayVal = Math.max.apply(null, w.days);
+
+    html += '<tr' + (isCurrent ? ' class="current-week"' : '') + '>';
+    html += '<td class="muted">' + weekNum + '</td>';
+    html += '<td style="white-space:nowrap;font-weight:500">' + rangeStr + '</td>';
+    for (var d = 0; d < 7; d++) {
+      var val = w.days[d];
+      var isBest = val > 0 && val === bestDayVal;
+      var bestStyle = isBest ? ';border-bottom:2px solid var(--accent);font-weight:700' : '';
+      html += '<td class="heat num" style="background:' + heatColor(val, maxDayCol[d]) + bestStyle + '">'
+           + (val > 0 ? val.toFixed(1) : '<span class="muted">0</span>') + '</td>';
+    }
+    html += '<td class="num" style="font-weight:700;background:' + heatColor(weekTotal, maxTotal) + '">' + weekTotal.toFixed(1) + '</td>';
+    html += '<td class="num">' + avgH.toFixed(1) + '</td>';
+    html += '<td class="num">' + loadPctWeek + '</td>';
+    html += '<td class="' + deltaCls + '">' + deltaStr + '</td>';
+    html += '</tr>';
+  });
+
+  html += flushMonth();
+  tbody.innerHTML = html;
+
+  // Footer: среднее за весь показанный период
+  if (tfoot) {
+    var allTotal = 0, allDays = 0;
+    visible.forEach(function(wk) {
+      var w = wMap[wk];
+      var t = w.days.reduce(function(a, b) { return a + b; }, 0);
+      allTotal += t;
+      allDays += w.days.filter(function(d) { return d > 0; }).length;
+    });
+    var grandAvg = allDays > 0 ? allTotal / allDays : 0;
+    var weeksMax = maxDayHours * 7 * visible.length;
+    var grandLoad = weeksMax > 0 ? (allTotal / weeksMax * 100).toFixed(0) + '%' : '—';
+    tfoot.innerHTML = '<tr class="grand-total" style="font-weight:700;background:var(--bg)"><td colspan="2">ВСЕГО (' + visible.length + ' нед)</td>'
+                    + '<td colspan="7" class="muted" style="font-size:11px">понедельник-воскресенье каждой недели</td>'
+                    + '<td class="num">' + allTotal.toFixed(0) + ' ч</td>'
+                    + '<td class="num">' + grandAvg.toFixed(1) + '</td>'
+                    + '<td class="num">' + grandLoad + '</td>'
+                    + '<td></td></tr>';
+  }
 }
 
 /* ---- Per-court utilization from bookings (scaled to occupancy totals) ---- */
