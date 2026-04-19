@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260419a"></script>
+<script src="assets/data.js?v=20260419b"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -686,25 +686,17 @@
   <section class="section">
     <div class="section-head">
       <h2>1 &middot; Часы по дням месяца</h2>
-      <span class="hint">забуканные часы в каждом дне &middot; как в Доходе</span>
+      <span class="hint">забуканные часы в каждом дне</span>
     </div>
     <div class="panel">
       <div class="chart-box"><canvas id="utl-days-chart"></canvas></div>
-    </div>
-    <div class="panel">
-      <table class="fin" id="utl-days-table">
-        <thead>
-          <tr><th>Дата</th><th>День</th><th>Факт</th><th>%</th><th>Отмены</th><th>Чел.</th><th>Брони</th><th>Трен.</th><th>Турниры</th></tr>
-        </thead>
-        <tbody><tr><td colspan="9" class="loading">Загрузка…</td></tr></tbody>
-      </table>
     </div>
   </section>
 
   <section class="section">
     <div class="section-head">
       <h2>1b &middot; Загрузка по неделям</h2>
-      <span class="hint">понедельник — воскресенье, последние 12 недель · аналог «Доход по неделям» только часы</span>
+      <span class="hint">понедельник — воскресенье, с марта 2026 · аналог «Доход по неделям» только часы</span>
     </div>
     <div class="panel" style="overflow-x:auto">
       <table class="fin weekly" id="utl-weekly-table">
@@ -787,6 +779,21 @@
       <table class="fin" id="utl-heatmap-table">
         <thead><tr><th></th></tr></thead>
         <tbody><tr><td class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>6 &middot; Дневная детализация</h2>
+      <span class="hint">каждый день: факт / % загрузки / отмены / брони-тренировки-турниры</span>
+    </div>
+    <div class="panel" style="overflow-x:auto">
+      <table class="fin" id="utl-days-table">
+        <thead>
+          <tr><th>Дата</th><th>День</th><th>Факт</th><th>%</th><th>Отмены</th><th>Чел.</th><th>Брони</th><th>Трен.</th><th>Турниры</th></tr>
+        </thead>
+        <tbody><tr><td colspan="9" class="loading">Загрузка…</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -2789,11 +2796,9 @@ function renderUtilizationWeeklyTable(daysArr, maxDayHours) {
     if (t > maxTotal) maxTotal = t;
   });
 
-  // Показываем по умолчанию последние 12 недель (toggle позже)
-  var visible = keysDesc.slice(0, 12);
-  if (keysDesc.length > 12) {
-    document.getElementById('utl-toggle-weeks').style.display = '';
-  }
+  // Показываем ВСЕ доступные недели (пользователь попросил больший период).
+  // occupancy_daily накоплен с октября 2025, значит недель будет ~26-28.
+  var visible = keysDesc;
 
   function fmtDateRU(d) {
     return d.getDate().toString().padStart(2, '0') + '.' + (d.getMonth() + 1).toString().padStart(2, '0');
