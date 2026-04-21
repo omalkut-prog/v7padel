@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260418c"></script>
+<script src="assets/data.js?v=20260421a"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -184,7 +184,7 @@
   <!-- KPI row -->
   <div class="kpi-row" id="kpi-row">
     <div class="kpi clickable" id="kpi-rev-card" title="Клик — разбивка по категориям"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span><span class="sub" id="kpi-rev-avg"></span><span class="sub" id="kpi-rev-forecast"></span></div>
-    <div class="kpi"><span class="label">OPEX (посл. месяц)</span><span class="value" id="kpi-opex">—</span><span class="sub" id="kpi-opex-mo"></span></div>
+    <div class="kpi clickable" id="kpi-opex-card" title="Клик — разбивка OPEX по статьям"><span class="label">OPEX (посл. месяц)</span><span class="value" id="kpi-opex">—</span><span class="sub" id="kpi-opex-mo"></span></div>
     <div class="kpi"><span class="label">Операц. P&L</span><span class="value" id="kpi-pnl">—</span><span class="sub" id="kpi-pnl-mo"></span></div>
     <div class="kpi"><span class="label">Клиентов всего</span><span class="value" id="kpi-clients">—</span><span class="sub" id="kpi-clients-active"></span><span class="sub" id="kpi-clients-sub"></span></div>
     <!-- Per-court метрики (добавлено 2026-04-18, индустриальный must-have) -->
@@ -1053,6 +1053,98 @@ document.getElementById('kpi-rev-card').addEventListener('click', async function
       _revModalPeriod = parseInt(btn.dataset.months, 10) || 0;
       _setActive();
       _renderRevModalBody();
+    });
+  });
+});
+
+// OPEX KPI click → category breakdown с выбором периода (зеркало Revenue).
+var _opexByCatMonthly = null;
+var _opexModalPeriod = 1;
+
+async function _ensureOpexByCatLoaded() {
+  if (_opexByCatMonthly) return _opexByCatMonthly;
+  try {
+    var rows = await V7.loadCacheTab('opex_by_month_cat');
+    _opexByCatMonthly = (rows || []).filter(function(r) { return r.month; })
+      .sort(function(a, b) { return a.month < b.month ? -1 : 1; });
+  } catch (e) {
+    console.warn('opex_by_month_cat load failed:', e);
+    _opexByCatMonthly = [];
+  }
+  return _opexByCatMonthly;
+}
+
+function _renderOpexModalBody() {
+  var container = document.getElementById('opex-modal-table');
+  if (!container) return;
+  var rows = _opexByCatMonthly || [];
+  if (!rows.length) {
+    container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных</div>';
+    return;
+  }
+  var selected = _opexModalPeriod <= 0 ? rows.slice() : rows.slice(-_opexModalPeriod);
+  if (!selected.length) {
+    container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных за период</div>';
+    return;
+  }
+  // Категории = все поля кроме month и Итого
+  var cats = Object.keys(selected[0]).filter(function(k) {
+    return k !== 'month' && k !== 'Итого';
+  });
+  var agg = {};
+  cats.forEach(function(c) { agg[c] = 0; });
+  selected.forEach(function(r) {
+    cats.forEach(function(c) { agg[c] += toNum(r[c]); });
+  });
+  var pairs = cats.map(function(c) { return { label: c, amount: agg[c] }; })
+                  .filter(function(p) { return p.amount > 0; })
+                  .sort(function(a, b) { return b.amount - a.amount; });
+  var total = pairs.reduce(function(s, p) { return s + p.amount; }, 0);
+
+  var periodLabel = selected.length === 1
+    ? ('месяц ' + selected[0].month)
+    : (selected[0].month + ' … ' + selected[selected.length-1].month + ' (' + selected.length + ' мес.)');
+
+  var html = '<div class="modal-period-hint">Период: ' + periodLabel + ' · Итого OPEX: <b>' + fmtK(total) + ' ₺</b></div>';
+  html += '<table><thead><tr><th>Статья</th><th style="text-align:right">Сумма</th><th style="text-align:right">Доля</th></tr></thead><tbody>';
+  pairs.forEach(function(p) {
+    var pct = total > 0 ? (p.amount / total * 100).toFixed(1) + '%' : '—';
+    html += '<tr><td>' + p.label + '</td><td class="num">' + fmtK(p.amount) + ' ₺</td><td class="num">' + pct + '</td></tr>';
+  });
+  html += '</tbody><tfoot><tr><td style="font-weight:700">Итого</td><td class="num" style="font-weight:700">' + fmtK(total) + ' ₺</td><td></td></tr></tfoot></table>';
+  html += '<div style="margin-top:14px;font-size:12px;color:var(--text2);line-height:1.5">'
+        + '<b>Как читать:</b> CAPEX (инвестиции, открытие площадки) и резервы НЕ учтены — только операционные расходы. Подробнее — на <a href="revenue.html#pane-opex" style="color:var(--accent)">/revenue → Опекс</a>.'
+        + '</div>';
+  container.innerHTML = html;
+}
+
+document.getElementById('kpi-opex-card').addEventListener('click', async function() {
+  document.getElementById('modal-title').textContent = 'Структура OPEX по периодам';
+  document.getElementById('modal-body').innerHTML =
+    '<div class="modal-period">' +
+    '  <button data-months="1">Месяц</button>' +
+    '  <button data-months="3">3 мес.</button>' +
+    '  <button data-months="6">6 мес.</button>' +
+    '  <button data-months="0">Всё</button>' +
+    '</div>' +
+    '<div id="opex-modal-table"><div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div></div>';
+  document.getElementById('dash-modal').classList.add('active');
+
+  await _ensureOpexByCatLoaded();
+
+  function _setActiveOpex() {
+    document.querySelectorAll('#modal-body .modal-period button').forEach(function(b) {
+      b.classList.toggle('active', parseInt(b.dataset.months, 10) === _opexModalPeriod);
+    });
+  }
+  _setActiveOpex();
+  _renderOpexModalBody();
+
+  document.querySelectorAll('#modal-body .modal-period button').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      _opexModalPeriod = parseInt(btn.dataset.months, 10) || 0;
+      _setActiveOpex();
+      _renderOpexModalBody();
     });
   });
 });

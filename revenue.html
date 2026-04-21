@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260419c"></script>
+<script src="assets/data.js?v=20260421a"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -269,6 +269,7 @@
   <div class="rev-tabs">
     <button class="rev-tab active" data-tab="income">Доход</button>
     <button class="rev-tab" data-tab="goods">Доп. продажи</button>
+    <button class="rev-tab" data-tab="opex">Опекс</button>
     <button class="rev-tab" data-tab="margins">Маржинальность</button>
     <button class="rev-tab" data-tab="utilization">Загрузка</button>
   </div>
@@ -498,6 +499,82 @@
   </section>
 
   </div><!-- /pane-goods -->
+
+  <!-- ═══════════════════ TAB: OPEX ═══════════════════ -->
+  <div class="tab-pane" id="pane-opex">
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">OPEX за период</div>
+      <div class="kpi-value" id="opx-kpi-total">—</div>
+      <div class="kpi-delta muted" id="opx-kpi-total-hint">последний месяц</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">OPEX / корт</div>
+      <div class="kpi-value" id="opx-kpi-per-court">—</div>
+      <div class="kpi-delta muted" id="opx-kpi-per-court-hint">из 4 кортов</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">OPEX / выручка</div>
+      <div class="kpi-value" id="opx-kpi-ratio">—</div>
+      <div class="kpi-delta muted" id="opx-kpi-ratio-hint">% расходов от дохода</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Главная статья</div>
+      <div class="kpi-value" id="opx-kpi-top">—</div>
+      <div class="kpi-delta muted" id="opx-kpi-top-hint">доминирует в OPEX</div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>1 &middot; Структура OPEX за период</h2>
+      <span class="hint">таблица статей · доля в %</span>
+    </div>
+    <div class="panel" style="overflow-x:auto">
+      <table class="fin" id="opx-struct-table">
+        <thead>
+          <tr><th>#</th><th>Статья</th><th class="num">Сумма</th><th class="num">Доля %</th><th class="num">% от выручки</th><th>Бенчмарк клуба</th></tr>
+        </thead>
+        <tbody><tr><td colspan="6" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>2 &middot; OPEX по месяцам (stacked)</h2>
+      <span class="hint">видна динамика каждой статьи · клик по легенде = on/off</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box"><canvas id="opx-stacked-chart"></canvas></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>3 &middot; Детализация по месяцам</h2>
+      <span class="hint">все статьи, все месяцы</span>
+    </div>
+    <div class="panel" style="overflow-x:auto">
+      <table class="fin" id="opx-monthly-table">
+        <thead><tr><th>Статья</th></tr></thead>
+        <tbody><tr><td colspan="1" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>4 &middot; Что ещё важно учитывать (экспертно)</h2>
+      <span class="hint">индустриальные метрики падел-клуба — roadmap</span>
+    </div>
+    <div class="panel">
+      <div id="opx-expert" style="font-size:14px;line-height:1.8;color:var(--text2)"></div>
+    </div>
+  </section>
+
+  </div><!-- /pane-opex -->
 
   <!-- ═══════════════════ TAB: MARGINS ═══════════════════ -->
   <div class="tab-pane" id="pane-margins">
@@ -820,7 +897,7 @@ const DOW_NAMES = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const DOW_FULL  = ['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'];
 
 // Income categories (everything except Товары)
-const INCOME_CATS = new Set(['Корты','Инвентарь','Клубные карты','Тренировки','Турниры','Прочее']);
+const INCOME_CATS = new Set(['Корты','Инвентарь','Клубные карты','Тренировки','Кэмпы/Интенсивы','Турниры','Прочее']);
 function isIncome(cat) { return INCOME_CATS.has(categorizeRevenue(cat)); }
 function isGoods(cat) { return categorizeRevenue(cat) === 'Товары'; }
 
@@ -1104,8 +1181,207 @@ document.querySelectorAll('.rev-tab').forEach(function(btn) {
       _utilizationRendered = true;
       lazyLoadUtilization();
     }
+    // Lazy-load opex tab on first click
+    if (btn.dataset.tab === 'opex' && !_opexRendered) {
+      _opexRendered = true;
+      lazyLoadOpex();
+    }
   });
 });
+var _opexRendered = false;
+
+/* =======================================================================
+ * OPEX TAB — структура операционных расходов + бенчмарки падел-клуба.
+ * Источник: opex_by_month_cat (v7padel_cache, wide format).
+ * ======================================================================= */
+async function lazyLoadOpex() {
+  try {
+    var opexRows = await loadCacheTab('opex_by_month_cat');
+    if (!opexRows || !opexRows.length) {
+      document.querySelector('#pane-opex .kpi-row').innerHTML =
+        '<div class="panel"><div class="error">Нет данных OPEX. Проверьте opex_by_month_cat в кеше.</div></div>';
+      return;
+    }
+    renderOpexTab(opexRows);
+  } catch (e) {
+    console.warn('[opex] load failed:', e);
+  }
+}
+
+// Индустриальные бенчмарки для падел-клубов (типичные % от выручки).
+var OPEX_BENCHMARKS = {
+  'ФОТ':                { low: 25, high: 35, tip: 'Labor cost 25-35% от revenue — индустриальная норма. >40% = перегружены персоналом или низкая выручка.' },
+  'Аренда':             { low: 15, high: 25, tip: 'Аренда помещения 15-25% — норма. >30% = слишком дорогая локация или недозагружены корты.' },
+  'Коммунальные':       { low: 4,  high: 8,  tip: '4-8% от revenue. Высокое освещение вечером (P4 открытый — особенно).' },
+  'Маркетинг':          { low: 3,  high: 8,  tip: '3-8% — норма для растущего клуба. <2% — не инвестируете в рост.' },
+  'Обслуживание':       { low: 2,  high: 5,  tip: '2-5% — корты, вентиляция, мебель. <1% = откладываете на потом.' },
+  'Админ расходы':      { low: 1,  high: 4,  tip: '1-4% — канцелярия, связь, ПО.' },
+  'Касса':              { low: 2,  high: 6,  tip: 'Расходы через кассу (мелкие закупки).' },
+  'Товары':             { low: 3,  high: 8,  tip: 'Закупка товаров на продажу — зависит от оборота (напитки, ракетки, мячи).' },
+  'Налоги':             { low: 3,  high: 10, tip: 'Сильно зависит от юрисдикции Турции.' },
+  'Инвентарь':          { low: 1,  high: 3,  tip: 'Текущие расходники — мячи, намотки, инвентарь для коучей.' },
+  'Банковские расходы': { low: 0,  high: 1,  tip: 'Комиссии банка, эквайринг.' },
+};
+
+function _opexBenchmarkBadge(cat, pctOfRev) {
+  var b = OPEX_BENCHMARKS[cat];
+  if (!b || !pctOfRev) return '—';
+  if (pctOfRev < b.low) return '<span style="color:var(--good)">✓ ниже нормы (' + b.low + '-' + b.high + '%)</span>';
+  if (pctOfRev > b.high) return '<span style="color:var(--bad)">⚠ выше нормы (' + b.low + '-' + b.high + '%)</span>';
+  return '<span style="color:var(--text2)">в норме (' + b.low + '-' + b.high + '%)</span>';
+}
+
+async function renderOpexTab(opexRows) {
+  // opexRows — массив объектов {month, Категория1, ..., Итого}
+  opexRows = opexRows.filter(function(r) { return r.month; }).sort(function(a, b) { return a.month < b.month ? -1 : 1; });
+  if (!opexRows.length) return;
+
+  var allCats = Object.keys(opexRows[0]).filter(function(k) { return k !== 'month' && k !== 'Итого'; });
+  var lastMonth = opexRows[opexRows.length - 1];
+  var lastYM = lastMonth.month;
+  var lastTotal = num(lastMonth['Итого']);
+
+  // Выручка за последний месяц — из dashboard_kpis
+  var revLastMonth = 0;
+  try {
+    var k = await loadCacheTab('dashboard_kpis');
+    if (k && k[0]) revLastMonth = num(k[0].revenue_last_month);
+  } catch (e) {}
+
+  // === KPI ===
+  document.getElementById('opx-kpi-total').textContent = fmtInt(Math.round(lastTotal)) + ' ₺';
+  document.getElementById('opx-kpi-total-hint').textContent = lastYM;
+  var perCourt = lastTotal / 4;
+  document.getElementById('opx-kpi-per-court').textContent = fmtInt(Math.round(perCourt)) + ' ₺';
+  var ratio = revLastMonth > 0 ? (lastTotal / revLastMonth * 100) : 0;
+  document.getElementById('opx-kpi-ratio').textContent = (ratio > 0 ? ratio.toFixed(0) + '%' : '—');
+  var ratioCol = ratio > 90 ? 'var(--bad)' : (ratio > 70 ? '#f39c12' : 'var(--good)');
+  document.getElementById('opx-kpi-ratio').style.color = ratioCol;
+  var sortedLast = allCats.map(function(c) { return { cat: c, amt: num(lastMonth[c]) }; })
+                          .filter(function(p) { return p.amt > 0; })
+                          .sort(function(a, b) { return b.amt - a.amt; });
+  if (sortedLast.length) {
+    document.getElementById('opx-kpi-top').textContent = sortedLast[0].cat;
+    var topPct = lastTotal > 0 ? (sortedLast[0].amt / lastTotal * 100).toFixed(0) + '%' : '—';
+    document.getElementById('opx-kpi-top-hint').textContent = topPct + ' от OPEX';
+  }
+
+  // === Структура OPEX таблица ===
+  var structTbody = document.querySelector('#opx-struct-table tbody');
+  var structHtml = '';
+  sortedLast.forEach(function(p, i) {
+    var pct = lastTotal > 0 ? (p.amt / lastTotal * 100) : 0;
+    var pctRev = revLastMonth > 0 ? (p.amt / revLastMonth * 100) : 0;
+    structHtml += '<tr>'
+               + '<td class="muted">' + (i + 1) + '</td>'
+               + '<td style="font-weight:500">' + p.cat + '</td>'
+               + '<td class="num">' + fmtInt(Math.round(p.amt)) + ' ₺</td>'
+               + '<td class="num" style="font-weight:600">' + pct.toFixed(1) + '%</td>'
+               + '<td class="num">' + (pctRev > 0 ? pctRev.toFixed(1) + '%' : '—') + '</td>'
+               + '<td style="font-size:12px">' + _opexBenchmarkBadge(p.cat, pctRev) + '</td>'
+               + '</tr>';
+  });
+  structHtml += '<tr class="grand-total" style="font-weight:700;background:var(--bg)">'
+             + '<td colspan="2">ИТОГО</td>'
+             + '<td class="num">' + fmtInt(Math.round(lastTotal)) + ' ₺</td>'
+             + '<td class="num">100%</td>'
+             + '<td class="num">' + (ratio > 0 ? ratio.toFixed(1) + '%' : '—') + '</td>'
+             + '<td style="font-size:12px">' + (ratio > 90 ? 'убыточно' : (ratio > 70 ? 'тонко' : 'норма')) + '</td>'
+             + '</tr>';
+  structTbody.innerHTML = structHtml;
+
+  // === Stacked chart по месяцам ===
+  var monthKeys = opexRows.map(function(r) { return r.month; }).slice(-8);
+  var catTotals = {};
+  allCats.forEach(function(c) { catTotals[c] = 0; });
+  opexRows.slice(-8).forEach(function(r) {
+    allCats.forEach(function(c) { catTotals[c] += num(r[c]); });
+  });
+  var topCats = allCats.filter(function(c) { return catTotals[c] > 0; })
+                        .sort(function(a, b) { return catTotals[b] - catTotals[a]; });
+  var palette = ['#e74c3c', '#f39c12', '#3498db', '#9b59b6', '#0ABAB5', '#7C3AED', '#0e8a87', '#16a085', '#8a9ba8', '#95a5a6', '#bdc3c7', '#7f8c8d'];
+  var datasets = topCats.map(function(cat, i) {
+    return {
+      label: cat,
+      data: monthKeys.map(function(ym) {
+        var r = opexRows.find(function(x) { return x.month === ym; });
+        return r ? Math.round(num(r[cat])) : 0;
+      }),
+      backgroundColor: palette[i % palette.length],
+      borderRadius: 3, maxBarThickness: 60,
+    };
+  });
+  createChart('opx-stacked-chart', {
+    type: 'bar', data: { labels: monthKeys.map(ymLabel), datasets: datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { color: chartTextColor(), padding: 10, font: { size: 11 }, boxWidth: 12 } },
+        tooltip: { callbacks: {
+          label: function(it) { return it.dataset.label + ': ' + fmtInt(Math.round(it.raw)) + ' ₺'; },
+          footer: function(items) {
+            var s = items.reduce(function(a, b) { return a + b.raw; }, 0);
+            return 'Всего: ' + fmtInt(Math.round(s)) + ' ₺';
+          }
+        }}
+      },
+      scales: {
+        x: { stacked: true, ticks: { color: chartTextColor() }, grid: { display: false } },
+        y: { stacked: true, beginAtZero: true,
+             ticks: { color: chartTextColor(), callback: function(v) { return fmt(v) + ' ₺'; } },
+             grid: { color: chartGridColor() } }
+      }
+    }
+  });
+
+  // === Monthly detail table (pivot: статья × месяцы) ===
+  var monthlyThead = document.querySelector('#opx-monthly-table thead tr');
+  var monthlyTbody = document.querySelector('#opx-monthly-table tbody');
+  var showMonths = opexRows.slice(-8);
+  var theadHtml = '<th>Статья</th>' + showMonths.map(function(r) { return '<th class="num">' + ymLabel(r.month) + '</th>'; }).join('') + '<th class="num">Итого</th>';
+  monthlyThead.innerHTML = theadHtml;
+  var monthlyHtml = '';
+  topCats.forEach(function(cat) {
+    var total = 0;
+    var cells = showMonths.map(function(r) {
+      var v = num(r[cat]);
+      total += v;
+      return '<td class="num">' + (v > 0 ? fmtInt(Math.round(v)) : '<span class="muted">—</span>') + '</td>';
+    }).join('');
+    monthlyHtml += '<tr><td style="font-weight:500">' + cat + '</td>' + cells + '<td class="num" style="font-weight:600">' + fmtInt(Math.round(total)) + '</td></tr>';
+  });
+  // ИТОГО
+  var grandTotals = showMonths.map(function(r) { return num(r['Итого']); });
+  var grandSum = grandTotals.reduce(function(a, b) { return a + b; }, 0);
+  monthlyHtml += '<tr class="grand-total" style="font-weight:700;background:var(--bg)"><td>ИТОГО</td>'
+              + grandTotals.map(function(v) { return '<td class="num">' + fmtInt(Math.round(v)) + '</td>'; }).join('')
+              + '<td class="num">' + fmtInt(Math.round(grandSum)) + '</td></tr>';
+  monthlyTbody.innerHTML = monthlyHtml;
+
+  // === Expert block ===
+  document.getElementById('opx-expert').innerHTML = _opexExpertHtml();
+}
+
+function _opexExpertHtml() {
+  return (
+    '<p><b>Что у тебя уже есть</b>: структура OPEX по категориям, % от выручки, бенчмарки по индустрии, динамика помесячно, OPEX/корт. Это уже 80% того что нужно для операционки.</p>' +
+    '<p><b>Что ещё стоит добавить для падел-клуба</b> (в backlog на следующие итерации):</p>' +
+    '<ol style="margin:10px 0 10px 20px">' +
+    '<li><b>Разбивка ФОТ на фиксированную и переменную части.</b> Админы — фикс, коучи — процент от тренировок. Сейчас всё в одной куче. Нужно знать где рычаг для оптимизации (поднять %-коуча — мотивация, но плохой месяц — дыра в cash).</li>' +
+    '<li><b>Postоянные vs переменные OPEX.</b> Постоянные (Аренда, Фикс-ФОТ, Страхование, Абонементы на ПО) vs переменные (Коммуналка, Овертайм, Закупки товаров, Маркетинг). Break-even точка клуба = Fixed OPEX / (1 − Variable OPEX/Revenue). Пока не считаем.</li>' +
+    '<li><b>Корт-часов "цена" в OPEX.</b> OPEX / total_hours_occupancy = ₺ затрат на каждый занятый час. Сравнить с RPCH (₺ выручки/час). Если OPEX_per_hour > RPCH_per_hour × 0.7 — клуб тонкий.</li>' +
+    '<li><b>Amortization capex.</b> Сейчас инвестиции (открытие, ремонт, оборудование) исключены из OPEX — это правильно для кассы, но нужна <b>месячная амортизация</b>: если ты купил оборудование за 100k на 5 лет — это 1667₺/мес OPEX по смыслу. Поле <code>amortize_months</code> в expenses уже есть — не используется.</li>' +
+    '<li><b>OPEX per клиент и per бронь.</b> OPEX / активных_клиентов_30д · OPEX / bookings_30д = сколько «стоит» один клиент/бронь. Растёт → bad.</li>' +
+    '<li><b>Customer acquisition cost (CAC).</b> Маркетинг_за_период / новых_клиентов_за_период. Для падел-клуба CAC обычно 1500-3000 ₺. Выше — неэффективный канал, меняй.</li>' +
+    '<li><b>Членский vs непостоянный revenue coverage OPEX.</b> Сколько OPEX покрывается абонементами (рекуррент) vs разовыми бронями. Чем выше доля membership — тем устойчивее cash flow.</li>' +
+    '<li><b>Seasonal OPEX variance.</b> В Анталии у падела явно есть сезон. Сравнение OPEX зимой vs летом покажет где сезонные рычаги (доп. персонал летом, отопление зимой).</li>' +
+    '<li><b>Отдельная статья «Коучи-внешние» (Bob, испанцы).</b> Сейчас это идёт как expense под camp-record. Стоит выделить в подкатегорию OPEX «Внешние коучи» чтобы трекать соотношение внешние_коучи_затраты / внешние_коучи_revenue.</li>' +
+    '<li><b>Банк-рисерва.</b> Клуб должен держать 2-3 месяца OPEX на счёте как подушку. Runway = cash / monthly_opex. Если <2 — риск.</li>' +
+    '</ol>' +
+    '<p style="margin-top:14px"><b>Что важно НЕ делать</b>: не пытаться детализировать OPEX до каждой чайной ложки. Ценна именно <b>структура + тренд</b> по 10-12 категориям. Если у статьи <3% — она шум, её можно объединить в «Прочее».</p>'
+  );
+}
+
 
 async function lazyLoadMargins() {
   await loadMargins();

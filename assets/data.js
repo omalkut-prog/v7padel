@@ -65,8 +65,8 @@
     return out;
   }
 
-  const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Турниры', 'Спонсоры', 'Товары', 'Прочее'];
-  const REV_CAT_COLORS = ['#0ABAB5', '#0e8a87', '#7C3AED', '#13c296', '#f39c12', '#e74c3c', '#5ac8fa', '#8a9ba8'];
+  const REV_CAT_ORDER  = ['Корты', 'Инвентарь', 'Клубные карты', 'Тренировки', 'Кэмпы/Интенсивы', 'Турниры', 'Спонсоры', 'Товары', 'Прочее'];
+  const REV_CAT_COLORS = ['#0ABAB5', '#0e8a87', '#7C3AED', '#13c296', '#ff6b35', '#f39c12', '#e74c3c', '#5ac8fa', '#8a9ba8'];
 
   /* -------------------------------------------------------------------------
    * CSV parsing (RFC 4180 minimal: handles quoted fields + "" escaping + CRLF)
@@ -659,9 +659,14 @@
   }
 
   // categorizeRevenue(category_text) -> one of REV_CAT_ORDER or null (skip)
+  // Порядок if'ов важен: кэмпы/интенсивы должны ловиться РАНЬШЕ training.
   function categorizeRevenue(category) {
     const s = (category || '').toString().toLowerCase();
     if (!s) return 'Прочее';
+    // Kэмпы / Интенсивы — до training (чтобы "Camp and intensive event" не
+    // съедалось training). Bob Camp 19-25.04 теперь попадёт сюда.
+    if (s.indexOf('camp') >= 0 || s.indexOf('intensive') >= 0 ||
+        s.indexOf('кэмп') >= 0 || s.indexOf('интенсив') >= 0) return 'Кэмпы/Интенсивы';
     if (s.indexOf('rent from') >= 0) return 'Корты';
     if (s.indexOf('equipment rental') >= 0 || s.indexOf('equipment') >= 0) return 'Инвентарь';
     if (s.indexOf('club card') >= 0) return 'Клубные карты';
