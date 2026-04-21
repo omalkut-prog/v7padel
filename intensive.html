@@ -327,9 +327,9 @@ span[data-lang].active{display:inline}
       <div class="cn">Juan Pablo Vanella</div>
       <div class="ctag"><span data-lang="ru" class="active">Тренер</span><span data-lang="en">Coach</span><span data-lang="tr">Antrenör</span> 1</div>
       <div class="cbio">
-        <span data-lang="ru" class="active">Профессиональный игрок и тренер NAC (Marbella). Чемпион мира, рейтинг WPT #140, сборная Аргентины 2004–2008. Специализация: средний и продвинутый уровень (группы D, E, F).</span>
-        <span data-lang="en">Professional player and NAC coach (Marbella). World champion, WPT ranking #140, Argentina national team 2004–2008. Groups D, E, F.</span>
-        <span data-lang="tr">Profesyonel oyuncu ve NAC antrenörü. Dünya şampiyonu, WPT #140, Arjantin milli takımı 2004–2008. D, E, F grupları.</span>
+        <span data-lang="ru" class="active">Профессиональный игрок и тренер с 15+ летним международным опытом. Рейтинг WPT #140, участник юниорской сборной Аргентины — чемпионы мира в своей категории (2004, 2008). Ведёт группы среднего и продвинутого уровня.</span>
+        <span data-lang="en">Professional player and coach with 15+ years of international experience. WPT ranking #140, member of Argentina's junior national team — world champions in their category (2004, 2008). Leads intermediate and advanced groups.</span>
+        <span data-lang="tr">15+ yıllık uluslararası deneyime sahip profesyonel oyuncu ve antrenör. WPT sıralaması #140, Arjantin genç milli takımı üyesi — kategorilerinde dünya şampiyonları (2004, 2008). Orta ve ileri düzey grupları yönetir.</span>
       </div>
       <div class="clangs"><strong><span data-lang="ru" class="active">Языки: </span><span data-lang="en">Languages: </span><span data-lang="tr">Diller: </span></strong><span data-lang="ru" class="active">Испанский, Английский</span><span data-lang="en">Spanish, English</span><span data-lang="tr">İspanyolca, İngilizce</span></div>
       <div class="cstats">
@@ -342,9 +342,9 @@ span[data-lang].active{display:inline}
       <div class="cn">Patrikas Freimantas</div>
       <div class="ctag"><span data-lang="ru" class="active">Тренер</span><span data-lang="en">Coach</span><span data-lang="tr">Antrenör</span> 2</div>
       <div class="cbio">
-        <span data-lang="ru" class="active">Молодой перспективный тренер NAC, FIP-рейтинг #2423. Специализация: начальный и средний уровень, работа с женскими группами (группы A, B, C).</span>
-        <span data-lang="en">Young promising NAC coach, FIP ranking #2423. Beginner & intermediate level, women's groups (A, B, C).</span>
-        <span data-lang="tr">Genç NAC antrenörü, FIP #2423. Başlangıç ve orta düzey, kadın grupları (A, B, C).</span>
+        <span data-lang="ru" class="active">Тренер NAC (с 2024), бывший игрок национальной сборной Литвы. Top 3 U18 на Канарских островах, Top 100 U18 в Испании. Специализация: техника, структурирование игры, тактическое мышление. Ведёт начальный и средний уровень.</span>
+        <span data-lang="en">NAC coach (since 2024), former Lithuanian national team player. Top 3 U18 in Canary Islands, Top 100 U18 in Spain. Specialises in technique, game structure and tactical thinking. Leads beginner and intermediate groups.</span>
+        <span data-lang="tr">NAC antrenörü (2024'ten itibaren), eski Litvanya milli takımı oyuncusu. Kanarya Adaları'nda U18 Top 3, İspanya'da U18 Top 100. Teknik, oyun yapısı ve taktik düşünce uzmanlığı. Başlangıç ve orta düzey grupları yönetir.</span>
       </div>
       <div class="clangs"><strong><span data-lang="ru" class="active">Языки: </span><span data-lang="en">Languages: </span><span data-lang="tr">Diller: </span></strong><span data-lang="ru" class="active">Английский, Русский</span><span data-lang="en">English, Russian</span><span data-lang="tr">İngilizce, Rusça</span></div>
       <div class="cstats">
@@ -533,7 +533,7 @@ function setLang(lang) {
   try{ localStorage.setItem('v7lang', lang); }catch(e){}
 }
 lbs.forEach(function(b) { b.onclick = function(){ setLang(this.textContent.trim().toLowerCase()); }; });
-try{ var s=localStorage.getItem('v7lang'); if(s && s!=='ru') setLang(s); }catch(e){}
+try{ var s=localStorage.getItem('v7lang'); setLang(s || 'en'); }catch(e){}
 
 // FAQ
 document.querySelectorAll('.faq-q').forEach(function(q) {
