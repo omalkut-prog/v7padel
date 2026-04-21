@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260421a"></script>
+<script src="assets/data.js?v=20260421b"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -181,6 +181,42 @@
   <h1 class="page-title">Финансовый дашборд</h1>
   <div class="page-desc">Живые данные из <code>v7padel_db</code> · обновляется при перезагрузке страницы</div>
 
+  <!-- БЛОК «СЕГОДНЯ» — утренний ритуал: как идёт день (vs вчера) -->
+  <div id="today-block" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:20px; padding:16px; background:linear-gradient(135deg, var(--accent-soft) 0%, rgba(255,255,255,0) 100%); border:1px solid var(--border); border-radius:var(--radius)">
+    <div style="grid-column: 1 / -1; display:flex; align-items:baseline; justify-content:space-between; margin-bottom:4px">
+      <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text3)">Сегодня · <span id="today-date">—</span></div>
+      <div style="font-size:11px; color:var(--text3)" id="today-stamp">данные на утренний cron (03:00)</div>
+    </div>
+    <div class="today-card">
+      <div class="today-label">Брони сегодня</div>
+      <div class="today-value" id="today-bk">—</div>
+      <div class="today-sub" id="today-bk-vs">vs вчера —</div>
+    </div>
+    <div class="today-card">
+      <div class="today-label">Часов запланировано</div>
+      <div class="today-value" id="today-hrs">—</div>
+      <div class="today-sub" id="today-hrs-vs">из 60 max</div>
+    </div>
+    <div class="today-card">
+      <div class="today-label">Отмены сегодня</div>
+      <div class="today-value" id="today-canc">—</div>
+      <div class="today-sub" id="today-canc-pct">— % от плана</div>
+    </div>
+    <div class="today-card">
+      <div class="today-label">Доход сегодня <small style="color:var(--text3)">(txn)</small></div>
+      <div class="today-value" id="today-rev">—</div>
+      <div class="today-sub" id="today-rev-note">обновится к утру</div>
+    </div>
+  </div>
+  <style>
+    .today-card { background:var(--surface); padding:12px 14px; border-radius:10px; border:1px solid var(--border); display:flex; flex-direction:column; gap:4px; }
+    .today-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; font-weight:500; }
+    .today-value { font-size:22px; font-weight:700; letter-spacing:-0.3px; line-height:1.1; }
+    .today-sub { font-size:11px; color:var(--text2); }
+    .today-delta-up { color: var(--good); }
+    .today-delta-down { color: var(--bad); }
+  </style>
+
   <!-- KPI row -->
   <div class="kpi-row" id="kpi-row">
     <div class="kpi clickable" id="kpi-rev-card" title="Клик — разбивка по категориям"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span><span class="sub" id="kpi-rev-avg"></span><span class="sub" id="kpi-rev-forecast"></span></div>
@@ -252,6 +288,26 @@
         <thead><tr><th>Дата</th><th>Кредитор</th><th>Описание</th><th class="num">Сумма, ₺</th></tr></thead>
         <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- MEMBER CHURN: истекли не продлены + истекают в ближайшие 14 дней -->
+  <div class="grid equal">
+    <div class="card">
+      <h3>Карты истекли — звонить <small id="churn-lost-sub">—</small></h3>
+      <table class="mini" id="tbl-churn-lost">
+        <thead><tr><th>Клиент</th><th>Карта</th><th>Истекла</th><th class="num">Fee/мес</th></tr></thead>
+        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+      <div style="margin-top:10px; font-size:12px; color:var(--text2)" id="churn-lost-summary">—</div>
+    </div>
+    <div class="card">
+      <h3>Истекают в 14 дней <small id="churn-soon-sub">—</small></h3>
+      <table class="mini" id="tbl-churn-soon">
+        <thead><tr><th>Клиент</th><th>Карта</th><th>Через</th><th class="num">Fee/мес</th></tr></thead>
+        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+      <div style="margin-top:10px; font-size:12px; color:var(--text2)" id="churn-soon-summary">—</div>
     </div>
   </div>
 
@@ -835,6 +891,120 @@ async function loadSlowLiabilities() {
       document.getElementById("kpi-clients").textContent = fmt(kpis.clients_total);
       document.getElementById("kpi-clients-active").textContent = "активных 30д: " + (kpis.clients_active_30d || 0);
       document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + kpis.clients_new_30d;
+
+      // Блок «Сегодня» — 4 карточки. Данные из dashboard_kpis (утренний snapshot).
+      try {
+        var tD = kpis.today_date || '';
+        var tBk = toNum(kpis.today_bookings_live);
+        var tHrs = toNum(kpis.today_hours_planned);
+        var tCanc = toNum(kpis.today_cancellations);
+        var tCancPct = toNum(kpis.today_cancel_pct);
+        var tRevTx = toNum(kpis.today_revenue_tx);
+        var yBk = toNum(kpis.yest_bookings);
+        var yHrs = toNum(kpis.yest_hours);
+        var yRevTx = toNum(kpis.yest_revenue_tx);
+        var MAX_DAY_HOURS = 60; // 4 корта × 15 рабочих часов
+        // Формат даты
+        if (tD) {
+          var d = new Date(tD + 'T00:00:00');
+          if (!isNaN(d)) {
+            var DOW = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+            var MON = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+            document.getElementById('today-date').textContent =
+              DOW[d.getDay()] + ', ' + d.getDate() + ' ' + MON[d.getMonth()];
+          } else {
+            document.getElementById('today-date').textContent = tD;
+          }
+        }
+        document.getElementById('today-bk').textContent = tBk;
+        var deltaBk = tBk - yBk;
+        var deltaBkCls = deltaBk > 0 ? 'today-delta-up' : (deltaBk < 0 ? 'today-delta-down' : '');
+        var deltaBkSign = deltaBk > 0 ? '+' : '';
+        document.getElementById('today-bk-vs').innerHTML = 'vs вчера ' + yBk
+          + (deltaBk !== 0 ? ' <span class="' + deltaBkCls + '">(' + deltaBkSign + deltaBk + ')</span>' : '');
+        document.getElementById('today-hrs').textContent = tHrs.toFixed(1) + ' ч';
+        var loadPct = MAX_DAY_HOURS > 0 ? (tHrs / MAX_DAY_HOURS * 100).toFixed(0) : 0;
+        document.getElementById('today-hrs-vs').textContent = loadPct + '% загрузки · вчера ' + yHrs.toFixed(0) + ' ч';
+        document.getElementById('today-canc').textContent = tCanc + (tCanc > 0 ? ' брон' : '');
+        var cancColor = tCancPct >= 30 ? 'var(--bad)' : (tCancPct >= 15 ? '#f39c12' : 'var(--text2)');
+        document.getElementById('today-canc-pct').innerHTML = tCanc > 0
+          ? '<span style="color:' + cancColor + '">' + tCancPct.toFixed(0) + '%</span> отмен от плана'
+          : 'нет отмен сегодня';
+        if (tRevTx > 0) {
+          document.getElementById('today-rev').textContent = fmtK(tRevTx) + ' ₺';
+          document.getElementById('today-rev-note').textContent =
+            'транзакций: ' + toNum(kpis.today_tx_count);
+        } else {
+          document.getElementById('today-rev').textContent = '—';
+          document.getElementById('today-rev-note').textContent =
+            'Оля ещё не ввела сегодня · обновится к утру';
+        }
+      } catch (e) { console.warn('today block:', e); }
+
+      // Блок Member Churn — истекли / истекают
+      try {
+        var lostN = toNum(kpis.churn_expired_this_month_n);
+        var lostFee = toNum(kpis.churn_expired_this_month_fee);
+        var soon14N = toNum(kpis.churn_expiring_14d_n);
+        var soon14Fee = toNum(kpis.churn_expiring_14d_fee);
+        document.getElementById('churn-lost-sub').textContent =
+          lostN + ' карт · ' + fmtK(lostFee) + ' ₺/мес recurring';
+        document.getElementById('churn-soon-sub').textContent =
+          soon14N + ' карт · ' + fmtK(soon14Fee) + ' ₺/мес под риском';
+        // Таблицы заполняются отдельно из member_churn cache-таба
+        V7.loadCacheTab('member_churn').then(function(rows) {
+          var lost = (rows || []).filter(function(r) { return r.status === 'expired_this_month'; });
+          var soon = (rows || []).filter(function(r) { return r.status === 'expiring_14d'; });
+
+          function _render(tbodyId, rows, colDays) {
+            var tb = document.querySelector('#' + tbodyId + ' tbody');
+            tb.innerHTML = '';
+            if (!rows.length) {
+              tb.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text3); padding:20px">Никого · всё хорошо</td></tr>';
+              return;
+            }
+            rows.slice(0, 10).forEach(function(r) {
+              var fee = toNum(r.fee);
+              var days = parseInt(r.days_to, 10);
+              var daysCell;
+              if (colDays === 'expired') {
+                daysCell = '<span style="color:var(--bad)">' + Math.abs(days) + ' д назад</span>';
+              } else {
+                var color = days <= 3 ? 'var(--bad)' : (days <= 7 ? '#f39c12' : 'var(--text2)');
+                daysCell = '<span style="color:' + color + '">через ' + days + ' д</span>';
+              }
+              var tr = document.createElement('tr');
+              tr.innerHTML = '<td>' + r.holder + '</td>'
+                           + '<td><span style="color:' + (r.card_type === 'V7 VIP' ? '#0e8a87' : 'var(--accent)') + ';font-weight:500">'
+                             + (r.card_type === 'V7 VIP' ? 'VIP' : 'Club') + '</span></td>'
+                           + '<td>' + daysCell + '</td>'
+                           + '<td class="num">' + fmtInt(fee) + '</td>';
+              tb.appendChild(tr);
+            });
+          }
+
+          _render('tbl-churn-lost', lost, 'expired');
+          _render('tbl-churn-soon', soon, 'expiring');
+
+          // Summary строки
+          if (lost.length > 0) {
+            var totalLost = lost.reduce(function(s, r) { return s + toNum(r.fee); }, 0);
+            document.getElementById('churn-lost-summary').innerHTML =
+              '<b>Потеря recurring:</b> ' + fmtK(totalLost) + ' ₺/мес · '
+              + '<b>за год:</b> ' + fmtK(totalLost * 12) + ' ₺ если никого не вернуть.';
+          } else {
+            document.getElementById('churn-lost-summary').textContent = 'Все карты этого месяца продлили ✓';
+          }
+          if (soon.length > 0) {
+            var totalSoon = soon.reduce(function(s, r) { return s + toNum(r.fee); }, 0);
+            document.getElementById('churn-soon-summary').innerHTML =
+              '<b>Рекомендация:</b> позвонить, предложить продление. Удержание ' + soon.length
+              + ' карт = ' + fmtK(totalSoon) + ' ₺/мес сохранённой выручки.';
+          } else {
+            document.getElementById('churn-soon-summary').textContent = 'В ближайшие 14 дней никто не истекает ✓';
+          }
+        }).catch(function(e) { console.warn('member_churn load:', e); });
+      } catch (e) { console.warn('churn block:', e); }
 
       // Per-court KPIs.
       // RPCH = revenue(last_pnl_month) / hours(того же месяца) — главная
