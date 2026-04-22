@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260422b"></script>
+<script src="assets/data.js?v=20260422c"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -3237,7 +3237,19 @@ function renderUtilizationWeeklyTable(daysArr, maxDayHours) {
 /* ---- Per-court utilization from bookings (scaled to occupancy totals) ---- */
 async function loadPerCourtData() {
   try {
+    // ИСТОЧНИКИ: bookings (только активные) + cancellations (отменённые).
+    // Matchpoint удаляет отменённые из grid → bookings содержит только те
+    // которые сейчас active. Чтобы восстановить ПРОПОРЦИЮ часов по кортам
+    // (как корт реально был загружен до отмен), нужно сложить обе таблицы.
+    //
+    // БЕЗ этого фикса крытые корты «выглядели равными» P4 за прошлые
+    // месяцы, потому что в них было больше отмен → остатки в active
+    // упали. С учётом cancellations пропорции корректные.
+    // 2026-04-22.
     var rows = await loadSheet('bookings');
+    var cancelRows = await loadCacheTab('cancellations_full').catch(function() { return null; });
+    // cancellations не в cache напрямую — читаем из v7padel_db
+    if (!cancelRows) cancelRows = await loadSheet('cancellations').catch(function() { return []; });
     if (!rows || !rows.length) return;
     var now = new Date();
     var today = new Date(); today.setHours(0,0,0,0);
@@ -3256,7 +3268,7 @@ async function loadPerCourtData() {
       occTotal += r.hours;
     });
 
-    // Detect maintenance blocks: all 4 courts at same start_ts with price=0
+    // Detect maintenance blocks (all 4 courts at same start_ts with price=0)
     var slotKey = function(r) { return (r.start_ts || '').trim(); };
     var slotCourts = {};
     rows.forEach(function(r) {
@@ -3272,28 +3284,45 @@ async function loadPerCourtData() {
       if (s.has('P1') && s.has('P2') && s.has('P3') && s.has('P4')) blockSlots.add(sk);
     });
 
-    // Count raw bookings hours per court per month
-    var courtRaw = {};   // { ym: { P1: h, P2: h, ... } }
-    var courtBooks = {};  // { court: bookings count }
+    // 1. Active bookings hours per court per month
+    var courtRaw = {};
+    var courtBooks = {};
     courts.forEach(function(c) { courtBooks[c] = 0; });
 
-    rows.forEach(function(r) {
+    function _processBooking(r, isCancellation) {
       var cid = (r.court_id || '').trim().toUpperCase();
       if (courts.indexOf(cid) < 0) return;
-      var start = new Date(r.start_ts);
-      var end = new Date(r.end_ts);
-      if (isNaN(start) || isNaN(end)) return;
+      var start;
+      // bookings: start_ts ISO; cancellations: start_ts ISO '2026-03-15 18:00'
+      if (r.start_ts) {
+        start = new Date(r.start_ts.replace(' ', 'T'));
+      }
+      if (!start || isNaN(start)) return;
       if (start >= now) return;
       if (cutoff && start < cutoff) return;
-      var hours = (end - start) / 3600000;
+      var hours = 0;
+      if (isCancellation) {
+        // cancellations: есть duration_min
+        hours = (parseInt(r.duration_min, 10) || 0) / 60;
+      } else {
+        var end = new Date(r.end_ts);
+        if (isNaN(end)) return;
+        hours = (end - start) / 3600000;
+      }
       if (hours <= 0 || hours > 15) return;
-      // Skip maintenance blocks (all 4 courts same time, price=0)
-      if (blockSlots.has(slotKey(r)) && (parseFloat(r.price) || 0) === 0) return;
+      // Для active broни: skip maintenance blocks (all 4 courts same time, price=0)
+      if (!isCancellation && blockSlots.has(slotKey(r)) && (parseFloat(r.price) || 0) === 0) return;
       var ym = ymKey(start);
       if (!courtRaw[ym]) { courtRaw[ym] = {}; courts.forEach(function(c) { courtRaw[ym][c] = 0; }); }
       courtRaw[ym][cid] += hours;
-      courtBooks[cid]++;
-    });
+      if (!isCancellation) courtBooks[cid]++;
+    }
+
+    rows.forEach(function(r) { _processBooking(r, false); });
+    // Добавляем cancellations — они отражают часы которые БЫЛИ
+    // забронированы, но потом отменены. Вместе с active дают реальную
+    // пропорцию загрузки корта (включая то что не состоялось из-за отмен).
+    (cancelRows || []).forEach(function(r) { _processBooking(r, true); });
 
     // Scale per-court hours proportionally so monthly totals match occupancy
     var courtScaled = {};
