@@ -27,6 +27,9 @@
 | `docs/10_PRICES_AND_HOURS.md` | Цены и часы работы (реальные, из транзакций) |
 | `docs/11_MARKETING.md` | Аватар клиента, каналы, месседжинг — WIP |
 | `docs/12_WORKING_WITH_CLAUDE.md` | **Как Володимир ставит задачи + как Claude работает**. Двусторонние правила. |
+| `docs/13_ACCOUNTING_RULES.md` | Cash-basis + anti-double-count (ADR-015, ADR-016). |
+| `docs/14_CODE_REVIEW.md` | Процесс bi-monthly code review. Следующее — 2026-06-18. |
+| `docs/15_FINANCE_RECONCILIATION.md` | Сверка с ручным финучётом (раз в месяц, не источник данных). |
 
 ## Update cadence (обязательно)
 
