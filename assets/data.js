@@ -327,6 +327,66 @@
     return Math.round(n).toLocaleString('ru-RU');
   }
 
+  // Chart.js legend onClick — «solo toggle» UX.
+  // Один клик по категории → показать ТОЛЬКО её (скрыть все остальные).
+  // Повторный клик по той же → вернуть все обратно.
+  // Стандартный Chart.js onClick просто скрывает одну категорию — это плохо
+  // когда их 10-12 и хочешь «оставить только тренировки» (10 кликов).
+  // Использование:
+  //   options: { plugins: { legend: { onClick: V7.soloLegendClick } } }
+  function soloLegendClick(e, legendItem, legend) {
+    var chart = legend.chart;
+    var ds = chart.data.datasets;
+    if (!ds || ds.length === 0) return;
+    // Для doughnut/pie индексы датасет-элементов, а не самих datasets.
+    var isDoughnut = chart.config.type === 'doughnut' || chart.config.type === 'pie';
+    if (isDoughnut) {
+      var idx = legendItem.index;
+      var n = ds[0].data.length;
+      var meta = chart.getDatasetMeta(0);
+      // hidden для doughnut хранится в meta.data[i].hidden
+      var visible = [];
+      for (var i = 0; i < n; i++) visible.push(!chart.getDataVisibility(i));
+      // Хм, Chart.js doughnut: используем chart.toggleDataVisibility(idx)
+      var onlyThis = chart.getDataVisibility(idx) && (function() {
+        for (var j = 0; j < n; j++) {
+          if (j === idx) continue;
+          if (chart.getDataVisibility(j)) return false;
+        }
+        return true;
+      })();
+      if (onlyThis) {
+        // Вернуть все
+        for (var k = 0; k < n; k++) if (!chart.getDataVisibility(k)) chart.toggleDataVisibility(k);
+      } else {
+        // Solo: скрыть все кроме idx
+        for (var k2 = 0; k2 < n; k2++) {
+          var shouldBeVisible = (k2 === idx);
+          var isVisible = chart.getDataVisibility(k2);
+          if (shouldBeVisible && !isVisible) chart.toggleDataVisibility(k2);
+          else if (!shouldBeVisible && isVisible) chart.toggleDataVisibility(k2);
+        }
+      }
+      chart.update();
+      return;
+    }
+    // Обычные charts (bar/line): оперируем datasets.
+    var dIdx = legendItem.datasetIndex;
+    var metas = ds.map(function(_, i) { return chart.getDatasetMeta(i); });
+    var visibleMask = metas.map(function(m) { return !m.hidden; });
+    var onlyThisVisible = visibleMask[dIdx] && visibleMask.every(function(v, i) {
+      return i === dIdx ? v : !v;
+    });
+    if (onlyThisVisible) {
+      // Повторный клик → все обратно
+      metas.forEach(function(m) { m.hidden = false; });
+    } else {
+      // Solo
+      metas.forEach(function(m, i) { m.hidden = (i !== dIdx); });
+    }
+    chart.update();
+  }
+
   // waHref — нормализация телефона для https://wa.me/ ссылок.
   // Обрабатывает: `+90 555 123 45 67`, `90 555 ...`, `0555...` (турецкий local).
   // Возвращает полный URL или null если номер не валиден.
@@ -787,7 +847,7 @@
     loadFullCache,
     loadCacheTab,
     renderReloadNotice,
-    num, fmt, fmtMoney, fmtPct, fmtSigned, fmtInt, waHref,
+    num, fmt, fmtMoney, fmtPct, fmtSigned, fmtInt, waHref, soloLegendClick,
     parseDate, ymKey, ymLabel, nameKey,
     cssVar, accent,
     pnlByMonth, categorizeRevenue,

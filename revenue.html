@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260421a"></script>
+<script src="assets/data.js?v=20260422b"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -1466,6 +1466,9 @@ function heatColor(value, maxVal) {
 /* ---- Chart.js defaults ---- */
 Chart.defaults.font.family = "'Inter', -apple-system, sans-serif";
 Chart.defaults.font.size = 12;
+// Solo-toggle UX (см. dashboard.html). Клик по категории → только она;
+// повторный клик → вернуть все. Убирает «10 кликов чтобы оставить одну».
+Chart.defaults.plugins.legend.onClick = V7.soloLegendClick;
 
 function chartTextColor()  { return cssVar('--text2') || '#4a5967'; }
 function chartGridColor()  { return cssVar('--border') || '#e5ecef'; }

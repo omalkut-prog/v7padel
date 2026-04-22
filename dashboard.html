@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260422a"></script>
+<script src="assets/data.js?v=20260422b"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -354,6 +354,9 @@ const PALETTE = ["#0ABAB5","#0e8a87","#f39c12","#9b59b6","#e74c3c","#2980b9","#1
 Chart.defaults.font.family = "Inter, -apple-system, sans-serif";
 Chart.defaults.color = "#4a5967";
 Chart.defaults.borderColor = "#e5ecef";
+// Solo-toggle UX: клик по категории легенды = показать ТОЛЬКО её,
+// повторный клик = вернуть все. Применяется ко всем графикам на странице.
+Chart.defaults.plugins.legend.onClick = V7.soloLegendClick;
 
 function byMonth(rows, monthKey) {
   const out = {};
