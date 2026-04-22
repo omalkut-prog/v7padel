@@ -78,6 +78,25 @@
 - После каждого run проверять: нет garbage-строк в client_transactions, customer_id полнота, distinct buckets, etc.
 - Fails → письмо/notify.
 
+### H. Перевести ETL на GitHub Actions (надёжность 100%, не зависит от компа)
+- **Контекст**: сейчас cron крутится через Windows Task Scheduler на ноутбуке Володимира. Работает только если комп включён (или спит с WakeToRun). Если выключил на ночь — задача не запустится. 22.04.2026 настроили `WakeToRun + StartWhenAvailable` как временное решение, но надёжность всё равно не 100%.
+- **Решение**: перенести ETL в GitHub Actions. Cron запускается в датацентре GitHub, комп не нужен. Бесплатно (до 2000 мин/мес, хватит с запасом). Cron `0 0 * * *` (00:00 UTC = 03:00 Turkey).
+- **Локально уже готово** (2026-04-22, не запушено — отложено пользователем):
+  - Папка `/c/Users/volod/v7padel-etl/` с полной структурой.
+  - `etl/` — 18 production-скриптов скопированы (sync_*, build_cache, scrape_occupancy, etc.).
+  - `site_scripts/` — racketid_extract + cross_match.
+  - `.github/workflows/etl.yml` — workflow: checkout обоих репо, python 3.12, secrets → sa.json/matchpoint_creds.json, запуск run_all_etl, commit+push обновлений в публичный репо, upload логов как artifacts.
+  - `requirements.txt`, `.gitignore` (защищает sa.json), `README.md`.
+  - `git init` + initial commit уже сделан локально.
+- **Что остаётся (действия пользователя ~10 мин)**:
+  1. Создать приватный репо `omalkut-prog/v7padel-etl` через GitHub UI.
+  2. Создать Personal Access Token (fine-grained, 1 год) с правом Contents: Read&Write для `omalkut-prog/v7padel` (публичного).
+  3. Добавить 3 Secrets в приватный репо: `SA_JSON` (содержимое etl/sa.json), `MP_CREDS` (etl/matchpoint_creds.json), `PUBLIC_REPO_PAT` (токен из шага 2).
+  4. Мне: `git remote add origin` + push → запуск workflow manually для теста.
+- **После успеха 2-3 циклов**: отключить локальный Task Scheduler `V7Padel_ETL_Daily`.
+- **Приоритет**: не срочный — Task Scheduler с wake-таймером на ноут пока работает. Когда пользователь решит закрыть ноут на неделю — активировать.
+- **Effort**: 30 мин настройки + тестовый прогон после того как пользователь сделает 3 шага в UI.
+
 ---
 
 ## LATER
