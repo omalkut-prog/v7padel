@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260421b"></script>
+<script src="assets/data.js?v=20260422a"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -181,42 +181,6 @@
   <h1 class="page-title">Финансовый дашборд</h1>
   <div class="page-desc">Живые данные из <code>v7padel_db</code> · обновляется при перезагрузке страницы</div>
 
-  <!-- БЛОК «СЕГОДНЯ» — утренний ритуал: как идёт день (vs вчера) -->
-  <div id="today-block" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap:12px; margin-bottom:20px; padding:16px; background:linear-gradient(135deg, var(--accent-soft) 0%, rgba(255,255,255,0) 100%); border:1px solid var(--border); border-radius:var(--radius)">
-    <div style="grid-column: 1 / -1; display:flex; align-items:baseline; justify-content:space-between; margin-bottom:4px">
-      <div style="font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:1px; color:var(--text3)">Сегодня · <span id="today-date">—</span></div>
-      <div style="font-size:11px; color:var(--text3)" id="today-stamp">данные на утренний cron (03:00)</div>
-    </div>
-    <div class="today-card">
-      <div class="today-label">Брони сегодня</div>
-      <div class="today-value" id="today-bk">—</div>
-      <div class="today-sub" id="today-bk-vs">vs вчера —</div>
-    </div>
-    <div class="today-card">
-      <div class="today-label">Часов запланировано</div>
-      <div class="today-value" id="today-hrs">—</div>
-      <div class="today-sub" id="today-hrs-vs">из 60 max</div>
-    </div>
-    <div class="today-card">
-      <div class="today-label">Отмены сегодня</div>
-      <div class="today-value" id="today-canc">—</div>
-      <div class="today-sub" id="today-canc-pct">— % от плана</div>
-    </div>
-    <div class="today-card">
-      <div class="today-label">Доход сегодня <small style="color:var(--text3)">(txn)</small></div>
-      <div class="today-value" id="today-rev">—</div>
-      <div class="today-sub" id="today-rev-note">обновится к утру</div>
-    </div>
-  </div>
-  <style>
-    .today-card { background:var(--surface); padding:12px 14px; border-radius:10px; border:1px solid var(--border); display:flex; flex-direction:column; gap:4px; }
-    .today-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.5px; font-weight:500; }
-    .today-value { font-size:22px; font-weight:700; letter-spacing:-0.3px; line-height:1.1; }
-    .today-sub { font-size:11px; color:var(--text2); }
-    .today-delta-up { color: var(--good); }
-    .today-delta-down { color: var(--bad); }
-  </style>
-
   <!-- KPI row -->
   <div class="kpi-row" id="kpi-row">
     <div class="kpi clickable" id="kpi-rev-card" title="Клик — разбивка по категориям"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span><span class="sub" id="kpi-rev-avg"></span><span class="sub" id="kpi-rev-forecast"></span></div>
@@ -256,8 +220,8 @@
       <h3>Загрузка кортов P1–P4 <small>активные брони по месяцам</small></h3>
       <div class="chart-wrap"><canvas id="chart-courts"></canvas></div>
     </div>
-    <div class="card clickable" id="mem-card" title="Клик — список участников">
-      <h3>Активные карты <small>потолок 55</small></h3>
+    <div class="card" id="mem-card">
+      <h3>Активные карты <small>потолок 55 · клик по Club/VIP — список</small></h3>
       <div id="mem-box">
         <div class="kpi" style="border:none;padding:0;margin-bottom:10px;">
           <span class="value" id="mem-total">—</span>
@@ -265,8 +229,12 @@
         </div>
         <div class="mem-bar"><span id="mem-fill" style="width:0%"></span></div>
         <div class="mem-legend">
-          <span><span class="dot" style="background:var(--accent)"></span>Club <b id="mem-club">—</b></span>
-          <span><span class="dot" style="background:#0e8a87"></span>VIP <b id="mem-vip">—</b></span>
+          <span id="mem-club-badge" style="cursor:pointer; user-select:none; padding:2px 6px; border-radius:6px; transition:background .15s" title="Клик — список Club">
+            <span class="dot" style="background:var(--accent)"></span>Club <b id="mem-club">—</b>
+          </span>
+          <span id="mem-vip-badge" style="cursor:pointer; user-select:none; padding:2px 6px; border-radius:6px; transition:background .15s" title="Клик — список VIP">
+            <span class="dot" style="background:#0e8a87"></span>VIP <b id="mem-vip">—</b>
+          </span>
           <span id="mem-free"></span>
         </div>
         <div style="margin-top:18px;">
@@ -293,7 +261,7 @@
 
   <!-- MEMBER CHURN: истекли не продлены + истекают в ближайшие 14 дней -->
   <div class="grid equal">
-    <div class="card">
+    <div class="card clickable" id="churn-lost-card" title="Клик — полный список истекших">
       <h3>Карты истекли — звонить <small id="churn-lost-sub">—</small></h3>
       <table class="mini" id="tbl-churn-lost">
         <thead><tr><th>Клиент</th><th>Карта</th><th>Истекла</th><th class="num">Fee/мес</th></tr></thead>
@@ -301,7 +269,7 @@
       </table>
       <div style="margin-top:10px; font-size:12px; color:var(--text2)" id="churn-lost-summary">—</div>
     </div>
-    <div class="card">
+    <div class="card clickable" id="churn-soon-card" title="Клик — полный список истекающих в 14 дней">
       <h3>Истекают в 14 дней <small id="churn-soon-sub">—</small></h3>
       <table class="mini" id="tbl-churn-soon">
         <thead><tr><th>Клиент</th><th>Карта</th><th>Через</th><th class="num">Fee/мес</th></tr></thead>
@@ -892,55 +860,6 @@ async function loadSlowLiabilities() {
       document.getElementById("kpi-clients-active").textContent = "активных 30д: " + (kpis.clients_active_30d || 0);
       document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + kpis.clients_new_30d;
 
-      // Блок «Сегодня» — 4 карточки. Данные из dashboard_kpis (утренний snapshot).
-      try {
-        var tD = kpis.today_date || '';
-        var tBk = toNum(kpis.today_bookings_live);
-        var tHrs = toNum(kpis.today_hours_planned);
-        var tCanc = toNum(kpis.today_cancellations);
-        var tCancPct = toNum(kpis.today_cancel_pct);
-        var tRevTx = toNum(kpis.today_revenue_tx);
-        var yBk = toNum(kpis.yest_bookings);
-        var yHrs = toNum(kpis.yest_hours);
-        var yRevTx = toNum(kpis.yest_revenue_tx);
-        var MAX_DAY_HOURS = 60; // 4 корта × 15 рабочих часов
-        // Формат даты
-        if (tD) {
-          var d = new Date(tD + 'T00:00:00');
-          if (!isNaN(d)) {
-            var DOW = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
-            var MON = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
-            document.getElementById('today-date').textContent =
-              DOW[d.getDay()] + ', ' + d.getDate() + ' ' + MON[d.getMonth()];
-          } else {
-            document.getElementById('today-date').textContent = tD;
-          }
-        }
-        document.getElementById('today-bk').textContent = tBk;
-        var deltaBk = tBk - yBk;
-        var deltaBkCls = deltaBk > 0 ? 'today-delta-up' : (deltaBk < 0 ? 'today-delta-down' : '');
-        var deltaBkSign = deltaBk > 0 ? '+' : '';
-        document.getElementById('today-bk-vs').innerHTML = 'vs вчера ' + yBk
-          + (deltaBk !== 0 ? ' <span class="' + deltaBkCls + '">(' + deltaBkSign + deltaBk + ')</span>' : '');
-        document.getElementById('today-hrs').textContent = tHrs.toFixed(1) + ' ч';
-        var loadPct = MAX_DAY_HOURS > 0 ? (tHrs / MAX_DAY_HOURS * 100).toFixed(0) : 0;
-        document.getElementById('today-hrs-vs').textContent = loadPct + '% загрузки · вчера ' + yHrs.toFixed(0) + ' ч';
-        document.getElementById('today-canc').textContent = tCanc + (tCanc > 0 ? ' брон' : '');
-        var cancColor = tCancPct >= 30 ? 'var(--bad)' : (tCancPct >= 15 ? '#f39c12' : 'var(--text2)');
-        document.getElementById('today-canc-pct').innerHTML = tCanc > 0
-          ? '<span style="color:' + cancColor + '">' + tCancPct.toFixed(0) + '%</span> отмен от плана'
-          : 'нет отмен сегодня';
-        if (tRevTx > 0) {
-          document.getElementById('today-rev').textContent = fmtK(tRevTx) + ' ₺';
-          document.getElementById('today-rev-note').textContent =
-            'транзакций: ' + toNum(kpis.today_tx_count);
-        } else {
-          document.getElementById('today-rev').textContent = '—';
-          document.getElementById('today-rev-note').textContent =
-            'Оля ещё не ввела сегодня · обновится к утру';
-        }
-      } catch (e) { console.warn('today block:', e); }
-
       // Блок Member Churn — истекли / истекают
       try {
         var lostN = toNum(kpis.churn_expired_this_month_n);
@@ -1372,16 +1291,43 @@ document.getElementById('kpi-rpc-card').addEventListener('click', async function
 // Active Cards click → member list
 // Источник: club_members (там есть paid_until, days_to_expire, bucket).
 // Колонки: ФИО · Телефон · Карта · Срок истечения (с подсветкой истёк/истекает).
-document.getElementById('mem-card').addEventListener('click', async function() {
-  document.getElementById('modal-title').textContent = 'Активные карты — Club & VIP';
+// Фильтр: 'all' (default) / 'Club' / 'VIP' / 'expiring' — зависит от того
+// откуда кликнули.
+async function _showMembersModal(filter) {
+  filter = filter || 'all';
+  var titles = {
+    'all': 'Активные карты — Club & VIP',
+    'Club': 'Участники Club',
+    'VIP': 'Участники VIP',
+    'expired': 'Карты истекли — звонить продлить',
+    'expiring': 'Карты истекают в ближайшие 14 дней',
+  };
+  document.getElementById('modal-title').textContent = titles[filter] || titles['all'];
   document.getElementById('modal-body').innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div>';
   document.getElementById('dash-modal').classList.add('active');
   try {
     var rows = await V7.loadCacheTab('club_members');
     if (!rows || !rows.length) throw new Error('no cache');
-    // Только действительно Active + приоритет действующим (paid_ok=1 сверху,
-    // потом истекшие), внутри групп — по дате истечения возрастания.
     var members = rows.filter(function(r) { return (r.status || '').toLowerCase() === 'active'; });
+    // Фильтр по типу карты
+    if (filter === 'Club') {
+      members = members.filter(function(m) { return m.card_type === 'Club'; });
+    } else if (filter === 'VIP') {
+      members = members.filter(function(m) { return m.card_type === 'VIP'; });
+    } else if (filter === 'expired') {
+      // Истекшие в текущем месяце и не продлены (days_to_expire < 0 и >= -дней в текущем месяце)
+      var todayD = new Date(); var curMoStart = new Date(todayD.getFullYear(), todayD.getMonth(), 1);
+      var daysSinceMoStart = Math.ceil((todayD - curMoStart) / (1000 * 60 * 60 * 24));
+      members = members.filter(function(m) {
+        var d = parseInt(m.days_to_expire, 10);
+        return !isNaN(d) && d < 0 && d >= -daysSinceMoStart;
+      });
+    } else if (filter === 'expiring') {
+      members = members.filter(function(m) {
+        var d = parseInt(m.days_to_expire, 10);
+        return !isNaN(d) && d >= 0 && d <= 14;
+      });
+    }
     members.sort(function(a, b) {
       // paid_ok=1 выше paid_ok=0 (истекшие — внизу)
       var pa = (a.paid_ok === '1' || a.paid_ok === 1) ? 0 : 1;
@@ -1445,7 +1391,34 @@ document.getElementById('mem-card').addEventListener('click', async function() {
   } catch (e) {
     document.getElementById('modal-body').innerHTML = '<div style="color:var(--bad);padding:20px;text-align:center">Ошибка загрузки: ' + e.message + '</div>';
   }
-});
+}
+
+// Привязка к Club/VIP бейджам + к карточкам churn (истекшие / истекающие).
+(function _bindMemClick() {
+  var clubBadge = document.getElementById('mem-club-badge');
+  var vipBadge = document.getElementById('mem-vip-badge');
+  if (clubBadge) {
+    clubBadge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      _showMembersModal('Club');
+    });
+    clubBadge.addEventListener('mouseenter', function() { this.style.background = 'var(--surface2)'; });
+    clubBadge.addEventListener('mouseleave', function() { this.style.background = 'transparent'; });
+  }
+  if (vipBadge) {
+    vipBadge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      _showMembersModal('VIP');
+    });
+    vipBadge.addEventListener('mouseenter', function() { this.style.background = 'var(--surface2)'; });
+    vipBadge.addEventListener('mouseleave', function() { this.style.background = 'transparent'; });
+  }
+  // Churn карточки (вся карточка кликабельная)
+  var lostCard = document.getElementById('churn-lost-card');
+  var soonCard = document.getElementById('churn-soon-card');
+  if (lostCard) lostCard.addEventListener('click', function() { _showMembersModal('expired'); });
+  if (soonCard) soonCard.addEventListener('click', function() { _showMembersModal('expiring'); });
+})();
 </script>
 <script src="assets/nav.js"></script>
 <script src="assets/sidebar.js"></script>
