@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Variance Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css?v=20260418">
+<link rel="stylesheet" href="assets/sidebar.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  nav { position: sticky; top: 0; z-index: 100; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links { display: flex; list-style: none; }
+  .nav-links li { list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; max-width: 85ch; }
+  .section { margin-bottom: 36px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; gap: 16px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+  .section-head .hint { font-size: 11px; color: var(--text3); }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+
+  .hero-row { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; margin-bottom: 28px; }
+  @media (max-width: 900px) { .hero-row { grid-template-columns: 1fr; } }
+  .hero-kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 36px; box-shadow: var(--shadow); }
+  .hero-kpi .big { font-size: 64px; font-weight: 300; letter-spacing: -2.5px; color: var(--accent); line-height: 1; margin-bottom: 6px; font-variant-numeric: tabular-nums; }
+  .hero-kpi .label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text3); margin-bottom: 12px; }
+  .hero-kpi .sub { font-size: 14px; color: var(--text2); line-height: 1.6; max-width: 48ch; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; box-shadow: var(--shadow); }
+  .kpi-card .kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); margin-bottom: 8px; }
+  .kpi-card .kpi-value { font-size: 24px; font-weight: 700; letter-spacing: -0.8px; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi-card .kpi-delta { font-size: 12px; font-weight: 500; margin-top: 6px; }
+  .kpi-card .kpi-delta.pos { color: var(--good); }
+  .kpi-card .kpi-delta.neg { color: var(--bad); }
+
+  table.waterfall { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  table.waterfall th { text-align: left; padding: 12px 14px; color: var(--text3); font-weight: 500; font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+  table.waterfall th.num, table.waterfall td.num { text-align: right; }
+  table.waterfall td { padding: 13px 14px; border-bottom: 1px solid var(--border); }
+  table.waterfall tr.total td { font-weight: 600; background: var(--surface2); }
+  table.waterfall tr.hero td { font-weight: 600; border-top: 2px solid var(--accent); background: var(--accent-soft); padding: 16px 14px; }
+  table.waterfall td.pos { color: var(--good); font-weight: 500; }
+  table.waterfall td.neg { color: var(--bad); font-weight: 500; }
+  .pill { display: inline-block; padding: 2px 10px; font-size: 11px; font-weight: 500; border-radius: 20px; background: var(--surface2); color: var(--text2); white-space: nowrap; }
+  .pill.green { background: rgba(19,194,150,0.12); color: var(--good); }
+  .pill.red { background: rgba(231,76,60,0.10); color: var(--bad); }
+  .pill.amber { background: rgba(243,156,18,0.10); color: var(--warn); }
+
+  .driver-row { display: grid; grid-template-columns: 1fr 160px 80px; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--border); align-items: center; }
+  .driver-row:last-child { border-bottom: 0; }
+  .driver-row .d-name { font-weight: 500; color: var(--text); }
+  .driver-row .d-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .driver-row .d-bar { background: var(--surface2); border-radius: 3px; height: 6px; overflow: hidden; margin-top: 6px; }
+  .driver-row .d-bar .fill { height: 100%; border-radius: 3px; background: var(--good); transition: width .6s; }
+  .driver-row .d-bar .fill.neg { background: var(--bad); }
+  .driver-row .d-value { text-align: right; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .driver-row .d-value.pos { color: var(--good); }
+  .driver-row .d-value.neg { color: var(--bad); }
+  .driver-row .d-pct { text-align: right; font-variant-numeric: tabular-nums; font-size: 12px; color: var(--text3); }
+
+  .chart-box { position: relative; height: 320px; margin-top: 8px; }
+
+  /* Advice block (reusing v7 pattern) */
+  .advice-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin-top: 32px; box-shadow: var(--shadow); position: relative; }
+  .advice-block::before { content: ''; position: absolute; top: 0; left: 28px; right: 28px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .advice-block .advice-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+  .advice-block .advice-title { font-size: 20px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; font-style: italic; }
+  .advice-block .advice-from { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.6px; font-weight: 500; }
+  .advice-block ul { list-style: none; padding: 0; margin: 0; }
+  .advice-block li { padding: 18px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.65; color: var(--text2); display: grid; grid-template-columns: 56px 1fr; gap: 20px; align-items: start; }
+  .advice-block li:last-child { border-bottom: 0; }
+  .advice-block li .advice-num { font-size: 32px; color: var(--accent); font-weight: 300; line-height: 0.9; padding-top: 2px; letter-spacing: -1.5px; font-style: italic; }
+  .advice-block li strong { color: var(--text); font-weight: 600; display: block; margin-bottom: 4px; font-size: 14.5px; }
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li class="team-link"><a href="team.html">Команда</a></li>
+    <li><a href="tournament-analytics.html">Турниры</a></li>
+    <li><a href="risk.html">Риски</a></li>
+    <li><a href="variance.html" class="active">Variance</a></li>
+    <li><a href="audit.html">Аудит</a></li>
+    <li><a href="brain.html">Brain</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
+</nav>
+
+<main>
+  <h1 class="page-title">Variance Analysis · март vs февраль 2026</h1>
+  <p class="page-sub">Методика CFO: price × volume × mix декомпозиция. Источник — P&amp;L бухгалтера (NEW_PNL, обновляется ежемесячно). Фокус: что именно подняло мартовскую выручку на +129%? Какие драйверы повторяемые, а какие one-off?</p>
+
+  <div class="hero-row">
+    <div class="hero-kpi">
+      <div class="label">Revenue Variance · март vs февраль</div>
+      <div class="big">+903k₺</div>
+      <div class="sub">
+        Total variance <strong>+128.9%</strong>. Это не восстановление — это <strong>structural shift</strong>: установили крыши на 3 из 4 кортов в начале марта, membership renewal cycle, запуск весеннего турнирного календаря. 6 месяцев данных (окт'25 — мар'26) показывают: март — новый baseline, не пик.
+      </div>
+    </div>
+    <div class="hero-kpi" style="background: var(--accent-soft); border-color: var(--accent-border);">
+      <div class="label">Materiality threshold</div>
+      <div class="big" style="font-size:48px">±15%</div>
+      <div class="sub">По методике CFO для sequential MoM. Все 4 категории выручки превысили порог. Анализ обязательный.</div>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Февраль 2026</div>
+      <div class="kpi-value">700k₺</div>
+      <div class="kpi-delta">начальное значение</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Март 2026</div>
+      <div class="kpi-value">1 603k₺</div>
+      <div class="kpi-delta pos">+129% MoM</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Vs Октябрь 2025</div>
+      <div class="kpi-value">1 526k₺</div>
+      <div class="kpi-delta pos">+77k vs Okt · новый max</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Ср. ₺/корто-час март</div>
+      <div class="kpi-value">~1 200₺</div>
+      <div class="kpi-delta">primetime premium</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">% от цели (80k/день)</div>
+      <div class="kpi-value">65%</div>
+      <div class="kpi-delta">2480k target · gap 877k</div>
+    </div>
+  </div>
+
+  <!-- WATERFALL -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Waterfall · что именно принесло +903к₺</h2>
+      <span class="hint">декомпозиция по категориям выручки</span>
+    </div>
+    <div class="panel">
+      <table class="waterfall">
+        <thead><tr>
+          <th>Driver</th>
+          <th class="num">Feb 2026</th>
+          <th class="num">Mar 2026</th>
+          <th class="num">Δ ₺</th>
+          <th class="num">Δ %</th>
+          <th class="num">Contribution</th>
+        </tr></thead>
+        <tbody>
+          <tr class="total"><td colspan="6">Падел · 65% всей выручки</td></tr>
+          <tr>
+            <td><strong>Membership fees</strong><br><span class="pill">renewal cycle + Club + VIP</span></td>
+            <td class="num">155 000</td>
+            <td class="num">471 500</td>
+            <td class="num pos">+316 500</td>
+            <td class="num pos">+204%</td>
+            <td class="num">35%</td>
+          </tr>
+          <tr>
+            <td><strong>Bookings</strong> (падел бронь кортов)<br><span class="pill green">все 4 корта доступны</span></td>
+            <td class="num">174 900</td>
+            <td class="num">372 450</td>
+            <td class="num pos">+197 550</td>
+            <td class="num pos">+113%</td>
+            <td class="num">22%</td>
+          </tr>
+          <tr>
+            <td><strong>Particular classes</strong> (индивидуальные тренировки)<br><span class="pill">+185% volume</span></td>
+            <td class="num">53 920</td>
+            <td class="num">153 550</td>
+            <td class="num pos">+99 630</td>
+            <td class="num pos">+185%</td>
+            <td class="num">11%</td>
+          </tr>
+          <tr>
+            <td><strong>Vouchers</strong><br><span class="pill amber">offset</span></td>
+            <td class="num">74 310</td>
+            <td class="num">44 620</td>
+            <td class="num neg">−29 690</td>
+            <td class="num neg">−40%</td>
+            <td class="num">−3%</td>
+          </tr>
+          <tr class="total"><td colspan="6">Турниры · 26% всей выручки</td></tr>
+          <tr>
+            <td><strong>Tournaments</strong><br><span class="pill green">весенний календарь</span></td>
+            <td class="num">193 500</td>
+            <td class="num">422 595</td>
+            <td class="num pos">+229 095</td>
+            <td class="num pos">+118%</td>
+            <td class="num">25%</td>
+          </tr>
+          <tr class="total"><td colspan="6">Товары + прочее · 9% выручки</td></tr>
+          <tr>
+            <td><strong>Товары / магазин</strong></td>
+            <td class="num">~48 000</td>
+            <td class="num">~139 000</td>
+            <td class="num pos">+91 000</td>
+            <td class="num pos">+190%</td>
+            <td class="num">10%</td>
+          </tr>
+          <tr class="hero">
+            <td><strong>Total variance</strong></td>
+            <td class="num">700 447</td>
+            <td class="num">1 603 306</td>
+            <td class="num pos">+902 859</td>
+            <td class="num pos">+129%</td>
+            <td class="num">100%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 6-month chart -->
+  <div class="section">
+    <div class="section-head">
+      <h2>6 месяцев · сезонный контекст</h2>
+      <span class="hint">октябрь 2025 — март 2026</span>
+    </div>
+    <div class="panel">
+      <div class="chart-box"><canvas id="trend-chart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- DRIVER ANALYSIS -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Драйверы · повторяемые vs one-off</h2>
+    </div>
+    <div class="panel">
+      <div class="driver-row">
+        <div>
+          <div class="d-name">Membership fees · +316k₺</div>
+          <div class="d-sub">Структурный: годовой renewal cycle + VIP tier launched. Повторяемый в такой же или большей сумме через 12 мес.</div>
+          <div class="d-bar"><div class="fill" style="width:90%"></div></div>
+        </div>
+        <div class="d-value pos">+316 500</div>
+        <div><span class="pill green">repeat</span></div>
+      </div>
+      <div class="driver-row">
+        <div>
+          <div class="d-name">Bookings · +198k₺</div>
+          <div class="d-sub">Структурный: установлены крыши на 3 корта → +25-30% capacity vs зимой без крыш. Новый baseline.</div>
+          <div class="d-bar"><div class="fill" style="width:85%"></div></div>
+        </div>
+        <div class="d-value pos">+197 550</div>
+        <div><span class="pill green">repeat</span></div>
+      </div>
+      <div class="driver-row">
+        <div>
+          <div class="d-name">Tournaments · +229k₺</div>
+          <div class="d-sub">Частично повторяемый: начало весеннего сезона турниров. Уровень апр-май-июн должен быть ≥, но лето возможно падение.</div>
+          <div class="d-bar"><div class="fill" style="width:70%"></div></div>
+        </div>
+        <div class="d-value pos">+229 095</div>
+        <div><span class="pill amber">partial</span></div>
+      </div>
+      <div class="driver-row">
+        <div>
+          <div class="d-name">Particular classes · +100k₺</div>
+          <div class="d-sub">Structural: тренеры заработали свои бонусы за экспорт outreach. Зависит от coach retention.</div>
+          <div class="d-bar"><div class="fill" style="width:75%"></div></div>
+        </div>
+        <div class="d-value pos">+99 630</div>
+        <div><span class="pill green">repeat</span></div>
+      </div>
+      <div class="driver-row">
+        <div>
+          <div class="d-name">Vouchers · −30k₺</div>
+          <div class="d-sub">Логичный offset: после активной выдачи vouchers в dec-feb, теперь они выкупаются (reduction revenue). Wait — ваучер погашается = fее снижается. Но продажи новых ваучеров упали.</div>
+          <div class="d-bar"><div class="fill neg" style="width:30%"></div></div>
+        </div>
+        <div class="d-value neg">−29 690</div>
+        <div><span class="pill amber">monitor</span></div>
+      </div>
+      <div class="driver-row">
+        <div>
+          <div class="d-name">Товары / магазин · +91k₺</div>
+          <div class="d-sub">Coupled с увеличением трафика — больше людей на кортах = больше покупок мячей/перчаток. Повторится пропорционально утилизации.</div>
+          <div class="d-bar"><div class="fill" style="width:70%"></div></div>
+        </div>
+        <div class="d-value pos">+91 000</div>
+        <div><span class="pill green">repeat</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NARRATIVE -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Narrative · почему март взорвался</h2>
+    </div>
+    <div class="panel">
+      <p style="font-size:14px; line-height:1.7; color:var(--text2); margin-bottom:14px"><strong style="color:var(--text)">Главный драйвер — крыши над 3/4 кортами.</strong> Установлены в начале марта 2026. До этого зима в Анталии ограничивала игру на open кортах (P4 без крыши остался). Это не «восстановление» — это <em>запоздалый старт</em> года: октябрь-ноябрь был близок к мартовским цифрам, dec-feb ушёл в провал из-за погоды.</p>
+      <p style="font-size:14px; line-height:1.7; color:var(--text2); margin-bottom:14px"><strong style="color:var(--text)">Второй драйвер — membership renewal.</strong> 471k₺ VIP + Club = 29% всей мартовской выручки. Это годовой цикл — в следующем марте можно ожидать того же или больше при росте membership.</p>
+      <p style="font-size:14px; line-height:1.7; color:var(--text2)"><strong style="color:var(--text)">Outlook:</strong> апрель-май-июнь должны держаться на уровне 1.3-1.7M₺ (низ — без renewal спайка, верх — туристический сезон + high utilization). Если апрель упадёт ниже 1.2M — сигнал, что март был one-off (маловероятно, но проверяем).</p>
+      <p style="font-size:14px; line-height:1.7; color:var(--text2)"><strong style="color:var(--text)">Action:</strong> Володимир + Оля — план монетизации primetime (вечер будни + выходные) через yield management. Снять low-hanging fruit: +15% price на primetime даст +200k₺/мес при той же utilization.</p>
+    </div>
+  </div>
+
+  <div class="advice-block">
+    <div class="advice-header">
+      <span class="advice-title">Совет CFO премиум-рэкет-клубов</span>
+      <span class="advice-from">Russell Barnes — CEO David Lloyd Clubs</span>
+    </div>
+    <ul>
+      <li><span class="advice-num">01</span><span><strong>Баланс повторяемые vs one-off — приоритет для next board.</strong> 85% variance от repeat-драйверов (membership, bookings, classes). Это хорошо. 15% от tournament calendar одноразовые. План на 2027 строим с ориентиром 1.4M₺ baseline.</span></li>
+      <li><span class="advice-num">02</span><span><strong>Membership quality &gt; Count.</strong> 55 cap достигнут? Renewal rate 85%+? ARPU VIP / Club tier trend? Без этих метрик — рост не устойчив.</span></li>
+      <li><span class="advice-num">03</span><span><strong>Tournament calendar на 6 мес вперёд.</strong> Предсказуемая выручка + маркетинг инструмент для acquisition. Не откладывайте анонсы ближе 2 недель к событию.</span></li>
+      <li><span class="advice-num">04</span><span><strong>Coach capacity = bottleneck.</strong> Particular classes +185% YoY. Если 4 тренера не справляются — +1 senior coach = снятие топа. Но сначала проверьте utilization самих тренеров.</span></li>
+      <li><span class="advice-num">05</span><span><strong>Vouchers структурно проиграны.</strong> −40% — либо нет нового уровня incentive, либо оставшиеся ваучеры в pipeline сгорают. Решите: phase out vouchers или double down с reset кампанией.</span></li>
+    </ul>
+  </div>
+</main>
+
+<script>
+new Chart(document.getElementById('trend-chart'), {
+  type: 'bar',
+  data: {
+    labels: ['Октябрь 25', 'Ноябрь 25', 'Декабрь 25', 'Январь 26', 'Февраль 26', 'Март 26'],
+    datasets: [
+      {
+        label: 'Revenue · итого (₺)',
+        data: [1525888, 1171400, 654411, 662953, 700447, 1603306],
+        backgroundColor: ['#0ABAB5cc', '#0ABAB5cc', '#e74c3ccc', '#e74c3ccc', '#e74c3ccc', '#13c296cc'],
+        borderRadius: 6,
+      }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: function(ctx) { return ctx.raw.toLocaleString('ru-RU') + ' ₺'; },
+          afterLabel: function(ctx) {
+            if (ctx.dataIndex === 0) return 'pre-winter baseline';
+            if (ctx.dataIndex === 1) return '−23% vs oct · начало холодов';
+            if (ctx.dataIndex === 2) return '−44% · провал погодный';
+            if (ctx.dataIndex === 3) return '+1% · на дне';
+            if (ctx.dataIndex === 4) return '+5% · переходный';
+            if (ctx.dataIndex === 5) return '+129% · крыши установлены';
+          }
+        }
+      }
+    },
+    scales: {
+      x: { grid: { display: false } },
+      y: {
+        beginAtZero: true,
+        grid: { color: 'var(--border)' },
+        ticks: { callback: function(v) { return (v/1000).toFixed(0) + 'k'; } }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
