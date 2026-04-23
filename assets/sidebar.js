@@ -54,6 +54,7 @@
     { group: 'Инструменты', items: [
       { label: 'Данные',      href: 'data.html',                 icon: 'data',       roles: ['admin'] },
       { label: 'Brain',       href: 'brain.html',                icon: 'brain',      roles: ['admin'], cls: 'brain-link' },
+      { label: 'Baseline',    href: 'baseline.html',             icon: 'knowledge',  roles: ['admin'] },
       { label: 'База знаний', href: 'brain.html',                icon: 'knowledge',  roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Расписание',  href: 'schedule-builder.html',     icon: 'schedule',   roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Калькулятор', href: 'club-coach-calculator.html', icon: 'calculator', roles: ['admin', 'manager', 'coach', 'administrator'] },
@@ -64,9 +65,14 @@
   var ROLE_LABELS = { admin: 'Admin', manager: 'Менеджер', coach: 'Тренер', administrator: 'Администратор' };
   var ROLE_SHORT  = { admin: 'A', manager: 'M', coach: 'T', administrator: 'A' };
 
-  // ── Detect current page ──
-  var PAGE = location.pathname.split('/').pop() || 'index.html';
-  if (PAGE === '') PAGE = 'index.html';
+  // ── Detect current page (support subfolders) ──
+  var segs = location.pathname.split('/').filter(Boolean);
+  var last = segs.length ? segs[segs.length - 1] : '';
+  var isFile = /\.html?$/i.test(last);
+  var PAGE = isFile ? last : 'index.html';
+  var FOLDER = isFile ? (segs.length >= 2 ? segs[segs.length - 2] : '') : last;
+  // Prefix used to link from subfolders back to root: "" at root, "../" one level deep
+  var rootPrefix = FOLDER ? '../' : '';
 
   // Tournament subpages → highlight "Турниры"
   var TOURNAMENT_PAGES = ['tournament-analytics.html', 'tournament-calendar.html', 'tournament-list.html', 'tournament-tools.html', 'campspaine.html'];
@@ -86,7 +92,7 @@
 
   // Header
   html += '<div class="sb-header">';
-  html += '  <a class="sb-logo" href="index.html"><span class="sb-logo-icon">V7</span><span class="sb-logo-text"><em>Padel</em></span></a>';
+  html += '  <a class="sb-logo" href="' + rootPrefix + 'index.html"><span class="sb-logo-icon">V7</span><span class="sb-logo-text"><em>Padel</em></span></a>';
   html += '  <button class="sb-toggle" title="Свернуть">' + ICONS.collapse + '</button>';
   html += '</div>';
 
@@ -106,7 +112,7 @@
     visibleItems.forEach(function(it) {
       var isActive = (it.href === activePage);
       var cls = 'sb-item' + (isActive ? ' active' : '') + (it.cls ? ' ' + it.cls : '');
-      html += '<a class="' + cls + '" href="' + it.href + '" data-tip="' + it.label + '">';
+      html += '<a class="' + cls + '" href="' + rootPrefix + it.href + '" data-tip="' + it.label + '">';
       html += '  <span class="sb-item-icon">' + (ICONS[it.icon] || '') + '</span>';
       html += '  <span class="sb-item-label">' + it.label + '</span>';
       html += '</a>';
@@ -120,7 +126,7 @@
   html += '<div class="sb-footer">';
   html += '  <div class="sb-role" data-short="' + (ROLE_SHORT[role] || 'U') + '">' + (ROLE_LABELS[role] || role) + '</div>';
   html += '  <button class="sb-refresh" id="sb-refresh-btn" title="Обновить данные (Lite — сбросить кеш и перезагрузить)">' + REFRESH_ICON + '<span class="sb-refresh-label">Обновить</span></button>';
-  html += '  <button class="sb-logout" onclick="sessionStorage.clear();location.href=\'login.html\'">Выйти</button>';
+  html += '  <button class="sb-logout" onclick="sessionStorage.clear();location.href=\'' + rootPrefix + 'login.html\'">Выйти</button>';
   html += '</div>';
 
   // ── Insert into DOM ──

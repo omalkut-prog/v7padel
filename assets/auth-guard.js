@@ -1,13 +1,22 @@
 (function() {
-  var PAGE = location.pathname.split('/').pop() || 'index.html';
-  if (PAGE === '') PAGE = 'index.html';
+  // ── Parse current location: support both root (page.html) and subfolder (folder/page.html) ──
+  var segs = location.pathname.split('/').filter(Boolean);
+  var last = segs.length ? segs[segs.length - 1] : '';
+  var isFile = /\.html?$/i.test(last);
+  var PAGE = isFile ? last : 'index.html';
+  var FOLDER = isFile ? (segs.length >= 2 ? segs[segs.length - 2] : '') : last;
+  // Full key used for ACCESS lookups: "playbook/index.html" when inside /playbook/, "dashboard.html" at root
+  var KEY = FOLDER ? (FOLDER + '/' + PAGE) : PAGE;
+  // Prefix for redirect URLs back to site root (relative: "" if at root, "../" if one level deep)
+  var rootPrefix = FOLDER ? '../' : '';
+
   var role = sessionStorage.getItem('v7role');
 
   var PUBLIC = ['login.html', 'intensive.html', 'intensive-form.html'];
-  if (PUBLIC.indexOf(PAGE) !== -1) return;
+  if (PUBLIC.indexOf(PAGE) !== -1 && !FOLDER) return;
 
   if (!role) {
-    location.href = 'login.html';
+    location.href = rootPrefix + 'login.html';
     return;
   }
 
@@ -35,6 +44,9 @@
     'manager-dashboard.html':    ['admin', 'manager'],
     'coach-dashboard.html':      ['admin', 'coach'],
     'admin-dashboard.html':      ['admin', 'administrator'],
+
+    // ── Strategic docs (admin-only) ──
+    'baseline.html':             ['admin'],
   };
 
   var DASHBOARDS = {
@@ -44,12 +56,12 @@
     'administrator': 'admin-dashboard.html',
   };
 
-  var allowed = ACCESS[PAGE];
+  var allowed = ACCESS[KEY];
   if (!allowed) {
-    if (role !== 'admin') location.href = DASHBOARDS[role] || 'login.html';
+    if (role !== 'admin') location.href = rootPrefix + (DASHBOARDS[role] || 'login.html');
     return;
   }
   if (allowed.indexOf(role) === -1) {
-    location.href = DASHBOARDS[role] || 'login.html';
+    location.href = rootPrefix + (DASHBOARDS[role] || 'login.html');
   }
 })();
