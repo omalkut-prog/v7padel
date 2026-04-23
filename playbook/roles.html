@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../assets/auth-guard.js"></script>
+<title>Роли и команда — V7 Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="../assets/theme.js"></script>
+<link rel="stylesheet" href="../assets/theme.css?v=20260418">
+<link rel="stylesheet" href="../assets/sidebar.css">
+<link rel="stylesheet" href="../assets/playbook.css">
+<script src="../assets/sidebar.js"></script>
+</head>
+<body>
+
+<main class="pb-main" data-pb-page="roles">
+  <header class="pb-header">
+    <span class="pb-kicker">03 · Роли и команда</span>
+    <h1>Роли и команда клуба</h1>
+    <p class="pb-lede">
+      Каждая роль в клубе V7 имеет чёткие зоны ответственности, KPI и границы. Ниже — карта ролей
+      типового клуба сети. Структура одинаковая для всех клубов, персональные детали адаптируются локально.
+    </p>
+    <div class="pb-meta">
+      <span><b>Статус блока:</b> <span class="pb-status wip">В разработке</span></span>
+      <span><b>Готовых JD:</b> 1 из 6</span>
+      <span><b>Применимо:</b> все клубы сети</span>
+    </div>
+  </header>
+
+  <article class="pb-article" style="max-width:none;">
+
+    <h2>Структура команды типового клуба</h2>
+    <p>
+      Типовой клуб V7 (3–5 кортов) имеет три вертикали: <strong>операции</strong> (управляющий → старший админ → админы → клининг),
+      <strong>тренерская</strong> (главный тренер → тренеры) и <strong>онлайн</strong> (централизованно в сети). Это позволяет избежать ситуаций,
+      когда одна роль отвечает за всё и проваливает всё.
+    </p>
+
+    <div class="pb-callout">
+      <div class="label">Принцип разделения</div>
+      <p>
+        Старший администратор и тренеры — <strong>параллельные вертикали</strong>, не иерархия. Старший админ
+        не руководит тренерами и наоборот. Общая точка сборки — управляющий клуба.
+      </p>
+    </div>
+
+    <h2>Список ролей</h2>
+
+    <div class="pb-roles">
+      <a class="pb-role" href="role-manager.html">
+        <div class="pb-role-main">
+          <div class="name">Управляющий клубом</div>
+          <div class="desc">P&amp;L, стратегия, команда, партнёры, CAPEX. Горизонт — квартал / год.</div>
+        </div>
+        <div class="pb-role-foot"><span class="pb-status draft">Черновик</span><span>→</span></div>
+      </a>
+
+      <a class="pb-role" href="role-senior-admin.html">
+        <div class="pb-role-main">
+          <div class="name">Старший администратор</div>
+          <div class="desc">Команда на земле, качество смены, касса, порядок, сервис на месте. Горизонт — смена / неделя.</div>
+        </div>
+        <div class="pb-role-foot"><span class="pb-status ready">Готово</span><span>→</span></div>
+      </a>
+
+      <a class="pb-role" href="role-admin.html">
+        <div class="pb-role-main">
+          <div class="name">Администратор</div>
+          <div class="desc">Ресепшн, приём клиентов, касса, бронирования, базовый клиентский опыт.</div>
+        </div>
+        <div class="pb-role-foot"><span class="pb-status draft">Черновик</span><span>→</span></div>
+      </a>
+
+      <a class="pb-role" href="role-head-coach.html">
+        <div class="pb-role-main">
+          <div class="name">Главный тренер</div>
+          <div class="desc">Методика академии, координация тренерского состава, качество тренировочного продукта.</div>
+        </div>
+        <div class="pb-role-foot"><span class="pb-status draft">Черновик</span><span>→</span></div>
+      </a>
+
+      <a class="pb-role" href="role-coach.html">
+        <div class="pb-role-main">
+          <div class="name">Тренер</div>
+          <div class="desc">Индивидуальные и групповые тренировки, развитие учеников, участие в турнирах.</div>
+        </div>
+        <div class="pb-role-foot"><span class="pb-status draft">Черновик</span><span>→</span></div>
+      </a>
+
+      <a class="pb-role" href="role-cleaning.html">
+        <div class="pb-role-main">
+          <div class="name">Клининг</div>
+          <div class="desc">Чистота клуба: корты, раздевалки, ресепшн, pro-shop. По графику и по ситуации.</div>
+        </div>
+        <div class="pb-role-foot"><span class="pb-status draft">Черновик</span><span>→</span></div>
+      </a>
+    </div>
+
+    <h2>Принципы ролевой структуры</h2>
+    <ol>
+      <li><strong>Ответственность за результат vs. за процесс.</strong> Управляющий — за результат (P&amp;L, рост). Старший администратор — за процесс (смена, сервис).</li>
+      <li><strong>Не смешивать вертикали.</strong> Операции, тренеры, онлайн — три разные экспертизы. Одна роль не может качественно отвечать за две.</li>
+      <li><strong>Каждая роль знает свои границы.</strong> JD явно описывает, <em>что НЕ делает</em> эта роль — не только что делает.</li>
+      <li><strong>KPI привязаны к тому, что роль контролирует.</strong> Старшему админу — процессные метрики, управляющему — финансовые, тренеру — качество обучения.</li>
+      <li><strong>Бонусная схема зеркалит KPI.</strong> Если меряешь по выручке, но человек не влияет на выручку — это фрустрация, а не мотивация.</li>
+    </ol>
+
+  </article>
+</main>
+
+<script src="../assets/playbook.js"></script>
+</body>
+</html>

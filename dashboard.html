@@ -155,6 +155,17 @@
     .card h3 { font-size: 14px; }
     .card h3 small { display: block; margin-left: 0; margin-top: 2px; }
   }
+
+  .advice-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin: 32px 0 0; box-shadow: var(--shadow); position: relative; }
+  .advice-block::before { content: ''; position: absolute; top: 0; left: 28px; right: 28px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .advice-block .advice-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+  .advice-block .advice-title { font-size: 20px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; font-style: italic; }
+  .advice-block .advice-from { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.6px; font-weight: 500; }
+  .advice-block ul.advice-list { list-style: none; padding: 0; margin: 0; }
+  .advice-block li { padding: 18px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.65; color: var(--text2); display: grid; grid-template-columns: 56px 1fr; gap: 20px; align-items: start; }
+  .advice-block li:last-child { border-bottom: 0; }
+  .advice-block li .advice-num { font-size: 32px; color: var(--accent); font-weight: 300; line-height: 0.9; padding-top: 2px; letter-spacing: -1.5px; font-style: italic; }
+  .advice-block li strong { color: var(--text); font-weight: 600; display: block; margin-bottom: 4px; font-size: 14.5px; }
 </style>
 </head>
 <body>
@@ -171,6 +182,7 @@
     <li><a href="data.html">Данные</a></li>
     <li class="team-link"><a href="team.html">Команда</a></li>
     <li><a href="tournament-analytics.html">Турниры</a></li>
+    <li><a href="risk.html">Риски</a></li>
     <li><a href="audit.html">Аудит</a></li>
     <li><a href="brain.html">Brain</a></li>
   </ul>

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Реестр рисков</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css?v=20260418">
+<link rel="stylesheet" href="assets/sidebar.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    height: 56px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 24px;
+  }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links { display: flex; gap: 0; list-style: none; }
+  .nav-links li { list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-links a.active { color: var(--accent); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
+
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; max-width: 85ch; }
+
+  .section { margin-bottom: 32px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; gap: 16px; flex-wrap: wrap; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+
+  .panel {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; box-shadow: var(--shadow);
+  }
+
+  /* KPI */
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+  .kpi-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .kpi-card .kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); margin-bottom: 8px; }
+  .kpi-card .kpi-value { font-size: 32px; font-weight: 700; letter-spacing: -1px; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .kpi-card .kpi-value.high { color: var(--bad); }
+  .kpi-card .kpi-value.mid { color: var(--warn); }
+  .kpi-card .kpi-value.low { color: var(--good); }
+  .kpi-card .kpi-sub { font-size: 12px; color: var(--text3); margin-top: 8px; }
+
+  /* Probability × Impact matrix */
+  .matrix { display: grid; grid-template-columns: 120px repeat(3, 1fr); gap: 2px; }
+  .matrix > div { padding: 14px; font-size: 12px; min-height: 96px; border-radius: 6px; }
+  .matrix .hdr { background: var(--surface2); font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-size: 10px; text-align: center; display: flex; align-items: center; justify-content: center; min-height: auto; padding: 10px; }
+  .matrix .rlbl { background: var(--surface2); font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.8px; font-size: 10px; display: flex; align-items: center; justify-content: center; text-align: center; }
+  .matrix .cell-h { background: rgba(231, 76, 60, 0.10); }
+  .matrix .cell-m { background: rgba(243, 156, 18, 0.08); }
+  .matrix .cell-l { background: rgba(19, 194, 150, 0.06); }
+  .matrix .riskid { display: inline-block; font-family: 'SF Mono', Consolas, monospace; font-weight: 600; color: var(--accent); margin-right: 6px; font-size: 11px; }
+
+  /* Table */
+  table.risk-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.risk-table th { text-align: left; padding: 12px 14px; color: var(--text3); font-weight: 500; font-size: 10.5px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+  table.risk-table td { padding: 14px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.risk-table tr:last-child td { border-bottom: none; }
+  table.risk-table td strong { color: var(--text); display: block; margin-bottom: 4px; font-weight: 600; }
+  .pill { display: inline-block; padding: 2px 10px; font-size: 11px; font-weight: 500; border-radius: 20px; background: var(--surface2); color: var(--text2); white-space: nowrap; }
+  .pill.red { background: rgba(231,76,60,0.10); color: var(--bad); }
+  .pill.amber { background: rgba(243,156,18,0.10); color: var(--warn); }
+  .pill.green { background: rgba(19,194,150,0.10); color: var(--good); }
+
+  /* Russell Barnes portrait block */
+  .portrait { display: grid; grid-template-columns: 180px 1fr; gap: 32px; align-items: start; padding: 32px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 28px; box-shadow: var(--shadow); }
+  .portrait .avatar { width: 140px; height: 140px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-soft), var(--surface2)); display: flex; align-items: center; justify-content: center; font-size: 56px; color: var(--accent); border: 1px solid var(--accent-border); font-weight: 300; letter-spacing: -2px; }
+  .portrait .who { font-size: 24px; letter-spacing: -0.5px; color: var(--text); font-weight: 500; line-height: 1.1; margin-bottom: 4px; }
+  .portrait .role { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.4px; margin-bottom: 16px; }
+  .portrait .quote { font-size: 17px; line-height: 1.5; color: var(--text); max-width: 64ch; font-weight: 400; font-style: italic; }
+
+  /* Advice block */
+  .advice-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin-top: 32px; box-shadow: var(--shadow); position: relative; }
+  .advice-block::before { content: ''; position: absolute; top: 0; left: 28px; right: 28px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .advice-block .header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+  .advice-block .title { font-size: 20px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; font-style: italic; }
+  .advice-block .from { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.6px; font-weight: 500; }
+  .advice-block ul { list-style: none; padding: 0; margin: 0; }
+  .advice-block li { padding: 18px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.65; color: var(--text2); display: grid; grid-template-columns: 56px 1fr; gap: 20px; align-items: start; }
+  .advice-block li:last-child { border-bottom: 0; }
+  .advice-block li .num { font-size: 32px; color: var(--accent); font-weight: 300; line-height: 0.9; padding-top: 2px; letter-spacing: -1.5px; font-style: italic; }
+  .advice-block li strong { color: var(--text); font-weight: 600; display: block; margin-bottom: 4px; font-size: 14.5px; }
+
+  @media (max-width: 700px) {
+    .portrait { grid-template-columns: 1fr; gap: 20px; }
+    .portrait .avatar { width: 100px; height: 100px; font-size: 42px; }
+    .matrix { grid-template-columns: 80px 1fr; }
+    .matrix > div:nth-child(n+3):nth-child(-n+4) { display: none; }
+  }
+</style>
+</head>
+<body>
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
+    <li><a href="management.html">Управление</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li class="team-link"><a href="team.html">Команда</a></li>
+    <li><a href="tournament-analytics.html">Турниры</a></li>
+    <li><a href="risk.html" class="active">Риски</a></li>
+    <li><a href="audit.html">Аудит</a></li>
+    <li><a href="brain.html">Brain</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
+</nav>
+
+<main>
+  <h1 class="page-title">Реестр рисков</h1>
+  <p class="page-sub">Взгляд индустрии премиум-рэкет-клубов (David Lloyd · Premier Padel · Life Time Athletic) на V7. Это то, что топ-менеджеры сети проверяют ежеквартально у владельцев их клубов в Anxhelo. Без этого — DD невозможен, инвестор не купит.</p>
+
+  <div class="portrait">
+    <div class="avatar">RB</div>
+    <div>
+      <div class="who">Russell Barnes</div>
+      <div class="role">CEO · David Lloyd Clubs · 200+ клубов в UK/EU</div>
+      <p class="quote">«Padel club — это <strong>member retention business</strong>, не court rental. Если через 12 месяцев 70% из ваших первых membership'ов не продлились — продукт сломан, а не цена. Реестр рисков — не бумажка для аудитора, это ваш мониторинг здоровья member base.»</p>
+    </div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-label">Высокие</div>
+      <div class="kpi-value high">4</div>
+      <div class="kpi-sub">требуют немедленной митигации</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Средние</div>
+      <div class="kpi-value mid">6</div>
+      <div class="kpi-sub">мониторим, план готов</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Низкие</div>
+      <div class="kpi-value low">3</div>
+      <div class="kpi-sub">держим в поле зрения</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">Всего рисков</div>
+      <div class="kpi-value">13</div>
+      <div class="kpi-sub">реестр обновлён 2026-04-23</div>
+    </div>
+  </div>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Матрица · probability × impact</h2>
+    </div>
+    <div class="panel">
+      <div class="matrix">
+        <div class="hdr"></div>
+        <div class="hdr">Low impact</div>
+        <div class="hdr">Medium impact</div>
+        <div class="hdr">High impact</div>
+
+        <div class="rlbl">High prob</div>
+        <div class="cell-m"><span class="riskid">R3</span>FX TL-EUR · клиенты-иностранцы</div>
+        <div class="cell-h"><span class="riskid">R1</span>Top-5 members уходят</div>
+        <div class="cell-h"><span class="riskid">R2</span>Coach turnover (топ-4)</div>
+
+        <div class="rlbl">Med prob</div>
+        <div class="cell-l"><span class="riskid">R10</span>Injury / liability incident</div>
+        <div class="cell-m"><span class="riskid">R6</span>55-member cap достигнут<br><span class="riskid">R8</span>Court maintenance cycle</div>
+        <div class="cell-h"><span class="riskid">R4</span>Новый конкурент в Анталии<br><span class="riskid">R5</span>Турниры не продаются</div>
+
+        <div class="rlbl">Low prob</div>
+        <div class="cell-l"><span class="riskid">R13</span>Data breach · Matchpoint<br><span class="riskid">R12</span>Covid-like shutdown</div>
+        <div class="cell-m"><span class="riskid">R9</span>Matchpoint API изменения<br><span class="riskid">R11</span>Оля (PM) single point of failure</div>
+        <div class="cell-h"><span class="riskid">R7</span>Политический кризис Турция</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Полный реестр · с митигацией</h2>
+    </div>
+    <div class="panel" style="overflow-x:auto">
+      <table class="risk-table">
+        <thead><tr>
+          <th>ID</th>
+          <th>Риск</th>
+          <th>Severity</th>
+          <th>Митигация</th>
+          <th>Owner</th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>R1</strong></td>
+            <td><strong>Top-5 members уходят разом.</strong> Клиенты ≥10k₺/мес держат 30-40% выручки. Если 3 из них уйдут — провал.</td>
+            <td><span class="pill red">high / high</span></td>
+            <td>Персональный relationship manager для top-10 клиентов. Exit interviews за 30 дней до окончания member. Tailored offers (мастер-класс с тренером-про, закрытый турнир).</td>
+            <td>Володимир + Оля</td>
+          </tr>
+          <tr>
+            <td><strong>R2</strong></td>
+            <td><strong>Coach turnover · топ-4 тренера.</strong> Клиенты приходят ЗА конкретными людьми. Уход одного = −15-20% выручки от тренировок.</td>
+            <td><span class="pill red">high / high</span></td>
+            <td>Golden handcuffs: equity / revenue share для топов. Quarterly retention bonus. Cross-train: 2 клиента на каждого тренера получают оценку и от второго — снижает bus factor.</td>
+            <td>Оля (PM)</td>
+          </tr>
+          <tr>
+            <td><strong>R3</strong></td>
+            <td><strong>FX TL-EUR волатильность.</strong> Лира падает, часть клиентов в EUR (туристы, экспаты).</td>
+            <td><span class="pill amber">high / low</span></td>
+            <td>Положительный carry сейчас (расходы TL, часть выручки EUR). Но tax/social TL растёт. Индексировать membership fees раз в 6 мес.</td>
+            <td>Володимир</td>
+          </tr>
+          <tr>
+            <td><strong>R4</strong></td>
+            <td><strong>Новый конкурент в Анталии.</strong> Падел растёт 30%+ YoY. За 2 года может появиться 2-3 новых клуба премиум-сегмента.</td>
+            <td><span class="pill red">medium / high</span></td>
+            <td>Быстрее строить community (турниры, уроки-знакомства, клубные карты). NPS &gt;60. Рефералки. Позиционирование «первый премиум-клуб Анталии» закрепить 12 мес форы.</td>
+            <td>Володимир</td>
+          </tr>
+          <tr>
+            <td><strong>R5</strong></td>
+            <td><strong>Турниры не продаются.</strong> 26% март 2026 выручки — турниры. Если сезон пропустить — провал квартала.</td>
+            <td><span class="pill red">medium / high</span></td>
+            <td>Календарь на 6 мес вперёд. Партнёрство с Racket.ID для рейтингового покрытия. Sponsor от beauty/equipment брендов (Bullpadel, Head).</td>
+            <td>Оля (турниры)</td>
+          </tr>
+          <tr>
+            <td><strong>R6</strong></td>
+            <td><strong>55-member cap достигнут.</strong> Membership revenue cap. Дальше — только через увеличение чека.</td>
+            <td><span class="pill amber">medium / medium</span></td>
+            <td>VIP tier: 100к₺/год — 5 слотов · personal coach · primetime-слоты. Club tier = текущие 55. Family tier. Расширять объёмом при постройке 5-го корта (next 12 мес план).</td>
+            <td>Володимир</td>
+          </tr>
+          <tr>
+            <td><strong>R7</strong></td>
+            <td><strong>Политический кризис Турция.</strong> Санкции, capital controls, локдаун.</td>
+            <td><span class="pill amber">low / high</span></td>
+            <td>3 мес operating cash вне Турции (евро-счёт в Грузии/Кипре). Плавная диверсификация клиентов на EU-туристов (50%+ через 3 года).</td>
+            <td>Володимир</td>
+          </tr>
+          <tr>
+            <td><strong>R8</strong></td>
+            <td><strong>Court maintenance cycle.</strong> Искусственный газон ~5-7 лет life. Ремонт = простой 2 недели.</td>
+            <td><span class="pill amber">medium / medium</span></td>
+            <td>Capex reserve 150k₺/год × 4 корта в отдельном аккаунте. График replacement по очереди — один корт зимой (low season), не все сразу.</td>
+            <td>Володимир</td>
+          </tr>
+          <tr>
+            <td><strong>R9</strong></td>
+            <td><strong>Matchpoint API изменения.</strong> Весь портал зависит от их scraping. Если они закроют — полный refactor.</td>
+            <td><span class="pill amber">low / medium</span></td>
+            <td>Еженедельный backup через ETL в v7padel_db. Если откажут — месяц работы мигрировать на другой CRM (Playtomic, Padel Go).</td>
+            <td>Володимир (tech)</td>
+          </tr>
+          <tr>
+            <td><strong>R10</strong></td>
+            <td><strong>Травма клиента на корте · liability.</strong> Падел = высокая scoring-скорость мяча. Порванная связка у клиента = иск.</td>
+            <td><span class="pill green">medium / low</span></td>
+            <td>Страхование ответственности клуба (public liability) до 5M₺. Waiver при membership. Прокат защиты глаз. Первая помощь 24/7 в клубе.</td>
+            <td>Володимир</td>
+          </tr>
+          <tr>
+            <td><strong>R11</strong></td>
+            <td><strong>Оля (PM) single point of failure.</strong> Если уйдёт/заболеет — встанет операционка турниров, клиентов, коммуникаций.</td>
+            <td><span class="pill amber">low / medium</span></td>
+            <td>Документирование процессов в Notion. Retention bonus / equity. Нанять junior-помощника уже сейчас — подготовка заместителя.</td>
+            <td>Володимир</td>
+          </tr>
+          <tr>
+            <td><strong>R12</strong></td>
+            <td><strong>Covid-like shutdown.</strong> Принудительное закрытие по здоровью (маловероятно, но катастрофично).</td>
+            <td><span class="pill green">low / medium</span></td>
+            <td>Business interruption insurance. Резерв на 2 мес operating cash. Outdoor events (корт 4 без крыши — можно тренировки с social distance).</td>
+            <td>Володимир</td>
+          </tr>
+          <tr>
+            <td><strong>R13</strong></td>
+            <td><strong>Data breach / Matchpoint CRM.</strong> Утечка клиентских данных.</td>
+            <td><span class="pill green">low / low</span></td>
+            <td>Read-only scraping из Matchpoint. Никаких PII на v7padel_db вне согласования. GDPR-совместимые политики для EU-туристов.</td>
+            <td>Володимир (tech)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="section-head">
+      <h2>Топ-3 приоритета · Q2 2026</h2>
+    </div>
+    <div class="panel">
+      <table class="risk-table">
+        <thead><tr><th>#</th><th>Действие</th><th>Эффект</th><th>Срок</th></tr></thead>
+        <tbody>
+          <tr><td><strong>1</strong></td><td>Программа удержания Top-10 members · personal RM</td><td>Снижение риска ухода ключевых клиентов с 40% выручки</td><td>до конца мая 2026</td></tr>
+          <tr><td><strong>2</strong></td><td>Coach retention · golden handcuffs для топ-4 тренеров</td><td>Защита 15-20% тренировочной выручки</td><td>до конца июня 2026</td></tr>
+          <tr><td><strong>3</strong></td><td>Календарь турниров на 6 мес + sponsor pipeline</td><td>Защита 26% месячной выручки (марта)</td><td>до конца мая 2026</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="advice-block">
+    <div class="header">
+      <span class="title">Совет индустрии премиум-рэкет-клубов</span>
+      <span class="from">Russell Barnes · CEO David Lloyd Clubs</span>
+    </div>
+    <ul>
+      <li><span class="num">01</span><span><strong>Retention &gt; acquisition.</strong> Дешевле удержать существующего члена на 3-й год, чем найти нового. Фокус квартала: renewal rate &gt;85% (сейчас: need data). Измеряйте каждый месяц.</span></li>
+      <li><span class="num">02</span><span><strong>NPS — главный health indicator.</strong> Квартальный survey всех active members. &gt;60 — вы премиум. 40-60 — окей. &lt;40 — продукт сломан.</span></li>
+      <li><span class="num">03</span><span><strong>Coach = ваш продукт.</strong> Клиенты приходят к тренерам, не к кортам. Equity / revenue share для top-3 тренеров обязательна к Q3 2026.</span></li>
+      <li><span class="num">04</span><span><strong>Primetime revenue = 70% доходности.</strong> Pricing power выше на primetime. Повышайте на 15-20% раз в 6 мес, off-peak — держите.</span></li>
+      <li><span class="num">05</span><span><strong>Community · не просто клуб.</strong> Турниры, social events, рефералки, чатики. Community member уходит в 5× реже чем одиночка.</span></li>
+    </ul>
+  </div>
+</main>
+</body>
+</html>

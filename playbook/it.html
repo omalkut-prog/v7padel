@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="../assets/auth-guard.js"></script>
+<title>IT и системы — V7 Playbook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="../assets/theme.js"></script>
+<link rel="stylesheet" href="../assets/theme.css?v=20260418">
+<link rel="stylesheet" href="../assets/sidebar.css">
+<link rel="stylesheet" href="../assets/playbook.css">
+<script src="../assets/sidebar.js"></script>
+</head>
+<body>
+
+<main class="pb-main" data-pb-page="it">
+  <header class="pb-header">
+    <span class="pb-kicker">08 · IT</span>
+    <h1>IT и системы</h1>
+    <p class="pb-lede">
+      Технологический стек сети: Matchpoint, касса, CRM, внутренний портал V7, Racket.ID, интеграции и доступы.
+    </p>
+    <div class="pb-meta">
+      <span><b>Статус:</b> <span class="pb-status draft">Черновик</span></span>
+    </div>
+  </header>
+
+  <article class="pb-article">
+    <div class="pb-callout warn">
+      <div class="label">В разработке</div>
+      <p>Часть информации уже есть в <a href="../brain.html">V7 Brain</a> (технический источник правды для данных и архитектуры). Здесь — операционный взгляд для управляющих.</p>
+    </div>
+
+    <h2>Структура блока</h2>
+    <ol>
+      <li><strong>Matchpoint</strong> — CRM клуба, бронирования, клиенты, базовая кассовая функция.</li>
+      <li><strong>Касса</strong> — фискальная дисциплина, локальные требования по клубу.</li>
+      <li><strong>Внутренний портал V7</strong> — dashboard, management, finance. Доступы по ролям.</li>
+      <li><strong>Racket.ID</strong> — рейтинги, турниры, участники.</li>
+      <li><strong>Google Sheets</strong> — P&amp;L, финучёт бухгалтера.</li>
+      <li><strong>Онлайн-каналы</strong> — сайт, Instagram, Telegram.</li>
+      <li><strong>Роли и доступы</strong> — admin / manager / coach / administrator.</li>
+      <li><strong>Онбординг IT для нового клуба</strong> — что подключается при открытии и в каком порядке.</li>
+    </ol>
+
+    <h2>Роли доступа в портале (из auth-guard)</h2>
+    <ul>
+      <li><strong>admin</strong> — CEO сети, видит всё, включая финансы и стратегию.</li>
+      <li><strong>manager</strong> — управляющий клуба, видит клиентов, членов, турниры, recall, дашборды.</li>
+      <li><strong>coach</strong> — тренер, видит клиентов, турниры, расписание, калькулятор.</li>
+      <li><strong>administrator</strong> — администратор ресепшн, видит клиентов, турниры, расписание.</li>
+    </ul>
+  </article>
+</main>
+
+<script src="../assets/playbook.js"></script>
+</body>
+</html>

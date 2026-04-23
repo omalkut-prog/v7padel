@@ -185,6 +185,17 @@
     h1.page-title { font-size: 22px; }
     .modal .fields { grid-template-columns: 1fr; }
   }
+
+  .advice-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin: 32px 0 0; box-shadow: var(--shadow); position: relative; }
+  .advice-block::before { content: ''; position: absolute; top: 0; left: 28px; right: 28px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .advice-block .advice-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+  .advice-block .advice-title { font-size: 20px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; font-style: italic; }
+  .advice-block .advice-from { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.6px; font-weight: 500; }
+  .advice-block ul.advice-list { list-style: none; padding: 0; margin: 0; }
+  .advice-block li { padding: 18px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.65; color: var(--text2); display: grid; grid-template-columns: 56px 1fr; gap: 20px; align-items: start; }
+  .advice-block li:last-child { border-bottom: 0; }
+  .advice-block li .advice-num { font-size: 32px; color: var(--accent); font-weight: 300; line-height: 0.9; padding-top: 2px; letter-spacing: -1.5px; font-style: italic; }
+  .advice-block li strong { color: var(--text); font-weight: 600; display: block; margin-bottom: 4px; font-size: 14.5px; }
 </style>
 </head>
 <body>
@@ -201,6 +212,7 @@
     <li><a href="data.html">Данные</a></li>
     <li class="team-link"><a href="team.html">Команда</a></li>
     <li><a href="tournament-analytics.html">Турниры</a></li>
+    <li><a href="risk.html">Риски</a></li>
     <li><a href="audit.html">Аудит</a></li>
     <li><a href="brain.html">Brain</a></li>
   </ul>
@@ -401,6 +413,21 @@
       <div style="margin-top:10px; font-size:12px; color:var(--text3);" id="cancel-top5-note">—</div>
     </div>
   </section>
+
+  <div class="advice-block">
+    <div class="advice-header">
+      <span class="advice-title">Совет индустрии</span>
+      <span class="advice-from">Spencer Hyman - VP Customer Equinox</span>
+    </div>
+    <ul class="advice-list">
+      <li><span class="advice-num">01</span><span><strong>Сегментируйте по LTV, не revenue.</strong> Клиент 5k/мес 3 года = 180k LTV. Клиент 10k/мес 6 мес = 60k LTV. Фокус на первом.</span></li>
+      <li><span class="advice-num">02</span><span><strong>Churn predictors.</strong> Снижение частоты визитов на 30% за 4 недели = 70% вероятность ухода. Intervention ДО 30 дней.</span></li>
+      <li><span class="advice-num">03</span><span><strong>Cohort retention curves.</strong> Какой % клиентов из jan-2024 остался через 12 мес? 18? 24? Predictor долгосрочной unit economics.</span></li>
+      <li><span class="advice-num">04</span><span><strong>Referrals - дешёвая acquisition.</strong> Incentivize members за приведённых друзей (free game, 2 недели free, merchandise). Track rate.</span></li>
+      <li><span class="advice-num">05</span><span><strong>Exit interview для каждого ушедшего.</strong> 15-минутный звонок. Причина ухода - единственный путь к улучшению. Patterns по 10+ интервью.</span></li>
+    </ul>
+  </div>
+
 </main>
 
 <div class="modal-backdrop" id="modal-backdrop"><div class="modal" id="modal-body"></div></div>

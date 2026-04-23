@@ -139,6 +139,17 @@ table.fin tr.expanded{background:var(--surface2)}
 
 @media(max-width:960px){.kpi-row{grid-template-columns:repeat(3,1fr)}.two-col{grid-template-columns:1fr}.tab-bar{flex-wrap:wrap}}
 @media(max-width:600px){.kpi-row{grid-template-columns:repeat(2,1fr)}main{padding:16px 12px 60px}}
+
+  .advice-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin: 32px 0 0; box-shadow: var(--shadow); position: relative; }
+  .advice-block::before { content: ''; position: absolute; top: 0; left: 28px; right: 28px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
+  .advice-block .advice-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+  .advice-block .advice-title { font-size: 20px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; font-style: italic; }
+  .advice-block .advice-from { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.6px; font-weight: 500; }
+  .advice-block ul.advice-list { list-style: none; padding: 0; margin: 0; }
+  .advice-block li { padding: 18px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.65; color: var(--text2); display: grid; grid-template-columns: 56px 1fr; gap: 20px; align-items: start; }
+  .advice-block li:last-child { border-bottom: 0; }
+  .advice-block li .advice-num { font-size: 32px; color: var(--accent); font-weight: 300; line-height: 0.9; padding-top: 2px; letter-spacing: -1.5px; font-style: italic; }
+  .advice-block li strong { color: var(--text); font-weight: 600; display: block; margin-bottom: 4px; font-size: 14.5px; }
 </style>
 </head>
 <body>
@@ -325,6 +336,21 @@ table.fin tr.expanded{background:var(--surface2)}
       <div style="max-width:600px;margin:0 auto"><div class="chart-box"><canvas id="chart-freq"></canvas></div></div>
     </div>
   </div>
+
+  <div class="advice-block">
+    <div class="advice-header">
+      <span class="advice-title">Совет индустрии</span>
+      <span class="advice-from">Juan Lebron Operations - top padel event series</span>
+    </div>
+    <ul class="advice-list">
+      <li><span class="advice-num">01</span><span><strong>Tournament calendar на 6 мес вперёд.</strong> Клиенты планируют participation. Запоздавшие анонсы = 40-50% fill rate.</span></li>
+      <li><span class="advice-num">02</span><span><strong>Rating coverage через Racket.ID.</strong> Каждый турнир даёт points в национальном рейтинге. Mandatory для привлечения strong players.</span></li>
+      <li><span class="advice-num">03</span><span><strong>Sponsor pipeline.</strong> Bullpadel, Head, местные brands (beauty, cafes). 15-20% турнирного budget покрывается спонсорами.</span></li>
+      <li><span class="advice-num">04</span><span><strong>Pro-am format.</strong> Один pro + 3 amateur. Клиенты платят premium за игру с professional. High margin, high marketing value.</span></li>
+      <li><span class="advice-num">05</span><span><strong>Post-event NPS.</strong> Каждый участник получает 3-вопросный survey. Больше 70 = вернётся, меньше 50 = fix до следующего.</span></li>
+    </ul>
+  </div>
+
 </main>
 
 <!-- Player list modal -->
