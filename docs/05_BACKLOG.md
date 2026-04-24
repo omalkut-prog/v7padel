@@ -78,6 +78,28 @@
 - После каждого run проверять: нет garbage-строк в client_transactions, customer_id полнота, distinct buckets, etc.
 - Fails → письмо/notify.
 
+### J. Наполнить «пустые» страницы контентом (маркетинг / персонал / турниры / ивенты)
+- **Контекст** (2026-04-24): пользователь указал что есть пустые разделы блокирующие работу.
+- **Разбивка на 4 независимых подзадачи**:
+  - **J1. Маркетинг (`11_MARKETING.md` + страница)**: аватар клиента, каналы, месседжинг, контент-стратегия, UTM-разметка. Зависит от: brainstorm с Володимиром ~2ч.
+  - **J2. Персонал (страница Team/HR)**: расписание, KPI тренеров, checklist'ы админов, compensation tracking. Сейчас заглушки `admin-*.html`, `coach-*.html`, `manager-*.html` (15 пустых файлов по 3KB).
+  - **J3. Турниры analytics** (пункт F из backlog): реальные метрики — fill rate, ROI, участники, победители, retention после турнира.
+  - **J4. Ивенты/спец.мероприятия**: camps, intensive, корпоративы — tracking + воронка + ROI.
+- **Приоритет**: решить в каком порядке наполнять. Персонал скорее всего первое (связано с coach/admin роли → мотивация, ретеншн команды).
+- **Effort**: каждая подзадача — 2-4ч совместной работы.
+
+### K. Тесты + CI/CD
+- **Контекст** (2026-04-24): написали первую версию `etl/test_build_cache.py` (64 теста), сразу нашли 1 баг (Top-up категория). См. `docs/17_TESTING.md`.
+- **Что ещё покрыть** (в 17_TESTING.md таблица TODO из 8 пунктов):
+  - compute_opex_by_month_cat, compute_top_clients_revenue, compute_clients_enriched,
+    merge_manual_entries, compute_occupancy_planfact, compute_member_churn,
+    sync_bookings_matchpoint (parser), sync_cancellations_matchpoint (parser).
+- **CI/CD setup**:
+  - GitHub Actions `.github/workflows/tests.yml` — pytest на PR.
+  - Pre-commit hook — блокирует коммит если tests fail.
+  - pytest-cov для coverage metrics.
+- **Приоритет**: средний. Тесты растут органично — по 1-2 за code review раз в 2 мес.
+
 ### I. Инкрементальный ETL — frozen-month caching (8 мин → 2-3 мин)
 - **Контекст**: сейчас каждый cron пересчитывает ВСЁ с нуля. Исторические месяцы (Сент-2025 … прошлый месяц) **не меняются** но мы их пересчитываем каждую ночь. 80% времени build_cache + 75% scraping bookings тратится на frozen данные.
 - **3 параллельных фикса** (можно делать независимо):

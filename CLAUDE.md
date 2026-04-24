@@ -31,6 +31,7 @@
 | `docs/14_CODE_REVIEW.md` | Процесс bi-monthly code review. Следующее — 2026-06-18. |
 | `docs/15_FINANCE_RECONCILIATION.md` | Сверка с ручным финучётом (раз в месяц, не источник данных). |
 | `docs/16_CONSISTENCY_AUDIT.md` | Cross-consistency audit: одна метрика 2+ способами, fail на расхождении. Запускается в cron последним шагом. |
+| `docs/17_TESTING.md` | pytest для build_cache.py: unit tests на категоризацию, агрегации, дата-парсинг. 64 теста. Запуск: `cd etl && pytest`. |
 
 ## Update cadence (обязательно)
 
