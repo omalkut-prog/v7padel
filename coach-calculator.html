@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7PADEL — Coach Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+  /* ── Dark theme (default) ──────────────────────────────────────────── */
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --surface3: #161616;
+    --border: #2e2e2e;
+    --accent: #c8f535;
+    --accent-on: #000;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #7a7a7a;
+    --success: #4ade80;
+    --club-color: #f59e0b;
+    --mid-color: #60a5fa;
+    --head-color: #c8f535;
+    --tourn-border: #3a2a00;
+    --summary-from: #1a1a1a;
+    --summary-to: #1e230a;
+    --input-focus-bg: #1e230a;
+  }
+
+  /* ── Light theme ────────────────────────────────────────────────────── */
+  [data-theme="light"] {
+    --bg: #f5f5f5;
+    --surface: #ffffff;
+    --surface2: #f0f0f0;
+    --surface3: #e4e4e4;
+    --border: #e0e0e0;
+    --accent: #303030;
+    --accent-on: #fff;
+    --accent2: #d44c1a;
+    --text: #1a1a1a;
+    --muted: #6b6b6b;
+    --success: #16a34a;
+    --club-color: #c07800;
+    --mid-color: #1d68c8;
+    --head-color: #c8f535;
+    --tourn-border: #c8a434;
+    --summary-from: #eaeaea;
+    --summary-to: #f0f0e8;
+    --input-focus-bg: #f5f5e0;
+  }
+
+  /* ── Cream theme ────────────────────────────────────────────────────── */
+  [data-theme="cream"] {
+    --bg: #FFF7E8;
+    --surface: #fff0d4;
+    --surface2: #ffe8bc;
+    --surface3: #f5dfa8;
+    --border: #e8d5b0;
+    --accent: #303030;
+    --accent-on: #fff;
+    --accent2: #c05500;
+    --text: #303030;
+    --muted: #8a7a60;
+    --success: #2d6a1f;
+    --club-color: #b07000;
+    --mid-color: #1a5cb0;
+    --head-color: #c8f535;
+    --tourn-border: #c8a040;
+    --summary-from: #ffe8bc;
+    --summary-to: #fff7d0;
+    --input-focus-bg: #fffae0;
+  }
+
+  /* ── Active level-btn overrides for light & cream ───────────────────── */
+  [data-theme="light"] .level-btn[data-level="club"].active  { background: rgba(192,120,0,0.1); }
+  [data-theme="light"] .level-btn[data-level="mid"].active   { background: rgba(29,104,200,0.1); }
+  [data-theme="light"] .level-btn[data-level="head"].active  { background: rgba(200,245,53,0.25); }
+
+  [data-theme="cream"] .level-btn.active {
+    background: #E5FF2B;
+    border-color: #c8f535;
+  }
+  [data-theme="cream"] .level-btn.active .lvl-name,
+  [data-theme="cream"] .level-btn.active .lvl-pct,
+  [data-theme="cream"] .level-btn.active .lvl-desc { color: #303030 !important; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; min-height: 100vh; transition: background 0.25s, color 0.25s; }
+
+  .header { background: var(--surface); border-bottom: 2px solid var(--accent); padding: 16px 32px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .header-left { display: flex; align-items: center; gap: 20px; }
+  .back-link { color: var(--muted); text-decoration: none; font-size: 13px; font-weight: 500; padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px; transition: all 0.2s; white-space: nowrap; }
+  .back-link:hover { color: var(--text); border-color: var(--muted); }
+  .logo-text { font-family: 'Bebas Neue', sans-serif; font-size: 30px; letter-spacing: 3px; color: var(--accent); line-height: 1; }
+  .logo-text span { color: var(--text); }
+  .header-title { border-left: 2px solid var(--border); padding-left: 20px; }
+  .header-title h1 { font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 2px; color: var(--text); line-height: 1; }
+  .header-title p { font-size: 12px; color: var(--muted); font-weight: 300; margin-top: 3px; }
+
+  .header-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .theme-switcher { display: flex; gap: 4px; }
+  .theme-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 7px 12px; border-radius: 4px; font-family: 'DM Sans', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s; }
+  .theme-btn:hover { border-color: var(--accent); color: var(--text); }
+  .theme-btn.active { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
+
+  .lang-switcher { display: flex; gap: 6px; }
+  .lang-btn { background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 7px 16px; border-radius: 4px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .lang-btn:hover { border-color: var(--accent); color: var(--text); }
+  .lang-btn.active { background: var(--accent); color: var(--accent-on); border-color: var(--accent); }
+
+  .container { max-width: 1300px; margin: 0 auto; padding: 24px 32px; display: flex; flex-direction: column; gap: 20px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; }
+  .card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1.2px; color: var(--accent); margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .tag { font-family: 'DM Sans', sans-serif; font-size: 11px; background: var(--border); color: var(--muted); padding: 2px 8px; border-radius: 3px; font-weight: 500; }
+
+  .level-selector { display: flex; gap: 12px; flex-wrap: wrap; }
+  .level-btn { flex: 1; min-width: 150px; padding: 16px 18px; border-radius: 6px; border: 2px solid var(--border); background: var(--surface2); cursor: pointer; transition: all 0.2s; text-align: center; }
+  .level-btn .lvl-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 1px; display: block; margin-bottom: 4px; }
+  .level-btn .lvl-pct { font-size: 13px; font-weight: 700; color: var(--muted); display: block; }
+  .level-btn .lvl-desc { font-size: 11px; color: var(--muted); display: block; margin-top: 5px; }
+  .level-btn[data-level="club"] .lvl-name { color: var(--club-color); }
+  .level-btn[data-level="club"].active { border-color: var(--club-color); background: rgba(245,158,11,0.07); }
+  .level-btn[data-level="mid"] .lvl-name { color: var(--mid-color); }
+  .level-btn[data-level="mid"].active { border-color: var(--mid-color); background: rgba(96,165,250,0.07); }
+  .level-btn[data-level="head"] .lvl-name { color: var(--head-color); }
+  .level-btn[data-level="head"].active { border-color: var(--head-color); background: rgba(200,245,53,0.07); }
+
+  .settings-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .field { display: flex; flex-direction: column; gap: 5px; }
+  .field label { font-size: 12px; color: var(--muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+  .field input[type="number"] { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; color: var(--text); padding: 9px 12px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; width: 100%; -moz-appearance: textfield; transition: border-color 0.2s; }
+  .field input[type="number"]::-webkit-outer-spin-button, .field input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .field input[type="number"]:focus { outline: none; border-color: var(--accent); }
+  .field .unit { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Training reference table */
+  .training-table { width: 100%; border-collapse: collapse; }
+  .training-table th { text-align: left; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 10px; border-bottom: 1px solid var(--border); font-weight: 500; white-space: nowrap; }
+  .training-table th.right { text-align: right; }
+  .training-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; font-size: 14px; }
+  .training-table tr:last-child td { border-bottom: none; }
+  .section-row td { background: var(--surface3); font-family: 'Bebas Neue', sans-serif; font-size: 12px; letter-spacing: 1px; color: var(--muted); padding: 6px 10px; border-bottom: 1px solid var(--border); }
+
+  .type-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .badge-ind   { background: rgba(200,245,53,0.12); color: var(--accent); }
+  .badge-pair  { background: rgba(255,107,53,0.12); color: var(--accent2); }
+  .badge-group { background: rgba(74,222,128,0.12); color: var(--success); }
+
+  .val        { font-weight: 600; color: var(--text); }
+  .val-accent { color: var(--accent); font-weight: 700; }
+  .val-muted  { color: var(--muted); font-size: 12px; }
+
+  .inline-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; color: var(--accent); padding: 4px 6px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; width: 60px; text-align: center; -moz-appearance: textfield; }
+  .inline-input::-webkit-outer-spin-button, .inline-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .inline-input:focus { outline: none; border-color: var(--accent); background: var(--input-focus-bg); }
+
+  .price-per-pp { font-size: 11px; color: var(--muted); margin-top: 1px; }
+
+  .note { font-size: 12px; color: var(--muted); line-height: 1.7; padding: 10px 14px; background: var(--surface2); border-radius: 5px; border-left: 3px solid var(--border); margin-top: 14px; }
+  .note strong { color: var(--text); }
+
+  /* ── Sessions block ─────────────────────────────────────────────── */
+  .sessions-wrapper { display: flex; flex-direction: column; gap: 16px; }
+
+  .sess-group { background: var(--surface2); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+
+  .sess-group-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface3);
+  }
+  .sess-group-header .sg-badge { font-size: 11px; font-weight: 600; }
+  .sess-group-header .sg-name { font-size: 13px; font-weight: 600; color: var(--text); flex: 1; }
+  .sess-group-header .sg-total {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 16px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+
+  .sess-pack-rows { display: flex; flex-direction: column; }
+
+  .sess-pack-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    gap: 12px;
+  }
+  .sess-pack-row:last-child { border-bottom: none; }
+
+  .sess-pack-row .pack-label {
+    font-size: 12px; color: var(--muted); flex: 1;
+  }
+  .sess-pack-row .pack-price {
+    font-size: 12px; color: var(--text); font-weight: 600;
+    min-width: 80px; text-align: right;
+  }
+  .sess-pack-row .pack-pp {
+    font-size: 11px; color: var(--muted);
+    min-width: 60px; text-align: right;
+  }
+  .sess-pack-row .sess-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 6px 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    width: 54px;
+    text-align: center;
+    -moz-appearance: textfield;
+  }
+  .sess-input::-webkit-outer-spin-button, .sess-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .sess-input:focus { outline: none; border-color: var(--accent); }
+
+  .sess-pack-row .earn-preview {
+    font-size: 12px; color: var(--accent); font-weight: 700;
+    min-width: 72px; text-align: right;
+  }
+
+  /* ── Tournament ─────────────────────────────────────────────────── */
+  .tournament-card { background: var(--surface); border: 1px solid var(--tourn-border); border-radius: 8px; padding: 22px; }
+  .tournament-card h2 { font-family: 'Bebas Neue', sans-serif; font-size: 17px; letter-spacing: 1.2px; color: #f59e0b; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--tourn-border); display: flex; align-items: center; gap: 8px; }
+  .tournament-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .tourney-block { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 16px; }
+  .tourney-block h3 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .tourney-block h3 span { background: var(--border); color: var(--accent2); font-size: 10px; padding: 2px 7px; border-radius: 3px; }
+  .mode-toggle { display: flex; border: 1px solid var(--border); border-radius: 5px; overflow: hidden; margin-bottom: 12px; }
+  .mode-toggle button { flex: 1; padding: 8px 12px; background: var(--surface2); border: none; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .mode-toggle button.active { background: rgba(245,158,11,0.15); color: #f59e0b; }
+  .tourney-inputs { display: flex; flex-direction: column; gap: 8px; }
+  .tourney-field { display: flex; flex-direction: column; gap: 4px; }
+  .tourney-field label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 500; }
+  .tourney-field input { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 8px 10px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; width: 100%; -moz-appearance: textfield; }
+  .tourney-field input::-webkit-outer-spin-button, .tourney-field input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  .tourney-field input:focus { outline: none; border-color: var(--accent); }
+  .tourney-field .unit { font-size: 11px; color: var(--muted); }
+  .tourney-result { margin-top: 12px; padding: 10px 14px; background: rgba(200,245,53,0.06); border: 1px solid rgba(200,245,53,0.2); border-radius: 5px; text-align: center; }
+  .tourney-result .t-earn { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--accent); letter-spacing: 1px; }
+  .tourney-result .t-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .tourney-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .tourney-row:last-child { border-bottom: none; }
+  .tourney-row .ts-label { color: var(--muted); }
+  .tourney-row .ts-val { font-weight: 700; color: var(--accent); }
+
+  /* ── Summary bar ────────────────────────────────────────────────── */
+  .summary { background: linear-gradient(135deg, var(--summary-from), var(--summary-to)); border: 1px solid var(--accent); border-radius: 8px; padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+  .summary-block { text-align: center; }
+  .summary-block .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+  .summary-block .big { font-family: 'Bebas Neue', sans-serif; font-size: 30px; color: var(--accent); letter-spacing: 1px; line-height: 1; }
+  .summary-block .big.ok { color: var(--success); }
+  .summary-block .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .divider { width: 1px; height: 54px; background: var(--border); }
+
+  /* Monthly totals mini-table */
+  .month-table { width: 100%; border-collapse: collapse; margin-top: 0; }
+  .month-table th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 7px 10px; border-bottom: 1px solid var(--border); font-weight: 500; text-align: left; }
+  .month-table th.right { text-align: right; }
+  .month-table td { font-size: 13px; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .month-table tr:last-child td { border-bottom: none; }
+  .month-table .sep td { padding: 3px 0; border-bottom: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<script src="assets/auth-guard.js"></script>
+
+<div class="header">
+  <div class="header-left">
+    <a class="back-link" href="index.html">← Назад</a>
+    <div class="logo-text">V7 <span>PADEL</span></div>
+    <div class="header-title">
+      <h1 data-i18n="title">РАСЧЁТ ЗАРПЛАТЫ ТРЕНЕРА</h1>
+      <p data-i18n="subtitle">% от базы после вычета аренды корта</p>
+    </div>
+  </div>
+  <div class="header-controls">
+    <div class="theme-switcher">
+      <button class="theme-btn active" onclick="setTheme('dark')">DARK</button>
+      <button class="theme-btn" onclick="setTheme('light')">LIGHT</button>
+      <button class="theme-btn" onclick="setTheme('cream')">CREAM</button>
+    </div>
+    <div class="lang-switcher">
+      <button class="lang-btn active" onclick="setLang('ru')">RU</button>
+      <button class="lang-btn" onclick="setLang('tr')">TR</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- LEVEL -->
+  <div class="card">
+    <h2>🎾 <span data-i18n="levelTitle">Уровень тренера</span> <span class="tag" data-i18n="levelTag">ВЫБЕРИТЕ</span></h2>
+    <div class="level-selector">
+      <div class="level-btn active" data-level="club" onclick="setLevel('club')">
+        <span class="lvl-name">Club Coach</span>
+        <span class="lvl-pct">45%</span>
+        <span class="lvl-desc">Hüseyin</span>
+      </div>
+      <div class="level-btn" data-level="mid" onclick="setLevel('mid')">
+        <span class="lvl-name" data-i18n="midName">Mid Coach</span>
+        <span class="lvl-pct">50%</span>
+        <span class="lvl-desc">&nbsp;</span>
+      </div>
+      <div class="level-btn" data-level="head" onclick="setLevel('head')">
+        <span class="lvl-name">Head Coach</span>
+        <span class="lvl-pct">60%</span>
+        <span class="lvl-desc" data-i18n="headDesc">Umur · тариф Head Coach</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="card">
+    <h2>⚙️ <span data-i18n="settingsTitle">Базовые настройки</span> <span class="tag" data-i18n="settingsTag">РЕДАКТИРУЙТЕ</span></h2>
+    <div class="settings-row">
+      <div class="field">
+        <label data-i18n="minSalaryLabel">Мин. ставка (₺/мес)</label>
+        <input type="number" id="minSalary" value="28000" oninput="recalc()">
+        <div class="unit" data-i18n="minSalaryUnit">гарантированная минималка</div>
+      </div>
+      <div class="field">
+        <label data-i18n="courtLabel">Аренда корта (₺/час)</label>
+        <input type="number" id="courtCost" value="2000" oninput="rebuildAll()">
+        <div class="unit" data-i18n="courtUnit">вычитается из цены тренировки</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFERENCE TABLE -->
+  <div class="card">
+    <h2>💡 <span data-i18n="tableTitle">Справочник цен и ставок</span> <span class="tag" data-i18n="tableTag">% МОЖНО ИЗМЕНИТЬ</span></h2>
+    <table class="training-table">
+      <thead>
+        <tr>
+          <th data-i18n="colType">Тип</th>
+          <th data-i18n="colPack">Пакет</th>
+          <th class="right" data-i18n="colPrice">Цена / сессия</th>
+          <th class="right" data-i18n="colCourt">− Корт</th>
+          <th class="right" data-i18n="colBase">= База</th>
+          <th style="text-align:center" data-i18n="colPct">%</th>
+          <th class="right" data-i18n="colEarn">→ / сессия</th>
+        </tr>
+      </thead>
+      <tbody id="refBody"></tbody>
+    </table>
+    <div class="note" id="tableNote"></div>
+  </div>
+
+  <!-- SESSIONS (multi-pack per type) + MONTHLY SUMMARY -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+
+    <div class="card">
+      <h2>📅 <span data-i18n="activityTitle">Сессии за месяц</span> <span class="tag" data-i18n="activityTag">ПО ПАКЕТАМ</span></h2>
+      <div class="sessions-wrapper" id="sessionsWrapper"></div>
+    </div>
+
+    <div class="card">
+      <h2>💰 <span data-i18n="summaryTitle">Итог за месяц</span></h2>
+      <table class="month-table">
+        <thead>
+          <tr>
+            <th data-i18n="colSource">Источник</th>
+            <th class="right" data-i18n="colSess">Сессий</th>
+            <th class="right" data-i18n="colAmount">Сумма (₺)</th>
+          </tr>
+        </thead>
+        <tbody id="summaryBody"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+  <!-- TOURNAMENT -->
+  <div class="tournament-card">
+    <h2>🏆 <span data-i18n="tournTitle">Турнир под ключ</span> <span class="tag" data-i18n="tournTag">ДЛЯ ВСЕХ УРОВНЕЙ</span></h2>
+    <div class="tournament-grid">
+
+      <div class="tourney-block">
+        <h3 data-i18n="tournPctTitle">Расчёт по % <span data-i18n="tournPctMode">РЕЖИМ %</span></h3>
+        <div class="mode-toggle" id="togglePct">
+          <button class="active" onclick="setPctActive(true)"  data-i18n="tournModeOn">Включён</button>
+          <button              onclick="setPctActive(false)" data-i18n="tournModeOff">Выключен</button>
+        </div>
+        <div class="tourney-inputs">
+          <div class="tourney-field">
+            <label data-i18n="tournRevLabel">Выручка турнира (₺)</label>
+            <input type="number" id="tournRevenue" value="0" min="0" oninput="calcTourn()">
+            <div class="unit" data-i18n="tournRevUnit">сумма взносов участников</div>
+          </div>
+          <div class="tourney-field">
+            <label data-i18n="tournPctLabel">% тренеру от выручки</label>
+            <input type="number" id="tournPct" value="15" min="0" max="100" oninput="calcTourn()">
+            <div class="unit" data-i18n="tournPctUnit">рекомендовано 10–20%</div>
+          </div>
+        </div>
+        <div class="tourney-result">
+          <div class="t-earn" id="pctEarn">0 ₺</div>
+          <div class="t-label" data-i18n="tournEarnLabel">заработок тренера</div>
+        </div>
+      </div>
+
+      <div class="tourney-block">
+        <h3 data-i18n="tournFixTitle">Фиксированная сумма <span data-i18n="tournFixMode">РЕЖИМ ₺</span></h3>
+        <div class="mode-toggle" id="toggleFixed">
+          <button              onclick="setFixedActive(true)"  data-i18n="tournModeOff">Выключен</button>
+          <button class="active" onclick="setFixedActive(false)" data-i18n="tournModeOn">Включён</button>
+        </div>
+        <div class="tourney-inputs">
+          <div class="tourney-field">
+            <label data-i18n="tournFixLabel">Фикс. выплата (₺)</label>
+            <input type="number" id="tournFixed" value="500" min="0" oninput="calcTourn()">
+            <div class="unit" data-i18n="tournFixUnit">сумма за 1 турнир</div>
+          </div>
+          <div class="tourney-field">
+            <label data-i18n="tournCountLabel">Кол-во турниров / мес</label>
+            <input type="number" id="tournCount" value="1" min="0" oninput="calcTourn()">
+          </div>
+        </div>
+        <div class="tourney-result">
+          <div class="t-earn" id="fixedEarn">500 ₺</div>
+          <div class="t-label" data-i18n="tournEarnLabel">заработок тренера</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;padding-top:16px;border-top:1px solid var(--tourn-border);">
+      <div class="tourney-row">
+        <span class="ts-label" data-i18n="tournTotalLabel">Итого с турниров за месяц</span>
+        <span class="ts-val" id="tournTotal">0 ₺</span>
+      </div>
+      <div class="tourney-row">
+        <span class="ts-label" style="font-size:12px" data-i18n="tournNote">Оба режима суммируются, если оба активны</span>
+        <label style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px;cursor:pointer">
+          <input type="checkbox" id="addTournToSalary" onchange="recalc()" style="accent-color:var(--accent)">
+          <span data-i18n="addToSalary">Добавить к зарплате</span>
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINAL BAR -->
+  <div class="summary" id="finalSummary"></div>
+
+</div>
+
+<script>
+const i18n = {
+  ru: {
+    title:'РАСЧЁТ ЗАРПЛАТЫ ТРЕНЕРА', subtitle:'% от базы после вычета аренды корта',
+    levelTitle:'Уровень тренера', levelTag:'ВЫБЕРИТЕ',
+    midName:'Mid Coach', headDesc:'Umur · тариф Head Coach',
+    settingsTitle:'Базовые настройки', settingsTag:'РЕДАКТИРУЙТЕ',
+    minSalaryLabel:'Мин. ставка (₺/мес)', minSalaryUnit:'гарантированная минималка',
+    courtLabel:'Аренда корта (₺/час)', courtUnit:'вычитается из цены тренировки',
+    tableTitle:'Справочник цен и ставок', tableTag:'% МОЖНО ИЗМЕНИТЬ',
+    colType:'Тип', colPack:'Пакет', colPrice:'Цена / сессия',
+    colCourt:'− Корт', colBase:'= База', colPct:'%', colEarn:'→ / сессия',
+    activityTitle:'Сессии за месяц', activityTag:'ПО ПАКЕТАМ',
+    summaryTitle:'Итог за месяц', colSource:'Источник', colSess:'Сес.', colAmount:'Сумма (₺)',
+    noteText:'<strong>Логика:</strong> База = цена − корт. Пакет влияет на цену за сессию. Club Coach 45% · Mid Coach 50% · Head Coach 60%.',
+    summaryMin:'Мин. ставка', summaryGuarantee:'гарантия',
+    summaryBonus:'Бонус от тренировок', summaryBonusSub:'% от базы',
+    summaryTournaments:'Турниры', summaryTournSub:'оба режима',
+    summaryTotal:'ИТОГО К ВЫПЛАТЕ', summaryTotalSub:'мин. + бонус',
+    noData:'Введите количество сессий слева',
+    indAdult:'Инд. взрослый', indKids:'Инд. дети',
+    pairAdult:'Парное взросл.', pairKids:'Парное дети',
+    grp3Adult:'Группа 3 чел.', grp4Adult:'Группа 4 чел.',
+    grp3Kids:'Дет. группа 3', grp4Kids:'Дет. группа 4',
+    sectionInd:'ИНДИВИДУАЛЬНЫЕ', sectionPairAdult:'ПАРНЫЕ · ВЗРОСЛЫЕ',
+    sectionPairKids:'ПАРНЫЕ · ДЕТИ', sectionGrpAdult:'ГРУППОВЫЕ · ВЗРОСЛЫЕ',
+    sectionGrpKids:'ГРУППОВЫЕ · ДЕТИ',
+    packSingle:'Разово', pack4:'Пакет 4', pack8:'Пакет 8', pack12:'Пакет 12',
+    ppHint:'/чел', sessHint:'сес.',
+    tournTitle:'Турнир под ключ', tournTag:'ДЛЯ ВСЕХ УРОВНЕЙ',
+    tournPctTitle:'Расчёт по %', tournPctMode:'РЕЖИМ %',
+    tournModeOn:'Включён', tournModeOff:'Выключен',
+    tournRevLabel:'Выручка турнира (₺)', tournRevUnit:'сумма взносов участников',
+    tournPctLabel:'% тренеру от выручки', tournPctUnit:'рекомендовано 10–20%',
+    tournFixTitle:'Фиксированная сумма', tournFixMode:'РЕЖИМ ₺',
+    tournFixLabel:'Фикс. выплата (₺)', tournFixUnit:'сумма за 1 турнир',
+    tournCountLabel:'Кол-во турниров / мес',
+    tournEarnLabel:'заработок тренера',
+    tournTotalLabel:'Итого с турниров за месяц',
+    tournNote:'Оба режима суммируются, если оба активны',
+    addToSalary:'Добавить к зарплате',
+  },
+  tr: {
+    title:'ANTRENÖR MAAŞ HESAPLAMA', subtitle:'Kort kirasından sonra kalan bazdan %',
+    levelTitle:'Antrenör Seviyesi', levelTag:'SEÇİN',
+    midName:'Orta Antrenör', headDesc:'Umur · Head Coach tarife',
+    settingsTitle:'Temel Ayarlar', settingsTag:'DÜZENLEYİN',
+    minSalaryLabel:'Min. maaş (₺/ay)', minSalaryUnit:'garanti asgari ücret',
+    courtLabel:'Kort kirası (₺/saat)', courtUnit:'antrenman fiyatından düşülür',
+    tableTitle:'Fiyat ve oran rehberi', tableTag:'% DEGİŞTİRİLEBİLİR',
+    colType:'Tür', colPack:'Paket', colPrice:'Fiyat / seans',
+    colCourt:'− Kort', colBase:'= Baz', colPct:'%', colEarn:'→ / seans',
+    activityTitle:'Aylık Seanslar', activityTag:'PAKETLERE GÖRE',
+    summaryTitle:'Aylık Özet', colSource:'Kaynak', colSess:'Seans', colAmount:'Tutar (₺)',
+    noteText:'<strong>Mantık:</strong> Baz = fiyat − kort. Paket seans fiyatını etkiler. Club Coach %45 · Mid Coach %50 · Head Coach %60.',
+    summaryMin:'Asgari ücret', summaryGuarantee:'garanti',
+    summaryBonus:'Antrenman bonusu', summaryBonusSub:'bazdan %',
+    summaryTournaments:'Turnuvalar', summaryTournSub:'her iki mod',
+    summaryTotal:'TOPLAM ÖDENECEK', summaryTotalSub:'asgari + bonus',
+    noData:'Soldaki seans sayısını girin',
+    indAdult:'Bireysel (yetişkin)', indKids:'Bireysel (çocuk)',
+    pairAdult:'İkili yetişkin', pairKids:'İkili çocuk',
+    grp3Adult:'Grup 3 kişi', grp4Adult:'Grup 4 kişi',
+    grp3Kids:'Çocuk grubu 3', grp4Kids:'Çocuk grubu 4',
+    sectionInd:'BİREYSEL', sectionPairAdult:'ÇİFT · YETİŞKİN',
+    sectionPairKids:'ÇİFT · ÇOCUK', sectionGrpAdult:'GRUP · YETİŞKİN',
+    sectionGrpKids:'GRUP · ÇOCUK',
+    packSingle:'Tekli', pack4:'Paket 4', pack8:'Paket 8', pack12:'Paket 12',
+    ppHint:'/kişi', sessHint:'seans',
+    tournTitle:'Anahtar Turnuva', tournTag:'TÜM SEVİYELER',
+    tournPctTitle:'Yüzde modu', tournPctMode:'MOD %',
+    tournModeOn:'Açık', tournModeOff:'Kapalı',
+    tournRevLabel:'Turnuva geliri (₺)', tournRevUnit:'katılımcı ücretleri',
+    tournPctLabel:'Antrenöre gelir %', tournPctUnit:'önerilen %10–20',
+    tournFixTitle:'Sabit tutar', tournFixMode:'MOD ₺',
+    tournFixLabel:'Sabit ödeme (₺)', tournFixUnit:'1 turnuva için',
+    tournCountLabel:'Turnuva sayısı / ay',
+    tournEarnLabel:'antrenör kazancı',
+    tournTotalLabel:'Ayda toplam turnuva kazancı',
+    tournNote:'Her iki mod aktifse toplanır',
+    addToSalary:'Maasa ekle',
+  },
+  en: {
+    title:'COACH SALARY CALCULATOR', subtitle:'% from base after court rental deduction',
+    levelTitle:'Coach Level', levelTag:'SELECT',
+    midName:'Mid Coach', headDesc:'Umur · Head Coach rates',
+    settingsTitle:'Base Settings', settingsTag:'EDITABLE',
+    minSalaryLabel:'Min. salary (₺/mo)', minSalaryUnit:'guaranteed minimum',
+    courtLabel:'Court rental (₺/hr)', courtUnit:'deducted from session price',
+    tableTitle:'Price & rate reference', tableTag:'% EDITABLE',
+    colType:'Type', colPack:'Package', colPrice:'Price / session',
+    colCourt:'− Court', colBase:'= Base', colPct:'%', colEarn:'→ / session',
+    activityTitle:'Sessions this month', activityTag:'BY PACKAGE',
+    summaryTitle:'Monthly Summary', colSource:'Source', colSess:'Sess.', colAmount:'Amount (₺)',
+    noteText:'<strong>Logic:</strong> Base = price − court. Package affects per-session price. Club Coach 45% · Mid Coach 50% · Head Coach 60%.',
+    summaryMin:'Min. salary', summaryGuarantee:'guaranteed',
+    summaryBonus:'Training bonus', summaryBonusSub:'% from base',
+    summaryTournaments:'Tournaments', summaryTournSub:'both modes',
+    summaryTotal:'TOTAL TO PAY', summaryTotalSub:'min + bonus',
+    noData:'Enter session counts on the left',
+    indAdult:'Individual (adult)', indKids:'Individual (kids)',
+    pairAdult:'Pair adults', pairKids:'Pair kids',
+    grp3Adult:'Group 3 ppl', grp4Adult:'Group 4 ppl',
+    grp3Kids:'Kids group 3', grp4Kids:'Kids group 4',
+    sectionInd:'INDIVIDUAL', sectionPairAdult:'PAIR · ADULTS',
+    sectionPairKids:'PAIR · KIDS', sectionGrpAdult:'GROUP · ADULTS',
+    sectionGrpKids:'GROUP · KIDS',
+    packSingle:'Single', pack4:'Pack 4', pack8:'Pack 8', pack12:'Pack 12',
+    ppHint:'/pp', sessHint:'sess',
+    tournTitle:'Turnkey Tournament', tournTag:'ALL LEVELS',
+    tournPctTitle:'Percentage mode', tournPctMode:'MODE %',
+    tournModeOn:'Active', tournModeOff:'Off',
+    tournRevLabel:'Tournament revenue (₺)', tournRevUnit:'total participant fees',
+    tournPctLabel:'Coach % from revenue', tournPctUnit:'recommended 10–20%',
+    tournFixTitle:'Fixed amount', tournFixMode:'MODE ₺',
+    tournFixLabel:'Fixed coach payment (₺)', tournFixUnit:'amount per tournament',
+    tournCountLabel:'Tournaments / month',
+    tournEarnLabel:'coach earnings',
+    tournTotalLabel:'Total tournament earnings/month',
+    tournNote:'Both modes are summed if both active',
+    addToSalary:'Add to salary',
+  }
+};
+
+const levelPcts = { club: 45, mid: 50, head: 60 };
+
+// price = total court revenue per session (all players)
+const TRAININGS = [
+  { key:'indAdult',  labelKey:'indAdult',  badge:'badge-ind',   section:'sectionInd',
+    ppCount:1, isKids:false,
+    packages:{ single:{club:2800,head:3700} },
+    availablePacks:['single'] },
+
+  { key:'indKids',   labelKey:'indKids',   badge:'badge-ind',   section:null,
+    ppCount:1, isKids:true,
+    packages:{ single:{club:2600,head:3400} },
+    availablePacks:['single'] },
+
+  { key:'pairAdult', labelKey:'pairAdult', badge:'badge-pair',  section:'sectionPairAdult',
+    ppCount:2, isKids:false,
+    packages:{
+      single:{club:3200,head:4400},
+      pack4: {club:3000,head:4200},
+      pack8: {club:2800,head:4000},
+      pack12:{club:2600,head:3600},
+    },
+    availablePacks:['single','pack4','pack8','pack12'] },
+
+  { key:'pairKids',  labelKey:'pairKids',  badge:'badge-pair',  section:'sectionPairKids',
+    ppCount:2, isKids:true,
+    packages:{
+      single:{club:2600,head:3200},
+      pack8: {club:2400,head:3000},
+    },
+    availablePacks:['single','pack8'] },
+
+  { key:'grp3Adult', labelKey:'grp3Adult', badge:'badge-group', section:'sectionGrpAdult',
+    ppCount:3, isKids:false,
+    packages:{
+      single:{club:3300,head:4200},
+      pack4: {club:3150,head:4050},
+      pack8: {club:3075,head:3900},
+      pack12:{club:3000,head:3750},
+    },
+    availablePacks:['single','pack4','pack8','pack12'] },
+
+  { key:'grp4Adult', labelKey:'grp4Adult', badge:'badge-group', section:null,
+    ppCount:4, isKids:false,
+    packages:{
+      single:{club:4400,head:5600},
+      pack4: {club:4200,head:5400},
+      pack8: {club:4100,head:5200},
+      pack12:{club:4000,head:5000},
+    },
+    availablePacks:['single','pack4','pack8','pack12'] },
+
+  { key:'grp3Kids',  labelKey:'grp3Kids',  badge:'badge-group', section:'sectionGrpKids',
+    ppCount:3, isKids:true,
+    packages:{
+      single:{club:2400,head:3300},
+      pack8: {club:2250,head:3000},
+    },
+    availablePacks:['single','pack8'] },
+
+  { key:'grp4Kids',  labelKey:'grp4Kids',  badge:'badge-group', section:null,
+    ppCount:4, isKids:true,
+    packages:{
+      single:{club:3200,head:4400},
+      pack8: {club:3000,head:4000},
+    },
+    availablePacks:['single','pack8'] },
+];
+
+const packLabelKeys = { single:'packSingle', pack4:'pack4', pack8:'pack8', pack12:'pack12' };
+
+// State
+let currentLang  = 'ru';
+let currentLevel = 'club';
+let pctActive    = true;
+let fixedActive  = true;
+// override % per training key (from reference table inputs)
+const rowPct = {};
+
+function t(k) { return i18n[currentLang][k] || k; }
+function fmt(n) {
+  return Math.round(n).toLocaleString({ en:'en-US', tr:'tr-TR', ru:'ru-RU' }[currentLang]);
+}
+function getCoachPct(key) {
+  return rowPct[key] !== undefined ? rowPct[key] : levelPcts[currentLevel];
+}
+function getPriceForPack(tr, pack) {
+  const prices = tr.packages[pack];
+  return currentLevel === 'head' ? prices.head : prices.club;
+}
+function getEarnForPack(tr, pack) {
+  const court = +document.getElementById('courtCost').value || 2000;
+  const price = getPriceForPack(tr, pack);
+  const pct   = getCoachPct(tr.key);
+  return (price - court) * pct / 100;
+}
+
+// ── Theme ────────────────────────────────────────────────────────────
+function setTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.theme-btn[onclick="setTheme('${theme}')"]`).classList.add('active');
+  try { localStorage.setItem('v7_theme', theme); } catch(e) {}
+}
+
+// ── Language / Level ────────────────────────────────────────────────
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.lang-btn[onclick="setLang('${lang}')"]`).classList.add('active');
+  applyTranslations();
+  rebuildAll();
+}
+function setLevel(level) {
+  currentLevel = level;
+  document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.level-btn[data-level="${level}"]`).classList.add('active');
+  rebuildAll();
+}
+function applyTranslations() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (i18n[currentLang][k] !== undefined) el.innerHTML = i18n[currentLang][k];
+  });
+}
+
+// ── Reference table ──────────────────────────────────────────────────
+function rebuildRefTable() {
+  const court = +document.getElementById('courtCost').value || 2000;
+  const tbody = document.getElementById('refBody');
+  tbody.innerHTML = '';
+  let lastSection = null;
+
+  TRAININGS.forEach(tr => {
+    if (tr.section && tr.section !== lastSection) {
+      lastSection = tr.section;
+      const hdr = document.createElement('tr');
+      hdr.className = 'section-row';
+      hdr.innerHTML = `<td colspan="7">${t(tr.section)}</td>`;
+      tbody.appendChild(hdr);
+    }
+
+    const pct = getCoachPct(tr.key);
+
+    tr.availablePacks.forEach((pack, idx) => {
+      const price   = getPriceForPack(tr, pack);
+      const base    = price - court;
+      const earn    = base * pct / 100;
+      const ppPrice = Math.round(price / tr.ppCount);
+      const ppHint  = tr.ppCount > 1 ? `<div class="price-per-pp">${fmt(ppPrice)} ₺${t('ppHint')}</div>` : '';
+      const kidsTag = (tr.isKids && idx === 0) ? ` <span style="font-size:10px;color:var(--mid-color);font-weight:600">👶</span>` : '';
+
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${idx === 0 ? `<span class="type-badge ${tr.badge}">${t(tr.labelKey)}</span>${kidsTag}` : ''}</td>
+        <td style="color:var(--muted);font-size:12px">${t(packLabelKeys[pack])}</td>
+        <td class="right val"><div>${fmt(price)} ₺</div>${ppHint}</td>
+        <td class="right val-muted">−${fmt(court)} ₺</td>
+        <td class="right val">${fmt(base)} ₺</td>
+        <td style="text-align:center">
+          ${idx === 0
+            ? `<input class="inline-input" type="number" id="pct_${tr.key}" value="${pct}" min="0" max="100"
+                oninput="rowPct['${tr.key}']=+this.value; rebuildAll()"> %`
+            : `<span style="color:var(--muted);font-size:12px">${pct}%</span>`}
+        </td>
+        <td class="right val-accent">${fmt(earn)} ₺</td>
+      `;
+      tbody.appendChild(row);
+    });
+  });
+
+  document.getElementById('tableNote').innerHTML = t('noteText');
+}
+
+// ── Sessions block (multi-pack per type) ────────────────────────────
+function rebuildSessions() {
+  const court   = +document.getElementById('courtCost').value || 2000;
+  const wrapper = document.getElementById('sessionsWrapper');
+
+  // Save existing session values
+  const prevSess = {};
+  TRAININGS.forEach(tr => {
+    tr.availablePacks.forEach(pack => {
+      const el = document.getElementById(`sess_${tr.key}_${pack}`);
+      if (el) prevSess[`${tr.key}_${pack}`] = el.value;
+    });
+  });
+
+  wrapper.innerHTML = '';
+
+  TRAININGS.forEach(tr => {
+    const pct = getCoachPct(tr.key);
+
+    const group = document.createElement('div');
+    group.className = 'sess-group';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'sess-group-header';
+    const kidsTag = tr.isKids ? ' 👶' : '';
+    header.innerHTML = `
+      <span class="sg-badge type-badge ${tr.badge}">${t(tr.labelKey)}${kidsTag}</span>
+      <div class="sg-total" id="grptotal_${tr.key}">0 ₺</div>
+    `;
+    group.appendChild(header);
+
+    // Pack rows
+    const packRows = document.createElement('div');
+    packRows.className = 'sess-pack-rows';
+
+    tr.availablePacks.forEach(pack => {
+      const price   = getPriceForPack(tr, pack);
+      const base    = price - court;
+      const earn    = base * pct / 100;
+      const ppPrice = Math.round(price / tr.ppCount);
+      const savedVal = prevSess[`${tr.key}_${pack}`] || '0';
+
+      const div = document.createElement('div');
+      div.className = 'sess-pack-row';
+      div.innerHTML = `
+        <div class="pack-label">${t(packLabelKeys[pack])}</div>
+        <div class="pack-price">${fmt(price)} ₺${tr.ppCount > 1 ? `<span class="pack-pp"> (${fmt(ppPrice)}${t('ppHint')})</span>` : ''}</div>
+        <input type="number" class="sess-input"
+          id="sess_${tr.key}_${pack}"
+          value="${savedVal}" min="0"
+          oninput="recalc()">
+        <div class="earn-preview" id="ep_${tr.key}_${pack}">
+          ${savedVal > 0 ? fmt(earn * +savedVal) + ' ₺' : '—'}
+        </div>
+      `;
+      packRows.appendChild(div);
+    });
+
+    group.appendChild(packRows);
+    wrapper.appendChild(group);
+  });
+}
+
+function rebuildAll() {
+  rebuildRefTable();
+  rebuildSessions();
+  recalc();
+}
+
+// ── Tournament ───────────────────────────────────────────────────────
+function setPctActive(val) {
+  pctActive = val;
+  const btns = document.getElementById('togglePct').querySelectorAll('button');
+  btns[0].className = val ? 'active' : '';
+  btns[1].className = val ? '' : 'active';
+  calcTourn();
+}
+function setFixedActive(val) {
+  fixedActive = val;
+  const btns = document.getElementById('toggleFixed').querySelectorAll('button');
+  btns[0].className = val ? '' : 'active';
+  btns[1].className = val ? 'active' : '';
+  calcTourn();
+}
+function calcTourn() {
+  const rev   = +document.getElementById('tournRevenue').value || 0;
+  const pct   = +document.getElementById('tournPct').value     || 0;
+  const fixed = +document.getElementById('tournFixed').value   || 0;
+  const count = +document.getElementById('tournCount').value   || 0;
+  const earnPct   = pctActive   ? rev * pct / 100 : 0;
+  const earnFixed = fixedActive ? fixed * count   : 0;
+  const total     = earnPct + earnFixed;
+  document.getElementById('pctEarn').textContent    = fmt(earnPct)   + ' ₺';
+  document.getElementById('fixedEarn').textContent  = fmt(earnFixed) + ' ₺';
+  document.getElementById('tournTotal').textContent = fmt(total)     + ' ₺';
+  recalc();
+}
+
+// ── Recalc ───────────────────────────────────────────────────────────
+function recalc() {
+  const court   = +document.getElementById('courtCost').value || 2000;
+  const minSal  = +document.getElementById('minSalary').value || 28000;
+
+  // Tournament
+  const rev    = +document.getElementById('tournRevenue').value || 0;
+  const pctT   = +document.getElementById('tournPct').value     || 0;
+  const fixed  = +document.getElementById('tournFixed').value   || 0;
+  const count  = +document.getElementById('tournCount').value   || 0;
+  const earnPct   = pctActive   ? rev * pctT / 100 : 0;
+  const earnFixed = fixedActive ? fixed * count    : 0;
+  const tournTotal = earnPct + earnFixed;
+  const includeTour = document.getElementById('addTournToSalary').checked;
+
+  let totalBonus = 0;
+  const summaryRows = []; // {label, totalSess, earn}
+
+  TRAININGS.forEach(tr => {
+    const pct = getCoachPct(tr.key);
+    let groupEarn = 0;
+    let groupSess = 0;
+
+    tr.availablePacks.forEach(pack => {
+      const sessEl = document.getElementById(`sess_${tr.key}_${pack}`);
+      const epEl   = document.getElementById(`ep_${tr.key}_${pack}`);
+      if (!sessEl) return;
+      const sess  = +sessEl.value || 0;
+      const price = getPriceForPack(tr, pack);
+      const base  = price - court;
+      const earn  = base * pct / 100;
+      const total = earn * sess;
+      groupEarn  += total;
+      groupSess  += sess;
+      if (epEl) epEl.textContent = sess > 0 ? fmt(total) + ' ₺' : '—';
+    });
+
+    totalBonus += groupEarn;
+
+    const groupEl = document.getElementById(`grptotal_${tr.key}`);
+    if (groupEl) groupEl.textContent = groupEarn > 0 ? fmt(groupEarn) + ' ₺' : '—';
+
+    if (groupSess > 0) summaryRows.push({ label: t(tr.labelKey), sess: groupSess, earn: groupEarn });
+  });
+
+  const grandBonus = totalBonus + (includeTour ? tournTotal : 0);
+  const finalPay   = minSal + grandBonus;
+
+  // Summary table
+  const sb = document.getElementById('summaryBody');
+  sb.innerHTML = '';
+
+  const addRow = (label, sess, val, accent) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td style="color:var(--muted);font-size:13px">${label}</td>
+      <td class="right" style="color:var(--muted);font-size:12px">${sess !== null ? sess : ''}</td>
+      <td class="right val${accent?'-accent':''}" style="font-size:13px">${fmt(val)} ₺</td>
+    `;
+    sb.appendChild(tr);
+  };
+
+  summaryRows.forEach(r => addRow(r.label, r.sess, r.earn, false));
+  if (includeTour && tournTotal > 0) addRow(`🏆 ${t('summaryTournaments')}`, null, tournTotal, false);
+
+  if (summaryRows.length === 0 && !(includeTour && tournTotal > 0)) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td colspan="3" style="color:var(--muted);text-align:center;padding:24px;font-size:13px">${t('noData')}</td>`;
+    sb.appendChild(tr);
+  }
+
+  const sep = document.createElement('tr');
+  sep.className = 'sep';
+  sep.innerHTML = '<td colspan="3"></td>';
+  sb.appendChild(sep);
+  addRow(t('summaryMin') + ':', null, minSal, false);
+  addRow('⬆ ' + t('summaryTotal') + ':', null, finalPay, true);
+
+  // Final bar
+  const lc = { club:'var(--club-color)', mid:'var(--mid-color)', head:'var(--head-color)' }[currentLevel];
+  const tournBlock = includeTour ? `
+    <div class="divider"></div>
+    <div class="summary-block">
+      <div class="label">${t('summaryTournaments')}</div>
+      <div class="big ${tournTotal>0?'ok':''}">${fmt(tournTotal)} ₺</div>
+      <div class="sub">${t('summaryTournSub')}</div>
+    </div>` : '';
+
+  document.getElementById('finalSummary').innerHTML = `
+    <div class="summary-block">
+      <div class="label">${t('summaryMin')}</div>
+      <div class="big" style="color:${lc}">${fmt(minSal)} ₺</div>
+      <div class="sub">${t('summaryGuarantee')}</div>
+    </div>
+    <div class="divider"></div>
+    <div class="summary-block">
+      <div class="label">${t('summaryBonus')}</div>
+      <div class="big ${totalBonus>0?'ok':''}">${fmt(totalBonus)} ₺</div>
+      <div class="sub">${t('summaryBonusSub')}</div>
+    </div>
+    ${tournBlock}
+    <div class="divider"></div>
+    <div class="summary-block">
+      <div class="label">💳 ${t('summaryTotal')}</div>
+      <div class="big ok">${fmt(finalPay)} ₺</div>
+      <div class="sub">+${fmt(grandBonus)} ${t('summaryBonusSub')}</div>
+    </div>
+  `;
+}
+
+// INIT
+(function() {
+  try {
+    const saved = localStorage.getItem('v7_theme');
+    if (saved) setTheme(saved);
+  } catch(e) {}
+})();
+applyTranslations();
+rebuildAll();
+calcTourn();
+</script>
+</body>
+</html>
