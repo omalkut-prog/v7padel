@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260424c"></script>
+<script src="assets/data.js?v=20260424d"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -353,7 +353,7 @@
 //   3. expenses tab — detail only; DO NOT sum for OPEX (contains capex + loans)
 //   4. bookings / customers / memberships — Matchpoint (read-only)
 //   5. Divergences → display PnL figure (never expenses total)
-// --- Shared helpers from assets/data.js?v=20260424c ---
+// --- Shared helpers from assets/data.js?v=20260424d ---
 const gviz   = V7.loadSheet;    // drop-in: gviz(sheetName) → Promise<rows>
 const toNum  = V7.num;
 const fmt    = V7.fmtInt;       // full number with locale separators (1 525 887)
@@ -887,8 +887,19 @@ async function loadSlowLiabilities() {
           lostN + ' карт · ' + fmtK(lostFee) + ' ₺/мес recurring';
         document.getElementById('churn-soon-sub').textContent =
           soon14N + ' карт · ' + fmtK(soon14Fee) + ' ₺/мес под риском';
+        // UX guard: если через 12с member_churn не загрузился — показываем
+        // ошибку с кнопкой «Обновить» вместо вечного «Загрузка...».
+        var _churnTimer = setTimeout(function() {
+          ['tbl-churn-lost', 'tbl-churn-soon'].forEach(function(tid) {
+            var tb = document.querySelector('#' + tid + ' tbody');
+            if (tb && tb.textContent.indexOf('Загрузка') >= 0) {
+              tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:var(--text3)">Не загрузилось. <a href="#" onclick="location.reload();return false;" style="color:var(--accent)">Обновить</a></td></tr>';
+            }
+          });
+        }, 12000);
         // Таблицы заполняются отдельно из member_churn cache-таба
         V7.loadCacheTab('member_churn').then(function(rows) {
+          clearTimeout(_churnTimer);
           var lost = (rows || []).filter(function(r) { return r.status === 'expired_this_month'; });
           var soon = (rows || []).filter(function(r) { return r.status === 'expiring_14d'; });
 
@@ -939,7 +950,14 @@ async function loadSlowLiabilities() {
           } else {
             document.getElementById('churn-soon-summary').textContent = 'В ближайшие 14 дней никто не истекает ✓';
           }
-        }).catch(function(e) { console.warn('member_churn load:', e); });
+        }).catch(function(e) {
+          clearTimeout(_churnTimer);
+          console.warn('member_churn load:', e);
+          ['tbl-churn-lost', 'tbl-churn-soon'].forEach(function(tid) {
+            var tb = document.querySelector('#' + tid + ' tbody');
+            if (tb) tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:var(--text3)">Не загрузилось. <a href="#" onclick="location.reload();return false;" style="color:var(--accent)">Обновить</a></td></tr>';
+          });
+        });
       } catch (e) { console.warn('churn block:', e); }
 
       // Per-court KPIs.

@@ -29,11 +29,10 @@
   const NEW_PNL_GID = '1844112584';
   const GVIZ_BASE = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=';
   const CACHE_BASE = 'https://docs.google.com/spreadsheets/d/' + CACHE_ID + '/gviz/tq?tqx=out:csv&sheet=';
-  // OPT 2026-04-24: было 30с — при плохой сети юзер ждал 2-3 минуты
-  // на dashboard (10 блоков × 30с timeout × retry). Снизили до 8с —
-  // Google Sheets обычно отвечает за 0.5-2с. Если не ответил за 8с —
-  // быстрее показать stale cache или пустой блок чем блокировать UI.
-  const DEFAULT_TIMEOUT = 8000;
+  // OPT 2026-04-24 (v2): 15с — компромисс. 8с было слишком агрессивно
+  // для мобильного 3G/плохой WiFi. 30с было слишком много. На хорошей
+  // сети Google Sheets отвечает 0.5-2с, на плохой — 5-10с нормально.
+  const DEFAULT_TIMEOUT = 15000;
   const START_MONTH = '2025-10'; // первый месяц операционных данных клуба
   const MONTHLY_GOAL = 1800000; // целевая выручка в месяц (₺)
 
