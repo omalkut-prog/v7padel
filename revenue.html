@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260422c"></script>
+<script src="assets/data.js?v=20260424a"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -1636,7 +1636,11 @@ function renderWeeklyTable(prefix) {
       var weekHours = 0;
       for (var dh = 0; dh < 7; dh++) {
         var dd = new Date(w.mon); dd.setDate(dd.getDate() + dh);
-        var dk = dd.toISOString().slice(0, 10);
+        // БАГ до 2026-04-24: использовали toISOString().slice(0,10) — это UTC,
+        // а utlDayMap keyed локальной датой. В Турции (UTC+3) ключ сдвигался
+        // на −1 день → часы недели были неправильные, ₺/час тоже.
+        // Фикс: localDateKey (определена на 2476).
+        var dk = localDateKey(dd);
         weekHours += (utlDayMap[dk] || 0);
       }
       var revPerH = weekHours > 0 ? w.total / weekHours : 0;
@@ -1668,7 +1672,8 @@ function renderWeeklyTable(prefix) {
       var w = wMap[wk];
       for (var dh = 0; dh < 7; dh++) {
         var dd = new Date(w.mon); dd.setDate(dd.getDate() + dh);
-        totalUtlH += (utlDayMap[dd.toISOString().slice(0,10)] || 0);
+        // Фикс UTC-сдвига (см. выше). 2026-04-24.
+        totalUtlH += (utlDayMap[localDateKey(dd)] || 0);
       }
     });
     var avgRevH = totalUtlH > 0 ? grandTotal / totalUtlH : 0;
