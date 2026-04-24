@@ -29,7 +29,11 @@
   const NEW_PNL_GID = '1844112584';
   const GVIZ_BASE = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=';
   const CACHE_BASE = 'https://docs.google.com/spreadsheets/d/' + CACHE_ID + '/gviz/tq?tqx=out:csv&sheet=';
-  const DEFAULT_TIMEOUT = 30000;
+  // OPT 2026-04-24: было 30с — при плохой сети юзер ждал 2-3 минуты
+  // на dashboard (10 блоков × 30с timeout × retry). Снизили до 8с —
+  // Google Sheets обычно отвечает за 0.5-2с. Если не ответил за 8с —
+  // быстрее показать stale cache или пустой блок чем блокировать UI.
+  const DEFAULT_TIMEOUT = 8000;
   const START_MONTH = '2025-10'; // первый месяц операционных данных клуба
   const MONTHLY_GOAL = 1800000; // целевая выручка в месяц (₺)
 
@@ -104,8 +108,11 @@
    * Запись: { key, data, t } где t — timestamp.
    * ----------------------------------------------------------------------- */
   var CACHE_FRESH_MS = 60 * 1000;          // < 60с — считаем свежим, не рефрешим
-  var CACHE_STALE_MS = 10 * 60 * 1000;     // 60с..10мин — отдаём и рефрешим в фоне (SWR)
-  var CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // > 24ч — игнорируем, ждём фетч
+  var CACHE_STALE_MS = 30 * 60 * 1000;     // 60с..30мин — отдаём и рефрешим в фоне (SWR)
+  // OPT 2026-04-24: было 24ч — если Google API лагает 5+ мин, юзер ждал.
+  // Теперь 72ч: данные даже 3-дневной давности лучше blank screen.
+  // Свежесть поддерживается ETL cron-ом (03:00+17:00).
+  var CACHE_MAX_AGE_MS = 72 * 60 * 60 * 1000; // > 72ч — игнорируем, ждём fresh fetch
 
   var _idb = null, _idbPromise = null;
   function _openIDB() {

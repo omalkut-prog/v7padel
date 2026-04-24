@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260422b"></script>
+<script src="assets/data.js?v=20260424c"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -353,7 +353,7 @@
 //   3. expenses tab — detail only; DO NOT sum for OPEX (contains capex + loans)
 //   4. bookings / customers / memberships — Matchpoint (read-only)
 //   5. Divergences → display PnL figure (never expenses total)
-// --- Shared helpers from assets/data.js?v=20260418 ---
+// --- Shared helpers from assets/data.js?v=20260424c ---
 const gviz   = V7.loadSheet;    // drop-in: gviz(sheetName) → Promise<rows>
 const toNum  = V7.num;
 const fmt    = V7.fmtInt;       // full number with locale separators (1 525 887)
@@ -1014,18 +1014,17 @@ async function loadSlowLiabilities() {
       // ── LIABILITIES (from liabilities tab) ──
       renderLiabilities(cache.liabilities);
 
-      // Mix броней + Retention + recall-списки (без отмен — они на /clients).
-      Promise.all([
-        V7.loadCacheTab('booking_types_monthly').catch(function() { return []; }),
-        V7.loadCacheTab('new_clients_retention').catch(function() { return []; }),
-        V7.loadCacheTab('at_risk_top').catch(function() { return []; }),
-        V7.loadCacheTab('membership_candidates').catch(function() { return []; }),
-      ]).then(function(results) {
-        renderBookingTypes(results[0]);
-        renderRetention(results[1]);
-        renderAtRisk(results[2]);
-        renderMemCandidates(results[3]);
-      });
+      // Mix броней + Retention + recall-списки. OPT 2026-04-24:
+      // каждый блок рендерится НЕЗАВИСИМО — один медленный не блокирует
+      // остальные. Раньше был Promise.all (ждал самого медленного).
+      V7.loadCacheTab('booking_types_monthly')
+        .then(renderBookingTypes).catch(function(e) { console.warn('booking_types:', e); });
+      V7.loadCacheTab('new_clients_retention')
+        .then(renderRetention).catch(function(e) { console.warn('retention:', e); });
+      V7.loadCacheTab('at_risk_top')
+        .then(renderAtRisk).catch(function(e) { console.warn('at_risk:', e); });
+      V7.loadCacheTab('membership_candidates')
+        .then(renderMemCandidates).catch(function(e) { console.warn('mem_cand:', e); });
 
       // ── TIMESTAMP ──
       var updAt = kpis.updated_at || '';
