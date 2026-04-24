@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260424e"></script>
+<script src="assets/data.js?v=20260424f"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -1077,12 +1077,36 @@ async function loadSlowLiabilities() {
 
       // ── PNL CHART (from monthly_series) ──
       var series = cache.series || [];
+      console.log('[dashboard] PnL chart source:', {
+        series_length: series.length,
+        START_MONTH: V7.START_MONTH,
+        first_row: series[0],
+        last_row: series[series.length - 1]
+      });
       var sMonths = series.filter(function(r) { return r.period_month >= V7.START_MONTH && (Number(r.revenue) !== 0 || Number(r.opex) !== 0 || r.source === 'live'); }).map(function(r) { return r.period_month; });
       var sMap = {}; series.forEach(function(r) { sMap[r.period_month] = r; });
-      renderPnlChart(sMonths,
-        sMonths.map(function(m) { return sMap[m].revenue; }),
-        sMonths.map(function(m) { return sMap[m].opex; }),
-        sMonths.map(function(m) { return sMap[m].pnl; }));
+      console.log('[dashboard] PnL filtered months:', sMonths);
+      if (sMonths.length === 0) {
+        console.error('[dashboard] PnL chart NO DATA — showing warning in UI');
+        var pnlCanvas = document.getElementById('chart-pnl');
+        if (pnlCanvas && pnlCanvas.parentElement) {
+          pnlCanvas.parentElement.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3)">Нет данных для графика.<br><small>series_length=' + series.length + ', START_MONTH=' + V7.START_MONTH + '</small></div>';
+        }
+      } else {
+        try {
+          renderPnlChart(sMonths,
+            sMonths.map(function(m) { return sMap[m].revenue; }),
+            sMonths.map(function(m) { return sMap[m].opex; }),
+            sMonths.map(function(m) { return sMap[m].pnl; }));
+          console.log('[dashboard] PnL chart rendered');
+        } catch (e) {
+          console.error('[dashboard] PnL chart render failed:', e);
+          var pnlCanvas2 = document.getElementById('chart-pnl');
+          if (pnlCanvas2 && pnlCanvas2.parentElement) {
+            pnlCanvas2.parentElement.innerHTML = '<div style="padding:40px;text-align:center;color:var(--bad)">Ошибка графика: ' + e.message + '</div>';
+          }
+        }
+      }
 
       // ── REVENUE MIX (from rev_mix) ──
       var mix = cache.revMix || [];
