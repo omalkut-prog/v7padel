@@ -9,7 +9,91 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260424d"></script>
+<script src="assets/data.js?v=20260424e"></script>
+<script>
+/* ============================================================
+   AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
+   Если через 15с главный KPI не отрисовался → авто-очистка IDB + reload.
+   Также показывает красный баннер "Диагностика" с тем что лагает.
+   ============================================================ */
+(function() {
+  var BOOT_T0 = performance.now();
+  var HEAL_TIMEOUT_MS = 15000;
+  var SHOWED_BANNER = false;
+
+  function mkBanner(msg, color) {
+    var b = document.getElementById('v7-heal-banner');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'v7-heal-banner';
+      b.style.cssText = 'position:fixed;top:12px;right:12px;z-index:9999;max-width:360px;padding:12px 16px;border-radius:10px;font-size:13px;line-height:1.5;box-shadow:0 4px 20px rgba(0,0,0,.25);font-family:Inter,sans-serif';
+      document.body.appendChild(b);
+    }
+    b.style.background = color || '#e74c3c';
+    b.style.color = '#fff';
+    b.innerHTML = msg;
+    SHOWED_BANNER = true;
+  }
+
+  function autoHeal() {
+    mkBanner('⏳ Кэш завис (>' + (HEAL_TIMEOUT_MS/1000) + 'с). Чищу IndexedDB и перезагружаю...');
+    try {
+      if (window.indexedDB) indexedDB.deleteDatabase('v7_cache');
+    } catch(e) {}
+    // Unregister any rogue Service Workers
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then(function(regs) { regs.forEach(function(r) { r.unregister(); }); })
+        .catch(function() {});
+    }
+    setTimeout(function() {
+      // Bust URL cache with random param, reload
+      var sep = location.search ? '&' : '?';
+      location.href = location.pathname + location.search + sep + '_heal=' + Date.now();
+    }, 600);
+  }
+
+  // Детектор: KPI через 15с должен быть НЕ "—" (дефолтное значение в HTML).
+  setTimeout(function() {
+    var kpi = document.getElementById('kpi-rev');
+    var loadedMs = Math.round(performance.now() - BOOT_T0);
+    if (!kpi || kpi.textContent === '—' || kpi.textContent.trim() === '') {
+      // Если пришли сюда через _heal — не зациклить
+      if (location.search.indexOf('_heal=') >= 0) {
+        mkBanner('❌ Второй раз завис. Причина вне IDB.<br>' +
+                 '<a href="#" onclick="this.parentElement.remove();return false;" style="color:#fff;text-decoration:underline">закрыть</a><br>' +
+                 '<small>Проверь в DevTools → Network какие 404/timeout.</small>', '#c0392b');
+        return;
+      }
+      autoHeal();
+    } else {
+      console.log('[v7-heal] KPI loaded in ' + loadedMs + 'ms, no heal needed');
+    }
+  }, HEAL_TIMEOUT_MS);
+
+  // Легкий прогресс-индикатор: показывается первые 3с, потом скрывается
+  setTimeout(function() {
+    var kpi = document.getElementById('kpi-rev');
+    if (!kpi || kpi.textContent === '—' || kpi.textContent.trim() === '') {
+      mkBanner('⏳ Грузим кэш... (кликните чтобы очистить и перезагрузить)', '#3498db');
+      var bn = document.getElementById('v7-heal-banner');
+      if (bn) bn.style.cursor = 'pointer';
+      if (bn) bn.addEventListener('click', autoHeal);
+    }
+  }, 3000);
+
+  // Скрыть любой баннер если всё хорошо
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      var kpi = document.getElementById('kpi-rev');
+      if (kpi && kpi.textContent !== '—' && kpi.textContent.trim() !== '') {
+        var bn = document.getElementById('v7-heal-banner');
+        if (bn && bn.style.background === 'rgb(52, 152, 219)') bn.remove(); // только blue "grab"
+      }
+    }, 500);
+  });
+})();
+</script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
