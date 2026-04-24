@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260424f"></script>
+<script src="assets/data.js?v=20260424g"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -821,6 +821,17 @@ async function loadSlowPnL() {
     el.classList.add(p >= 0 ? "good" : "bad");
     document.getElementById("kpi-pnl-mo").textContent = last;
   }
+  // Guard: если months пустой — не создаём пустой чарт. Это было главной
+  // причиной 'пустое окно без ошибки' 2026-04-24.
+  if (!months.length) {
+    var w = document.querySelector('#chart-pnl').parentElement;
+    w.innerHTML = '<div style="padding:40px;text-align:center;color:#e74c3c"><b>Нет данных PnL (slow path).</b><br><small>V7.loadPnL() вернул пустой объект.</small></div>';
+    return;
+  }
+  if (window.Chart && typeof Chart.getChart === 'function') {
+    var existing = Chart.getChart('chart-pnl');
+    if (existing) existing.destroy();
+  }
   renderPnlChart(months, months.map(function(m) { return byM[m].revenue; }), months.map(function(m) { return byM[m].opex; }), months.map(function(m) { return byM[m].pnl; }));
 }
 
@@ -1077,34 +1088,39 @@ async function loadSlowLiabilities() {
 
       // ── PNL CHART (from monthly_series) ──
       var series = cache.series || [];
-      console.log('[dashboard] PnL chart source:', {
-        series_length: series.length,
-        START_MONTH: V7.START_MONTH,
-        first_row: series[0],
-        last_row: series[series.length - 1]
-      });
       var sMonths = series.filter(function(r) { return r.period_month >= V7.START_MONTH && (Number(r.revenue) !== 0 || Number(r.opex) !== 0 || r.source === 'live'); }).map(function(r) { return r.period_month; });
       var sMap = {}; series.forEach(function(r) { sMap[r.period_month] = r; });
-      console.log('[dashboard] PnL filtered months:', sMonths);
+
+      // Жёсткая диагностика: показываем статус прямо в UI. Дорисуется
+      // поверх если чарт не отрендерился — увидит пользователь без DevTools.
+      var _pnlWrap = document.querySelector('#chart-pnl') && document.querySelector('#chart-pnl').parentElement;
+      var _pnlStatus = document.createElement('div');
+      _pnlStatus.id = 'pnl-status';
+      _pnlStatus.style.cssText = 'position:absolute;top:8px;left:8px;right:8px;font-size:10px;color:#999;z-index:10;pointer-events:none';
+      _pnlStatus.textContent = 'series=' + series.length + ' filtered=' + sMonths.length + ' status=pending';
+      if (_pnlWrap) _pnlWrap.appendChild(_pnlStatus);
+
       if (sMonths.length === 0) {
-        console.error('[dashboard] PnL chart NO DATA — showing warning in UI');
-        var pnlCanvas = document.getElementById('chart-pnl');
-        if (pnlCanvas && pnlCanvas.parentElement) {
-          pnlCanvas.parentElement.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3)">Нет данных для графика.<br><small>series_length=' + series.length + ', START_MONTH=' + V7.START_MONTH + '</small></div>';
+        if (_pnlWrap) {
+          _pnlWrap.innerHTML = '<div style="padding:40px;text-align:center;color:#e74c3c"><b>Нет данных для графика.</b><br><small>series_length=' + series.length + ', START_MONTH=' + V7.START_MONTH + '</small><br><small>Проблема с monthly_series кэшем.</small></div>';
         }
       } else {
         try {
+          // Уничтожаем существующий чарт если он был (Chart.js v4 иначе throws)
+          if (window.Chart && typeof Chart.getChart === 'function') {
+            var existing = Chart.getChart('chart-pnl');
+            if (existing) existing.destroy();
+          }
           renderPnlChart(sMonths,
             sMonths.map(function(m) { return sMap[m].revenue; }),
             sMonths.map(function(m) { return sMap[m].opex; }),
             sMonths.map(function(m) { return sMap[m].pnl; }));
-          console.log('[dashboard] PnL chart rendered');
+          _pnlStatus.textContent = 'series=' + series.length + ' filtered=' + sMonths.length + ' ✓ rendered ' + sMonths[0] + '…' + sMonths[sMonths.length-1];
+          _pnlStatus.style.color = '#27ae60';
+          setTimeout(function() { if (_pnlStatus && _pnlStatus.parentElement) _pnlStatus.remove(); }, 5000);
         } catch (e) {
-          console.error('[dashboard] PnL chart render failed:', e);
-          var pnlCanvas2 = document.getElementById('chart-pnl');
-          if (pnlCanvas2 && pnlCanvas2.parentElement) {
-            pnlCanvas2.parentElement.innerHTML = '<div style="padding:40px;text-align:center;color:var(--bad)">Ошибка графика: ' + e.message + '</div>';
-          }
+          _pnlStatus.textContent = 'ERROR: ' + e.message;
+          _pnlStatus.style.color = '#e74c3c';
         }
       }
 
