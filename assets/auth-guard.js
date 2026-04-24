@@ -40,7 +40,7 @@
     'tournament-analytics.html': ['admin', 'manager', 'coach', 'administrator'],
     'tournament-list.html':      ['admin', 'manager', 'coach', 'administrator'],
     'schedule-builder.html':     ['admin', 'manager', 'coach', 'administrator'],
-    'club-coach-calculator.html':['admin', 'manager', 'coach', 'administrator'],
+    'club-coach-calculator.html':['admin', 'manager', 'finance'],
     'manager-dashboard.html':    ['admin', 'manager'],
     'coach-dashboard.html':      ['admin', 'coach'],
     'admin-dashboard.html':      ['admin', 'administrator'],
@@ -54,6 +54,7 @@
     'manager':       'manager-dashboard.html',
     'coach':         'coach-dashboard.html',
     'administrator': 'admin-dashboard.html',
+    'finance':       'club-coach-calculator.html',
   };
 
   var allowed = ACCESS[KEY];
