@@ -522,7 +522,8 @@ async function renderTournaments() {
   tours = tours.filter(t => t.status === 'instance');
   tours.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
-  const todayStr = TODAY.toISOString().slice(0, 10);
+  // UTC→local fix 2026-04-24: ночью turnaments на сегодня показывались как future
+  const todayStr = TODAY.getFullYear() + '-' + String(TODAY.getMonth()+1).padStart(2,'0') + '-' + String(TODAY.getDate()).padStart(2,'0');
   box.innerHTML = tours.slice(0, 12).map(t => {
     const reg = num(t.participants_count);
     const max = num(t.slots) || 16;

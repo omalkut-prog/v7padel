@@ -782,7 +782,8 @@ async function loadSlowCourts() {
 async function loadSlowMemberships() {
   var rows = await gviz("memberships");
   var today = new Date();
-  var todayStr = today.toISOString().slice(0, 10); // YYYY-MM-DD
+  // UTC→local fix: toISOString в ночные часы (00-03 TR) даёт вчера.
+  var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
   var club = 0, vip = 0, clubPaid = 0, vipPaid = 0;
   rows.forEach(function(r) {
     if ((r.status || "").toLowerCase() !== "active") return;

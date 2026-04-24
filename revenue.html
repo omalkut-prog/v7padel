@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260424a"></script>
+<script src="assets/data.js?v=20260424b"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -1623,7 +1623,7 @@ function renderWeeklyTable(prefix) {
       var isBest = val > 0 && val === bestDayVal;
       var bestStyle = isBest ? ';border-bottom:2px solid var(--accent);font-weight:700' : '';
       var dayDate = new Date(w.mon); dayDate.setDate(dayDate.getDate() + d);
-      var dayKey = dayDate.toISOString().slice(0,10);
+      var dayKey = localDateKey(dayDate); // было toISOString — UTC-сдвиг, label даты в тултипе показывался предыдущий (2026-04-24).
       // data-tx атрибут только если есть детализация чеков в weekMap
       var hasDetails = w.dayTx && w.dayTx[d] && w.dayTx[d].length;
       var txAttr = (val > 0 && hasDetails) ? ' data-tx="' + wk + '|' + d + '" data-day="' + dayKey + '" data-tab="' + prefix + '"' : '';
@@ -3761,7 +3761,7 @@ function _renderMarginsData(goodsTxns) {
 
   // Daily target: 5000₺ net margin
   var DAILY_TARGET = 5000;
-  var activeDays = filtered.reduce(function(s, t) { s.add(t.date.toISOString().slice(0,10)); return s; }, new Set()).size || 1;
+  var activeDays = filtered.reduce(function(s, t) { s.add(localDateKey(t.date)); return s; }, new Set()).size || 1; // UTC→local fix 2026-04-24
   var dailyMargin = totalMargin / activeDays;
   var avgMarginPct = totalRevenue > 0 ? totalMargin / totalRevenue : 0;
   var neededRevPerDay = avgMarginPct > 0 ? DAILY_TARGET / avgMarginPct : 0;
@@ -4407,7 +4407,7 @@ function renderTabDow(canvasId, txns) {
   txns.forEach(function(t) {
     var d = isoWeekDow(t.date);
     dowTotals[d] += t.total;
-    dowDates[d].add(t.date.toISOString().slice(0, 10));
+    dowDates[d].add(localDateKey(t.date)); // UTC→local fix: раньше tx на 01:00 локального Пн попадал в UTC-Вс, портил dowAvg
   });
   var dowAvg = dowTotals.map(function(tot, i) { return dowDates[i].size > 0 ? tot / dowDates[i].size : 0; });
 
