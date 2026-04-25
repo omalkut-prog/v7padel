@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260425h"></script>
+<script src="assets/data.js?v=20260425i"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -534,6 +534,7 @@ function renderCourts(months, p1, p2, p3, p4) {
    Тарифы: Club 7500₺/мес, VIP 12000₺/мес — для оценки MRR.
 */
 function renderMemberships(club, vip, clubPaid, vipPaid) {
+  console.log('[renderMemberships] called with:', {club: club, vip: vip, clubPaid: clubPaid, vipPaid: vipPaid});
   club = Number(club) || 0;
   vip = Number(vip) || 0;
   if (clubPaid != null) clubPaid = Number(clubPaid);
@@ -1120,14 +1121,9 @@ async function loadMonthlySeriesIndependent() {
 
       // Revenue mix теперь в independent loader ниже.
 
-      // ── MEMBERSHIPS (from kpis) ──
-      renderMemberships(
-        kpis.memberships_club, kpis.memberships_vip,
-        kpis.memberships_club_paid, kpis.memberships_vip_paid
-      );
-
-      // ── LIABILITIES (from liabilities tab) ──
-      if (cache.liabilities) renderLiabilities(cache.liabilities);
+      // Memberships + Liabilities теперь рендерятся через independent
+      // loaders ниже. Убрано из cache path 2026-04-25 чтобы избежать
+      // race conditions между двумя путями.
 
       // ── TIMESTAMP ──
       var updAt = kpis.updated_at || '';
