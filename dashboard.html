@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260425f"></script>
+<script src="assets/data.js?v=20260425g"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -1220,10 +1220,21 @@ V7.loadCacheTab('dashboard_kpis').then(function(rows) {
   }
 
   // ── Memberships block ──
-  renderMemberships(
-    k.memberships_club, k.memberships_vip,
-    k.memberships_club_paid, k.memberships_vip_paid
-  );
+  try {
+    renderMemberships(
+      k.memberships_club, k.memberships_vip,
+      k.memberships_club_paid, k.memberships_vip_paid
+    );
+  } catch (memErr) {
+    console.error('[mem] renderMemberships failed:', memErr);
+    var memWrap = document.querySelector('#chart-mem-type');
+    if (memWrap && memWrap.parentElement) {
+      memWrap.parentElement.innerHTML =
+        '<div style="padding:32px;text-align:center;color:var(--text3);font-size:13px">⚠ Ошибка: ' +
+        (memErr.message || memErr) +
+        '<br><a href="#" onclick="location.reload();return false;" style="color:var(--accent)">Обновить</a></div>';
+    }
+  }
 
   // ── Timestamp ──
   var ts = document.getElementById("ts");
