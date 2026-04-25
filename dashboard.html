@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260425c"></script>
+<script src="assets/data.js?v=20260425d"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -522,6 +522,13 @@ function renderCourts(months, p1, p2, p3, p4) {
 
 // --- Memberships ---
 function renderMemberships(club, vip, clubPaid, vipPaid) {
+  // Защита от строковых значений из CSV (могут прийти как '33' а не 33)
+  club = Number(club) || 0;
+  vip = Number(vip) || 0;
+  if (clubPaid != null) clubPaid = Number(clubPaid) || 0;
+  if (vipPaid != null) vipPaid = Number(vipPaid) || 0;
+  // Уничтожаем предыдущий Chart instance (Chart.js v4)
+  if (window.Chart) { var em = Chart.getChart('chart-mem-type'); if (em) em.destroy(); }
   var total = club + vip;
   // Если передали "paid" значения — используем их как основной счёт
   // (status=Active + paid_until >= today). Fallback: формально active.
@@ -1181,6 +1188,23 @@ V7.loadCacheTab('new_clients_retention').then(function(rows) {
 }).catch(function(e) {
   console.warn('retention:', e);
   _v7BlockError('#chart-retention', null, 'Ошибка retention');
+});
+
+// Активные карты (Memberships) — независимый loader из dashboard_kpis.
+// Раньше зависел от cache path который мог упасть.
+V7.loadCacheTab('dashboard_kpis').then(function(rows) {
+  if (!rows || !rows.length) {
+    _v7BlockError('#chart-mem-type', null, 'Нет данных memberships');
+    return;
+  }
+  var k = rows[0];
+  renderMemberships(
+    k.memberships_club, k.memberships_vip,
+    k.memberships_club_paid, k.memberships_vip_paid
+  );
+}).catch(function(e) {
+  console.warn('memberships:', e);
+  _v7BlockError('#chart-mem-type', null, 'Ошибка memberships');
 });
 
 // At-risk топ клиентов
