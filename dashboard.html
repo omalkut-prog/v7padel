@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260425e"></script>
+<script src="assets/data.js?v=20260425f"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -375,23 +375,9 @@
 
   <!-- Блоки отмен перенесены на /clients (раздел «4 · Отмены») 2026-04-17 -->
 
-  <!-- Списки под ручной recall -->
-  <div class="grid equal">
-    <div class="card">
-      <h3>Под риском <small>топ клиентов с ≥10k₺/90д, 0 за 30д</small></h3>
-      <table class="mini" id="tbl-atrisk">
-        <thead><tr><th>Клиент</th><th class="num">90д, ₺</th><th class="num">Пропал</th><th>Телефон</th></tr></thead>
-        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
-      </table>
-    </div>
-    <div class="card">
-      <h3>Кандидаты в клуб <small>ядро (≥10k₺/30д) без активной карты</small></h3>
-      <table class="mini" id="tbl-memcand">
-        <thead><tr><th>Клиент</th><th class="num">30д, ₺</th><th class="num">90д, ₺</th><th>Телефон</th></tr></thead>
-        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
-      </table>
-    </div>
-  </div>
+  <!-- 'Под риском' и 'Кандидаты в клуб' перенесены в /clients
+       (отдельный подраздел) — 2026-04-25 по запросу пользователя.
+       На дашборде остались только финансовые/операционные KPI. -->
 
   <footer class="meta">
     V7 Padel · источник данных: <code>v7padel_db</code> (Google Sheets, gviz CSV) ·
@@ -740,41 +726,7 @@ var RECALL_LIST_LIMIT = 15;
 // 2026-04-17: дашборд про финансы и клиентов, отмены отдельно на /clients.
 // История: если нужно восстановить — git log и найти коммит "feat(dashboard):
 // 3 среза отмен" от 2026-04-17.
-// --- Список Под риском ---
-function renderAtRisk(rows) {
-  var tbody = document.querySelector("#tbl-atrisk tbody");
-  tbody.innerHTML = "";
-  if (!rows || !rows.length) {
-    tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет клиентов под риском</td></tr>';
-    return;
-  }
-  rows.slice(0, RECALL_LIST_LIMIT).forEach(function(r) {
-    var tr = document.createElement("tr");
-    tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
-                   '<td class="num">' + fmt(toNum(r.amount_90d)) + '</td>' +
-                   '<td class="num">' + (r.days_since_last_tx || '—') + 'д</td>' +
-                   '<td>' + phoneWaCell(r.phone) + '</td>';
-    tbody.appendChild(tr);
-  });
-}
-
-// --- Список Кандидаты в клуб ---
-function renderMemCandidates(rows) {
-  var tbody = document.querySelector("#tbl-memcand tbody");
-  tbody.innerHTML = "";
-  if (!rows || !rows.length) {
-    tbody.innerHTML = '<tr><td colspan="4" class="loading">Нет кандидатов</td></tr>';
-    return;
-  }
-  rows.slice(0, RECALL_LIST_LIMIT).forEach(function(r) {
-    var tr = document.createElement("tr");
-    tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
-                   '<td class="num">' + fmt(toNum(r.amount_30d)) + '</td>' +
-                   '<td class="num">' + fmt(toNum(r.amount_90d)) + '</td>' +
-                   '<td>' + phoneWaCell(r.phone) + '</td>';
-    tbody.appendChild(tr);
-  });
-}
+// renderAtRisk / renderMemCandidates переехали в /clients — 2026-04-25.
 
 // ============================================================
 // SLOW PATH: direct queries (fallback if cache fails)
@@ -1298,19 +1250,7 @@ V7.loadCacheTab('liabilities').then(function(rows) {
   if (tb) tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">⚠ Не удалось загрузить · <a href="#" onclick="location.reload();return false;" style="color:var(--accent)">Обновить</a></td></tr>';
 });
 
-// At-risk топ клиентов
-V7.loadCacheTab('at_risk_top').then(function(rows) {
-  renderAtRisk(rows || []);
-}).catch(function(e) {
-  console.warn('at_risk:', e);
-});
-
-// Кандидаты на абонемент
-V7.loadCacheTab('membership_candidates').then(function(rows) {
-  renderMemCandidates(rows || []);
-}).catch(function(e) {
-  console.warn('mem_cand:', e);
-});
+// 'Под риском' и 'Кандидаты в клуб' переехали на /clients — 2026-04-25.
 
 // ── MODAL FUNCTIONS ──
 var _revMixCache = null; // {labels:[], data:[]} — legacy, для совместимости

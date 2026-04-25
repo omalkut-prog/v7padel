@@ -429,6 +429,27 @@
     </ul>
   </div>
 
+  <!-- Recall-списки: Под риском + Кандидаты в клуб (перенесено с dashboard 2026-04-25) -->
+  <section class="section" id="recall-lists">
+    <h2 style="font-size:18px;font-weight:600;margin-bottom:14px">Recall-списки</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:14px">Под риском <small style="color:var(--text3);font-weight:400;font-size:12px;margin-left:8px">топ клиентов с ≥10k₺/90д, 0 за 30д</small></h3>
+        <table class="mini" id="tbl-atrisk" style="width:100%;font-size:13px">
+          <thead><tr><th>Клиент</th><th class="num">90д, ₺</th><th class="num">Пропал</th><th>Телефон</th></tr></thead>
+          <tbody><tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:14px">Кандидаты в клуб <small style="color:var(--text3);font-weight:400;font-size:12px;margin-left:8px">ядро (≥10k₺/30д) без активной карты</small></h3>
+        <table class="mini" id="tbl-memcand" style="width:100%;font-size:13px">
+          <thead><tr><th>Клиент</th><th class="num">30д, ₺</th><th class="num">90д, ₺</th><th>Телефон</th></tr></thead>
+          <tbody><tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px">Загрузка…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <div class="modal-backdrop" id="modal-backdrop"><div class="modal" id="modal-body"></div></div>
@@ -1260,6 +1281,70 @@ function renderCancelTop5(tipoRows) {
   } catch (e) {
     console.warn('[cancellations] load failed:', e);
   }
+})();
+
+/* ============================================================
+   Recall-списки (перенесено с dashboard 2026-04-25): Под риском +
+   Кандидаты в клуб. Независимые loaders, не блокируют друг друга.
+   ============================================================ */
+(function() {
+  var LIMIT = 15;
+
+  function _phoneCell(phone) {
+    if (typeof V7 !== 'undefined' && V7.waHref) {
+      var href = V7.waHref(phone);
+      return href ? '<a href="' + href + '" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none">' + (phone || '') + '</a>' : (phone || '');
+    }
+    return phone || '';
+  }
+
+  function _renderAtRisk(rows) {
+    var tbody = document.querySelector('#tbl-atrisk tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!rows || !rows.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px">Нет клиентов под риском ✓</td></tr>';
+      return;
+    }
+    rows.slice(0, LIMIT).forEach(function(r) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
+        '<td class="num">' + (V7.fmt ? V7.fmt(V7.num(r.amount_90d)) : r.amount_90d) + '</td>' +
+        '<td class="num">' + (r.days_since_last_tx || '—') + 'д</td>' +
+        '<td>' + _phoneCell(r.phone) + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function _renderMemCand(rows) {
+    var tbody = document.querySelector('#tbl-memcand tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    if (!rows || !rows.length) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px">Нет кандидатов</td></tr>';
+      return;
+    }
+    rows.slice(0, LIMIT).forEach(function(r) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + (r.name || '') + '</td>' +
+        '<td class="num">' + (V7.fmt ? V7.fmt(V7.num(r.amount_30d)) : r.amount_30d) + '</td>' +
+        '<td class="num">' + (V7.fmt ? V7.fmt(V7.num(r.amount_90d)) : r.amount_90d) + '</td>' +
+        '<td>' + _phoneCell(r.phone) + '</td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  V7.loadCacheTab('at_risk_top').then(_renderAtRisk).catch(function(e) {
+    console.warn('at_risk:', e);
+    var tb = document.querySelector('#tbl-atrisk tbody');
+    if (tb) tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px">⚠ Не удалось · <a href="#" onclick="location.reload();return false;" style="color:var(--accent)">Обновить</a></td></tr>';
+  });
+
+  V7.loadCacheTab('membership_candidates').then(_renderMemCand).catch(function(e) {
+    console.warn('mem_cand:', e);
+    var tb = document.querySelector('#tbl-memcand tbody');
+    if (tb) tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:14px">⚠ Не удалось · <a href="#" onclick="location.reload();return false;" style="color:var(--accent)">Обновить</a></td></tr>';
+  });
 })();
 </script>
 
