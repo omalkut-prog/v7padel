@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260425g"></script>
+<script src="assets/data.js?v=20260425h"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -320,23 +320,45 @@
     <div class="card" id="mem-card">
       <h3>Активные карты <small>потолок 55 · клик по Club/VIP — список</small></h3>
       <div id="mem-box">
-        <div class="kpi" style="border:none;padding:0;margin-bottom:10px;">
-          <span class="value" id="mem-total">—</span>
-          <span class="sub">из 55 мест</span>
+        <!-- Главные цифры + прогресс-бар -->
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px">
+          <span style="font-size:32px;font-weight:700;letter-spacing:-0.5px" id="mem-total">—</span>
+          <span style="color:var(--text3);font-size:14px">из 55 мест</span>
+          <span style="margin-left:auto;font-weight:600" id="mem-pct">—</span>
         </div>
-        <div class="mem-bar"><span id="mem-fill" style="width:0%"></span></div>
-        <div class="mem-legend">
-          <span id="mem-club-badge" style="cursor:pointer; user-select:none; padding:2px 6px; border-radius:6px; transition:background .15s" title="Клик — список Club">
-            <span class="dot" style="background:var(--accent)"></span>Club <b id="mem-club">—</b>
-          </span>
-          <span id="mem-vip-badge" style="cursor:pointer; user-select:none; padding:2px 6px; border-radius:6px; transition:background .15s" title="Клик — список VIP">
-            <span class="dot" style="background:#0e8a87"></span>VIP <b id="mem-vip">—</b>
-          </span>
-          <span id="mem-free"></span>
+        <div class="mem-bar" style="height:14px;border-radius:8px;background:var(--surface2);overflow:hidden">
+          <span id="mem-fill" style="display:block;height:100%;background:linear-gradient(90deg,#0ABAB5,#0e8a87);width:0%;transition:width .6s ease"></span>
         </div>
-        <div style="margin-top:18px;">
-          <div class="chart-wrap short"><canvas id="chart-mem-type"></canvas></div>
-        </div>
+
+        <!-- Табличный разрез по типам -->
+        <table id="tbl-mem-breakdown" style="width:100%;margin-top:18px;font-size:13px;border-collapse:collapse">
+          <tbody>
+            <tr id="mem-row-club" style="border-bottom:1px solid var(--border);cursor:pointer" title="Клик — список Club">
+              <td style="padding:10px 4px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--accent);margin-right:8px;vertical-align:middle"></span><b>Club</b></td>
+              <td style="padding:10px 4px;color:var(--text3)" id="mem-club-fee">—</td>
+              <td style="padding:10px 4px;text-align:right;font-weight:600" id="mem-club">—</td>
+            </tr>
+            <tr id="mem-row-vip" style="border-bottom:1px solid var(--border);cursor:pointer" title="Клик — список VIP">
+              <td style="padding:10px 4px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#0e8a87;margin-right:8px;vertical-align:middle"></span><b>VIP</b></td>
+              <td style="padding:10px 4px;color:var(--text3)" id="mem-vip-fee">—</td>
+              <td style="padding:10px 4px;text-align:right;font-weight:600" id="mem-vip">—</td>
+            </tr>
+            <tr id="mem-row-expired" style="border-bottom:1px solid var(--border);display:none">
+              <td style="padding:10px 4px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#e74c3c;margin-right:8px;vertical-align:middle"></span>Истекли</td>
+              <td style="padding:10px 4px;color:var(--text3)">не продлили</td>
+              <td style="padding:10px 4px;text-align:right;font-weight:600;color:#e74c3c" id="mem-expired">—</td>
+            </tr>
+            <tr>
+              <td style="padding:10px 4px;color:var(--text2)"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);margin-right:8px;vertical-align:middle"></span>Свободно</td>
+              <td style="padding:10px 4px;color:var(--text3)" id="mem-free-revenue">—</td>
+              <td style="padding:10px 4px;text-align:right;font-weight:600;color:var(--text2)" id="mem-free">—</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- Скрытые legacy-элементы для совместимости (badges click handlers) -->
+        <span id="mem-club-badge" style="display:none"></span>
+        <span id="mem-vip-badge" style="display:none"></span>
       </div>
     </div>
   </div>
@@ -507,45 +529,80 @@ function renderCourts(months, p1, p2, p3, p4) {
 }
 
 // --- Memberships ---
+/* renderMemberships — табличный layout (2026-04-25, переход с doughnut).
+   Показывает: total/CAP с прогресс-баром + табличный breakdown по типам.
+   Тарифы: Club 7500₺/мес, VIP 12000₺/мес — для оценки MRR.
+*/
 function renderMemberships(club, vip, clubPaid, vipPaid) {
-  // Защита от строковых значений из CSV (могут прийти как '33' а не 33)
   club = Number(club) || 0;
   vip = Number(vip) || 0;
-  if (clubPaid != null) clubPaid = Number(clubPaid) || 0;
-  if (vipPaid != null) vipPaid = Number(vipPaid) || 0;
-  // Уничтожаем предыдущий Chart instance (Chart.js v4)
-  if (window.Chart) { var em = Chart.getChart('chart-mem-type'); if (em) em.destroy(); }
+  if (clubPaid != null) clubPaid = Number(clubPaid);
+  if (vipPaid != null) vipPaid = Number(vipPaid);
   var total = club + vip;
-  // Если передали "paid" значения — используем их как основной счёт
-  // (status=Active + paid_until >= today). Fallback: формально active.
-  var hasPaid = (clubPaid != null && vipPaid != null);
+  var hasPaid = (clubPaid != null && !isNaN(clubPaid) && vipPaid != null && !isNaN(vipPaid));
   var clubShown = hasPaid ? clubPaid : club;
   var vipShown = hasPaid ? vipPaid : vip;
   var totalShown = clubShown + vipShown;
   var expired = hasPaid ? (total - totalShown) : 0;
   var CAP = 55;
-  document.getElementById("mem-total").textContent = totalShown;
+  var free = Math.max(0, CAP - totalShown);
+  var pct = CAP > 0 ? (totalShown / CAP * 100) : 0;
+
+  // Тарифы для расчёта recurring выручки/мес
+  var FEE_CLUB = 7500, FEE_VIP = 12000;
+
+  // Главный счётчик + бар
+  var totalEl = document.getElementById("mem-total");
+  if (totalEl) totalEl.textContent = totalShown;
+  var pctEl = document.getElementById("mem-pct");
+  if (pctEl) {
+    pctEl.textContent = pct.toFixed(0) + '%';
+    pctEl.style.color = pct >= 80 ? '#e74c3c' : (pct >= 60 ? '#f39c12' : 'var(--good)');
+  }
+  var fillEl = document.getElementById("mem-fill");
+  if (fillEl) fillEl.style.width = Math.min(100, pct).toFixed(1) + "%";
+
+  // Таблица
   document.getElementById("mem-club").textContent = clubShown;
   document.getElementById("mem-vip").textContent = vipShown;
-  var freeText = "свободно: " + Math.max(0, CAP - totalShown);
-  if (expired > 0) freeText += " · " + expired + " истекли";
-  document.getElementById("mem-free").textContent = freeText;
-  document.getElementById("mem-fill").style.width = Math.min(100, totalShown * 100 / CAP).toFixed(1) + "%";
-  new Chart(document.getElementById("chart-mem-type"), {
-    type: "doughnut",
-    data: {
-      labels: ["Club", "VIP", "Свободно"],
-      datasets: [{
-        data: [club, vip, Math.max(0, CAP - total)],
-        backgroundColor: [ACCENT, ACCENT_D, "#e8eef1"],
-        borderColor: "#fff", borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false, cutout: "64%",
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return c.label + ": " + c.parsed; } } } }
+  document.getElementById("mem-free").textContent = free;
+  var feeClubEl = document.getElementById("mem-club-fee");
+  if (feeClubEl) feeClubEl.textContent = clubShown > 0 ? fmtK(clubShown * FEE_CLUB) + ' ₺/мес' : '—';
+  var feeVipEl = document.getElementById("mem-vip-fee");
+  if (feeVipEl) feeVipEl.textContent = vipShown > 0 ? fmtK(vipShown * FEE_VIP) + ' ₺/мес' : '—';
+  var freeRevEl = document.getElementById("mem-free-revenue");
+  if (freeRevEl) {
+    var potential = free * ((FEE_CLUB + FEE_VIP) / 2);
+    freeRevEl.textContent = free > 0 ? '+' + fmtK(potential) + ' ₺/мес potential' : '—';
+  }
+
+  // Истёкшие — показываем строку только если есть
+  var expRow = document.getElementById("mem-row-expired");
+  var expEl = document.getElementById("mem-expired");
+  if (expRow && expEl) {
+    if (expired > 0) {
+      expRow.style.display = '';
+      expEl.textContent = expired;
+    } else {
+      expRow.style.display = 'none';
     }
-  });
+  }
+
+  // Click handlers на строки
+  var clubRow = document.getElementById("mem-row-club");
+  var vipRow = document.getElementById("mem-row-vip");
+  if (clubRow && !clubRow.dataset.bound) {
+    clubRow.dataset.bound = '1';
+    clubRow.addEventListener('click', function() { _showMembersModal('Club'); });
+    clubRow.addEventListener('mouseenter', function() { this.style.background = 'var(--surface2)'; });
+    clubRow.addEventListener('mouseleave', function() { this.style.background = ''; });
+  }
+  if (vipRow && !vipRow.dataset.bound) {
+    vipRow.dataset.bound = '1';
+    vipRow.addEventListener('click', function() { _showMembersModal('VIP'); });
+    vipRow.addEventListener('mouseenter', function() { this.style.background = 'var(--surface2)'; });
+    vipRow.addEventListener('mouseleave', function() { this.style.background = ''; });
+  }
 }
 
 // --- Clients line+bar ---
