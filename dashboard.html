@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260425a"></script>
+<script src="assets/data.js?v=20260425b"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -356,25 +356,8 @@
     </div>
   </div>
 
-  <!-- MEMBER CHURN: истекли не продлены + истекают в ближайшие 14 дней -->
-  <div class="grid equal">
-    <div class="card clickable" id="churn-lost-card" title="Клик — полный список истекших">
-      <h3>Карты истекли — звонить <small id="churn-lost-sub">—</small></h3>
-      <table class="mini" id="tbl-churn-lost">
-        <thead><tr><th>Клиент</th><th>Карта</th><th>Истекла</th><th class="num">Fee/мес</th></tr></thead>
-        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
-      </table>
-      <div style="margin-top:10px; font-size:12px; color:var(--text2)" id="churn-lost-summary">—</div>
-    </div>
-    <div class="card clickable" id="churn-soon-card" title="Клик — полный список истекающих в 14 дней">
-      <h3>Истекают в 14 дней <small id="churn-soon-sub">—</small></h3>
-      <table class="mini" id="tbl-churn-soon">
-        <thead><tr><th>Клиент</th><th>Карта</th><th>Через</th><th class="num">Fee/мес</th></tr></thead>
-        <tbody><tr><td colspan="4" class="loading">Загрузка…</td></tr></tbody>
-      </table>
-      <div style="margin-top:10px; font-size:12px; color:var(--text2)" id="churn-soon-summary">—</div>
-    </div>
-  </div>
+  <!-- Member Churn блок удалён 2026-04-25: данные не отображались стабильно,
+       пользователь решил отключить. См. /clients для списка истекающих карт. -->
 
   <!-- Mix бронирований + Retention новичков -->
   <div class="grid equal">
@@ -936,9 +919,13 @@ async function loadSlowLiabilities() {
 /* Block-renderer helper: показывает inline ошибку если данные не пришли.
    Используется когда блок не смог загрузиться (timeout, 429, и т.п.) — даём
    юзеру кнопку «Обновить» вместо вечного «Загрузка...» или пустого графика. */
-function _v7BlockError(containerSelector, message) {
+function _v7BlockError(containerSelector, _legacyArg, message) {
+  // Поддерживает (selector, message) И (selector, _, message) — backward compat.
+  if (message === undefined) { message = _legacyArg; }
   var el = document.querySelector(containerSelector);
   if (!el) return;
+  // Если передали canvas, заменяем его контейнер (parent .chart-wrap)
+  if (el.tagName === 'CANVAS' && el.parentElement) el = el.parentElement;
   el.innerHTML = '<div style="padding:32px 20px;text-align:center;color:var(--text3);font-size:13px">' +
     '<div style="margin-bottom:10px">⚠ ' + (message || 'Не удалось загрузить') + '</div>' +
     '<a href="#" onclick="location.reload();return false;" style="color:var(--accent);font-weight:500">Обновить страницу</a>' +
@@ -1074,88 +1061,7 @@ async function loadMonthlySeriesIndependent() {
       document.getElementById("kpi-clients-active").textContent = "активных 30д: " + (kpis.clients_active_30d || 0);
       document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + kpis.clients_new_30d;
 
-      // Блок Member Churn — истекли / истекают
-      try {
-        var lostN = toNum(kpis.churn_expired_this_month_n);
-        var lostFee = toNum(kpis.churn_expired_this_month_fee);
-        var soon14N = toNum(kpis.churn_expiring_14d_n);
-        var soon14Fee = toNum(kpis.churn_expiring_14d_fee);
-        document.getElementById('churn-lost-sub').textContent =
-          lostN + ' карт · ' + fmtK(lostFee) + ' ₺/мес recurring';
-        document.getElementById('churn-soon-sub').textContent =
-          soon14N + ' карт · ' + fmtK(soon14Fee) + ' ₺/мес под риском';
-        // UX guard: если через 12с member_churn не загрузился — показываем
-        // ошибку с кнопкой «Обновить» вместо вечного «Загрузка...».
-        var _churnTimer = setTimeout(function() {
-          ['tbl-churn-lost', 'tbl-churn-soon'].forEach(function(tid) {
-            var tb = document.querySelector('#' + tid + ' tbody');
-            if (tb && tb.textContent.indexOf('Загрузка') >= 0) {
-              tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:var(--text3)">Не загрузилось. <a href="#" onclick="location.reload();return false;" style="color:var(--accent)">Обновить</a></td></tr>';
-            }
-          });
-        }, 12000);
-        // Таблицы заполняются отдельно из member_churn cache-таба
-        V7.loadCacheTab('member_churn').then(function(rows) {
-          clearTimeout(_churnTimer);
-          var lost = (rows || []).filter(function(r) { return r.status === 'expired_this_month'; });
-          var soon = (rows || []).filter(function(r) { return r.status === 'expiring_14d'; });
-
-          function _render(tbodyId, rows, colDays) {
-            var tb = document.querySelector('#' + tbodyId + ' tbody');
-            tb.innerHTML = '';
-            if (!rows.length) {
-              tb.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--text3); padding:20px">Никого · всё хорошо</td></tr>';
-              return;
-            }
-            rows.slice(0, 10).forEach(function(r) {
-              var fee = toNum(r.fee);
-              var days = parseInt(r.days_to, 10);
-              var daysCell;
-              if (colDays === 'expired') {
-                daysCell = '<span style="color:var(--bad)">' + Math.abs(days) + ' д назад</span>';
-              } else {
-                var color = days <= 3 ? 'var(--bad)' : (days <= 7 ? '#f39c12' : 'var(--text2)');
-                daysCell = '<span style="color:' + color + '">через ' + days + ' д</span>';
-              }
-              var tr = document.createElement('tr');
-              tr.innerHTML = '<td>' + r.holder + '</td>'
-                           + '<td><span style="color:' + (r.card_type === 'V7 VIP' ? '#0e8a87' : 'var(--accent)') + ';font-weight:500">'
-                             + (r.card_type === 'V7 VIP' ? 'VIP' : 'Club') + '</span></td>'
-                           + '<td>' + daysCell + '</td>'
-                           + '<td class="num">' + fmtInt(fee) + '</td>';
-              tb.appendChild(tr);
-            });
-          }
-
-          _render('tbl-churn-lost', lost, 'expired');
-          _render('tbl-churn-soon', soon, 'expiring');
-
-          // Summary строки
-          if (lost.length > 0) {
-            var totalLost = lost.reduce(function(s, r) { return s + toNum(r.fee); }, 0);
-            document.getElementById('churn-lost-summary').innerHTML =
-              '<b>Потеря recurring:</b> ' + fmtK(totalLost) + ' ₺/мес · '
-              + '<b>за год:</b> ' + fmtK(totalLost * 12) + ' ₺ если никого не вернуть.';
-          } else {
-            document.getElementById('churn-lost-summary').textContent = 'Все карты этого месяца продлили ✓';
-          }
-          if (soon.length > 0) {
-            var totalSoon = soon.reduce(function(s, r) { return s + toNum(r.fee); }, 0);
-            document.getElementById('churn-soon-summary').innerHTML =
-              '<b>Рекомендация:</b> позвонить, предложить продление. Удержание ' + soon.length
-              + ' карт = ' + fmtK(totalSoon) + ' ₺/мес сохранённой выручки.';
-          } else {
-            document.getElementById('churn-soon-summary').textContent = 'В ближайшие 14 дней никто не истекает ✓';
-          }
-        }).catch(function(e) {
-          clearTimeout(_churnTimer);
-          console.warn('member_churn load:', e);
-          ['tbl-churn-lost', 'tbl-churn-soon'].forEach(function(tid) {
-            var tb = document.querySelector('#' + tid + ' tbody');
-            if (tb) tb.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:var(--text3)">Не загрузилось. <a href="#" onclick="location.reload();return false;" style="color:var(--accent)">Обновить</a></td></tr>';
-          });
-        });
-      } catch (e) { console.warn('churn block:', e); }
+      // Member Churn block удалён 2026-04-25 по запросу пользователя.
 
       // Per-court KPIs.
       // RPCH = revenue(last_pnl_month) / hours(того же месяца) — главная
@@ -1196,15 +1102,7 @@ async function loadMonthlySeriesIndependent() {
         try { _renderPnLSafe(cache.series); } catch(e) { console.warn('PnL render via cache:', e); }
       }
 
-      // ── REVENUE MIX (from rev_mix) ──
-      var mix = cache.revMix || [];
-      var mixLabels = [], mixData = [];
-      mix.forEach(function(r) { if (r.amount > 0) { mixLabels.push(r.category); mixData.push(r.amount); } });
-      if (mixLabels.length) {
-        if (window.Chart) { var er = Chart.getChart('chart-rev-mix'); if (er) er.destroy(); }
-        renderRevMix(mixLabels, mixData);
-        _revMixCache = {labels: mixLabels, data: mixData};
-      }
+      // Revenue mix теперь в independent loader ниже.
 
       // ── MEMBERSHIPS (from kpis) ──
       renderMemberships(
@@ -1215,39 +1113,89 @@ async function loadMonthlySeriesIndependent() {
       // ── LIABILITIES (from liabilities tab) ──
       if (cache.liabilities) renderLiabilities(cache.liabilities);
 
-      // Mix броней + Retention + recall-списки. OPT 2026-04-24:
-      // каждый блок рендерится НЕЗАВИСИМО — один медленный не блокирует
-      // остальные. Раньше был Promise.all (ждал самого медленного).
-      V7.loadCacheTab('booking_types_monthly')
-        .then(renderBookingTypes).catch(function(e) { console.warn('booking_types:', e); });
-      V7.loadCacheTab('new_clients_retention')
-        .then(renderRetention).catch(function(e) { console.warn('retention:', e); });
-      V7.loadCacheTab('at_risk_top')
-        .then(renderAtRisk).catch(function(e) { console.warn('at_risk:', e); });
-      V7.loadCacheTab('membership_candidates')
-        .then(renderMemCandidates).catch(function(e) { console.warn('mem_cand:', e); });
-
       // ── TIMESTAMP ──
       var updAt = kpis.updated_at || '';
       document.getElementById("ts").textContent = updAt + ' (кеш)';
 
       console.log('dashboard: all cache blocks rendered');
     } else {
-      // KPIs не пришли — но monthly_series independent loader всё равно
-      // рендерит чарты PnL/Courts/Clients. Остальное оставляем как есть
-      // (placeholders из HTML) с error-fallback от _v7BlockError если надо.
       console.warn('dashboard: KPIs cache empty, charts will render via independent loaders');
     }
   } catch (e) {
     console.warn('cache path failed:', e);
-    // Даже при exception — independent monthly_series loader продолжает
-    // работать, графики появятся.
   }
 
-  // Ждём пока monthly_series independent loader тоже отработает
-  // (для timestamp). Не блокирует ни один блок UI.
   monthlySeriesPromise.catch(function() {});
 })();
+
+// ============================================================
+// INDEPENDENT BLOCK LOADERS — каждый блок грузится сам, никаких Promise.all.
+// 2026-04-25: вынесены сюда из cache path. Если cache path упал —
+// эти всё равно работают. Если один блок лагает — другие не ждут.
+// ============================================================
+
+// Структура выручки (doughnut)
+V7.loadCacheTab('rev_mix').then(function(rows) {
+  if (!rows || !rows.length) {
+    _v7BlockError('#chart-rev-mix', null, 'Нет данных rev_mix');
+    return;
+  }
+  var labels = [], data = [];
+  rows.forEach(function(r) {
+    var amt = V7.num(r.amount);
+    if (amt > 0) { labels.push(r.category); data.push(amt); }
+  });
+  if (!labels.length) {
+    _v7BlockError('#chart-rev-mix', null, 'Все категории = 0');
+    return;
+  }
+  if (window.Chart) { var er = Chart.getChart('chart-rev-mix'); if (er) er.destroy(); }
+  renderRevMix(labels, data);
+  _revMixCache = {labels: labels, data: data};
+}).catch(function(e) {
+  console.warn('rev_mix:', e);
+  _v7BlockError('#chart-rev-mix', null, 'Ошибка загрузки rev_mix');
+});
+
+// Mix бронирований (booking_types_monthly)
+V7.loadCacheTab('booking_types_monthly').then(function(rows) {
+  if (!rows || !rows.length) {
+    _v7BlockError('#chart-booking-types', null, 'Нет данных booking_types');
+    return;
+  }
+  if (window.Chart) { var ec = Chart.getChart('chart-booking-types'); if (ec) ec.destroy(); }
+  renderBookingTypes(rows);
+}).catch(function(e) {
+  console.warn('booking_types:', e);
+  _v7BlockError('#chart-booking-types', null, 'Ошибка booking_types');
+});
+
+// Retention новичков
+V7.loadCacheTab('new_clients_retention').then(function(rows) {
+  if (!rows || !rows.length) {
+    _v7BlockError('#chart-retention', null, 'Нет данных retention');
+    return;
+  }
+  if (window.Chart) { var er2 = Chart.getChart('chart-retention'); if (er2) er2.destroy(); }
+  renderRetention(rows);
+}).catch(function(e) {
+  console.warn('retention:', e);
+  _v7BlockError('#chart-retention', null, 'Ошибка retention');
+});
+
+// At-risk топ клиентов
+V7.loadCacheTab('at_risk_top').then(function(rows) {
+  renderAtRisk(rows || []);
+}).catch(function(e) {
+  console.warn('at_risk:', e);
+});
+
+// Кандидаты на абонемент
+V7.loadCacheTab('membership_candidates').then(function(rows) {
+  renderMemCandidates(rows || []);
+}).catch(function(e) {
+  console.warn('mem_cand:', e);
+});
 
 // ── MODAL FUNCTIONS ──
 var _revMixCache = null; // {labels:[], data:[]} — legacy, для совместимости
