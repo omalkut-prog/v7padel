@@ -843,9 +843,20 @@
     return out;
   }
 
-  // Generic cache tab loader (for page-specific cache tabs)
+  // Generic cache tab loader (for page-specific cache tabs).
+  // 2026-04-25 self-heal: если SWR-кэш вернул пустой массив — автоматически
+  // перезапрашиваем fresh (минуя IDB). Решает проблему когда у юзера в IDB
+  // зависла пустая [] версия от прошлой неудачной попытки.
   async function loadCacheTab(tabName) {
     var rows = await _fetchCacheTab(tabName);
+    if (!rows || !rows.length) {
+      // Возможно кэш стух (пустой массив в IDB). Пробуем заново fresh.
+      try {
+        rows = await _loadGeneric(tabName, { timeoutMs: 10000, fresh: true }, CACHE_BASE, 'cache');
+      } catch (e) {
+        console.warn('[V7] loadCacheTab fresh-retry failed for ' + tabName + ':', e.message);
+      }
+    }
     return rows || [];
   }
 
