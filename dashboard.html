@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260425d"></script>
+<script src="assets/data.js?v=20260425e"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -1190,21 +1190,112 @@ V7.loadCacheTab('new_clients_retention').then(function(rows) {
   _v7BlockError('#chart-retention', null, 'Ошибка retention');
 });
 
-// Активные карты (Memberships) — независимый loader из dashboard_kpis.
-// Раньше зависел от cache path который мог упасть.
+// dashboard_kpis — единый источник для: KPI cards, per-court KPI, Memberships.
+// Все эти блоки зависят от одного таба, поэтому грузим один раз и заполняем.
+// 2026-04-25: вынесен из cache path — гарантия что заполнится даже если
+// loadFullCache по какой-то причине не пришёл.
 V7.loadCacheTab('dashboard_kpis').then(function(rows) {
   if (!rows || !rows.length) {
-    _v7BlockError('#chart-mem-type', null, 'Нет данных memberships');
+    console.warn('[dashboard_kpis] empty cache');
     return;
   }
   var k = rows[0];
+  // Cast all fields to numbers (CSV приходит как строки)
+  ['revenue_last_month','opex_last_month','pnl_last_month','clients_total',
+   'clients_new_30d','clients_active_30d','memberships_club','memberships_vip',
+   'memberships_club_paid','memberships_vip_paid','liabilities_total',
+   'revenue_per_court_lm','opex_per_court_lm','pnl_per_court_lm','rpch_lm',
+   'total_hours_lm','courts_count'].forEach(function(f) {
+    k[f] = V7.num(k[f]);
+  });
+
+  // ── KPI CARDS ── (если пусты или ещё не заполнились из cache path)
+  var revLM = k.revenue_last_month;
+  if (revLM > 0) {
+    document.getElementById("kpi-rev").textContent = fmtK(revLM) + " ₺";
+    document.getElementById("kpi-rev-mo").textContent = k.last_month || '';
+    var lm = k.last_month || '';
+    if (lm) {
+      var parts = lm.split('-');
+      var y = +parts[0], m = +parts[1];
+      var now = new Date();
+      var daysElapsed = (now.getFullYear() === y && now.getMonth() + 1 === m) ? now.getDate() : new Date(y, m, 0).getDate();
+      var daysInMonth = new Date(y, m, 0).getDate();
+      if (daysElapsed > 0) {
+        document.getElementById("kpi-rev-avg").textContent = "ср/день: " + fmtK(revLM / daysElapsed) + " ₺";
+        document.getElementById("kpi-rev-forecast").textContent = "прогноз: " + fmtK((revLM / daysElapsed) * daysInMonth) + " ₺";
+      }
+    }
+  }
+  if (k.opex_last_month > 0) {
+    document.getElementById("kpi-opex").textContent = fmtK(k.opex_last_month) + " ₺";
+    document.getElementById("kpi-opex-mo").textContent = k.last_month || '';
+  }
+  var pnlEl = document.getElementById("kpi-pnl");
+  if (pnlEl) {
+    pnlEl.textContent = (k.pnl_last_month >= 0 ? "+" : "") + fmtK(k.pnl_last_month) + " ₺";
+    pnlEl.classList.remove('good', 'bad');
+    pnlEl.classList.add(k.pnl_last_month >= 0 ? "good" : "bad");
+    document.getElementById("kpi-pnl-mo").textContent = k.last_month || '';
+  }
+  if (k.clients_total > 0) {
+    document.getElementById("kpi-clients").textContent = fmt(k.clients_total);
+    document.getElementById("kpi-clients-active").textContent = "активных 30д: " + (k.clients_active_30d || 0);
+    document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + k.clients_new_30d;
+  }
+
+  // ── Per-court KPIs ──
+  var courtsCount = k.courts_count || 4;
+  if (k.revenue_per_court_lm > 0) {
+    document.getElementById("kpi-rev-per-court").textContent = fmtK(k.revenue_per_court_lm) + " ₺";
+    document.getElementById("kpi-rev-per-court-sub").textContent =
+      "PnL " + (k.last_month || '') + " / " + courtsCount + " кортов";
+  }
+  if (k.rpch_lm > 0) {
+    document.getElementById("kpi-rpch").textContent =
+      "₺/корт-час: " + fmtInt(Math.round(k.rpch_lm)) +
+      (k.total_hours_lm > 0 ? " · " + Math.round(k.total_hours_lm) + " ч" : "");
+  }
+  if (k.opex_per_court_lm > 0) {
+    document.getElementById("kpi-opex-per-court").textContent = fmtK(k.opex_per_court_lm) + " ₺";
+    document.getElementById("kpi-opex-per-court-sub").textContent =
+      "мес. · " + (k.last_month || '');
+    var pnlEl2 = document.getElementById("kpi-pnl-per-court");
+    if (pnlEl2 && k.pnl_per_court_lm) {
+      pnlEl2.textContent = "P&L/корт: " + (k.pnl_per_court_lm >= 0 ? "+" : "") + fmtK(k.pnl_per_court_lm) + " ₺";
+      pnlEl2.style.color = k.pnl_per_court_lm >= 0 ? 'var(--good)' : 'var(--bad)';
+    }
+  }
+
+  // ── Memberships block ──
   renderMemberships(
     k.memberships_club, k.memberships_vip,
     k.memberships_club_paid, k.memberships_vip_paid
   );
+
+  // ── Timestamp ──
+  var ts = document.getElementById("ts");
+  if (ts && k.updated_at) ts.textContent = k.updated_at + ' (кеш)';
 }).catch(function(e) {
-  console.warn('memberships:', e);
-  _v7BlockError('#chart-mem-type', null, 'Ошибка memberships');
+  console.warn('dashboard_kpis loader:', e);
+});
+
+// Liabilities (Обязательства) — независимый loader.
+V7.loadCacheTab('liabilities').then(function(rows) {
+  if (!rows || !rows.length) {
+    var tb = document.querySelector('#tbl-liab tbody');
+    if (tb) tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">Обязательств нет ✓</td></tr>';
+    return;
+  }
+  // Convert amount to number (data.js ранее делал это в loadFullCache)
+  var prepared = rows.map(function(r) {
+    return { date: r.date, creditor: r.creditor, description: r.description, amount: V7.num(r.amount) };
+  });
+  renderLiabilities(prepared);
+}).catch(function(e) {
+  console.warn('liabilities:', e);
+  var tb = document.querySelector('#tbl-liab tbody');
+  if (tb) tb.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px">⚠ Не удалось загрузить · <a href="#" onclick="location.reload();return false;" style="color:var(--accent)">Обновить</a></td></tr>';
 });
 
 // At-risk топ клиентов
