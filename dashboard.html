@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260424g"></script>
+<script src="assets/data.js?v=20260425a"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -303,7 +303,7 @@
   <div class="grid">
     <div class="card">
       <h3>Выручка / OPEX / P&L по месяцам <small>₺</small></h3>
-      <div class="chart-wrap tall"><canvas id="chart-pnl"></canvas></div>
+      <div class="chart-wrap tall" id="chart-pnl-wrap"><canvas id="chart-pnl"></canvas></div>
     </div>
     <div class="card">
       <h3>Структура выручки <small>посл. 6 мес</small></h3>
@@ -933,13 +933,115 @@ async function loadSlowLiabilities() {
 // INIT — cache-first: ALL blocks from v7padel_cache (4 parallel requests)
 // Fallback: 6+ sequential Google Sheets queries (slow path)
 // ============================================================
+/* Block-renderer helper: показывает inline ошибку если данные не пришли.
+   Используется когда блок не смог загрузиться (timeout, 429, и т.п.) — даём
+   юзеру кнопку «Обновить» вместо вечного «Загрузка...» или пустого графика. */
+function _v7BlockError(containerSelector, message) {
+  var el = document.querySelector(containerSelector);
+  if (!el) return;
+  el.innerHTML = '<div style="padding:32px 20px;text-align:center;color:var(--text3);font-size:13px">' +
+    '<div style="margin-bottom:10px">⚠ ' + (message || 'Не удалось загрузить') + '</div>' +
+    '<a href="#" onclick="location.reload();return false;" style="color:var(--accent);font-weight:500">Обновить страницу</a>' +
+    '</div>';
+}
+
+/* Render PnL chart safely. Может вызываться:
+   - из cache path (cache.series populated)
+   - из независимого fetch monthly_series
+   - retry через onclick
+   Защищает от Chart.js v4 "canvas already in use" (destroy existing). */
+function _renderPnLSafe(seriesRows) {
+  var rows = (seriesRows || []).map(function(r) {
+    return {
+      period_month: r.period_month,
+      revenue: V7.num(r.revenue), opex: V7.num(r.opex), pnl: V7.num(r.pnl),
+      courts_p1: V7.num(r.courts_p1), courts_p2: V7.num(r.courts_p2),
+      courts_p3: V7.num(r.courts_p3), courts_p4: V7.num(r.courts_p4),
+      clients_new: V7.num(r.clients_new), clients_cumulative: V7.num(r.clients_cumulative)
+    };
+  });
+  var sMonths = rows.filter(function(r) {
+    return r.period_month >= V7.START_MONTH &&
+      (r.revenue !== 0 || r.opex !== 0 || r.source === 'live');
+  }).map(function(r) { return r.period_month; });
+  var sMap = {}; rows.forEach(function(r) { sMap[r.period_month] = r; });
+
+  if (sMonths.length === 0) {
+    _v7BlockError('#chart-pnl-wrap', 'Нет данных PnL по месяцам в кэше');
+    return false;
+  }
+
+  // Уничтожаем старый Chart.js instance — иначе v4 throws «canvas in use»
+  if (window.Chart && typeof Chart.getChart === 'function') {
+    var existing = Chart.getChart('chart-pnl');
+    if (existing) existing.destroy();
+  }
+
+  // Если контейнер уже заменён ошибкой — восстановим canvas
+  var wrap = document.getElementById('chart-pnl-wrap');
+  if (wrap && !document.getElementById('chart-pnl')) {
+    wrap.innerHTML = '<canvas id="chart-pnl"></canvas>';
+  }
+
+  renderPnlChart(sMonths,
+    sMonths.map(function(m) { return sMap[m].revenue; }),
+    sMonths.map(function(m) { return sMap[m].opex; }),
+    sMonths.map(function(m) { return sMap[m].pnl; }));
+
+  // Render Courts (тот же source data)
+  var curYM = new Date().toISOString().slice(0, 7);
+  var cMonths = sMonths.filter(function(m) { return m <= curYM; }).slice(-8);
+  if (cMonths.length) {
+    if (window.Chart) { var ec = Chart.getChart('chart-courts'); if (ec) ec.destroy(); }
+    renderCourts(cMonths,
+      cMonths.map(function(m) { return sMap[m].courts_p1; }),
+      cMonths.map(function(m) { return sMap[m].courts_p2; }),
+      cMonths.map(function(m) { return sMap[m].courts_p3; }),
+      cMonths.map(function(m) { return sMap[m].courts_p4; }));
+  }
+
+  // Render Clients-by-month (тот же source data)
+  var clMonths = sMonths.slice(-12);
+  if (clMonths.length) {
+    if (window.Chart) { var ec2 = Chart.getChart('chart-clients'); if (ec2) ec2.destroy(); }
+    renderClients(clMonths,
+      clMonths.map(function(m) { return sMap[m].clients_new; }),
+      clMonths.map(function(m) { return sMap[m].clients_cumulative; }));
+  }
+
+  return true;
+}
+
+/* Independent loader: monthly_series → PnL + Courts + Clients charts.
+   Если кэш не пришёл — все 3 чарта показывают «Не удалось». */
+async function loadMonthlySeriesIndependent() {
+  try {
+    var rows = await V7.loadCacheTab('monthly_series');
+    if (!rows || !rows.length) {
+      _v7BlockError('#chart-pnl-wrap', 'Кэш monthly_series пустой');
+      return;
+    }
+    _renderPnLSafe(rows);
+  } catch (e) {
+    console.warn('[dashboard] monthly_series load failed:', e);
+    _v7BlockError('#chart-pnl-wrap', 'Ошибка загрузки monthly_series');
+  }
+}
+
 (async function() {
   var t0 = performance.now();
+
+  // Параллельно запускаем загрузку monthly_series — она независима от kpis
+  // и должна гарантированно показать PnL chart даже если loadFullCache
+  // пришёл частичным или пустым. 2026-04-25 архитектурный фикс.
+  var monthlySeriesPromise = loadMonthlySeriesIndependent();
+
   try {
     var cache = await V7.loadFullCache();
-    if (cache && cache.kpis && cache.kpis.revenue_last_month) {
+    var kpis = (cache && cache.kpis) || {};
+    var hasKpis = kpis.revenue_last_month !== undefined && kpis.revenue_last_month !== null;
+    if (hasKpis) {
       console.log('dashboard: full cache loaded in ' + Math.round(performance.now() - t0) + 'ms');
-      var kpis = cache.kpis;
 
       // ── KPI CARDS ──
       var revLM = toNum(kpis.revenue_last_month);
@@ -1086,75 +1188,32 @@ async function loadSlowLiabilities() {
         }
       }
 
-      // ── PNL CHART (from monthly_series) ──
-      var series = cache.series || [];
-      var sMonths = series.filter(function(r) { return r.period_month >= V7.START_MONTH && (Number(r.revenue) !== 0 || Number(r.opex) !== 0 || r.source === 'live'); }).map(function(r) { return r.period_month; });
-      var sMap = {}; series.forEach(function(r) { sMap[r.period_month] = r; });
-
-      // Жёсткая диагностика: показываем статус прямо в UI. Дорисуется
-      // поверх если чарт не отрендерился — увидит пользователь без DevTools.
-      var _pnlWrap = document.querySelector('#chart-pnl') && document.querySelector('#chart-pnl').parentElement;
-      var _pnlStatus = document.createElement('div');
-      _pnlStatus.id = 'pnl-status';
-      _pnlStatus.style.cssText = 'position:absolute;top:8px;left:8px;right:8px;font-size:10px;color:#999;z-index:10;pointer-events:none';
-      _pnlStatus.textContent = 'series=' + series.length + ' filtered=' + sMonths.length + ' status=pending';
-      if (_pnlWrap) _pnlWrap.appendChild(_pnlStatus);
-
-      if (sMonths.length === 0) {
-        if (_pnlWrap) {
-          _pnlWrap.innerHTML = '<div style="padding:40px;text-align:center;color:#e74c3c"><b>Нет данных для графика.</b><br><small>series_length=' + series.length + ', START_MONTH=' + V7.START_MONTH + '</small><br><small>Проблема с monthly_series кэшем.</small></div>';
-        }
-      } else {
-        try {
-          // Уничтожаем существующий чарт если он был (Chart.js v4 иначе throws)
-          if (window.Chart && typeof Chart.getChart === 'function') {
-            var existing = Chart.getChart('chart-pnl');
-            if (existing) existing.destroy();
-          }
-          renderPnlChart(sMonths,
-            sMonths.map(function(m) { return sMap[m].revenue; }),
-            sMonths.map(function(m) { return sMap[m].opex; }),
-            sMonths.map(function(m) { return sMap[m].pnl; }));
-          _pnlStatus.textContent = 'series=' + series.length + ' filtered=' + sMonths.length + ' ✓ rendered ' + sMonths[0] + '…' + sMonths[sMonths.length-1];
-          _pnlStatus.style.color = '#27ae60';
-          setTimeout(function() { if (_pnlStatus && _pnlStatus.parentElement) _pnlStatus.remove(); }, 5000);
-        } catch (e) {
-          _pnlStatus.textContent = 'ERROR: ' + e.message;
-          _pnlStatus.style.color = '#e74c3c';
-        }
+      // ── PNL/Courts/Clients CHART рендерятся в independent loader
+      // loadMonthlySeriesIndependent() который запущен параллельно ВНЕ
+      // этого блока. Если cache.series заполнен — used as fast path.
+      // Иначе — independent loader дорендерит когда придёт.
+      if (cache.series && cache.series.length) {
+        try { _renderPnLSafe(cache.series); } catch(e) { console.warn('PnL render via cache:', e); }
       }
 
       // ── REVENUE MIX (from rev_mix) ──
       var mix = cache.revMix || [];
       var mixLabels = [], mixData = [];
       mix.forEach(function(r) { if (r.amount > 0) { mixLabels.push(r.category); mixData.push(r.amount); } });
-      renderRevMix(mixLabels, mixData);
-      _revMixCache = {labels: mixLabels, data: mixData};
-
-      // ── COURTS (from monthly_series) ──
-      var curYM = new Date().toISOString().slice(0, 7);
-      var cMonths = sMonths.filter(function(m) { return m <= curYM; }).slice(-8);
-      renderCourts(cMonths,
-        cMonths.map(function(m) { return sMap[m].courts_p1; }),
-        cMonths.map(function(m) { return sMap[m].courts_p2; }),
-        cMonths.map(function(m) { return sMap[m].courts_p3; }),
-        cMonths.map(function(m) { return sMap[m].courts_p4; }));
+      if (mixLabels.length) {
+        if (window.Chart) { var er = Chart.getChart('chart-rev-mix'); if (er) er.destroy(); }
+        renderRevMix(mixLabels, mixData);
+        _revMixCache = {labels: mixLabels, data: mixData};
+      }
 
       // ── MEMBERSHIPS (from kpis) ──
-      // Предпочитаем paid-варианты (paid_until >= today); fallback — формально active.
       renderMemberships(
         kpis.memberships_club, kpis.memberships_vip,
         kpis.memberships_club_paid, kpis.memberships_vip_paid
       );
 
-      // ── CLIENTS (from monthly_series) ──
-      var clMonths = sMonths.slice(-12);
-      renderClients(clMonths,
-        clMonths.map(function(m) { return sMap[m].clients_new; }),
-        clMonths.map(function(m) { return sMap[m].clients_cumulative; }));
-
       // ── LIABILITIES (from liabilities tab) ──
-      renderLiabilities(cache.liabilities);
+      if (cache.liabilities) renderLiabilities(cache.liabilities);
 
       // Mix броней + Retention + recall-списки. OPT 2026-04-24:
       // каждый блок рендерится НЕЗАВИСИМО — один медленный не блокирует
@@ -1172,28 +1231,22 @@ async function loadSlowLiabilities() {
       var updAt = kpis.updated_at || '';
       document.getElementById("ts").textContent = updAt + ' (кеш)';
 
-      console.log('dashboard: all blocks rendered from cache');
-      return; // done, no slow path needed
+      console.log('dashboard: all cache blocks rendered');
+    } else {
+      // KPIs не пришли — но monthly_series independent loader всё равно
+      // рендерит чарты PnL/Courts/Clients. Остальное оставляем как есть
+      // (placeholders из HTML) с error-fallback от _v7BlockError если надо.
+      console.warn('dashboard: KPIs cache empty, charts will render via independent loaders');
     }
   } catch (e) {
     console.warn('cache path failed:', e);
+    // Даже при exception — independent monthly_series loader продолжает
+    // работать, графики появятся.
   }
 
-  // ── SLOW PATH: direct queries (fallback) ──
-  console.log('dashboard: cache miss, falling back to direct queries');
-  try {
-    await Promise.all([
-      loadSlowPnL().catch(function(e) { console.error("pnl:", e); }),
-      loadSlowRevMix().catch(function(e) { console.error("revmix:", e); }),
-      loadSlowCourts().catch(function(e) { console.error("courts:", e); }),
-      loadSlowMemberships().catch(function(e) { console.error("mem:", e); }),
-      loadSlowClients().catch(function(e) { console.error("clients:", e); }),
-      loadSlowLiabilities().catch(function(e) { console.error("liab:", e); })
-    ]);
-    document.getElementById("ts").textContent = new Date().toLocaleString("ru-RU") + ' (прямые запросы)';
-  } catch (e) {
-    console.error(e);
-  }
+  // Ждём пока monthly_series independent loader тоже отработает
+  // (для timestamp). Не блокирует ни один блок UI.
+  monthlySeriesPromise.catch(function() {});
 })();
 
 // ── MODAL FUNCTIONS ──

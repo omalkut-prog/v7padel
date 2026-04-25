@@ -761,18 +761,31 @@
     }
   }
 
+  /* loadFullCache — РАНЬШЕ был Promise.all all-or-nothing: если один таб
+     лагал → возвращал null → дашборд падал в slow path с пустым PnL.
+     ТЕПЕРЬ — independent fetches: каждый таб тянется отдельно через
+     allSettled. Если один не пришёл, остальные блоки рендерятся.
+     Возвращает {kpis, series, revMix, liabilities} — любое поле может
+     быть null/[] — клиент должен это уметь обрабатывать. 2026-04-25 fix.
+  */
   async function loadFullCache() {
     try {
-      var results = await Promise.all([
+      var results = await Promise.allSettled([
         _fetchCacheTab('dashboard_kpis'),
         _fetchCacheTab('monthly_series'),
         _fetchCacheTab('rev_mix'),
         _fetchCacheTab('liabilities')
       ]);
-      var kpiRows = results[0], seriesRows = results[1], mixRows = results[2], liabRows = results[3];
+      var pick = function(i) { return results[i].status === 'fulfilled' ? results[i].value : null; };
+      var kpiRows = pick(0), seriesRows = pick(1), mixRows = pick(2), liabRows = pick(3);
 
-      // KPIs
-      if (!kpiRows || !kpiRows.length) return null;
+      // KPIs — даже если null, возвращаем структуру (вместо null) чтобы
+      // вызывающий мог рендерить остальные блоки. Раньше return null
+      // целиком убивал dashboard.
+      if (!kpiRows || !kpiRows.length) {
+        console.warn('[V7] dashboard_kpis недоступен — рендерим что есть');
+        return { kpis: {}, series: [], revMix: [], liabilities: [] };
+      }
       var kpis = kpiRows[0];
       ['revenue_last_month','opex_last_month','pnl_last_month',
        'clients_total','clients_new_30d','bookings_30d','clients_active_30d',
