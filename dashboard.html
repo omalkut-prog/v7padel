@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260426a"></script>
+<script src="assets/data.js?v=20260426b"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -284,18 +284,19 @@
     <div class="kpi clickable" id="kpi-opex-card" title="Клик — разбивка OPEX по статьям"><span class="label">OPEX (посл. месяц)</span><span class="value" id="kpi-opex">—</span><span class="sub" id="kpi-opex-mo"></span></div>
     <div class="kpi"><span class="label">Операц. P&L</span><span class="value" id="kpi-pnl">—</span><span class="sub" id="kpi-pnl-mo"></span></div>
     <div class="kpi"><span class="label">Клиентов всего</span><span class="value" id="kpi-clients">—</span><span class="sub" id="kpi-clients-active"></span><span class="sub" id="kpi-clients-sub"></span></div>
-    <!-- Per-court метрики (добавлено 2026-04-18, индустриальный must-have) -->
+    <!-- Per-court метрики: переписаны 2026-04-26, IIFE рендерит через innerHTML.
+         Кликабельная карточка Выручка/корт открывает разбивку по P1-P4. -->
     <div class="kpi clickable" id="kpi-rpc-card" title="Клик — разбивка по кортам P1-P4">
       <span class="label">Выручка / корт</span>
-      <span class="value" id="kpi-rev-per-court">—</span>
-      <span class="sub" id="kpi-rev-per-court-sub">среднее по 4</span>
-      <span class="sub" id="kpi-rpch">—</span>
+      <div id="kpi-rev-per-court-content" style="display:flex;flex-direction:column;gap:8px">
+        <span class="value">—</span>
+      </div>
     </div>
     <div class="kpi">
       <span class="label">OPEX / корт</span>
-      <span class="value" id="kpi-opex-per-court">—</span>
-      <span class="sub" id="kpi-opex-per-court-sub">мес.</span>
-      <span class="sub" id="kpi-pnl-per-court"></span>
+      <div id="kpi-opex-per-court-content" style="display:flex;flex-direction:column;gap:8px">
+        <span class="value">—</span>
+      </div>
     </div>
   </div>
 
@@ -971,32 +972,7 @@ async function loadMonthlySeriesIndependent() {
       // RPCH = revenue(last_pnl_month) / hours(того же месяца) — главная
       // индустриальная метрика клуба.
       // Revenue/court = PnL/4 (среднее по 4); per-court estimate = hours × RPCH.
-      var rpc = toNum(kpis.revenue_per_court_lm);
-      var opc = toNum(kpis.opex_per_court_lm);
-      var pnlpc = toNum(kpis.pnl_per_court_lm);
-      var rpch = toNum(kpis.rpch_lm);
-      var totalHrs = toNum(kpis.total_hours_lm);
-      var courtsCount = toNum(kpis.courts_count) || 4;
-      if (rpc > 0) {
-        document.getElementById("kpi-rev-per-court").textContent = fmtK(rpc) + " ₺";
-        document.getElementById("kpi-rev-per-court-sub").textContent =
-          "PnL " + (kpis.last_month || '') + " / " + courtsCount + " кортов";
-      }
-      if (rpch > 0) {
-        document.getElementById("kpi-rpch").textContent =
-          "₺/корт-час: " + fmtInt(Math.round(rpch)) + (totalHrs > 0 ? " · " + Math.round(totalHrs) + " ч" : "");
-      }
-      if (opc > 0) {
-        document.getElementById("kpi-opex-per-court").textContent = fmtK(opc) + " ₺";
-        document.getElementById("kpi-opex-per-court-sub").textContent =
-          "мес. · " + (kpis.last_month || '');
-        var pnlEl2 = document.getElementById("kpi-pnl-per-court");
-        if (pnlEl2 && pnlpc) {
-          var sign = pnlpc >= 0 ? "+" : "";
-          pnlEl2.textContent = "P&L/корт: " + sign + fmtK(pnlpc) + " ₺";
-          pnlEl2.style.color = pnlpc >= 0 ? 'var(--good)' : 'var(--bad)';
-        }
-      }
+      // Per-court KPIs теперь рендерятся в IIFE buildPerCourtKPIs() в конце файла.
 
       // ── PNL/Courts/Clients CHART рендерятся в independent loader
       // loadMonthlySeriesIndependent() который запущен параллельно ВНЕ
@@ -1136,28 +1112,7 @@ V7.loadCacheTab('dashboard_kpis').then(function(rows) {
     document.getElementById("kpi-clients-sub").textContent = "новых за 30д: " + k.clients_new_30d;
   }
 
-  // ── Per-court KPIs ──
-  var courtsCount = k.courts_count || 4;
-  if (k.revenue_per_court_lm > 0) {
-    document.getElementById("kpi-rev-per-court").textContent = fmtK(k.revenue_per_court_lm) + " ₺";
-    document.getElementById("kpi-rev-per-court-sub").textContent =
-      "PnL " + (k.last_month || '') + " / " + courtsCount + " кортов";
-  }
-  if (k.rpch_lm > 0) {
-    document.getElementById("kpi-rpch").textContent =
-      "₺/корт-час: " + fmtInt(Math.round(k.rpch_lm)) +
-      (k.total_hours_lm > 0 ? " · " + Math.round(k.total_hours_lm) + " ч" : "");
-  }
-  if (k.opex_per_court_lm > 0) {
-    document.getElementById("kpi-opex-per-court").textContent = fmtK(k.opex_per_court_lm) + " ₺";
-    document.getElementById("kpi-opex-per-court-sub").textContent =
-      "мес. · " + (k.last_month || '');
-    var pnlEl2 = document.getElementById("kpi-pnl-per-court");
-    if (pnlEl2 && k.pnl_per_court_lm) {
-      pnlEl2.textContent = "P&L/корт: " + (k.pnl_per_court_lm >= 0 ? "+" : "") + fmtK(k.pnl_per_court_lm) + " ₺";
-      pnlEl2.style.color = k.pnl_per_court_lm >= 0 ? 'var(--good)' : 'var(--bad)';
-    }
-  }
+  // Per-court KPIs рендерятся в отдельном IIFE buildPerCourtKPIs() ниже.
 
   // Memberships блок: рендерится отдельным IIFE ниже (полностью self-contained).
 
@@ -1568,6 +1523,74 @@ async function _showMembersModal(filter) {
   var soonCard = document.getElementById('churn-soon-card');
   if (lostCard) lostCard.addEventListener('click', function() { _showMembersModal('expired'); });
   if (soonCard) soonCard.addEventListener('click', function() { _showMembersModal('expiring'); });
+})();
+
+/* ============================================================
+   PER-COURT KPI TILES — переписаны 2026-04-26 (тот же подход что
+   и Memberships): один IIFE, читает dashboard_kpis из cache,
+   рендерит через innerHTML. Никаких зависимостей.
+   ============================================================ */
+(async function buildPerCourtKPIs() {
+  var revBox = document.getElementById('kpi-rev-per-court-content');
+  var opexBox = document.getElementById('kpi-opex-per-court-content');
+  if (!revBox || !opexBox) return;
+
+  function _num(v) {
+    if (v == null) return 0;
+    var n = parseFloat(String(v).replace(/[^\d.\-]/g, ''));
+    return isNaN(n) ? 0 : n;
+  }
+  function _fmtK(v) {
+    if (typeof fmtK === 'function') return fmtK(v);
+    return Math.round(v / 1000) + 'K';
+  }
+  function _fmtInt(v) {
+    if (typeof fmtInt === 'function') return fmtInt(v);
+    return Math.round(v).toLocaleString('ru-RU');
+  }
+
+  try {
+    var rows = await V7.loadCacheTab('dashboard_kpis');
+    if (!rows || !rows.length) {
+      revBox.innerHTML = '<span class="value" style="color:var(--text3);font-size:14px">Нет данных</span>';
+      opexBox.innerHTML = '<span class="value" style="color:var(--text3);font-size:14px">Нет данных</span>';
+      return;
+    }
+    var k = rows[0];
+    var rpc = _num(k.revenue_per_court_lm);
+    var opc = _num(k.opex_per_court_lm);
+    var pnlpc = _num(k.pnl_per_court_lm);
+    var rpch = _num(k.rpch_lm);
+    var totalHrs = _num(k.total_hours_lm);
+    var courtsCount = _num(k.courts_count) || 4;
+    var lastMo = k.last_month || '';
+
+    // Выручка / корт
+    var revHtml = '<span class="value">' + _fmtK(rpc) + ' ₺</span>';
+    revHtml += '<span class="sub">PnL ' + lastMo + ' / ' + courtsCount + ' кортов</span>';
+    if (rpch > 0) {
+      revHtml += '<span class="sub">₺/корт-час: ' + _fmtInt(Math.round(rpch));
+      if (totalHrs > 0) revHtml += ' · ' + Math.round(totalHrs) + ' ч';
+      revHtml += '</span>';
+    }
+    revBox.innerHTML = revHtml;
+
+    // OPEX / корт
+    var opexHtml = '<span class="value">' + _fmtK(opc) + ' ₺</span>';
+    opexHtml += '<span class="sub">мес. · ' + lastMo + '</span>';
+    if (pnlpc !== 0) {
+      var sign = pnlpc >= 0 ? '+' : '';
+      var color = pnlpc >= 0 ? 'var(--good)' : 'var(--bad)';
+      opexHtml += '<span class="sub" style="color:' + color + ';font-weight:600">P&L/корт: ' + sign + _fmtK(pnlpc) + ' ₺</span>';
+    }
+    opexBox.innerHTML = opexHtml;
+
+    console.log('[per-court KPI] rev=' + rpc + ' opex=' + opc + ' pnl=' + pnlpc + ' rpch=' + rpch);
+  } catch (e) {
+    console.error('[per-court KPI]', e);
+    revBox.innerHTML = '<span class="value" style="color:#e74c3c;font-size:14px">⚠ Ошибка</span>';
+    opexBox.innerHTML = '<span class="value" style="color:#e74c3c;font-size:14px">⚠ Ошибка</span>';
+  }
 })();
 
 /* ============================================================
