@@ -6,8 +6,8 @@
 <title>V7 Padel — May Team Goal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/theme.css?v=20260427f">
-<link rel="stylesheet" href="assets/may-goal-common.css?v=20260427f">
+<link rel="stylesheet" href="assets/theme.css?v=20260427g">
+<link rel="stylesheet" href="assets/may-goal-common.css?v=20260427g">
 <style>
   /* === V3+V1 hybrid: ring focus + full tier descriptions === */
   .container { max-width: 980px; }
@@ -65,10 +65,70 @@
   .stat .v { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
   .stat .v small { font-size: 12px; color: var(--text3); font-weight: 500; margin-left: 3px; }
 
-  /* TIER cards — full descriptions (V1 style) */
-  .tiers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  /* === Breakdown by category — 3 lanes === */
+  .section-h {
+    font-size: 12px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1.5px; font-weight: 700; margin: 4px 4px 12px;
+    text-align: center;
+  }
+  .breakdown { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 18px; }
+  .lane { padding: 18px 18px 16px; text-align: center; }
+  .lane .icon {
+    font-size: 22px; margin-bottom: 6px;
+    display: block;
+  }
+  .lane .lane-name {
+    font-size: 13px; font-weight: 700; letter-spacing: -0.2px; margin-bottom: 4px;
+  }
+  .lane .lane-owners {
+    font-size: 10px; color: var(--text3); letter-spacing: 0.3px;
+    margin-bottom: 12px; line-height: 1.3;
+  }
+  .lane .lane-num {
+    font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1;
+    color: var(--text);
+  }
+  .lane .lane-num small {
+    font-size: 12px; font-weight: 500; color: var(--text3); margin-left: 2px;
+  }
+  .lane .lane-of {
+    font-size: 11px; color: var(--text2); margin-top: 4px; margin-bottom: 10px;
+  }
+  .lane .lane-bar { background: var(--surface2); border-radius: 8px; height: 6px; overflow: hidden; }
+  .lane .lane-fill {
+    height: 100%; background: var(--accent); border-radius: 8px;
+    transition: width .9s ease; width: 0%;
+  }
+  .lane .lane-status {
+    font-size: 10px; font-weight: 600; margin-top: 6px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .lane.status-over .lane-fill { background: var(--good); }
+  .lane.status-over .lane-status { color: var(--good); }
+  .lane.status-on .lane-fill { background: var(--accent); }
+  .lane.status-on .lane-status { color: var(--accent); }
+  .lane.status-behind .lane-fill { background: var(--warn); }
+  .lane.status-behind .lane-status { color: var(--warn); }
+
+  /* === Daily chart === */
+  .chart-card { padding: 18px 22px 12px; margin-bottom: 16px; }
+  .chart-card h4 {
+    font-size: 11px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1.5px; font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: baseline; justify-content: space-between;
+  }
+  .chart-card h4 .legend { font-size: 10px; color: var(--accent); font-weight: 600; }
+  .chart-svg { width: 100%; height: 140px; display: block; }
+
+  /* TIER cards — top tier dominates */
+  .tiers-grid { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 16px; margin-bottom: 16px; }
   .tier {
-    padding: 26px 28px; transition: border-color .2s, transform .2s;
+    padding: 24px 26px; transition: border-color .2s, transform .2s;
+  }
+  .tier.top {
+    background: linear-gradient(135deg, var(--accent-soft) 0%, var(--surface) 100%);
+    border-color: var(--accent-border);
+    padding: 30px 32px;
   }
   .tier.active {
     border-color: var(--accent); transform: scale(1.02);
@@ -79,11 +139,12 @@
     text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
   }
   .tier .reward {
-    font-size: 50px; font-weight: 800; letter-spacing: -2px; line-height: 0.95;
-    color: var(--text); margin-bottom: 12px;
+    font-size: 44px; font-weight: 800; letter-spacing: -1.5px; line-height: 0.95;
+    color: var(--text); margin-bottom: 10px;
   }
-  .tier .reward .currency { font-size: 16px; font-weight: 500; color: var(--text3); margin-left: 6px; }
-  .tier.top .reward { color: var(--accent); }
+  .tier.top .reward { font-size: 64px; letter-spacing: -2.5px; color: var(--accent); }
+  .tier .reward .currency { font-size: 14px; font-weight: 500; color: var(--text3); margin-left: 4px; }
+  .tier.top .reward .currency { font-size: 18px; }
   .tier .desc { font-size: 13px; color: var(--text2); line-height: 1.55; }
 
   /* Motto */
@@ -144,6 +205,20 @@
     <p class="sub" data-i18n="sub">The best month for V7 Padel since opening. Full team. Perfect weather. No rain. Tourists already here. This is our moment.</p>
   </div>
 
+  <!-- TIERS — на самом верху, чтоб приз был перед глазами -->
+  <div class="tiers-grid">
+    <div class="card tier" id="tier-card-low">
+      <div class="when" data-i18n="lowWhen">38 — 39.9 h/day · "better than April"</div>
+      <div class="reward">10 000<span class="currency">₺ NET</span></div>
+      <div class="desc" data-i18n="lowDesc">Even if we don't reach 40, this is locked in. Better than any previous month.</div>
+    </div>
+    <div class="card tier top" id="tier-card-top">
+      <div class="when" data-i18n="topWhen">40+ h/day · GOAL</div>
+      <div class="reward">20 000<span class="currency">₺ NET</span></div>
+      <div class="desc" data-i18n="topDesc">A month at the level of April's peak day. This level has never been reached before.</div>
+    </div>
+  </div>
+
   <!-- HERO with circular ring -->
   <div class="card hero-card">
     <div class="ring-wrap">
@@ -186,18 +261,45 @@
     </div>
   </div>
 
-  <!-- TIERS — full descriptions -->
-  <div class="tiers-grid">
-    <div class="card tier" id="tier-card-low">
-      <div class="when" data-i18n="lowWhen">38 — 39.9 h/day · "better than April"</div>
-      <div class="reward">10 000<span class="currency">₺ NET</span></div>
-      <div class="desc" data-i18n="lowDesc">Even if we don't reach 40, this is locked in. Better than any previous month.</div>
+  <!-- BREAKDOWN by category — каждый видит свой вклад -->
+  <div class="section-h" data-i18n="breakdownTitle">By category — your contribution</div>
+  <div class="breakdown">
+    <div class="card lane" id="lane-trainings">
+      <span class="icon">🎾</span>
+      <div class="lane-name" data-i18n="catTrainings">Trainings</div>
+      <div class="lane-owners" data-i18n="catTrainingsOwner">Coaches · Nastia</div>
+      <div class="lane-num"><span id="lane-trainings-h">—</span><small>h</small></div>
+      <div class="lane-of"><span data-i18n="ofTarget">of</span> <b id="lane-trainings-target">200</b></div>
+      <div class="lane-bar"><div class="lane-fill" id="lane-trainings-fill"></div></div>
+      <div class="lane-status" id="lane-trainings-status">—</div>
     </div>
-    <div class="card tier top" id="tier-card-top">
-      <div class="when" data-i18n="topWhen">40+ h/day · GOAL</div>
-      <div class="reward">20 000<span class="currency">₺ NET</span></div>
-      <div class="desc" data-i18n="topDesc">A month at the level of April's peak day. This level has never been reached before.</div>
+    <div class="card lane" id="lane-events">
+      <span class="icon">🏆</span>
+      <div class="lane-name" data-i18n="catEvents">Tournaments + Camps</div>
+      <div class="lane-owners" data-i18n="catEventsOwner">SMM · Olya</div>
+      <div class="lane-num"><span id="lane-events-h">—</span><small>h</small></div>
+      <div class="lane-of"><span data-i18n="ofTarget">of</span> <b id="lane-events-target">460</b></div>
+      <div class="lane-bar"><div class="lane-fill" id="lane-events-fill"></div></div>
+      <div class="lane-status" id="lane-events-status">—</div>
     </div>
+    <div class="card lane" id="lane-bookings">
+      <span class="icon">📅</span>
+      <div class="lane-name" data-i18n="catBookings">Bookings</div>
+      <div class="lane-owners" data-i18n="catBookingsOwner">Dasha · Nastia VIP</div>
+      <div class="lane-num"><span id="lane-bookings-h">—</span><small>h</small></div>
+      <div class="lane-of"><span data-i18n="ofTarget">of</span> <b id="lane-bookings-target">580</b></div>
+      <div class="lane-bar"><div class="lane-fill" id="lane-bookings-fill"></div></div>
+      <div class="lane-status" id="lane-bookings-status">—</div>
+    </div>
+  </div>
+
+  <!-- Daily chart -->
+  <div class="card chart-card">
+    <h4>
+      <span data-i18n="dailyChartTitle">Daily progress</span>
+      <span class="legend">— <span data-i18n="dailyChartGoal">goal 40 h</span></span>
+    </h4>
+    <svg class="chart-svg" id="daily-chart" viewBox="0 0 600 140" preserveAspectRatio="none"></svg>
   </div>
 
   <!-- Motto -->
@@ -218,14 +320,13 @@
   </div>
 
   <p class="footer-note">
-    <span data-i18n="updated">Updated</span>: <span id="updated-at">—</span> ·
-    <a href="dashboard.html" data-i18n="dashLink">internal dashboard</a>
+    <span data-i18n="updated">Updated</span>: <span id="updated-at">—</span>
   </p>
 
 </div>
 
-<script src="assets/data.js?v=20260427f"></script>
-<script src="assets/may-goal-shared.js?v=20260427f"></script>
+<script src="assets/data.js?v=20260427g"></script>
+<script src="assets/may-goal-shared.js?v=20260427g"></script>
 <script>
 (async function() {
   await window._mgLoadData();
@@ -257,9 +358,99 @@
     document.getElementById('stat-played').textContent = s.days;
     document.getElementById('stat-remaining').textContent = s.daysLeft;
 
+    // Breakdown по категориям
+    var TARGETS = { trainings: 200, events: 460, bookings: 580 }; // = 1240 всего = 40 ч/день
+    var cats = s.cats || { trainings: 0, events: 0, bookings: 0 };
+
+    function renderLane(key, current) {
+      var target = TARGETS[key];
+      var elH = document.getElementById('lane-' + key + '-h');
+      var elTarget = document.getElementById('lane-' + key + '-target');
+      var elFill = document.getElementById('lane-' + key + '-fill');
+      var elStatus = document.getElementById('lane-' + key + '-status');
+      var elLane = document.getElementById('lane-' + key);
+      if (!elH) return;
+      elH.textContent = Math.round(current);
+      elTarget.textContent = target;
+      var pct = target > 0 ? (current / target) * 100 : 0;
+      elFill.style.width = Math.min(100, pct) + '%';
+
+      // Сравнение с темпом — где должны быть к этому дню
+      var expected = s.mode === 'pre' ? 0 : target * (s.days / C.DAYS_IN_MONTH);
+      elLane.classList.remove('status-over', 'status-on', 'status-behind');
+      if (s.mode === 'pre') {
+        elStatus.textContent = '';
+      } else if (current >= expected * 1.05) {
+        elLane.classList.add('status-over');
+        elStatus.textContent = '↑ ' + T('progressOver');
+      } else if (current >= expected * 0.95) {
+        elLane.classList.add('status-on');
+        elStatus.textContent = '✓ ' + T('progressOnTrack');
+      } else {
+        elLane.classList.add('status-behind');
+        elStatus.textContent = '↓ ' + T('progressBehind');
+      }
+    }
+    renderLane('trainings', cats.trainings);
+    renderLane('events',    cats.events);
+    renderLane('bookings',  cats.bookings);
+
+    // Daily chart (svg line + goal line)
+    renderDailyChart(s);
+
     var u = document.getElementById('updated-at');
     if (u) u.textContent = new Date().toLocaleString();
   };
+
+  function renderDailyChart(s) {
+    var svg = document.getElementById('daily-chart');
+    if (!svg) return;
+    svg.innerHTML = '';
+    var W = 600, H = 140, P = { l: 30, r: 10, t: 10, b: 22 };
+    var maxY = 50; // 0-50 ч/день
+    var daysInMo = window._mgConfig.DAYS_IN_MONTH;
+    var goal = window._mgConfig.TARGET_HOURS;
+
+    // Helper to map x: day-of-month (1..31) → px
+    function xPx(day) { return P.l + ((day - 1) / (daysInMo - 1)) * (W - P.l - P.r); }
+    function yPx(hours) { return H - P.b - (hours / maxY) * (H - P.t - P.b); }
+
+    // Goal line at 40h
+    var goalY = yPx(goal);
+    var goalLine = '<line x1="' + P.l + '" y1="' + goalY + '" x2="' + (W - P.r) + '" y2="' + goalY +
+      '" stroke="var(--accent)" stroke-width="1" stroke-dasharray="4 4" opacity="0.7"/>';
+    var goalLabel = '<text x="' + (W - P.r - 4) + '" y="' + (goalY - 4) + '" font-size="10" fill="var(--accent)" text-anchor="end">40 ч</text>';
+
+    // Y-axis labels
+    var yLabels = '';
+    [0, 20, 40].forEach(function(h) {
+      yLabels += '<text x="' + (P.l - 6) + '" y="' + (yPx(h) + 3) + '" font-size="10" fill="var(--text3)" text-anchor="end">' + h + '</text>';
+    });
+
+    // X-axis day labels (every 5 days)
+    var xLabels = '';
+    [1, 5, 10, 15, 20, 25, 30].forEach(function(d) {
+      xLabels += '<text x="' + xPx(d) + '" y="' + (H - 5) + '" font-size="10" fill="var(--text3)" text-anchor="middle">' + d + '</text>';
+    });
+
+    // Bars for each played day
+    var bars = '';
+    if (s.daily && s.daily.length) {
+      s.daily.forEach(function(d) {
+        var dn = parseInt(d.date.slice(8, 10), 10);
+        var x = xPx(dn);
+        var barW = ((W - P.l - P.r) / (daysInMo - 1)) * 0.7;
+        var y = yPx(d.total);
+        var h = (H - P.b) - y;
+        var color = d.total >= goal ? 'var(--good)' : (d.total >= 38 ? 'var(--accent)' : 'var(--text3)');
+        bars += '<rect x="' + (x - barW/2) + '" y="' + y + '" width="' + barW + '" height="' + h +
+          '" fill="' + color + '" opacity="0.85" rx="2"><title>' + d.date + ': ' + d.total.toFixed(1) + ' ч</title></rect>';
+      });
+    }
+
+    svg.innerHTML = goalLine + goalLabel + yLabels + xLabels + bars;
+  }
+
   window._renderState();
 })();
 </script>

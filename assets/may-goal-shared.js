@@ -51,6 +51,19 @@
       remaining: "Remaining",
       days: "days",
       layoutLabel: "Layout",
+      breakdownTitle: "By category — your contribution",
+      catTrainings: "Trainings",
+      catEvents: "Tournaments + Camps + Open games",
+      catBookings: "Bookings (pairs + solo)",
+      catTrainingsOwner: "Coaches · Nastia (trainings)",
+      catEventsOwner: "SMM · Olya",
+      catBookingsOwner: "Dasha · Nastia (VIP)",
+      ofTarget: "of",
+      progressOver: "ahead of plan",
+      progressBehind: "behind plan",
+      progressOnTrack: "on track",
+      dailyChartTitle: "Daily progress",
+      dailyChartGoal: "goal 40 h",
     },
     ru: {
       pill: "МАЙ 2026 · ПИК СЕЗОНА",
@@ -97,6 +110,19 @@
       remaining: "Осталось",
       days: "дн.",
       layoutLabel: "Вариант",
+      breakdownTitle: "По типам — каждый видит свой вклад",
+      catTrainings: "Тренировки",
+      catEvents: "Турниры + Кэмпы + Open games",
+      catBookings: "Брони (пары + одиночные)",
+      catTrainingsOwner: "Тренеры · Настя (трен.)",
+      catEventsOwner: "SMM · Оля",
+      catBookingsOwner: "Даша · Настя (VIP)",
+      ofTarget: "из",
+      progressOver: "опережаем",
+      progressBehind: "отстаём",
+      progressOnTrack: "по графику",
+      dailyChartTitle: "Динамика по дням",
+      dailyChartGoal: "цель 40 ч",
     },
     tr: {
       pill: "MAYIS 2026 · SEZON ZİRVESİ",
@@ -143,6 +169,19 @@
       remaining: "Kaldı",
       days: "gün",
       layoutLabel: "Tasarım",
+      breakdownTitle: "Kategoriye göre — herkes kendi katkısını görür",
+      catTrainings: "Antrenmanlar",
+      catEvents: "Turnuvalar + Kamplar + Open games",
+      catBookings: "Rezervasyonlar (çift + tek)",
+      catTrainingsOwner: "Antrenörler · Nastia (antrenmanlar)",
+      catEventsOwner: "SMM · Olya",
+      catBookingsOwner: "Daşa · Nastia (VIP)",
+      ofTarget: "/",
+      progressOver: "plandan önde",
+      progressBehind: "plandan geri",
+      progressOnTrack: "plandayız",
+      dailyChartTitle: "Günlük ilerleme",
+      dailyChartGoal: "hedef 40 saat",
     }
   };
 
@@ -222,25 +261,44 @@
     var mPrefix = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
     var inMay = mPrefix === TARGET_MONTH;
     if (!inMay) {
-      window._mgState = { mode: 'pre', avg: 0, days: 0, daysLeft: DAYS_IN_MONTH, sum: 0 };
+      window._mgState = {
+        mode: 'pre', avg: 0, days: 0, daysLeft: DAYS_IN_MONTH, sum: 0,
+        cats: { trainings: 0, events: 0, bookings: 0 }, daily: []
+      };
       return window._mgState;
     }
     try {
       var rows = await V7.loadSheet('occupancy_daily');
       var todayIso = now.toISOString().slice(0, 10);
       var sum = 0, daysCount = 0;
+      var cats = { trainings: 0, events: 0, bookings: 0 };
+      var daily = [];
       (rows || []).forEach(function(r) {
         var d = String(r.date || '').slice(0, 10);
         if (!d.startsWith(TARGET_MONTH) || d > todayIso) return;
         var h = _num(r.hours);
-        if (h > 0) { sum += h; daysCount++; }
+        if (h <= 0) return;
+        sum += h; daysCount++;
+        // Category breakdown:
+        // trainings = h_clases
+        // events = h_centro (клубные ивенты + турниры) + h_actividades (open games)
+        // bookings = h_partida (партии) + h_reserva (одиночные)
+        var hT = _num(r.h_clases);
+        var hE = _num(r.h_centro) + _num(r.h_actividades);
+        var hB = _num(r.h_partida) + _num(r.h_reserva);
+        cats.trainings += hT;
+        cats.events    += hE;
+        cats.bookings  += hB;
+        daily.push({ date: d, total: h, t: hT, e: hE, b: hB });
       });
       window._mgState = {
         mode: 'in',
         avg: daysCount > 0 ? sum / daysCount : 0,
         days: daysCount,
         daysLeft: DAYS_IN_MONTH - now.getDate(),
-        sum: sum
+        sum: sum,
+        cats: cats,
+        daily: daily.sort(function(a, b) { return a.date < b.date ? -1 : 1; })
       };
       return window._mgState;
     } catch (e) {
