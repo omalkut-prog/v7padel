@@ -1,5 +1,6 @@
 product_id,title,status,date,end_time,sport,doubles,slots,participants_count,gameplan_state,club_name
 07YlWzqhh1G33f,SUNDAY RANKED 📈 to 1100,instance,2026-02-09 14:00:00,15:30:00,padel,True,4,4,ended,V7 Padel Antalya
+1837cCk1N9XpvR,MEXICANO ALL LEVELS,instance,2026-05-02 10:00:00,12:30:00,padel,True,16,10,signup,V7 Padel Antalya
 1mxSHjJETEKEHl,FRIDAY 🏆 PREMIER 🏆,instance,,,padel,True,16,14,signup,V7 Padel Antalya
 1xSGQ8njECykYI,LADY'S RANKED,program,2026-03-04 12:00:00,14:00:00,padel,True,12,1,signup,V7 Padel Antalya
 1xSGQ8njECykYI_2026-03-04,LADY'S RANKED,instance,2026-03-04 12:00:00,14:00:00,padel,True,8,8,ended,V7 Padel Antalya
@@ -16,6 +17,7 @@ product_id,title,status,date,end_time,sport,doubles,slots,participants_count,gam
 3b0Exx8SVmjgmW,⚡ POWER DUO ⚡,program,2025-11-15 18:00:00,19:30:00,padel,True,8,1,signup,V7 Padel Antalya
 4d3zxAWvXjDYeY,SATURDAY RANKED 📈 1300+,instance,2026-02-14 12:00:00,14:30:00,padel,True,8,1,signup,V7 Padel Antalya
 4iqsSOVrUKOR1Q,2 Корзинка,instance,2025-12-09 14:00:00,16:30:00,padel,True,8,8,ended,V7 Padel Antalya
+5PvxME7mb3EtWp,Camps final,instance,2026-04-25 09:00:00,11:00:00,padel,True,8,8,ended,V7
 5buezBilw5U5Qc,V7 Rookie Series,program,2025-09-15 11:00:00,12:30:00,padel,True,8,1,signup,V7 Padel Antalya
 5buezBilw5U5Qc_2025-09-15,V7 Rookie Series,instance,2025-09-15 16:30:00,18:00:00,padel,True,8,8,ended,V7 Padel Antalya
 69NHLBYJVqMyp8,V7 MORNING BEGINNERS 🌞,instance,,,padel,True,8,8,signup,V7 Padel Antalya
@@ -25,7 +27,7 @@ product_id,title,status,date,end_time,sport,doubles,slots,participants_count,gam
 6MYX6p5DU9NGOH_2026-04-03,MIXED PAIR AMERICANO,instance,2026-04-03 19:00:00,21:30:00,padel,True,8,8,ended,V7 Padel Antalya
 6MYX6p5DU9NGOH_2026-04-10,MIXED PAIR AMERICANO,instance,2026-04-10 14:00:00,16:30:00,padel,True,8,8,ended,V7 Padel Antalya
 6MYX6p5DU9NGOH_2026-04-17,MIXED PAIR AMERICANO,instance,2026-04-17 14:00:00,16:30:00,padel,True,8,8,ended,V7 Padel Antalya
-6MYX6p5DU9NGOH_2026-04-24,MIXED PAIR AMERICANO,instance,2026-04-24 14:30:00,17:00:00,padel,True,8,8,scheduled,V7 Padel Antalya
+6MYX6p5DU9NGOH_2026-04-24,MIXED PAIR AMERICANO,instance,2026-04-24 14:30:00,17:00:00,padel,True,8,8,ended,V7 Padel Antalya
 6X9jsNSJSsQzTq,THURSDAY RANKED 📈 900 - 1099,instance,2025-12-04 10:00:00,11:30:00,padel,True,12,8,ended,V7 Padel Antalya
 6j6QlU27lSFwJY,Morning Coffee ☕️,program,2025-09-19 09:00:00,10:30:00,padel,True,8,3,signup,V7 Padel Antalya
 6j6QlU27lSFwJY_2025-09-19,Morning Coffee ☕️,instance,2025-09-19 09:00:00,10:30:00,padel,True,8,8,ended,V7 Padel Antalya
@@ -40,7 +42,7 @@ AQYW3cFYGeK8v0_2026-04-19,SUNDAY RANKED 📈 1100+,instance,2026-04-19 10:00:00,
 AVGiQlCw24kajk,EVENING AMERICANO 900–1100 🏆,program,2026-04-07 19:00:00,21:30:00,padel,True,8,3,signup,V7 Padel Antalya
 AVGiQlCw24kajk_2026-04-07,EVENING AMERICANO 900–1100 🏆,instance,2026-04-07 19:00:00,21:30:00,padel,True,8,8,ended,V7 Padel Antalya
 AVGiQlCw24kajk_2026-04-14,EVENING AMERICANO 900–1100 🏆,instance,2026-04-14 19:00:00,21:30:00,padel,True,8,8,ended,V7 Padel Antalya
-AYdXs1MtAH70hA,SUNRISE AMERICANO,instance,2026-04-30 08:00:00,09:30:00,padel,True,8,1,signup,V7 Padel Antalya
+AYdXs1MtAH70hA,SUNRISE AMERICANO,instance,2026-04-30 08:00:00,09:30:00,padel,True,8,2,signup,V7 Padel Antalya
 AZkhAsytoL0Xjl,LADY’S RANKED,program,2025-12-24 12:00:00,14:00:00,padel,True,16,9,signup,V7 Padel Antalya
 AZkhAsytoL0Xjl_2025-12-24,LADY’S RANKED,instance,2025-12-24 13:00:00,14:30:00,padel,True,8,1,signup,V7 Padel Antalya
 AZkhAsytoL0Xjl_2025-12-31,LADY’S RANKED,instance,2025-12-31 13:00:00,14:30:00,padel,True,8,1,signup,V7 Padel Antalya
@@ -53,7 +55,7 @@ AyOZZ5RBKXAtwn_2026-03-20,FRIDAY MORNING COFFEE,instance,2026-03-20 10:00:00,12:
 AyOZZ5RBKXAtwn_2026-03-27,MORNING COFFEE,instance,2026-03-27 10:00:00,12:00:00,padel,True,16,16,ended,V7 Padel Antalya
 AyOZZ5RBKXAtwn_2026-04-03,MORNING COFFEE,instance,2026-04-03 10:00:00,12:00:00,padel,True,16,16,ended,V7 Padel Antalya
 AyOZZ5RBKXAtwn_2026-04-17,MORNING COFFEE,instance,2026-04-17 10:00:00,12:00:00,padel,True,16,16,ended,V7 Padel Antalya
-AyOZZ5RBKXAtwn_2026-04-24,MORNING COFFEE,instance,2026-04-24 12:00:00,14:00:00,padel,True,12,7,signup,V7 Padel Antalya
+AyOZZ5RBKXAtwn_2026-04-24,MORNING COFFEE,instance,2026-04-24 12:00:00,14:00:00,padel,True,8,8,ended,V7 Padel Antalya
 B3oSdNOZIkY7NH,SATURDAY RANKED 1300+,instance,2026-01-17 12:00:00,14:30:00,padel,True,8,8,ended,V7 Padel Antalya
 B8wqBSTVdzIWsL,V7 MORNING BEGINNERS 🌞,instance,,,padel,True,8,2,signup,V7 Padel Antalya
 BrLvbuTdS9NDFT,PAIR AMERICANO 🏆,program,2026-03-18 14:00:00,16:30:00,padel,True,8,2,signup,V7 Padel Antalya
@@ -61,7 +63,6 @@ BrLvbuTdS9NDFT_2026-03-25,PAIR AMERICANO 🏆,instance,2026-03-25 14:00:00,16:30
 BrLvbuTdS9NDFT_2026-04-08,PAIR AMERICANO 🏆,instance,2026-04-08 14:00:00,16:30:00,padel,True,8,8,ended,V7 Padel Antalya
 BrLvbuTdS9NDFT_2026-04-15,PAIR AMERICANO 🏆,instance,2026-04-15 14:00:00,16:30:00,padel,True,8,8,ended,V7 Padel Antalya
 BrLvbuTdS9NDFT_2026-04-22,PAIR AMERICANO 🏆,instance,2026-04-22 14:00:00,16:30:00,padel,True,4,4,ended,V7 Padel Antalya
-BrLvbuTdS9NDFT_2026-04-29,PAIR AMERICANO 🏆,instance,2026-04-29 14:00:00,16:30:00,padel,True,8,3,signup,V7 Padel Antalya
 CANu4tEOVCoXNK,PREMIER RANKED 1100+ 🔥,instance,2026-04-05 10:00:00,12:30:00,padel,True,16,16,ended,V7 Padel Antalya
 CP88S258kCc3Bm,V7 MORNING BEGINNERS,instance,2026-02-17 10:00:00,11:30:00,padel,True,8,7,signup,V7 Padel Antalya
 CcbqzsDlcCUDTV,☕️ Morning Coffee,instance,2025-10-10 10:00:00,11:30:00,padel,True,8,8,ended,V7 Padel Antalya
@@ -71,6 +72,13 @@ CdvyHheyrgHwtS_2025-10-24,FRIDAY 🏆 PREMIER PAIR 🏆,instance,2025-10-24 18:0
 CdvyHheyrgHwtS_2025-11-14,FRIDAY RANKED 📈 1100 +,instance,2025-11-14 18:00:00,20:00:00,padel,True,8,8,ended,V7 Padel Antalya
 Cl39qRJZEFHMUG,Friendly match :),instance,2026-01-17 16:30:00,18:30:00,padel,True,4,4,ended,
 ClfrPJBYESzxdY,V7 PREMIER RANKED up to 1100 🎾,instance,2026-04-05 12:30:00,15:00:00,padel,True,16,16,ended,V7 Padel Antalya
+DKj4fdflj6hUbT,SUNDAY RANKED 📈 1100+,program,2026-05-03 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
+DKj4fdflj6hUbT_2026-05-03,SUNDAY RANKED 📈 1100+,instance,2026-05-03 10:00:00,12:30:00,padel,True,16,2,signup,V7 Padel Antalya
+DKj4fdflj6hUbT_2026-05-10,SUNDAY RANKED 📈 1100+,instance,2026-05-10 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
+DKj4fdflj6hUbT_2026-05-17,SUNDAY RANKED 📈 1100+,instance,2026-05-17 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
+DKj4fdflj6hUbT_2026-05-24,SUNDAY RANKED 📈 1100+,instance,2026-05-24 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
+DKj4fdflj6hUbT_2026-05-31,SUNDAY RANKED 📈 1100+,instance,2026-05-31 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
+DKj4fdflj6hUbT_2026-06-07,SUNDAY RANKED 📈 1100+,instance,2026-06-07 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
 Db3t6IIqkQyAuc,First Rally of the Year,instance,2026-01-03 12:00:00,14:00:00,padel,True,16,16,ended,V7 Padel Antalya
 Ese75yjLzw7kwT,SUNRISE AMERICANO,instance,2026-04-08 08:00:00,09:30:00,padel,True,8,3,ended,V7 PADEL ANTALYA
 Eyte7WxrzwHI5c,Saturday Vibe in V7 Padel,instance,2025-09-06 19:00:00,22:00:00,padel,True,16,16,ended,V7 Padel Antalya
@@ -113,7 +121,7 @@ IQZB4qGeSK4kB1_2026-03-22,SUNDAY RANKED 📈 to 1100,instance,2026-03-22 12:30:0
 IQZB4qGeSK4kB1_2026-03-29,SUNDAY RANKED 📈 to 1100,instance,2026-03-29 12:30:00,15:00:00,padel,True,12,10,signup,V7 Padel Antalya
 IQZB4qGeSK4kB1_2026-04-12,PREMIER RANKED up to 1100 🎾🔥,instance,2026-04-12 12:30:00,15:00:00,padel,True,16,16,ended,V7 Padel Antalya
 IQZB4qGeSK4kB1_2026-04-19,SUNDAY RANKED 📈 to 1100,instance,2026-04-19 12:30:00,15:00:00,padel,True,16,16,ended,V7 Padel Antalya
-IQZB4qGeSK4kB1_2026-05-03,SUNDAY RANKED 📈 to 1100,instance,2026-05-03 12:30:00,15:00:00,padel,True,16,9,signup,V7 Padel Antalya
+IQZB4qGeSK4kB1_2026-05-03,SUNDAY RANKED 📈 to 1100,instance,2026-05-03 12:30:00,15:00:00,padel,True,12,9,signup,V7 Padel Antalya
 IQZB4qGeSK4kB1_2026-05-10,SUNDAY RANKED 📈 to 1100,instance,2026-05-10 12:30:00,15:00:00,padel,True,16,9,signup,V7 Padel Antalya
 IQZB4qGeSK4kB1_2026-05-17,SUNDAY RANKED 📈 to 1100,instance,2026-05-17 12:30:00,15:00:00,padel,True,16,9,signup,V7 Padel Antalya
 IQZB4qGeSK4kB1_2026-05-24,SUNDAY RANKED 📈 to 1100,instance,2026-05-24 12:30:00,15:00:00,padel,True,16,9,signup,V7 Padel Antalya
@@ -132,7 +140,7 @@ IRcPUfLYe2AqSx_2026-04-02,V7 AMERICANO 1100+ ,instance,2026-04-02 19:00:00,21:30
 IRcPUfLYe2AqSx_2026-04-09,V7 AMERICANO 1100+ ,instance,2026-04-09 19:00:00,21:30:00,padel,True,8,8,ended,V7 Padel Antalya
 IRcPUfLYe2AqSx_2026-04-16,V7 AMERICANO 1100+ ,instance,2026-04-16 19:00:00,21:30:00,padel,True,8,8,ended,V7 Padel Antalya
 IRcPUfLYe2AqSx_2026-04-23,V7 AMERICANO 1100+ ,instance,2026-04-23 19:00:00,21:30:00,padel,True,8,8,ended,V7 Padel Antalya
-IRcPUfLYe2AqSx_2026-04-30,V7 AMERICANO 1100+ ,instance,2026-04-30 19:00:00,21:30:00,padel,True,8,2,signup,V7 Padel Antalya
+IRcPUfLYe2AqSx_2026-04-30,V7 AMERICANO 1100+ ,instance,2026-04-30 19:00:00,21:30:00,padel,True,8,5,signup,V7 Padel Antalya
 IptgMu8K0ae0ej,Level Up Americano,program,2025-09-17 08:00:00,10:00:00,padel,True,8,9,signup,V7 Padel Antalya
 IptgMu8K0ae0ej_2025-09-17,Level Up Americano,instance,2025-09-17 08:00:00,10:00:00,padel,True,8,8,ended,V7 Padel Antalya
 IptgMu8K0ae0ej_2025-09-24,Ladies’ Morning Coffee ☕️💃🏽,instance,2025-09-24 09:00:00,10:30:00,padel,True,8,8,ended,V7 Padel Antalya
@@ -141,7 +149,7 @@ J5vVrFxsMhwR7u_2026-03-19,MORNING AMERICANO 900-1100,instance,2026-03-19 10:00:0
 J5vVrFxsMhwR7u_2026-03-26,MORNING AMERICANO 900-1100,instance,2026-03-26 10:00:00,12:30:00,padel,True,8,8,ended,V7 Padel Antalya
 J5vVrFxsMhwR7u_2026-04-02,MORNING AMERICANO 900-1100,instance,2026-04-02 10:00:00,12:30:00,padel,True,8,8,ended,V7 Padel Antalya
 J5vVrFxsMhwR7u_2026-04-09,MORNING AMERICANO 900-1100,instance,2026-04-09 10:00:00,12:30:00,padel,True,8,4,ended,V7 Padel Antalya
-J5vVrFxsMhwR7u_2026-04-30,MORNING AMERICANO 900-1100,instance,2026-04-30 10:00:00,12:30:00,padel,True,8,5,signup,V7 Padel Antalya
+J5vVrFxsMhwR7u_2026-04-30,MORNING AMERICANO 900-1100,instance,2026-04-30 10:00:00,12:30:00,padel,True,8,8,signup,V7 Padel Antalya
 JcsraJtoIWRtse,V7 MORNING BEGINNERS 🌞,instance,,,padel,True,8,1,signup,V7 Padel Antalya
 Jz5ccvgXtEWcUU,5 o’clock Padel&tea ☕️ ,instance,2026-02-09 17:00:00,19:00:00,padel,True,12,1,signup,V7 Padel Antalya
 LW9dz53zqafn1n,⚡️ V7 Mixed Power,program,2025-10-29 19:00:00,21:00:00,padel,True,8,4,signup,V7 Padel Antalya
@@ -153,7 +161,7 @@ Mgnjd7HKN4v8Lx_2026-04-01,LADY'S RANKED,instance,2026-04-01 10:00:00,12:00:00,pa
 Mgnjd7HKN4v8Lx_2026-04-08,LADY'S RANKED,instance,2026-04-08 10:00:00,12:00:00,padel,True,16,16,ended,V7 Padel Antalya
 Mgnjd7HKN4v8Lx_2026-04-15,LADY'S RANKED,instance,2026-04-15 10:00:00,12:00:00,padel,True,16,16,ended,V7 Padel Antalya
 Mgnjd7HKN4v8Lx_2026-04-22,LADY'S RANKED,instance,2026-04-22 12:00:00,14:00:00,padel,True,8,8,ended,V7 Padel Antalya
-Mgnjd7HKN4v8Lx_2026-04-29,LADY'S RANKED,instance,2026-04-29 10:00:00,12:00:00,padel,True,16,6,signup,V7 Padel Antalya
+Mgnjd7HKN4v8Lx_2026-04-29,LADY'S RANKED,instance,2026-04-29 10:00:00,12:00:00,padel,True,16,9,signup,V7 Padel Antalya
 N2y2WFy9Hqv8A2,V7 MORNING BEGINNERS,instance,2026-03-15 12:00:00,13:30:00,padel,True,8,8,ended,V7 Padel Antalya
 N4Jf8N0SldLZeV,Padel & Tennis Battle,instance,2026-03-21 18:00:00,20:00:00,padel,True,12,17,signup,V7 Padel Antalya 
 NNHbtxfKCAs7zB,Court LEGENDS: Play with Bohdan Levchuk 🏆,instance,2025-10-26 19:00:00,21:00:00,padel,True,12,8,ended,V7 Padel 
@@ -163,7 +171,7 @@ OKmfLezE1QZv2A,AMERICANO 1100-,program,2026-03-23 19:00:00,21:30:00,padel,True,8
 OKmfLezE1QZv2A_2026-03-23,AMERICANO 1100-,instance,2026-03-23 19:00:00,21:30:00,padel,True,8,8,ended,V7 Padel Antalya
 OKmfLezE1QZv2A_2026-03-30,AMERICANO 1100-,instance,2026-03-30 19:00:00,21:30:00,padel,True,8,8,ended,V7 Padel Antalya
 OKmfLezE1QZv2A_2026-04-06,AMERICANO 1100-,instance,2026-04-06 19:00:00,21:30:00,padel,True,8,8,ended,V7 Padel Antalya
-OKmfLezE1QZv2A_2026-04-27,AMERICANO 1100-,instance,2026-04-27 19:00:00,21:30:00,padel,True,8,1,signup,V7 Padel Antalya
+OKmfLezE1QZv2A_2026-04-27,AMERICANO 1100-,instance,2026-04-27 19:00:00,21:30:00,padel,True,4,2,signup,V7 Padel Antalya
 OPIybGtdKSsSwu,,instance,2025-10-12 15:30:00,17:30:00,padel,True,4,4,ended,V7
 OSokFBqxN602It,V7 MORNING BEGINNERS 🌞,instance,2025-12-02 10:00:00,11:30:00,padel,True,8,8,ended,V7 Padel Antalya
 POKMAodeiUOhRV,SUNDAY RANKED 📈1100+,instance,2026-01-11 10:00:00,12:00:00,padel,True,12,12,ended,V7 Padel Antalya
@@ -182,6 +190,11 @@ QXnSEsvYp2hxnw,5 o’clock Padel&tea ☕️,instance,2026-02-25 17:00:00,19:00:0
 QmqucOu9e3L6Z3,SATURDAY RANKED 📈 1300+,program,2026-03-21 10:00:00,12:30:00,padel,True,8,1,signup,V7 Padel Antalya
 SssIfagLWVzFTz,LADY'S RANKED ,instance,2026-02-25 12:00:00,14:00:00,padel,True,8,8,ended,V7 Padel Antalya
 TWbJR4J5H2JrVQ,V7 MORNING BEGINNERS,instance,,,padel,True,8,6,signup,V7 Padel Antalya
+UaHtpC14D7LtTc,MEXICANO ALL LEVELS,program,2026-05-09 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
+UaHtpC14D7LtTc_2026-05-09,MEXICANO ALL LEVELS,instance,2026-05-09 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
+UaHtpC14D7LtTc_2026-05-16,MEXICANO ALL LEVELS,instance,2026-05-16 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
+UaHtpC14D7LtTc_2026-05-23,MEXICANO ALL LEVELS,instance,2026-05-23 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
+UaHtpC14D7LtTc_2026-05-30,MEXICANO ALL LEVELS,instance,2026-05-30 10:00:00,12:30:00,padel,True,16,1,signup,V7 Padel Antalya
 UhEIYdQPhqwhap,SUNDAY 📈 RANKED 📈 1100+,program,2025-10-19 10:00:00,12:00:00,padel,True,16,1,signup,V7 Padel Antalya
 UhEIYdQPhqwhap_2025-10-19,SUNDAY 📈 RANKED 📈,instance,2025-10-19 10:00:00,12:00:00,padel,True,16,16,ended,V7 Padel Antalya
 UhEIYdQPhqwhap_2025-10-26,SUNDAY 📈 RANKED 📈,instance,2025-10-26 10:00:00,12:00:00,padel,True,16,16,ended,V7 Padel Antalya
@@ -195,7 +208,6 @@ VkkCJDCfO4lGSv,Ladies Only 🌸,instance,2026-03-08 14:00:00,16:00:00,padel,True
 WP7y4nIJcZaZ7G,"PLAY HARD, EAT BURGER",instance,2026-01-07 15:00:00,16:30:00,padel,True,8,1,signup,V7 Padel Antalya
 WYTd0YcsNWoas0,SATURDAY RANKED 1300+,instance,2026-03-14 18:00:00,20:30:00,padel,True,8,8,ended,V7 Padel Antalya
 X4Z7i7jfJ16k4w,BEGINNERS TOURNAMENT,instance,2025-12-18 12:00:00,13:30:00,padel,True,8,1,signup,V7 Padel Antalya
-Xp2bsrNvXPBkPO,,instance,2026-04-25 10:00:00,21:00:00,padel,True,32,2,scheduled,V7 Padel Antalya
 Ykmf1XVoMsYG89,Level Up Americano,program,2025-09-12 18:00:00,20:00:00,padel,True,8,1,signup,V7 Padel Antalya
 Ykmf1XVoMsYG89_2025-09-12,Level Up Americano,instance,2025-09-12 18:00:00,20:00:00,padel,True,8,8,ended,V7 Padel Antalya
 Ykmf1XVoMsYG89_2025-09-19,Level Up Americano,instance,2025-09-19 18:00:00,20:00:00,padel,True,8,8,ended,V7 Padel Antalya
@@ -203,12 +215,13 @@ ail4tQNi9WpSQS,🧘‍♀️Yoga&Padel🎾,instance,2025-12-03 09:00:00,12:00:00
 akklHRc69tNMD3,MEXICANO ALL LEVELS,program,2026-04-11 10:00:00,12:30:00,padel,True,16,12,signup,V7 Padel Antalya
 akklHRc69tNMD3_2026-04-11,MEXICANO ALL LEVELS,instance,2026-04-11 10:00:00,12:00:00,padel,True,16,16,ended,V7 Padel Antalya
 akklHRc69tNMD3_2026-04-18,MEXICANO ALL LEVELS,instance,2026-04-18 10:00:00,12:30:00,padel,True,12,15,ended,V7 Padel Antalya
+b5Lb9PdV94mAde,PAIR AMERICANO 🏆,instance,2026-04-29 14:00:00,16:30:00,padel,True,8,8,signup,V7 Padel Antalya
 bfPsxPvawoe4W8,THURSDAY RANKED 📈 900 - 1099,program,2025-11-13 10:00:00,11:30:00,padel,True,8,5,signup,V7 Padel Antalya
 bfPsxPvawoe4W8_2025-11-20,THURSDAY RANKED 📈 900 - 1099,instance,2025-11-20 10:00:00,11:30:00,padel,True,8,8,ended,V7 Padel Antalya
 bfPsxPvawoe4W8_2025-12-04,THURSDAY RANKED 📈 900 - 1099,instance,2025-11-27 10:00:00,11:30:00,padel,True,8,5,signup,V7 Padel Antalya
 bfPsxPvawoe4W8_2025-12-11,THURSDAY RANKED 📈 900 - 1099,instance,2025-12-11 10:00:00,11:30:00,padel,True,8,8,ended,V7 Padel Antalya
 bfPsxPvawoe4W8_2025-12-25,THURSDAY RANKED 📈 900 - 1099,instance,2025-12-18 10:00:00,11:30:00,padel,True,8,8,ended,V7 Padel Antalya
-c1YO9usHSJlMOD,MIXED PAIR AMERICANO,instance,2026-05-01 14:00:00,16:30:00,padel,True,8,5,signup,V7 Padel Antalya
+c1YO9usHSJlMOD,MIXED PAIR AMERICANO,instance,2026-05-01 14:00:00,16:30:00,padel,True,8,8,signup,V7 Padel Antalya
 cOnmEGsADhes3q,V7 MORNING BEGINNERS 🌞,program,2025-10-28 10:00:00,11:30:00,padel,True,8,8,signup,V7 Padel Antalya
 cOnmEGsADhes3q_2025-10-28,V7 MORNING BEGINNERS 🌞,instance,2025-10-28 10:00:00,11:30:00,padel,True,8,8,ended,V7 Padel Antalya
 cOnmEGsADhes3q_2025-11-04,V7 MORNING BEGINNERS 🌞,instance,2025-11-04 10:00:00,11:30:00,padel,True,4,4,ended,V7 Padel Antalya
@@ -232,7 +245,7 @@ dgG51xFQpCHR6s_2026-03-18,EVENING COFFEE ,instance,2026-03-18 19:00:00,21:00:00,
 dgG51xFQpCHR6s_2026-03-25,EVENING COFFEE ,instance,2026-03-25 19:00:00,21:00:00,padel,True,12,12,ended,V7 Padel Antalya
 dgG51xFQpCHR6s_2026-04-01,EVENING COFFEE ,instance,2026-04-01 19:00:00,21:00:00,padel,True,12,12,ended,V7 Padel Antalya
 dgG51xFQpCHR6s_2026-04-08,EVENING COFFEE ,instance,2026-04-08 19:00:00,21:00:00,padel,True,12,2,signup,V7 Padel Antalya
-dgG51xFQpCHR6s_2026-04-29,EVENING COFFEE ,instance,2026-04-29 19:00:00,21:00:00,padel,True,16,6,signup,V7 Padel Antalya
+dgG51xFQpCHR6s_2026-04-29,EVENING COFFEE ,instance,2026-04-29 19:00:00,21:00:00,padel,True,12,7,signup,V7 Padel Antalya
 dh13gZPqnKMvmM,👊 Level Up for Boys with Marcos Díaz,instance,2025-10-07 10:00:00,11:30:00,padel,True,8,8,ended,V7 Padel Antalya
 dt3kHdnyZVyBn4,Galatasaray Taraftar Turnuvası,instance,2025-12-09 12:30:00,14:00:00,padel,True,8,8,ended,V7 Padel Antalya
 eGfirUGtmuH8EI,YOGA&PADEL🧘,program,2025-12-10 10:00:00,12:00:00,padel,True,8,5,signup,V7 Padel Antalya
@@ -290,7 +303,7 @@ pQNIh1Esf0UbSn_2026-03-30,MONDAY ☕️ Morning Coffee ☕️,instance,2026-03-3
 pQNIh1Esf0UbSn_2026-04-06,MONDAY ☕️ Morning Coffee ☕️,instance,2026-04-06 10:00:00,12:00:00,padel,True,12,12,ended,V7 Padel Antalya
 pQNIh1Esf0UbSn_2026-04-13,MONDAY ☕️ Morning Coffee ☕️,instance,2026-04-13 10:00:00,12:00:00,padel,True,16,16,ended,V7 Padel Antalya
 pQNIh1Esf0UbSn_2026-04-20,MONDAY ☕️ Morning Coffee ☕️,instance,2026-04-20 12:00:00,14:00:00,padel,True,8,8,ended,V7 Padel Antalya
-pQNIh1Esf0UbSn_2026-04-27,MONDAY ☕️ Morning Coffee ☕️,instance,2026-04-27 10:00:00,12:00:00,padel,True,16,6,signup,V7 Padel Antalya
+pQNIh1Esf0UbSn_2026-04-27,MONDAY ☕️ Morning Coffee ☕️,instance,2026-04-27 10:00:00,12:00:00,padel,True,8,8,ended,V7 Padel Antalya
 pgH9zLu4gj9vgi,V7 Final Tournament,instance,2025-11-24 19:00:00,21:00:00,padel,True,16,16,ended,V7 Padel Antalya
 pxDeeKPM9Pfv3U,SUNDAY RANKED 📈 to 1100,instance,,,padel,True,4,4,scheduled,V7 Padel Antalya
 q3l7flz1RJUKAM,RANKED TO 1100,instance,2026-01-21 17:30:00,19:30:00,padel,True,12,12,ended,V7 Padel Antalya
@@ -308,7 +321,7 @@ r97doYQAY9RnE1,Level Up Americano,program,2025-09-15 18:00:00,20:00:00,padel,Tru
 rTBnRIYv96NddA,SUNDAY RANKED 📈 to 1100,instance,,,padel,True,4,4,scheduled,V7 Padel Antalya
 rppRSMVOpjAmqQ,V7 MORNING BEGINNERS,instance,2026-02-03 10:00:00,11:30:00,padel,True,8,2,signup,V7 Padel Antalya
 sUzxiGXAFV8Vx4,SATURDAY RANKED 1300+ 📈 ,instance,2026-03-07 12:00:00,14:30:00,padel,True,8,2,signup,V7 Padel Antalya
-t52ixWzvlbPar2,MORNING COFFEE,instance,2026-05-01 10:00:00,12:00:00,padel,True,16,2,signup,V7 Padel Antalya
+t52ixWzvlbPar2,MORNING COFFEE,instance,2026-05-01 10:00:00,12:00:00,padel,True,16,6,signup,V7 Padel Antalya
 uLb6GbFdopEcQH,SATURDAY RANKED 📈 1050-1299,instance,2026-03-14 18:00:00,20:00:00,padel,True,8,8,ended,V7 Padel Antalya
 uRH6CVRqoqnNw4,SUNDAY RANKED 📈 1100+,instance,2026-03-08 10:00:00,12:00:00,padel,True,12,1,signup,V7 Padel Antalya
 uhDWPbx0yjmWAB,🧘‍♀️Yoga&Padel🎾,instance,,,padel,True,8,3,signup,V7 Padel Antalya
@@ -328,10 +341,10 @@ xCyJ24uCBj9b7r_2026-03-31,V7 MORNING BEGINNERS,instance,2026-03-31 10:00:00,11:3
 xCyJ24uCBj9b7r_2026-04-07,V7 MORNING BEGINNERS,instance,2026-04-07 10:00:00,11:30:00,padel,True,8,8,ended,V7 Padel Antalya
 xCyJ24uCBj9b7r_2026-04-14,V7 MORNING BEGINNERS,instance,2026-04-14 10:00:00,11:30:00,padel,True,8,8,ended,V7 Padel Antalya
 xCyJ24uCBj9b7r_2026-04-21,V7 MORNING BEGINNERS,instance,2026-04-21 12:00:00,13:30:00,padel,True,16,16,ended,V7 Padel Antalya
-xCyJ24uCBj9b7r_2026-04-28,V7 MORNING BEGINNERS,instance,2026-04-28 10:00:00,11:30:00,padel,True,16,9,signup,V7 Padel Antalya
+xCyJ24uCBj9b7r_2026-04-28,V7 MORNING BEGINNERS,instance,2026-04-28 10:00:00,11:30:00,padel,True,16,15,signup,V7 Padel Antalya
 xZpsdcRHpTojmW,,instance,2026-04-22 14:30:00,16:00:00,padel,True,4,4,signup,V7 Padel Antalya
 yvgbbHrLaTp1vB,THURSDAY RANKED to 900,instance,2026-03-05 19:00:00,20:30:00,padel,True,8,1,signup,V7 Padel Antalya
 zMcdwvkEcB8NMn,Morning Coffee ☕️,program,2025-09-16 09:00:00,10:30:00,padel,True,8,1,signup,V7 Padel Antalya
 zMcdwvkEcB8NMn_2025-09-16,Morning Coffee ☕️,instance,2025-09-16 09:00:00,10:30:00,padel,True,8,8,ended,V7 Padel Antalya
-zVcZP5WYH7Wyow,MEXICANO ALL LEVELS,instance,2026-04-26 10:00:00,12:00:00,padel,True,16,16,signup,V7 Padel Antalya
+zVcZP5WYH7Wyow,MEXICANO ALL LEVELS,instance,2026-04-26 10:00:00,12:00:00,padel,True,12,12,ended,V7 Padel Antalya
 zYQqmygH5QdQUl,MONDAY RANKED 📈 to 999 ,instance,2025-12-15 12:00:00,13:30:00,padel,True,8,1,signup,V7 Padel Antalya

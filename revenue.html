@@ -1633,13 +1633,14 @@ function renderWeeklyTable(prefix) {
     html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
     // Hours + ₺/hour (income tab only)
     if (isIncome) {
+      // Фикс 2026-04-27: считаем часы только за УЖЕ ПРОШЕДШИЕ дни недели.
+      // Раньше суммировались будущие забронированные дни (occupancy_daily
+      // включает плановые часы вперёд) → ₺/час занижался для текущей недели.
+      var _today = new Date(); _today.setHours(0,0,0,0);
       var weekHours = 0;
       for (var dh = 0; dh < 7; dh++) {
         var dd = new Date(w.mon); dd.setDate(dd.getDate() + dh);
-        // БАГ до 2026-04-24: использовали toISOString().slice(0,10) — это UTC,
-        // а utlDayMap keyed локальной датой. В Турции (UTC+3) ключ сдвигался
-        // на −1 день → часы недели были неправильные, ₺/час тоже.
-        // Фикс: localDateKey (определена на 2476).
+        if (dd > _today) break; // будущие дни не считаем
         var dk = localDateKey(dd);
         weekHours += (utlDayMap[dk] || 0);
       }
@@ -1667,12 +1668,14 @@ function renderWeeklyTable(prefix) {
   footHtml += '<td class="num" style="font-weight:700">' + fmtInt(Math.round(grandTotal)) + '</td>';
   footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / totalDaysWithRevenue)) + '</td>';
   if (isIncome) {
+    // Фикс 2026-04-27: только прошедшие дни (как и в строках выше).
+    var _todayF = new Date(); _todayF.setHours(0,0,0,0);
     var totalUtlH = 0;
     keysDesc.forEach(function(wk) {
       var w = wMap[wk];
       for (var dh = 0; dh < 7; dh++) {
         var dd = new Date(w.mon); dd.setDate(dd.getDate() + dh);
-        // Фикс UTC-сдвига (см. выше). 2026-04-24.
+        if (dd > _todayF) break;
         totalUtlH += (utlDayMap[localDateKey(dd)] || 0);
       }
     });

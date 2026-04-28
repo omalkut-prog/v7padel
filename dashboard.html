@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260426b"></script>
+<script src="assets/data.js?v=20260427a"></script>
 <script>
 /* ============================================================
    AUTO-HEAL BOOTSTRAP (2026-04-24) — решает проблему зависшего dashboard.
@@ -277,6 +277,24 @@
 <div class="container">
   <h1 class="page-title">Финансовый дашборд</h1>
   <div class="page-desc">Живые данные из <code>v7padel_db</code> · обновляется при перезагрузке страницы</div>
+
+  <!-- Команда мая widget — командная цель 40 ч/день -->
+  <div id="may-goal-widget" style="background:linear-gradient(135deg,rgba(10,186,181,0.08),rgba(10,186,181,0.02));border:1px solid rgba(10,186,181,0.25);border-radius:14px;padding:18px 22px;margin-bottom:24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+    <div style="flex:1;min-width:240px">
+      <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:600;margin-bottom:4px">🎯 Команда мая · цель 40 ч/день</div>
+      <div style="font-size:22px;font-weight:700" id="mgw-current">— ч/день</div>
+      <div style="font-size:12px;color:var(--text2)" id="mgw-pace">—</div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <div style="height:10px;background:var(--surface2);border-radius:6px;overflow:hidden">
+        <div id="mgw-fill" style="height:100%;background:linear-gradient(90deg,#0ABAB5,#0e8a87);width:0%;transition:width .8s ease"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:6px">
+        <span>0</span><span>38 (10K)</span><span>40 (20K)</span>
+      </div>
+    </div>
+    <a href="may-goal.html" target="_blank" style="background:#0ABAB5;color:#fff;text-decoration:none;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:600">Команде →</a>
+  </div>
 
   <!-- KPI row -->
   <div class="kpi-row" id="kpi-row">
@@ -1523,6 +1541,59 @@ async function _showMembersModal(filter) {
   var soonCard = document.getElementById('churn-soon-card');
   if (lostCard) lostCard.addEventListener('click', function() { _showMembersModal('expired'); });
   if (soonCard) soonCard.addEventListener('click', function() { _showMembersModal('expiring'); });
+})();
+
+/* ============================================================
+   MAY GOAL WIDGET — командная цель 40 ч/день, май 2026.
+   Читает occupancy_daily, считает среднюю по прошедшим дням мая.
+   Перед маем — countdown. Кликабельная ссылка на /may-goal.html.
+   ============================================================ */
+(async function buildMayGoalWidget() {
+  var TARGET = 40, LOW = 38, MONTH = '2026-05', DAYS = 31;
+  var curEl = document.getElementById('mgw-current');
+  var paceEl = document.getElementById('mgw-pace');
+  var fillEl = document.getElementById('mgw-fill');
+  if (!curEl) return;
+
+  var now = new Date();
+  var mPrefix = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var inMay = mPrefix === MONTH;
+
+  if (!inMay) {
+    var startMay = new Date(now.getFullYear(), 4, 1);
+    var daysTo = Math.max(1, Math.ceil((startMay - now) / 86400000));
+    curEl.textContent = 'Стартуем 1 мая';
+    paceEl.innerHTML = '<b>До старта: ' + daysTo + ' дн.</b> · апрель закрыли 34 ч/день · цель 40+';
+    fillEl.style.width = '0%';
+    return;
+  }
+
+  try {
+    var rows = await V7.loadSheet('occupancy_daily');
+    var todayIso = now.toISOString().slice(0,10);
+    var sum = 0, days = 0;
+    (rows || []).forEach(function(r) {
+      var d = String(r.date||'').slice(0,10);
+      if (!d.startsWith(MONTH) || d > todayIso) return;
+      var h = parseFloat(String(r.hours||'0').replace(',','.')) || 0;
+      if (h > 0) { sum += h; days++; }
+    });
+    var avg = days > 0 ? sum / days : 0;
+    var dayOfMonth = now.getDate();
+    var daysLeft = DAYS - dayOfMonth;
+    var stillNeed40 = Math.max(0, TARGET * DAYS - sum);
+    var stillNeed38 = Math.max(0, LOW * DAYS - sum);
+    var pace40 = daysLeft > 0 ? (stillNeed40/daysLeft).toFixed(1) : '—';
+    var pace38 = daysLeft > 0 ? (stillNeed38/daysLeft).toFixed(1) : '—';
+
+    curEl.textContent = avg.toFixed(1) + ' ч/день';
+    var tier = avg >= TARGET ? '🎯 ЦЕЛЬ ВЗЯТА (20K каждому)' : avg >= LOW ? '✓ Уровень 10K · до 40: ' + pace40 + ' ч/день остаток' : 'До 38 ч/день нужно: ' + pace38 + ' ч';
+    paceEl.innerHTML = tier + ' · ' + days + ' дн. сыграно, ' + daysLeft + ' впереди';
+    fillEl.style.width = Math.min(100, (avg/42)*100) + '%';
+  } catch (e) {
+    console.warn('may-goal widget:', e);
+    paceEl.textContent = '⚠ Не удалось загрузить';
+  }
 })();
 
 /* ============================================================
