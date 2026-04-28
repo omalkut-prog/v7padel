@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — May Team Goal · Layout 3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css?v=20260427d">
+<link rel="stylesheet" href="assets/may-goal-common.css?v=20260427d">
+<style>
+  /* === V3: Фокус-цифра. Минимум, одна большая цифра в центре === */
+  .container { max-width: 980px; }
+  .header { text-align: center; margin-bottom: 24px; }
+  .header .pill {
+    display: inline-block; background: var(--accent-soft); color: var(--accent);
+    border: 1px solid var(--accent-border); font-size: 11px; font-weight: 600;
+    padding: 5px 12px; border-radius: 30px; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.7px; line-height: 1.2; }
+  .header h1 .accent { color: var(--accent); }
+
+  /* HERO — circular progress */
+  .hero-card {
+    padding: 50px 30px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .ring-wrap {
+    position: relative; width: 280px; height: 280px; margin: 0 auto;
+  }
+  .ring {
+    width: 100%; height: 100%; transform: rotate(-90deg);
+  }
+  .ring circle {
+    fill: none; stroke-width: 14; stroke-linecap: round;
+  }
+  .ring .bg-circle { stroke: var(--surface2); }
+  .ring .fg-circle { stroke: var(--accent); transition: stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1); }
+  .ring-text {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+  }
+  .ring-text .label {
+    font-size: 11px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1.5px; font-weight: 600; margin-bottom: 4px;
+  }
+  .ring-text .big {
+    font-size: 76px; font-weight: 800; letter-spacing: -3px; line-height: 1; color: var(--text);
+  }
+  .ring-text .unit {
+    font-size: 12px; color: var(--text3); margin-top: 4px;
+  }
+  .ring-text .pct {
+    font-size: 13px; color: var(--accent); font-weight: 700; margin-top: 6px;
+  }
+
+  .hero-status {
+    margin-top: 24px;
+  }
+  .hero-status .tier-badge { font-size: 14px; padding: 8px 18px; }
+
+  /* TODAY's pace big number */
+  .today-card {
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  .today-card .label {
+    font-size: 11px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 2px; font-weight: 600; margin-bottom: 8px;
+  }
+  .today-card .target-h {
+    font-size: 48px; font-weight: 800; letter-spacing: -2px; color: var(--accent);
+  }
+  .today-card .target-h small {
+    font-size: 16px; color: var(--text3); font-weight: 500; letter-spacing: 0; margin-left: 6px;
+  }
+  .today-card .extra {
+    font-size: 13px; color: var(--text2); margin-top: 6px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px;
+  }
+  .stat {
+    padding: 14px 18px; text-align: center;
+  }
+  .stat .label {
+    font-size: 10px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1.2px; font-weight: 600; margin-bottom: 4px;
+  }
+  .stat .v { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .stat .v small { font-size: 12px; color: var(--text3); font-weight: 500; margin-left: 3px; }
+
+  /* TIERS — minimal pills */
+  .tiers-pill { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .tier-pill {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 10px 20px;
+    font-size: 13px;
+    color: var(--text2);
+    transition: all .2s;
+  }
+  .tier-pill b { color: var(--text); font-weight: 700; }
+  .tier-pill.active {
+    background: var(--accent-soft); border-color: var(--accent);
+    color: var(--accent);
+  }
+  .tier-pill.active b { color: var(--accent); }
+
+  /* Motto */
+  .motto { padding: 22px; text-align: center; margin-bottom: 16px; }
+  .motto .quote { font-size: 18px; font-weight: 600; line-height: 1.4; }
+  .motto .quote .accent { color: var(--accent); }
+
+  /* Rules collapsible */
+  details.rules {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 0;
+    box-shadow: var(--shadow);
+  }
+  details.rules summary {
+    padding: 16px 22px; cursor: pointer; font-size: 12px;
+    color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;
+    list-style: none;
+  }
+  details.rules summary::-webkit-details-marker { display: none; }
+  details.rules summary::after { content: '▸'; float: right; transition: transform .2s; }
+  details.rules[open] summary::after { transform: rotate(90deg); }
+  details.rules ul { list-style: none; padding: 0 22px 18px; }
+  details.rules li {
+    padding: 9px 0; border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--text); line-height: 1.55; display: flex; gap: 10px;
+  }
+  details.rules li:first-child { border-top: 0; }
+  details.rules li .num { color: var(--accent); font-weight: 700; flex-shrink: 0; min-width: 14px; }
+
+  @media (max-width: 720px) {
+    .ring-wrap { width: 220px; height: 220px; }
+    .ring-text .big { font-size: 56px; }
+    .stats-row { grid-template-columns: 1fr 1fr 1fr; }
+    .stat .v { font-size: 16px; }
+    .today-card .target-h { font-size: 36px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <a href="may-goal.html" class="back-link">← Все варианты</a>
+      <div class="brand">V7 <span class="accent">Padel</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="theme-switcher"><button data-theme-btn="light" class="active">☀</button><button data-theme-btn="dark">☾</button></div>
+      <div class="lang-switcher"><button data-lang="en" class="active">EN</button><button data-lang="ru">RU</button><button data-lang="tr">TR</button></div>
+    </div>
+  </div>
+
+  <div class="header">
+    <span class="pill" data-i18n="pill"></span>
+    <h1 data-i18n-html="title"></h1>
+  </div>
+
+  <!-- HERO with circular ring -->
+  <div class="card hero-card">
+    <div class="ring-wrap">
+      <svg class="ring" viewBox="0 0 200 200">
+        <circle class="bg-circle" cx="100" cy="100" r="86"></circle>
+        <circle class="fg-circle" id="ring-fg" cx="100" cy="100" r="86" stroke-dasharray="540" stroke-dashoffset="540"></circle>
+      </svg>
+      <div class="ring-text">
+        <div class="label" data-i18n="progressLabel">Current avg</div>
+        <div class="big" id="big-avg">—</div>
+        <div class="unit"><span data-i18n="hourPerDay">h/day</span> · <span data-i18n="targetPrefix">of</span> 40</div>
+        <div class="pct" id="ring-pct">—</div>
+      </div>
+    </div>
+    <div class="hero-status">
+      <span class="tier-badge t-zero" id="tier-status" data-i18n="tierStart">Starts May 1</span>
+    </div>
+  </div>
+
+  <!-- TODAY's required pace -->
+  <div class="card today-card">
+    <div class="label" data-i18n="todayLabel">Today's pace target</div>
+    <div class="target-h" id="today-target">—<small data-i18n="hoursToday">h today</small></div>
+    <div class="extra" id="today-extra">—</div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="card stat">
+      <div class="label" data-i18n="played">Played</div>
+      <div class="v"><span id="stat-played">0</span><small data-i18n="days">days</small></div>
+    </div>
+    <div class="card stat">
+      <div class="label" data-i18n="remaining">Remaining</div>
+      <div class="v"><span id="stat-remaining">31</span><small data-i18n="days">days</small></div>
+    </div>
+    <div class="card stat">
+      <div class="label" data-i18n="bonusTitleShort">Bonus tiers</div>
+      <div class="v">10K · 20K<small>₺</small></div>
+    </div>
+  </div>
+
+  <!-- Tiers as pills -->
+  <div class="tiers-pill">
+    <div class="tier-pill" id="tier-pill-low">
+      <span data-i18n="lowWhen">38 — 39.9 h/day</span> → <b>10 000 ₺</b>
+    </div>
+    <div class="tier-pill" id="tier-pill-top">
+      <span data-i18n="topWhen">40+ h/day</span> → <b>20 000 ₺</b>
+    </div>
+  </div>
+
+  <!-- Motto -->
+  <div class="card motto">
+    <div class="quote" data-i18n-html="motto"></div>
+  </div>
+
+  <!-- Rules (collapsed by default) -->
+  <details class="rules">
+    <summary data-i18n="rulesTitle">Rules</summary>
+    <ul>
+      <li><span class="num">1</span><span data-i18n-html="r1"></span></li>
+      <li><span class="num">2</span><span data-i18n-html="r2"></span></li>
+      <li><span class="num">3</span><span data-i18n-html="r3"></span></li>
+      <li><span class="num">4</span><span data-i18n-html="r4"></span></li>
+      <li><span class="num">5</span><span data-i18n="r5"></span></li>
+    </ul>
+  </details>
+
+  <p class="footer-note">
+    <span data-i18n="updated">Updated</span>: <span id="updated-at">—</span> ·
+    <a href="dashboard.html" data-i18n="dashLink">internal dashboard</a>
+  </p>
+
+</div>
+
+<script src="assets/data.js?v=20260427d"></script>
+<script src="assets/may-goal-shared.js?v=20260427d"></script>
+<script>
+(async function() {
+  await window._mgLoadData();
+  window._renderState = function() {
+    var s = window._mgState, T = window._mgT, C = window._mgConfig;
+    var bigEl = document.getElementById('big-avg');
+    bigEl.textContent = s.mode === 'pre' ? '0' : s.avg.toFixed(1);
+
+    // Ring: circumference = 2 * Math.PI * 86 ≈ 540
+    var pct = s.mode === 'pre' ? 0 : Math.min(1, s.avg / 40);
+    var dashOffset = 540 * (1 - pct);
+    document.getElementById('ring-fg').setAttribute('stroke-dashoffset', dashOffset);
+    document.getElementById('ring-pct').textContent = (pct * 100).toFixed(0) + '%';
+
+    var tier = window._mgTier(s.avg);
+    var badge = document.getElementById('tier-status');
+    badge.className = 'tier-badge t-' + tier;
+    if (tier === 'top') badge.textContent = T('tierGoal');
+    else if (tier === 'mid') badge.textContent = T('tierMidPrefix') + (C.TARGET_HOURS - s.avg).toFixed(1) + T('tierMidSuffix');
+    else if (tier === 'low') badge.textContent = T('tierLowPrefix') + (C.LOW_HOURS - s.avg).toFixed(1) + T('tierLowSuffix');
+    else badge.textContent = T('tierStart');
+
+    document.getElementById('tier-pill-low').classList.toggle('active', tier === 'mid');
+    document.getElementById('tier-pill-top').classList.toggle('active', tier === 'top');
+
+    document.getElementById('today-target').innerHTML =
+      window._mgPace(C.TARGET_HOURS) + '<small>' + T('hoursToday') + '</small>';
+
+    var ext = T('paceLowLabel') + ': ' + window._mgPace(C.LOW_HOURS) + ' ' + T('hourPerDay');
+    document.getElementById('today-extra').textContent = ext;
+
+    document.getElementById('stat-played').textContent = s.days;
+    document.getElementById('stat-remaining').textContent = s.daysLeft;
+
+    var u = document.getElementById('updated-at');
+    if (u) u.textContent = new Date().toLocaleString();
+  };
+  window._renderState();
+})();
+</script>
+</body>
+</html>
