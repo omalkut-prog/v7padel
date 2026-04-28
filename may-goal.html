@@ -5,114 +5,261 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>V7 Padel — May Team Goal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/theme.css?v=20260427d">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css?v=20260427e">
+<link rel="stylesheet" href="assets/may-goal-common.css?v=20260427e">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'Inter', system-ui, sans-serif;
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
+  /* === V3+V1 hybrid: ring focus + full tier descriptions === */
+  .container { max-width: 980px; }
+  .header { text-align: center; margin-bottom: 24px; }
+  .header .pill {
+    display: inline-block; background: var(--accent-soft); color: var(--accent);
+    border: 1px solid var(--accent-border); font-size: 11px; font-weight: 600;
+    padding: 5px 12px; border-radius: 30px; letter-spacing: 1.5px;
+    text-transform: uppercase; margin-bottom: 12px;
   }
-  .center {
-    max-width: 720px; margin: 0 auto; padding: 60px 22px;
-    text-align: center;
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 1.15; }
+  .header h1 .accent { color: var(--accent); }
+
+  /* HERO — circular progress */
+  .hero-card { padding: 50px 30px; text-align: center; margin-bottom: 16px; }
+  .ring-wrap { position: relative; width: 280px; height: 280px; margin: 0 auto; }
+  .ring { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .ring circle { fill: none; stroke-width: 14; stroke-linecap: round; }
+  .ring .bg-circle { stroke: var(--surface2); }
+  .ring .fg-circle { stroke: var(--accent); transition: stroke-dashoffset 1.2s cubic-bezier(.2,.8,.2,1); }
+  .ring-text {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
-  h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; margin-bottom: 12px; }
-  h1 .accent { color: var(--accent); }
-  .sub { color: var(--text2); font-size: 15px; margin-bottom: 36px; line-height: 1.6; }
-  .variants { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
-  @media (max-width: 720px) { .variants { grid-template-columns: 1fr; } }
-  .variant {
-    display: block;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 22px 20px;
-    text-decoration: none;
-    color: var(--text);
-    transition: transform .2s, border-color .2s, box-shadow .2s;
-    text-align: left;
+  .ring-text .label {
+    font-size: 11px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1.5px; font-weight: 600; margin-bottom: 4px;
   }
-  .variant:hover {
-    transform: translateY(-3px);
-    border-color: var(--accent);
-    box-shadow: 0 8px 24px rgba(15,23,42,0.08);
+  .ring-text .big { font-size: 76px; font-weight: 800; letter-spacing: -3px; line-height: 1; color: var(--text); }
+  .ring-text .unit { font-size: 12px; color: var(--text3); margin-top: 4px; }
+  .ring-text .pct { font-size: 13px; color: var(--accent); font-weight: 700; margin-top: 6px; }
+  .hero-status { margin-top: 24px; }
+  .hero-status .tier-badge { font-size: 14px; padding: 8px 18px; }
+
+  /* TODAY's pace */
+  .today-card { padding: 24px 28px; margin-bottom: 16px; text-align: center; }
+  .today-card .label {
+    font-size: 11px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 2px; font-weight: 600; margin-bottom: 8px;
   }
-  .variant .num { font-size: 11px; color: var(--text3); letter-spacing: 2px; font-weight: 600; }
-  .variant h3 { font-size: 17px; font-weight: 700; margin: 6px 0 8px; }
-  .variant p { font-size: 13px; color: var(--text2); line-height: 1.5; }
-  .variant .preview {
-    margin-top: 14px;
-    height: 110px;
-    border-radius: 10px;
-    background: var(--surface2);
-    overflow: hidden;
-    position: relative;
+  .today-card .target-h { font-size: 48px; font-weight: 800; letter-spacing: -2px; color: var(--accent); }
+  .today-card .target-h small {
+    font-size: 16px; color: var(--text3); font-weight: 500; letter-spacing: 0; margin-left: 6px;
   }
-  /* Schematic previews */
-  .preview-v1 { background: linear-gradient(180deg, var(--accent-soft) 0%, var(--surface2) 60%); }
-  .preview-v1::before {
-    content: ''; position: absolute; top: 18%; left: 10%; right: 10%; height: 24%;
-    background: var(--accent); border-radius: 4px; opacity: 0.7;
+  .today-card .extra { font-size: 13px; color: var(--text2); margin-top: 6px; }
+
+  /* Stats row */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat { padding: 14px 18px; text-align: center; }
+  .stat .label {
+    font-size: 10px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1.2px; font-weight: 600; margin-bottom: 4px;
   }
-  .preview-v1::after {
-    content: ''; position: absolute; bottom: 16%; left: 10%; right: 10%; height: 32%;
-    background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+  .stat .v { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .stat .v small { font-size: 12px; color: var(--text3); font-weight: 500; margin-left: 3px; }
+
+  /* TIER cards — full descriptions (V1 style) */
+  .tiers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .tier {
+    padding: 26px 28px; transition: border-color .2s, transform .2s;
   }
-  .preview-v2 { display: flex; }
-  .preview-v2::before {
-    content: ''; position: absolute; left: 10%; top: 14%; width: 38%; height: 70%;
-    background: var(--accent); border-radius: 6px; opacity: 0.85;
+  .tier.active {
+    border-color: var(--accent); transform: scale(1.02);
+    box-shadow: 0 0 0 1px var(--accent), 0 12px 30px rgba(10,186,181,0.15);
   }
-  .preview-v2::after {
-    content: ''; position: absolute; right: 10%; top: 14%; width: 40%; height: 70%;
-    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  .tier .when {
+    font-size: 12px; color: var(--text2); font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
   }
-  .preview-v3 { background: var(--surface); }
-  .preview-v3::before {
-    content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
-    width: 60%; height: 60%; background: var(--accent); border-radius: 50%;
-    opacity: 0.7;
+  .tier .reward {
+    font-size: 50px; font-weight: 800; letter-spacing: -2px; line-height: 0.95;
+    color: var(--text); margin-bottom: 12px;
   }
-  .preview-v3::after {
-    content: ''; position: absolute; bottom: 8%; left: 12%; right: 12%; height: 14%;
-    background: var(--surface2); border-radius: 4px;
+  .tier .reward .currency { font-size: 16px; font-weight: 500; color: var(--text3); margin-left: 6px; }
+  .tier.top .reward { color: var(--accent); }
+  .tier .desc { font-size: 13px; color: var(--text2); line-height: 1.55; }
+
+  /* Motto */
+  .motto { padding: 22px; text-align: center; margin-bottom: 16px; }
+  .motto .quote { font-size: 18px; font-weight: 600; line-height: 1.4; }
+  .motto .quote .accent { color: var(--accent); }
+
+  /* Rules collapsible */
+  details.rules {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 0; box-shadow: var(--shadow);
   }
-  .footer-note { color: var(--text3); font-size: 12px; margin-top: 16px; }
+  details.rules summary {
+    padding: 16px 22px; cursor: pointer; font-size: 12px;
+    color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;
+    list-style: none;
+  }
+  details.rules summary::-webkit-details-marker { display: none; }
+  details.rules summary::after { content: '▸'; float: right; transition: transform .2s; }
+  details.rules[open] summary::after { transform: rotate(90deg); }
+  details.rules ul { list-style: none; padding: 0 22px 18px; }
+  details.rules li {
+    padding: 9px 0; border-top: 1px solid var(--border);
+    font-size: 13px; color: var(--text); line-height: 1.55; display: flex; gap: 10px;
+  }
+  details.rules li:first-child { border-top: 0; }
+  details.rules li .num { color: var(--accent); font-weight: 700; flex-shrink: 0; min-width: 14px; }
+
+  @media (max-width: 720px) {
+    .ring-wrap { width: 220px; height: 220px; }
+    .ring-text .big { font-size: 56px; }
+    .stats-row { grid-template-columns: 1fr 1fr 1fr; }
+    .stat .v { font-size: 16px; }
+    .today-card .target-h { font-size: 36px; }
+    .tiers-grid { grid-template-columns: 1fr; }
+    .tier .reward { font-size: 40px; }
+    .header h1 { font-size: 22px; }
+  }
 </style>
 </head>
 <body>
 
-<div class="center">
-  <h1>Команда мая · <span class="accent">3 варианта</span></h1>
-  <p class="sub">Покликай и выбери тот что нравится больше.<br>Все 3 на одних данных. Цель — 40 ч/день. Бонус: 10K при 38+, 20K при 40+.</p>
+<div class="container">
 
-  <div class="variants">
-    <a class="variant" href="may-goal-v1.html">
-      <div class="num">VARIANT 01</div>
-      <h3>Награда впереди</h3>
-      <p>Сразу видно что выиграешь — два больших tier-блока (10K / 20K) сверху. Ниже прогресс и темп.</p>
-      <div class="preview preview-v1"></div>
-    </a>
-    <a class="variant" href="may-goal-v2.html">
-      <div class="num">VARIANT 02</div>
-      <h3>Сплит-табло</h3>
-      <p>Большая текущая цифра слева, цели справа. Темп и tier-карточки горизонтально внизу.</p>
-      <div class="preview preview-v2"></div>
-    </a>
-    <a class="variant" href="may-goal-v3.html">
-      <div class="num">VARIANT 03</div>
-      <h3>Фокус-цифра</h3>
-      <p>Одна огромная цифра в центре — «сегодня нужно X часов». Минимум остального, простота.</p>
-      <div class="preview preview-v3"></div>
-    </a>
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="brand">V7 <span class="accent">Padel</span></div>
+    </div>
+    <div class="topbar-right">
+      <div class="theme-switcher"><button data-theme-btn="light" class="active">☀</button><button data-theme-btn="dark">☾</button></div>
+      <div class="lang-switcher"><button data-lang="en" class="active">EN</button><button data-lang="ru">RU</button><button data-lang="tr">TR</button></div>
+    </div>
   </div>
 
-  <p class="footer-note">Можно вернуться сюда из любого варианта по кнопке «← Все варианты» в углу.</p>
+  <div class="header">
+    <span class="pill" data-i18n="pill"></span>
+    <h1 data-i18n-html="title"></h1>
+  </div>
+
+  <!-- HERO with circular ring -->
+  <div class="card hero-card">
+    <div class="ring-wrap">
+      <svg class="ring" viewBox="0 0 200 200">
+        <circle class="bg-circle" cx="100" cy="100" r="86"></circle>
+        <circle class="fg-circle" id="ring-fg" cx="100" cy="100" r="86" stroke-dasharray="540" stroke-dashoffset="540"></circle>
+      </svg>
+      <div class="ring-text">
+        <div class="label" data-i18n="progressLabel">Current avg</div>
+        <div class="big" id="big-avg">—</div>
+        <div class="unit"><span data-i18n="hourPerDay">h/day</span> · <span data-i18n="targetPrefix">of</span> 40</div>
+        <div class="pct" id="ring-pct">—</div>
+      </div>
+    </div>
+    <div class="hero-status">
+      <span class="tier-badge t-zero" id="tier-status" data-i18n="tierStart">Starts May 1</span>
+    </div>
+  </div>
+
+  <!-- TODAY's required pace -->
+  <div class="card today-card">
+    <div class="label" data-i18n="todayLabel">Today's pace target</div>
+    <div class="target-h" id="today-target">—<small data-i18n="hoursToday">h today</small></div>
+    <div class="extra" id="today-extra">—</div>
+  </div>
+
+  <!-- Stats row -->
+  <div class="stats-row">
+    <div class="card stat">
+      <div class="label" data-i18n="played">Played</div>
+      <div class="v"><span id="stat-played">0</span><small data-i18n="days">days</small></div>
+    </div>
+    <div class="card stat">
+      <div class="label" data-i18n="remaining">Remaining</div>
+      <div class="v"><span id="stat-remaining">31</span><small data-i18n="days">days</small></div>
+    </div>
+    <div class="card stat">
+      <div class="label" data-i18n="bonusTitleShort">Bonus tiers</div>
+      <div class="v">10K · 20K<small>₺</small></div>
+    </div>
+  </div>
+
+  <!-- TIERS — full descriptions -->
+  <div class="tiers-grid">
+    <div class="card tier" id="tier-card-low">
+      <div class="when" data-i18n="lowWhen">38 — 39.9 h/day · "better than April"</div>
+      <div class="reward">10 000<span class="currency">₺ NET</span></div>
+      <div class="desc" data-i18n="lowDesc">Even if we don't reach 40, this is locked in. Better than any previous month.</div>
+    </div>
+    <div class="card tier top" id="tier-card-top">
+      <div class="when" data-i18n="topWhen">40+ h/day · GOAL</div>
+      <div class="reward">20 000<span class="currency">₺ NET</span></div>
+      <div class="desc" data-i18n="topDesc">A month at the level of April's peak day. This level has never been reached before.</div>
+    </div>
+  </div>
+
+  <!-- Motto -->
+  <div class="card motto">
+    <div class="quote" data-i18n-html="motto"></div>
+  </div>
+
+  <!-- Rules (collapsed by default) -->
+  <details class="rules">
+    <summary data-i18n="rulesTitle">Rules</summary>
+    <ul>
+      <li><span class="num">1</span><span data-i18n-html="r1"></span></li>
+      <li><span class="num">2</span><span data-i18n-html="r2"></span></li>
+      <li><span class="num">3</span><span data-i18n-html="r3"></span></li>
+      <li><span class="num">4</span><span data-i18n-html="r4"></span></li>
+      <li><span class="num">5</span><span data-i18n="r5"></span></li>
+    </ul>
+  </details>
+
+  <p class="footer-note">
+    <span data-i18n="updated">Updated</span>: <span id="updated-at">—</span> ·
+    <a href="dashboard.html" data-i18n="dashLink">internal dashboard</a>
+  </p>
+
 </div>
 
+<script src="assets/data.js?v=20260427e"></script>
+<script src="assets/may-goal-shared.js?v=20260427e"></script>
+<script>
+(async function() {
+  await window._mgLoadData();
+  window._renderState = function() {
+    var s = window._mgState, T = window._mgT, C = window._mgConfig;
+
+    document.getElementById('big-avg').textContent = s.mode === 'pre' ? '0' : s.avg.toFixed(1);
+
+    var pct = s.mode === 'pre' ? 0 : Math.min(1, s.avg / 40);
+    document.getElementById('ring-fg').setAttribute('stroke-dashoffset', 540 * (1 - pct));
+    document.getElementById('ring-pct').textContent = (pct * 100).toFixed(0) + '%';
+
+    var tier = window._mgTier(s.avg);
+    var badge = document.getElementById('tier-status');
+    badge.className = 'tier-badge t-' + tier;
+    if (tier === 'top') badge.textContent = T('tierGoal');
+    else if (tier === 'mid') badge.textContent = T('tierMidPrefix') + (C.TARGET_HOURS - s.avg).toFixed(1) + T('tierMidSuffix');
+    else if (tier === 'low') badge.textContent = T('tierLowPrefix') + (C.LOW_HOURS - s.avg).toFixed(1) + T('tierLowSuffix');
+    else badge.textContent = T('tierStart');
+
+    document.getElementById('tier-card-low').classList.toggle('active', tier === 'mid');
+    document.getElementById('tier-card-top').classList.toggle('active', tier === 'top');
+
+    document.getElementById('today-target').innerHTML =
+      window._mgPace(C.TARGET_HOURS) + '<small>' + T('hoursToday') + '</small>';
+    document.getElementById('today-extra').textContent =
+      T('paceLowLabel') + ': ' + window._mgPace(C.LOW_HOURS) + ' ' + T('hourPerDay');
+
+    document.getElementById('stat-played').textContent = s.days;
+    document.getElementById('stat-remaining').textContent = s.daysLeft;
+
+    var u = document.getElementById('updated-at');
+    if (u) u.textContent = new Date().toLocaleString();
+  };
+  window._renderState();
+})();
+</script>
 </body>
 </html>

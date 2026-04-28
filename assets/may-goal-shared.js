@@ -8,7 +8,7 @@
   var I18N = {
     en: {
       pill: "MAY 2026 · PEAK SEASON",
-      title: 'Team of May.<br>Goal — <span class="accent">40 hours per day</span>',
+      title: 'Goal — <span class="accent">40 hours per day</span>',
       sub: "The best month for V7 Padel since opening. Full team. Perfect weather. No rain. Tourists already here. This is our moment.",
       progressLabel: "Current daily average",
       hourPerDay: "h/day",
@@ -54,7 +54,7 @@
     },
     ru: {
       pill: "МАЙ 2026 · ПИК СЕЗОНА",
-      title: 'Команда мая.<br>Цель — <span class="accent">40 часов в день</span>',
+      title: 'Цель — <span class="accent">40 часов в день</span>',
       sub: "Лучший месяц V7 Padel с момента открытия. Команда полностью укомплектована. Погода идеальная. Дождей нет. Туристов уже много. Это наш момент.",
       progressLabel: "Текущая средняя",
       hourPerDay: "ч/день",
@@ -100,7 +100,7 @@
     },
     tr: {
       pill: "MAYIS 2026 · SEZON ZİRVESİ",
-      title: 'Mayıs takımı.<br>Hedef — <span class="accent">günde 40 saat</span>',
+      title: 'Hedef — <span class="accent">günde 40 saat</span>',
       sub: "V7 Padel'in açılışından bu yana en iyi ay. Tam kadro takım. Hava mükemmel. Yağmur yok. Turistler şimdiden burada. Bu bizim anımız.",
       progressLabel: "Günlük ortalama",
       hourPerDay: "saat/gün",
