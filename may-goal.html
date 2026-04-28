@@ -1,146 +1,396 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V7 Padel — Команда мая</title>
+<title>V7 Padel — May Team Goal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { background: #0b1620; color: #fff; font-family: 'Inter', sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
-
-  .container { max-width: 1100px; margin: 0 auto; padding: 32px 20px 80px; }
-
-  .header { text-align: center; margin-bottom: 50px; }
-  .header .pill { display: inline-block; background: rgba(10,186,181,0.15); border: 1px solid rgba(10,186,181,0.4); color: #0ABAB5; font-size: 11px; font-weight: 700; padding: 6px 14px; border-radius: 30px; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 16px; }
-  .header h1 { font-size: 56px; font-weight: 900; letter-spacing: -2px; line-height: 1.05; margin-bottom: 12px; }
-  .header h1 .accent { color: #0ABAB5; }
-  .header .sub { font-size: 17px; color: #8a9099; max-width: 600px; margin: 0 auto; line-height: 1.6; }
-
-  /* Big progress card */
-  .progress-card {
-    background: linear-gradient(135deg, rgba(10,186,181,0.08), rgba(14,138,135,0.04));
-    border: 1px solid rgba(10,186,181,0.2);
-    border-radius: 24px;
-    padding: 40px;
-    margin-bottom: 30px;
-    text-align: center;
+  /* === Tiffany & Co inspired palette (light, default) === */
+  :root {
+    --tiffany: #0ABAB5;
+    --tiffany-soft: #B5E0DC;
+    --tiffany-deep: #007a76;
+    --gold: #B89968;
+    --black: #0e1216;
+    --ink: #1a1f24;
+    --muted: #5a6470;
+    --line: rgba(14,18,22,0.08);
+    --shadow: 0 12px 40px rgba(7,89,87,0.12);
+    --bg-grad-from: #B5E0DC;
+    --bg-grad-to: #C8E8E5;
+    --card-bg: #fff;
+    --card-glass: rgba(255,255,255,0.7);
+    --bar-bg: rgba(14,18,22,0.06);
+    --tier-top-bg: var(--black);
+    --tier-top-text: #fff;
   }
-  .progress-card .label { font-size: 12px; color: #6a7280; text-transform: uppercase; letter-spacing: 2px; font-weight: 600; margin-bottom: 16px; }
-  .progress-card .big-number { font-size: 96px; font-weight: 900; letter-spacing: -4px; line-height: 1; color: #fff; }
-  .progress-card .big-number .unit { font-size: 32px; font-weight: 600; color: #6a7280; margin-left: 6px; vertical-align: super; }
-  .progress-card .target { font-size: 20px; color: #8a9099; margin-top: 8px; }
 
-  .bar-container { margin: 32px 0 16px; }
+  /* === Dark theme === */
+  [data-theme="dark"] {
+    --tiffany: #0ABAB5;
+    --tiffany-soft: #133a3a;
+    --tiffany-deep: #5fd9d4;
+    --gold: #c9a766;
+    --black: #f4f5f7;
+    --ink: #e7eaee;
+    --muted: #8a9099;
+    --line: rgba(255,255,255,0.08);
+    --shadow: 0 16px 50px rgba(0,0,0,0.5);
+    --bg-grad-from: #0a1518;
+    --bg-grad-to: #122428;
+    --card-bg: #14202a;
+    --card-glass: rgba(20,32,42,0.7);
+    --bar-bg: rgba(255,255,255,0.06);
+    --tier-top-bg: linear-gradient(135deg, #0ABAB5, #007a76);
+    --tier-top-text: #fff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: linear-gradient(180deg, var(--bg-grad-from) 0%, var(--bg-grad-to) 100%);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    transition: background .4s ease, color .3s ease;
+  }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 28px 22px 80px; }
+
+  /* === Top bar with language switcher === */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 36px;
+  }
+  .brand {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--black);
+  }
+  .brand .accent { color: var(--tiffany-deep); font-style: italic; }
+
+  .lang-switcher, .theme-switcher {
+    display: flex;
+    background: var(--card-glass);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px;
+    backdrop-filter: blur(8px);
+  }
+  .lang-switcher button, .theme-switcher button {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--muted);
+    border-radius: 999px;
+    font-family: inherit;
+    transition: all .2s;
+  }
+  .lang-switcher button.active, .theme-switcher button.active {
+    background: var(--black);
+    color: var(--bg-grad-from);
+  }
+  [data-theme="dark"] .lang-switcher button.active,
+  [data-theme="dark"] .theme-switcher button.active {
+    background: var(--tiffany);
+    color: #0e1216;
+  }
+  .lang-switcher button:hover:not(.active),
+  .theme-switcher button:hover:not(.active) { color: var(--ink); }
+  .topbar-right { display: flex; gap: 10px; align-items: center; }
+
+  /* === Header === */
+  .header { text-align: center; margin-bottom: 44px; }
+  .header .pill {
+    display: inline-block;
+    background: var(--black);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 7px 16px;
+    border-radius: 30px;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    margin-bottom: 22px;
+  }
+  .header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 60px;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    line-height: 1.05;
+    color: var(--black);
+    margin-bottom: 18px;
+  }
+  .header h1 .accent {
+    color: var(--tiffany-deep);
+    font-style: italic;
+  }
+  .header .sub {
+    font-size: 17px;
+    color: var(--muted);
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.65;
+    font-weight: 400;
+  }
+
+  /* === Motto === */
+  .motto {
+    text-align: center;
+    margin: 50px 0 50px;
+    padding: 36px 24px;
+    border-top: 1px solid rgba(14,18,22,0.12);
+    border-bottom: 1px solid rgba(14,18,22,0.12);
+  }
+  .motto .quote {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    line-height: 1.35;
+    color: var(--black);
+    font-style: italic;
+  }
+  .motto .quote .accent { color: var(--tiffany-deep); }
+
+  /* === Big progress card === */
+  .progress-card {
+    background: var(--card-bg);
+    border-radius: 24px;
+    padding: 44px 36px;
+    margin-bottom: 24px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--line);
+  }
+  .progress-card .label {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
+  .progress-card .big-number {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 110px;
+    font-weight: 900;
+    letter-spacing: -5px;
+    line-height: 1;
+    color: var(--black);
+  }
+  .progress-card .big-number .unit {
+    font-family: 'Inter', sans-serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-left: 8px;
+    vertical-align: super;
+    letter-spacing: -0.5px;
+  }
+  .progress-card .target {
+    font-size: 16px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+  .progress-card .target b { color: var(--black); }
+
+  .bar-container { margin: 36px auto 16px; max-width: 720px; }
   .bar-bg {
-    background: rgba(255,255,255,0.06);
+    background: var(--bar-bg);
     border-radius: 16px;
-    height: 28px;
+    height: 24px;
     overflow: hidden;
     position: relative;
   }
   .bar-fill {
     height: 100%;
-    background: linear-gradient(90deg, #0ABAB5, #0e8a87);
+    background: linear-gradient(90deg, var(--tiffany), var(--tiffany-deep));
     border-radius: 16px;
     transition: width 1.2s cubic-bezier(.2,.8,.2,1);
-    box-shadow: 0 0 20px rgba(10,186,181,0.5);
+    box-shadow: 0 0 16px rgba(10,186,181,0.4);
     width: 0%;
   }
   .bar-tier-marker {
     position: absolute;
     top: 0; bottom: 0;
-    width: 2px; background: rgba(255,255,255,0.3);
+    width: 2px;
+    background: var(--black);
     pointer-events: none;
   }
+  .bar-tier-marker.dim { background: rgba(14,18,22,0.4); }
   .bar-tier-marker .lbl {
-    position: absolute; top: 32px; left: 50%; transform: translateX(-50%);
-    font-size: 11px; color: #8a9099; white-space: nowrap;
+    position: absolute; top: 28px; left: 50%; transform: translateX(-50%);
+    font-size: 11px; color: var(--muted); white-space: nowrap; font-weight: 600;
   }
 
   .progress-tier {
     display: inline-block;
-    margin-top: 32px;
+    margin-top: 36px;
     padding: 14px 28px;
-    border-radius: 16px;
-    font-size: 18px;
+    border-radius: 999px;
+    font-size: 16px;
     font-weight: 700;
     letter-spacing: 0.3px;
   }
-  .progress-tier.t-zero { background: rgba(231,76,60,0.12); color: #f48a7e; border: 1px solid rgba(231,76,60,0.3); }
-  .progress-tier.t-low  { background: rgba(243,156,18,0.12); color: #f9c270; border: 1px solid rgba(243,156,18,0.3); }
-  .progress-tier.t-mid  { background: rgba(10,186,181,0.15); color: #5fd9d4; border: 1px solid rgba(10,186,181,0.4); }
-  .progress-tier.t-top  { background: linear-gradient(135deg, #0ABAB5, #16a085); color: #fff; border: 1px solid #0ABAB5; box-shadow: 0 8px 30px rgba(10,186,181,0.4); }
+  .progress-tier.t-zero { background: rgba(14,18,22,0.06); color: var(--muted); }
+  .progress-tier.t-low  { background: rgba(184,153,104,0.15); color: var(--gold); border: 1px solid rgba(184,153,104,0.35); }
+  .progress-tier.t-mid  { background: rgba(10,186,181,0.15); color: var(--tiffany-deep); border: 1px solid rgba(10,186,181,0.4); }
+  .progress-tier.t-top  { background: var(--black); color: #fff; box-shadow: 0 8px 24px rgba(14,18,22,0.3); }
 
-  /* Pace info */
+  /* === Pace === */
   .pace-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 50px; }
   .pace-card {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 16px;
-    padding: 24px;
+    background: var(--card-glass);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 26px;
   }
-  .pace-card .label { font-size: 11px; color: #6a7280; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600; margin-bottom: 12px; }
-  .pace-card .value { font-size: 36px; font-weight: 800; letter-spacing: -1px; }
-  .pace-card .extra { font-size: 13px; color: #8a9099; margin-top: 6px; }
+  .pace-card .label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+  .pace-card .value {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 42px;
+    font-weight: 900;
+    letter-spacing: -1.5px;
+    color: var(--black);
+  }
+  .pace-card .extra {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
 
-  /* Tier cards */
+  /* === Tiers === */
   .tiers-section h2 {
-    text-align: center; font-size: 14px; color: #6a7280;
-    text-transform: uppercase; letter-spacing: 2.5px; font-weight: 700;
-    margin-bottom: 24px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    font-weight: 700;
+    margin-bottom: 26px;
   }
-  .tiers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 50px; }
+  .tiers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 50px; }
   .tier {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
-    padding: 32px 28px;
-    transition: transform .3s ease, border-color .3s ease;
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    border-radius: 22px;
+    padding: 36px 32px;
+    transition: transform .3s ease, box-shadow .3s ease;
   }
   .tier.active {
-    background: linear-gradient(135deg, rgba(10,186,181,0.1), rgba(14,138,135,0.05));
-    border-color: rgba(10,186,181,0.5);
     transform: scale(1.02);
-    box-shadow: 0 12px 40px rgba(10,186,181,0.2);
+    box-shadow: 0 16px 50px rgba(7,89,87,0.18);
   }
-  .tier .when { font-size: 13px; color: #8a9099; margin-bottom: 8px; font-weight: 500; }
-  .tier .reward { font-size: 48px; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 8px; }
-  .tier .reward .currency { font-size: 24px; font-weight: 600; color: #6a7280; margin-left: 4px; }
-  .tier .desc { font-size: 14px; color: #aab1ba; margin-top: 12px; line-height: 1.5; }
-  .tier.top .reward { background: linear-gradient(135deg, #0ABAB5, #16a085); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-  .tier.top .extra { display: inline-block; margin-top: 14px; font-size: 12px; padding: 6px 12px; background: rgba(10,186,181,0.15); color: #5fd9d4; border-radius: 20px; font-weight: 600; }
+  .tier.top.active { border-color: var(--black); }
+  .tier .when {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+  .tier .reward {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 56px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    color: var(--black);
+    margin-bottom: 14px;
+  }
+  .tier .reward .currency {
+    font-family: 'Inter', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--muted);
+    margin-left: 6px;
+    letter-spacing: -0.5px;
+  }
+  .tier .desc {
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.55;
+  }
+  .tier.top {
+    background: var(--tier-top-bg);
+    color: var(--tier-top-text);
+  }
+  .tier.top .when { color: rgba(255,255,255,0.65); }
+  .tier.top .reward { color: var(--tier-top-text) !important; }
+  .tier.top .reward .currency { color: rgba(255,255,255,0.5); }
+  .tier.top .desc { color: rgba(255,255,255,0.88); }
 
-  /* Speech / motivation */
-  .motto {
-    text-align: center;
-    background: linear-gradient(135deg, rgba(10,186,181,0.08), rgba(255,255,255,0.02));
-    border: 1px solid rgba(10,186,181,0.2);
+  /* === Rules === */
+  .rules {
+    background: var(--card-glass);
+    backdrop-filter: blur(8px);
     border-radius: 20px;
-    padding: 50px 30px;
-    margin-bottom: 40px;
+    padding: 32px 36px;
+    border: 1px solid var(--line);
   }
-  .motto .quote { font-size: 32px; font-weight: 800; letter-spacing: -1px; line-height: 1.3; max-width: 720px; margin: 0 auto; }
-  .motto .quote .accent { color: #0ABAB5; }
-  .motto .signature { font-size: 13px; color: #6a7280; margin-top: 20px; letter-spacing: 1px; text-transform: uppercase; font-weight: 600; }
-
-  /* Rules */
-  .rules { background: rgba(255,255,255,0.03); border-radius: 16px; padding: 28px 32px; }
-  .rules h3 { font-size: 12px; color: #6a7280; text-transform: uppercase; letter-spacing: 2px; font-weight: 700; margin-bottom: 16px; }
+  .rules h3 {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 2.5px;
+    font-weight: 700;
+    margin-bottom: 18px;
+  }
   .rules ul { list-style: none; }
-  .rules li { padding: 10px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 14px; color: #aab1ba; line-height: 1.6; display: flex; gap: 14px; }
+  .rules li {
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--ink);
+    line-height: 1.6;
+    display: flex;
+    gap: 16px;
+  }
   .rules li:first-child { border-top: 0; }
-  .rules li .num { color: #0ABAB5; font-weight: 700; flex-shrink: 0; }
+  .rules li .num {
+    color: var(--tiffany-deep);
+    font-weight: 800;
+    flex-shrink: 0;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: 16px;
+  }
 
-  .footer-note { text-align: center; color: #6a7280; font-size: 12px; margin-top: 30px; }
-  .footer-note a { color: #0ABAB5; text-decoration: none; }
+  .footer-note {
+    text-align: center;
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 30px;
+  }
+  .footer-note a { color: var(--tiffany-deep); text-decoration: none; font-weight: 600; }
 
   @media (max-width: 768px) {
-    .header h1 { font-size: 36px; }
-    .progress-card .big-number { font-size: 64px; }
+    .header h1 { font-size: 38px; letter-spacing: -1px; }
+    .progress-card .big-number { font-size: 72px; letter-spacing: -3px; }
     .pace-grid, .tiers-grid { grid-template-columns: 1fr; }
     .motto .quote { font-size: 22px; }
+    .tier .reward { font-size: 44px; }
   }
 </style>
 </head>
@@ -148,120 +398,301 @@
 
 <div class="container">
 
-  <div class="header">
-    <span class="pill">МАЙ 2026 · ПИК СЕЗОНА</span>
-    <h1>Команда мая.<br>Цель — <span class="accent">40 часов в день</span></h1>
-    <p class="sub">Лучший месяц V7 Padel с момента открытия. Команда полностью укомплектована. Погода идеальная. Дождей нет. Туристов уже много. Это наш момент.</p>
+  <!-- Top bar with brand + theme + language switcher -->
+  <div class="topbar">
+    <div class="brand">V7 <span class="accent">Padel</span></div>
+    <div class="topbar-right">
+      <div class="theme-switcher" title="Theme">
+        <button data-theme-btn="light" class="active">☀</button>
+        <button data-theme-btn="dark">☾</button>
+      </div>
+      <div class="lang-switcher">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="ru">RU</button>
+        <button data-lang="tr">TR</button>
+      </div>
+    </div>
   </div>
 
-  <!-- Главный прогресс -->
+  <!-- Header -->
+  <div class="header">
+    <span class="pill" data-i18n="pill">MAY 2026 · PEAK SEASON</span>
+    <h1 data-i18n-html="title">Team of May.<br>The goal — <span class="accent">40 hours per day</span></h1>
+    <p class="sub" data-i18n="sub">The best month for V7 Padel since opening. Full team. Perfect weather. No rain. Tourists already here. This is our moment.</p>
+  </div>
+
+  <!-- Big progress -->
   <div class="progress-card">
-    <div class="label">Текущая средняя за май</div>
-    <div class="big-number" id="big-avg">—<span class="unit">ч/день</span></div>
-    <div class="target">из <b>40 ч/день</b> цели · <span id="days-info">—</span></div>
+    <div class="label" data-i18n="progressLabel">Current daily average for May</div>
+    <div class="big-number" id="big-avg">—<span class="unit" data-i18n="hourPerDay">h/day</span></div>
+    <div class="target"><span data-i18n="targetPrefix">of</span> <b>40 <span data-i18n="hourPerDay">h/day</span></b> <span data-i18n="targetSuffix">target</span> · <span id="days-info">—</span></div>
 
     <div class="bar-container">
       <div class="bar-bg">
         <div class="bar-fill" id="bar-fill"></div>
-        <!-- 38 marker (95% of 40) -->
-        <div class="bar-tier-marker" style="left:95%"><div class="lbl">40 ч</div></div>
-        <div class="bar-tier-marker" style="left:90.25%;background:rgba(243,156,18,0.5)"><div class="lbl" style="color:#f9c270">38 ч</div></div>
+        <div class="bar-tier-marker" style="left:95%"><div class="lbl">40 h</div></div>
+        <div class="bar-tier-marker dim" style="left:90.5%"><div class="lbl">38 h</div></div>
       </div>
     </div>
 
-    <div class="progress-tier t-zero" id="tier-status">— · стартуем</div>
+    <div class="progress-tier t-zero" id="tier-status" data-i18n="tierStart">Starting May 1 · let's go</div>
   </div>
 
-  <!-- Темп -->
+  <!-- Pace -->
   <div class="pace-grid">
     <div class="pace-card">
-      <div class="label">Чтобы попасть в 40 ч</div>
+      <div class="label" data-i18n="paceTopLabel">To reach 40 h</div>
       <div class="value" id="pace-40">—</div>
-      <div class="extra">часов в день в среднем за оставшиеся дни</div>
+      <div class="extra" data-i18n="paceExtra">average hours/day for the remaining days</div>
     </div>
     <div class="pace-card">
-      <div class="label">Чтобы попасть в 38 ч</div>
+      <div class="label" data-i18n="paceLowLabel">To reach 38 h</div>
       <div class="value" id="pace-38">—</div>
-      <div class="extra">часов в день в среднем за оставшиеся дни</div>
+      <div class="extra" data-i18n="paceExtra">average hours/day for the remaining days</div>
     </div>
   </div>
 
-  <!-- Уровни бонусов -->
+  <!-- Tiers -->
   <div class="tiers-section">
-    <h2>Командный бонус — каждому из 7</h2>
+    <h2 data-i18n="bonusTitle">Team bonus — equal for all 7</h2>
     <div class="tiers-grid">
       <div class="tier" id="tier-card-low">
-        <div class="when">38 — 39.9 ч/день · «лучше апреля»</div>
+        <div class="when" data-i18n="lowWhen">38 — 39.9 h/day · "better than April"</div>
         <div class="reward">10 000<span class="currency">₺ NET</span></div>
-        <div class="desc">Даже если 40 не дотянем, эта ставка наша. Лучше любого предыдущего месяца.</div>
+        <div class="desc" data-i18n="lowDesc">Even if we don't reach 40, this is locked in. Better than any previous month.</div>
       </div>
       <div class="tier top" id="tier-card-top">
-        <div class="when">40+ ч/день · ЦЕЛЬ</div>
+        <div class="when" data-i18n="topWhen">40+ h/day · GOAL</div>
         <div class="reward">20 000<span class="currency">₺ NET</span></div>
-        <div class="desc">Месяц на уровне самого пикового дня апреля. Это уровень которого никогда не было.</div>
-        <span class="extra">+ командный ужин в крутом ресторане 🍽</span>
+        <div class="desc" data-i18n="topDesc">A month at the level of April's peak day. This level has never been reached before.</div>
       </div>
     </div>
   </div>
 
-  <!-- Главная мотивация -->
+  <!-- Motto -->
   <div class="motto">
-    <div class="quote">«Возьмите этого <span class="accent">медведя</span> и принесите мне.<br>Мы лучшие. <span class="accent">Мы всех порвём.</span>»</div>
-    <div class="signature">— команда V7</div>
+    <div class="quote" data-i18n-html="motto">One club. <span class="accent">One team.</span> One result.</div>
   </div>
 
-  <!-- Правила -->
+  <!-- Rules -->
   <div class="rules">
-    <h3>Правила</h3>
+    <h3 data-i18n="rulesTitle">Rules</h3>
     <ul>
-      <li><span class="num">1</span><span>Метрика — <b>средняя загрузка кортов в часах за день</b> по месяцу. Считается за 31 день, делится на количество отыгранных дней.</span></li>
-      <li><span class="num">2</span><span>Часы только из <b>реальных бронирований играющих клиентов</b>. Maintenance и клубные ивенты с нулевой ценой не считаются.</span></li>
-      <li><span class="num">3</span><span>Бонус командный — <b>каждому одинаково</b>. Все 7 человек: Оля (PM), Даша, Настя (VIP), Настя (тренировки), SMM, 2 тренера.</span></li>
-      <li><span class="num">4</span><span>Выплата: <b>50% в первую неделю июня</b>, <b>50% в конце июня</b> при условии что июнь не упал ниже 36 ч/день в среднем.</span></li>
-      <li><span class="num">5</span><span>Эта страница обновляется ежедневно — заходите, смотрите, корректируйте темп.</span></li>
+      <li><span class="num">1</span><span data-i18n-html="r1">The metric is the <b>average daily court hours for the month</b>. Total over 31 days, divided by the number of days played.</span></li>
+      <li><span class="num">2</span><span data-i18n-html="r2">Hours count only from <b>real bookings of paying clients</b>. Maintenance and 0 ₺ club events do not count.</span></li>
+      <li><span class="num">3</span><span data-i18n-html="r3">The bonus is team-wide — <b>same for every one of 7 people</b>.</span></li>
+      <li><span class="num">4</span><span data-i18n-html="r4">Payment: <b>50% in the first week of June</b>, <b>50% at the end of June</b> if June stays at 36 h/day average or higher.</span></li>
+      <li><span class="num">5</span><span data-i18n="r5">This page updates daily — check it, adjust the pace.</span></li>
     </ul>
   </div>
 
   <p class="footer-note">
-    Обновлено: <span id="updated-at">—</span> ·
-    <a href="https://v7padel.space/dashboard.html">внутренний дашборд</a>
+    <span data-i18n="updated">Updated</span>: <span id="updated-at">—</span> ·
+    <a href="https://v7padel.space/dashboard.html" data-i18n="dashLink">internal dashboard</a>
   </p>
 
 </div>
 
-<script src="assets/data.js?v=20260427a"></script>
+<script src="assets/data.js?v=20260427b"></script>
 <script>
+/* ============================================================
+   I18N — three languages with proper orthography.
+   Default: EN. Persisted in localStorage.
+   ============================================================ */
+var I18N = {
+  en: {
+    pill: "MAY 2026 · PEAK SEASON",
+    title: 'Team of May.<br>The goal — <span class="accent">40 hours per day</span>',
+    sub: "The best month for V7 Padel since opening. Full team. Perfect weather. No rain. Tourists already here. This is our moment.",
+    progressLabel: "Current daily average for May",
+    hourPerDay: "h/day",
+    targetPrefix: "of",
+    targetSuffix: "target",
+    tierStart: "Starting May 1 · let's go",
+    tierGoal: "🎯 GOAL ACHIEVED · 20 000 ₺ each",
+    tierMidPrefix: "✓ In the 10 000 ₺ tier · ",
+    tierMidSuffix: " h to goal",
+    tierLowPrefix: "Need ",
+    tierLowSuffix: " h to enter the bonus zone",
+    paceTopLabel: "To reach 40 h",
+    paceLowLabel: "To reach 38 h",
+    paceExtra: "average hours/day for the remaining days",
+    bonusTitle: "Team bonus — equal for all 7",
+    lowWhen: '38 — 39.9 h/day · "better than April"',
+    lowDesc: "Even if we don't reach 40, this is locked in. Better than any previous month.",
+    topWhen: "40+ h/day · GOAL",
+    topDesc: "A month at the level of April's peak day. This level has never been reached before.",
+    motto: 'One club. <span class="accent">One team.</span> One result.',
+    rulesTitle: "Rules",
+    r1: 'The metric is the <b>average daily court hours for the month</b>. Total over 31 days, divided by the number of days played.',
+    r2: 'Hours count only from <b>real bookings of paying clients</b>. Maintenance and 0 ₺ club events do not count.',
+    r3: 'The bonus is team-wide — <b>same for every one of 7 people</b>.',
+    r4: 'Payment: <b>50% in the first week of June</b>, <b>50% at the end of June</b> if June stays at 36 h/day average or higher.',
+    r5: 'This page updates daily — check it, adjust the pace.',
+    updated: "Updated",
+    dashLink: "internal dashboard",
+    daysPlayedTpl: "Played {0} days · {1} days remaining",
+    daysToStart: "Until May 1: {0} days",
+  },
+  ru: {
+    pill: "МАЙ 2026 · ПИК СЕЗОНА",
+    title: 'Команда мая.<br>Цель — <span class="accent">40 часов в день</span>',
+    sub: "Лучший месяц V7 Padel с момента открытия. Команда полностью укомплектована. Погода идеальная. Дождей нет. Туристов уже много. Это наш момент.",
+    progressLabel: "Текущая средняя за май",
+    hourPerDay: "ч/день",
+    targetPrefix: "из",
+    targetSuffix: "цели",
+    tierStart: "Стартуем 1 мая · поехали",
+    tierGoal: "🎯 ЦЕЛЬ ВЗЯТА · 20 000 ₺ каждому",
+    tierMidPrefix: "✓ В уровне 10 000 ₺ · до цели ещё ",
+    tierMidSuffix: " ч",
+    tierLowPrefix: "До бонусной зоны ",
+    tierLowSuffix: " ч",
+    paceTopLabel: "Чтобы попасть в 40 ч",
+    paceLowLabel: "Чтобы попасть в 38 ч",
+    paceExtra: "часов в день в среднем за оставшиеся дни",
+    bonusTitle: "Командный бонус — каждому из 7",
+    lowWhen: '38 — 39,9 ч/день · «лучше апреля»',
+    lowDesc: "Даже если 40 не дотянем, эта ставка наша. Лучше любого предыдущего месяца.",
+    topWhen: "40+ ч/день · ЦЕЛЬ",
+    topDesc: "Месяц на уровне самого пикового дня апреля. Это уровень которого никогда не было.",
+    motto: 'Один клуб. <span class="accent">Одна команда.</span> Один результат.',
+    rulesTitle: "Правила",
+    r1: 'Метрика — <b>средняя загрузка кортов в часах за день</b> по месяцу. Считается за 31 день, делится на количество отыгранных дней.',
+    r2: 'Часы только из <b>реальных бронирований играющих клиентов</b>. Maintenance и клубные ивенты с нулевой ценой не считаются.',
+    r3: 'Бонус командный — <b>каждому из 7 человек одинаково</b>.',
+    r4: 'Выплата: <b>50% в первую неделю июня</b>, <b>50% в конце июня</b> при условии что июнь не упал ниже 36 ч/день в среднем.',
+    r5: 'Эта страница обновляется ежедневно — заходите, смотрите, корректируйте темп.',
+    updated: "Обновлено",
+    dashLink: "внутренний дашборд",
+    daysPlayedTpl: "Сыграно {0} дн. · до конца ещё {1} дн.",
+    daysToStart: "До старта мая: {0} дн.",
+  },
+  tr: {
+    pill: "MAYIS 2026 · SEZON ZİRVESİ",
+    title: 'Mayıs takımı.<br>Hedef — <span class="accent">günde 40 saat</span>',
+    sub: "V7 Padel'in açılışından bu yana en iyi ay. Tam kadro takım. Hava mükemmel. Yağmur yok. Turistler şimdiden burada. Bu bizim anımız.",
+    progressLabel: "Mayıs günlük ortalaması",
+    hourPerDay: "saat/gün",
+    targetPrefix: "hedef",
+    targetSuffix: "",
+    tierStart: "1 Mayıs'ta başlıyoruz · hadi başlayalım",
+    tierGoal: "🎯 HEDEFE ULAŞILDI · Kişi başı 20 000 ₺",
+    tierMidPrefix: "✓ 10 000 ₺ seviyesinde · hedefe ",
+    tierMidSuffix: " saat kaldı",
+    tierLowPrefix: "Bonus bölgesine ",
+    tierLowSuffix: " saat kaldı",
+    paceTopLabel: "40 saate ulaşmak için",
+    paceLowLabel: "38 saate ulaşmak için",
+    paceExtra: "kalan günlerde günlük ortalama saat",
+    bonusTitle: "Takım bonusu — 7 kişiye eşit",
+    lowWhen: '38 — 39,9 saat/gün · "Nisan\'dan iyi"',
+    lowDesc: "40'a ulaşamazsak bile bu garantili. Önceki tüm aylardan iyi.",
+    topWhen: "40+ saat/gün · HEDEF",
+    topDesc: "Bir ay boyunca Nisan'ın en yoğun günü seviyesi. Bu seviyeye daha önce hiç ulaşılmadı.",
+    motto: 'Tek kulüp. <span class="accent">Tek takım.</span> Tek sonuç.',
+    rulesTitle: "Kurallar",
+    r1: 'Metrik — <b>kortların aylık günlük ortalama saat doluluğu</b>. 31 günün toplamı, oynanan gün sayısına bölünür.',
+    r2: 'Saatler yalnızca <b>ödeme yapan müşterilerin gerçek rezervasyonlarından</b> sayılır. Bakım ve 0 ₺ kulüp etkinlikleri sayılmaz.',
+    r3: 'Bonus tüm takıma — <b>7 kişiye eşit miktarda</b>.',
+    r4: 'Ödeme: <b>%50 Haziran ilk haftası</b>, <b>%50 Haziran sonunda</b> — Haziran 36 saat/gün ortalamasının altına düşmezse.',
+    r5: 'Bu sayfa her gün güncellenir — kontrol edin, tempoyu ayarlayın.',
+    updated: "Güncellendi",
+    dashLink: "iç panel",
+    daysPlayedTpl: "{0} gün oynandı · {1} gün kaldı",
+    daysToStart: "1 Mayıs'a kadar: {0} gün",
+  }
+};
+
+var CURRENT_LANG = (function() {
+  try { return localStorage.getItem('v7lang') || 'en'; } catch(e) { return 'en'; }
+})();
+
+function applyLang(lang) {
+  if (!I18N[lang]) lang = 'en';
+  CURRENT_LANG = lang;
+  try { localStorage.setItem('v7lang', lang); } catch(e) {}
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(function(el) {
+    var key = el.dataset.i18n;
+    var val = I18N[lang][key];
+    if (val !== undefined) el.textContent = val;
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(function(el) {
+    var key = el.dataset.i18nHtml;
+    var val = I18N[lang][key];
+    if (val !== undefined) el.innerHTML = val;
+  });
+  document.querySelectorAll('.lang-switcher button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  // Re-render dynamic content (tier status, pace, days info)
+  if (typeof window._renderState === 'function') window._renderState();
+}
+
+document.querySelectorAll('.lang-switcher button').forEach(function(b) {
+  b.addEventListener('click', function() { applyLang(this.dataset.lang); });
+});
+applyLang(CURRENT_LANG);
+
+/* ============================================================
+   THEME — light (Tiffany, default) / dark
+   ============================================================ */
+function applyTheme(theme) {
+  if (theme !== 'dark' && theme !== 'light') theme = 'light';
+  if (theme === 'light') {
+    document.documentElement.removeAttribute('data-theme');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+  try { localStorage.setItem('v7theme', theme); } catch(e) {}
+  document.querySelectorAll('.theme-switcher button').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.themeBtn === theme);
+  });
+}
+var savedTheme = (function() {
+  try { return localStorage.getItem('v7theme') || 'light'; } catch(e) { return 'light'; }
+})();
+document.querySelectorAll('.theme-switcher button').forEach(function(b) {
+  b.addEventListener('click', function() { applyTheme(this.dataset.themeBtn); });
+});
+applyTheme(savedTheme);
+
+/* ============================================================
+   Data: occupancy_daily → average for May
+   ============================================================ */
 (async function() {
+  var TARGET_MONTH = '2026-05';
+  var TARGET_HOURS = 40;
+  var LOW_HOURS = 38;
+  var DAYS_IN_MONTH = 31;
+
   function _num(v) {
     if (v == null) return 0;
     var n = parseFloat(String(v).replace(/[^\d.\-]/g, ''));
     return isNaN(n) ? 0 : n;
   }
 
-  // Май 2026 — целевой месяц
-  var TARGET_MONTH = '2026-05';
-  var TARGET_HOURS = 40;
-  var LOW_HOURS = 38;
-  var DAYS_IN_MONTH = 31;
-
-  function computeProgress() {
-    var now = new Date();
-    var mPrefix = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-    // Если ещё не май — показываем countdown
-    var isInTarget = mPrefix === TARGET_MONTH;
-    var dayOfMonth = now.getDate();
-    return { isInTarget: isInTarget, dayOfMonth: dayOfMonth };
+  function _t(key) { return I18N[CURRENT_LANG][key] || I18N.en[key] || key; }
+  function _tpl(key, args) {
+    var s = _t(key);
+    (args || []).forEach(function(a, i) { s = s.replace('{' + i + '}', a); });
+    return s;
   }
 
-  function _setBigNumber(num, unit) {
-    document.getElementById('big-avg').innerHTML = num + (unit ? '<span class="unit">' + unit + '</span>' : '');
+  // State stored for re-render on language change
+  var STATE = { mode: 'pre', avg: 0, days: 0, daysLeft: 0, sum: 0 };
+
+  function setBigNumber(num) {
+    document.getElementById('big-avg').innerHTML =
+      num + '<span class="unit">' + _t('hourPerDay') + '</span>';
   }
 
-  function _setBar(pct) {
+  function setBar(pct) {
     document.getElementById('bar-fill').style.width = Math.min(100, pct) + '%';
   }
 
-  function _setTier(avg) {
+  function setTier(avg) {
     var el = document.getElementById('tier-status');
     el.className = 'progress-tier ';
     var lowCard = document.getElementById('tier-card-low');
@@ -270,94 +701,81 @@
     topCard.classList.remove('active');
     if (avg >= TARGET_HOURS) {
       el.classList.add('t-top');
-      el.innerHTML = '🎯 ЦЕЛЬ ВЗЯТА · 20 000 ₺ каждому';
+      el.textContent = _t('tierGoal');
       topCard.classList.add('active');
     } else if (avg >= LOW_HOURS) {
       el.classList.add('t-mid');
-      el.innerHTML = '✓ В уровне 10 000 ₺ · до цели ещё ' + (TARGET_HOURS - avg).toFixed(1) + ' ч';
+      el.textContent = _t('tierMidPrefix') + (TARGET_HOURS - avg).toFixed(1) + _t('tierMidSuffix');
       lowCard.classList.add('active');
     } else if (avg > 0) {
       el.classList.add('t-low');
-      el.innerHTML = 'До бонусной зоны ' + (LOW_HOURS - avg).toFixed(1) + ' ч';
+      el.textContent = _t('tierLowPrefix') + (LOW_HOURS - avg).toFixed(1) + _t('tierLowSuffix');
     } else {
       el.classList.add('t-zero');
-      el.innerHTML = 'Стартуем 1 мая · поехали';
+      el.textContent = _t('tierStart');
     }
   }
 
   function _setPace(daysLeft, currentSum, target) {
-    var needTotal = target * DAYS_IN_MONTH;
-    var stillNeed = Math.max(0, needTotal - currentSum);
     if (daysLeft <= 0) return '—';
-    var perDay = stillNeed / daysLeft;
-    return perDay.toFixed(1) + ' ч/день';
+    var stillNeed = Math.max(0, target * DAYS_IN_MONTH - currentSum);
+    return (stillNeed / daysLeft).toFixed(1);
   }
 
-  // Pre-May state — countdown
-  function renderPreMay() {
-    var now = new Date();
-    var startMay = new Date(now.getFullYear(), 4, 1); // May 1
-    var daysToMay = Math.ceil((startMay - now) / 86400000);
-    if (daysToMay <= 0) daysToMay = 1;
-    _setBigNumber('0', 'ч/день');
-    _setBar(0);
-    document.getElementById('days-info').innerHTML = '<b>До старта мая: ' + daysToMay + ' дн.</b>';
-    document.getElementById('pace-40').textContent = '40.0';
-    document.getElementById('pace-38').textContent = '38.0';
-    _setTier(0);
-  }
-
-  // In-May state — actual progress
-  async function renderInMay() {
-    try {
-      var rows = await V7.loadSheet('occupancy_daily');
+  function renderState() {
+    if (STATE.mode === 'pre') {
       var now = new Date();
-      var dayOfMonth = now.getDate();
-      var mayDays = (rows || []).filter(function(r) {
-        var d = String(r.date || '').slice(0, 10);
-        return d.startsWith(TARGET_MONTH);
-      }).filter(function(r) {
-        var d = String(r.date || '').slice(0, 10);
-        // Только прошедшие дни (включая сегодня если уже завершён)
-        return d <= now.toISOString().slice(0, 10);
-      });
-
-      // Считаем сумму часов за прошедшие дни мая
-      var sum = 0, daysCount = 0;
-      mayDays.forEach(function(r) {
-        var h = _num(r.hours);
-        if (h > 0) {
-          sum += h;
-          daysCount++;
-        }
-      });
-
-      var avg = daysCount > 0 ? sum / daysCount : 0;
-      var pct = (avg / 42) * 100; // 42 — ширина шкалы (рекорд = 42.5)
-      var daysLeft = DAYS_IN_MONTH - dayOfMonth;
-
-      _setBigNumber(avg.toFixed(1), 'ч/день');
-      _setBar(pct);
-      _setTier(avg);
-
-      document.getElementById('days-info').innerHTML =
-        '<b>За ' + daysCount + ' дн.</b> мая · до конца ' + daysLeft + ' дн.';
-      document.getElementById('pace-40').textContent = _setPace(daysLeft, sum, TARGET_HOURS);
-      document.getElementById('pace-38').textContent = _setPace(daysLeft, sum, LOW_HOURS);
-
-      document.getElementById('updated-at').textContent = now.toLocaleString('ru-RU');
-    } catch (e) {
-      console.error(e);
-      _setBigNumber('—', 'ч/день');
-      document.getElementById('days-info').innerHTML = 'Ошибка загрузки данных. <a href="#" onclick="location.reload();return false;" style="color:#0ABAB5">Обновить</a>';
+      var startMay = new Date(now.getFullYear(), 4, 1);
+      var daysToMay = Math.max(1, Math.ceil((startMay - now) / 86400000));
+      setBigNumber('0');
+      setBar(0);
+      document.getElementById('days-info').innerHTML = '<b>' + _tpl('daysToStart', [daysToMay]) + '</b>';
+      document.getElementById('pace-40').textContent = '40.0';
+      document.getElementById('pace-38').textContent = '38.0';
+      setTier(0);
+    } else {
+      setBigNumber(STATE.avg.toFixed(1));
+      var pct = (STATE.avg / 42) * 100;
+      setBar(pct);
+      setTier(STATE.avg);
+      document.getElementById('days-info').textContent = _tpl('daysPlayedTpl', [STATE.days, STATE.daysLeft]);
+      document.getElementById('pace-40').textContent = _setPace(STATE.daysLeft, STATE.sum, TARGET_HOURS);
+      document.getElementById('pace-38').textContent = _setPace(STATE.daysLeft, STATE.sum, LOW_HOURS);
     }
   }
+  window._renderState = renderState;
 
-  var p = computeProgress();
-  if (p.isInTarget) {
-    await renderInMay();
-  } else {
-    renderPreMay();
+  var now = new Date();
+  var mPrefix = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  var inMay = mPrefix === TARGET_MONTH;
+
+  if (!inMay) {
+    STATE.mode = 'pre';
+    renderState();
+    return;
+  }
+
+  try {
+    var rows = await V7.loadSheet('occupancy_daily');
+    var todayIso = now.toISOString().slice(0, 10);
+    var sum = 0, daysCount = 0;
+    (rows || []).forEach(function(r) {
+      var d = String(r.date || '').slice(0, 10);
+      if (!d.startsWith(TARGET_MONTH) || d > todayIso) return;
+      var h = _num(r.hours);
+      if (h > 0) { sum += h; daysCount++; }
+    });
+    STATE.mode = 'in';
+    STATE.avg = daysCount > 0 ? sum / daysCount : 0;
+    STATE.days = daysCount;
+    STATE.daysLeft = DAYS_IN_MONTH - now.getDate();
+    STATE.sum = sum;
+    renderState();
+    document.getElementById('updated-at').textContent = now.toLocaleString();
+  } catch (e) {
+    console.error(e);
+    document.getElementById('big-avg').textContent = '—';
+    document.getElementById('days-info').textContent = '⚠';
   }
 })();
 </script>
