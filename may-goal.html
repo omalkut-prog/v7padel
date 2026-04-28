@@ -5,62 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>V7 Padel — May Team Goal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/theme.css?v=20260427c">
 <style>
-  /* === Tiffany & Co inspired palette (light, default) === */
-  :root {
-    --tiffany: #0ABAB5;
-    --tiffany-soft: #B5E0DC;
-    --tiffany-deep: #007a76;
-    --gold: #B89968;
-    --black: #0e1216;
-    --ink: #1a1f24;
-    --muted: #5a6470;
-    --line: rgba(14,18,22,0.08);
-    --shadow: 0 12px 40px rgba(7,89,87,0.12);
-    --bg-grad-from: #B5E0DC;
-    --bg-grad-to: #C8E8E5;
-    --card-bg: #fff;
-    --card-glass: rgba(255,255,255,0.7);
-    --bar-bg: rgba(14,18,22,0.06);
-    --tier-top-bg: var(--black);
-    --tier-top-text: #fff;
-  }
-
-  /* === Dark theme === */
-  [data-theme="dark"] {
-    --tiffany: #0ABAB5;
-    --tiffany-soft: #133a3a;
-    --tiffany-deep: #5fd9d4;
-    --gold: #c9a766;
-    --black: #f4f5f7;
-    --ink: #e7eaee;
-    --muted: #8a9099;
-    --line: rgba(255,255,255,0.08);
-    --shadow: 0 16px 50px rgba(0,0,0,0.5);
-    --bg-grad-from: #0a1518;
-    --bg-grad-to: #122428;
-    --card-bg: #14202a;
-    --card-glass: rgba(20,32,42,0.7);
-    --bar-bg: rgba(255,255,255,0.06);
-    --tier-top-bg: linear-gradient(135deg, #0ABAB5, #007a76);
-    --tier-top-text: #fff;
-  }
-
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
-    background: linear-gradient(180deg, var(--bg-grad-from) 0%, var(--bg-grad-to) 100%);
-    background-attachment: fixed;
-    color: var(--ink);
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Inter', system-ui, sans-serif;
     min-height: 100vh;
     -webkit-font-smoothing: antialiased;
-    transition: background .4s ease, color .3s ease;
   }
 
-  .container { max-width: 1100px; margin: 0 auto; padding: 28px 22px 80px; }
+  .container { max-width: 1080px; margin: 0 auto; padding: 28px 22px 80px; }
 
-  /* === Top bar with language switcher === */
+  /* === Top bar === */
   .topbar {
     display: flex;
     justify-content: space-between;
@@ -68,329 +27,289 @@
     margin-bottom: 36px;
   }
   .brand {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    color: var(--black);
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text);
   }
-  .brand .accent { color: var(--tiffany-deep); font-style: italic; }
+  .brand .accent { color: var(--accent); }
+
+  .topbar-right { display: flex; gap: 10px; align-items: center; }
 
   .lang-switcher, .theme-switcher {
     display: flex;
-    background: var(--card-glass);
-    border: 1px solid var(--line);
-    border-radius: 999px;
-    padding: 4px;
-    backdrop-filter: blur(8px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 3px;
   }
   .lang-switcher button, .theme-switcher button {
     background: transparent;
     border: 0;
     cursor: pointer;
-    padding: 6px 14px;
+    padding: 6px 12px;
     font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: var(--muted);
-    border-radius: 999px;
+    font-weight: 600;
+    color: var(--text2);
+    border-radius: 8px;
     font-family: inherit;
-    transition: all .2s;
+    transition: all .15s;
   }
   .lang-switcher button.active, .theme-switcher button.active {
-    background: var(--black);
-    color: var(--bg-grad-from);
-  }
-  [data-theme="dark"] .lang-switcher button.active,
-  [data-theme="dark"] .theme-switcher button.active {
-    background: var(--tiffany);
-    color: #0e1216;
+    background: var(--accent-soft);
+    color: var(--accent);
   }
   .lang-switcher button:hover:not(.active),
-  .theme-switcher button:hover:not(.active) { color: var(--ink); }
-  .topbar-right { display: flex; gap: 10px; align-items: center; }
+  .theme-switcher button:hover:not(.active) { color: var(--text); }
 
   /* === Header === */
-  .header { text-align: center; margin-bottom: 44px; }
+  .header { margin-bottom: 32px; }
   .header .pill {
     display: inline-block;
-    background: var(--black);
-    color: #fff;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 7px 16px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent-border);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 5px 12px;
     border-radius: 30px;
-    letter-spacing: 2.5px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
-    margin-bottom: 22px;
+    margin-bottom: 14px;
   }
   .header h1 {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 60px;
-    font-weight: 900;
-    letter-spacing: -1.5px;
-    line-height: 1.05;
-    color: var(--black);
+    font-size: 38px;
+    font-weight: 700;
+    letter-spacing: -1.2px;
+    line-height: 1.1;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .header h1 .accent { color: var(--accent); }
+  .header .sub {
+    font-size: 15px;
+    color: var(--text2);
+    max-width: 720px;
+    line-height: 1.6;
+  }
+
+  /* === Main progress card === */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .progress-card {
+    padding: 32px 32px 28px;
+    margin-bottom: 16px;
+  }
+  .progress-row {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+  .progress-row .label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+  }
+  .progress-row .big-number {
+    font-size: 56px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1;
+    color: var(--text);
+  }
+  .progress-row .big-number .unit {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text3);
+    margin-left: 6px;
+    letter-spacing: 0;
+  }
+  .progress-row .target {
+    font-size: 14px;
+    color: var(--text2);
+  }
+  .progress-row .target b { color: var(--text); }
+
+  .bar-bg {
+    background: var(--surface2);
+    border-radius: 10px;
+    height: 12px;
+    overflow: hidden;
+    position: relative;
     margin-bottom: 18px;
   }
-  .header h1 .accent {
-    color: var(--tiffany-deep);
-    font-style: italic;
+  .bar-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 10px;
+    transition: width 1.2s cubic-bezier(.2,.8,.2,1);
+    width: 0%;
   }
-  .header .sub {
-    font-size: 17px;
-    color: var(--muted);
-    max-width: 640px;
-    margin: 0 auto;
-    line-height: 1.65;
-    font-weight: 400;
+  .bar-markers {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--text3); margin-top: 6px;
   }
+  .bar-markers span b { color: var(--text2); font-weight: 600; }
+
+  .progress-tier {
+    display: inline-block;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 8px;
+  }
+  .progress-tier.t-zero { background: var(--surface2); color: var(--text2); }
+  .progress-tier.t-low  { background: rgba(243,156,18,0.1); color: var(--warn); border: 1px solid rgba(243,156,18,0.25); }
+  .progress-tier.t-mid  { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-border); }
+  .progress-tier.t-top  { background: rgba(19,194,150,0.1); color: var(--good); border: 1px solid rgba(19,194,150,0.3); }
+
+  /* === Pace cards === */
+  .pace-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .pace-card {
+    padding: 22px 24px;
+  }
+  .pace-card .label {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+  .pace-card .value {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    color: var(--text);
+  }
+  .pace-card .extra {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 6px;
+  }
+
+  /* === Tier cards === */
+  .section-title {
+    font-size: 11px;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    margin: 24px 4px 12px;
+  }
+  .tiers-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .tier {
+    padding: 26px 28px;
+    transition: border-color .2s;
+  }
+  .tier.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent), var(--shadow);
+  }
+  .tier .when {
+    font-size: 12px;
+    color: var(--text2);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+  .tier .reward {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    line-height: 1;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+  .tier .reward .currency {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text3);
+    margin-left: 4px;
+  }
+  .tier .desc {
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.55;
+  }
+  .tier.top .reward { color: var(--accent); }
 
   /* === Motto === */
   .motto {
     text-align: center;
-    margin: 50px 0 50px;
-    padding: 36px 24px;
-    border-top: 1px solid rgba(14,18,22,0.12);
-    border-bottom: 1px solid rgba(14,18,22,0.12);
+    padding: 32px 24px;
+    margin: 24px 0;
   }
   .motto .quote {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 30px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-    line-height: 1.35;
-    color: var(--black);
-    font-style: italic;
-  }
-  .motto .quote .accent { color: var(--tiffany-deep); }
-
-  /* === Big progress card === */
-  .progress-card {
-    background: var(--card-bg);
-    border-radius: 24px;
-    padding: 44px 36px;
-    margin-bottom: 24px;
-    text-align: center;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--line);
-  }
-  .progress-card .label {
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 2.5px;
-    font-weight: 700;
-    margin-bottom: 18px;
-  }
-  .progress-card .big-number {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 110px;
-    font-weight: 900;
-    letter-spacing: -5px;
-    line-height: 1;
-    color: var(--black);
-  }
-  .progress-card .big-number .unit {
-    font-family: 'Inter', sans-serif;
-    font-size: 26px;
-    font-weight: 600;
-    color: var(--muted);
-    margin-left: 8px;
-    vertical-align: super;
-    letter-spacing: -0.5px;
-  }
-  .progress-card .target {
-    font-size: 16px;
-    color: var(--muted);
-    margin-top: 10px;
-  }
-  .progress-card .target b { color: var(--black); }
-
-  .bar-container { margin: 36px auto 16px; max-width: 720px; }
-  .bar-bg {
-    background: var(--bar-bg);
-    border-radius: 16px;
-    height: 24px;
-    overflow: hidden;
-    position: relative;
-  }
-  .bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--tiffany), var(--tiffany-deep));
-    border-radius: 16px;
-    transition: width 1.2s cubic-bezier(.2,.8,.2,1);
-    box-shadow: 0 0 16px rgba(10,186,181,0.4);
-    width: 0%;
-  }
-  .bar-tier-marker {
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 2px;
-    background: var(--black);
-    pointer-events: none;
-  }
-  .bar-tier-marker.dim { background: rgba(14,18,22,0.4); }
-  .bar-tier-marker .lbl {
-    position: absolute; top: 28px; left: 50%; transform: translateX(-50%);
-    font-size: 11px; color: var(--muted); white-space: nowrap; font-weight: 600;
-  }
-
-  .progress-tier {
-    display: inline-block;
-    margin-top: 36px;
-    padding: 14px 28px;
-    border-radius: 999px;
-    font-size: 16px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-  }
-  .progress-tier.t-zero { background: rgba(14,18,22,0.06); color: var(--muted); }
-  .progress-tier.t-low  { background: rgba(184,153,104,0.15); color: var(--gold); border: 1px solid rgba(184,153,104,0.35); }
-  .progress-tier.t-mid  { background: rgba(10,186,181,0.15); color: var(--tiffany-deep); border: 1px solid rgba(10,186,181,0.4); }
-  .progress-tier.t-top  { background: var(--black); color: #fff; box-shadow: 0 8px 24px rgba(14,18,22,0.3); }
-
-  /* === Pace === */
-  .pace-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 50px; }
-  .pace-card {
-    background: var(--card-glass);
-    backdrop-filter: blur(8px);
-    border: 1px solid var(--line);
-    border-radius: 18px;
-    padding: 26px;
-  }
-  .pace-card .label {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-weight: 700;
-    margin-bottom: 14px;
-  }
-  .pace-card .value {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 42px;
-    font-weight: 900;
-    letter-spacing: -1.5px;
-    color: var(--black);
-  }
-  .pace-card .extra {
-    font-size: 13px;
-    color: var(--muted);
-    margin-top: 8px;
-  }
-
-  /* === Tiers === */
-  .tiers-section h2 {
-    text-align: center;
-    font-size: 12px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 3px;
-    font-weight: 700;
-    margin-bottom: 26px;
-  }
-  .tiers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-bottom: 50px; }
-  .tier {
-    background: var(--card-bg);
-    border: 1px solid var(--line);
-    border-radius: 22px;
-    padding: 36px 32px;
-    transition: transform .3s ease, box-shadow .3s ease;
-  }
-  .tier.active {
-    transform: scale(1.02);
-    box-shadow: 0 16px 50px rgba(7,89,87,0.18);
-  }
-  .tier.top.active { border-color: var(--black); }
-  .tier .when {
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-  }
-  .tier .reward {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 56px;
-    font-weight: 900;
-    letter-spacing: -2px;
-    line-height: 1;
-    color: var(--black);
-    margin-bottom: 14px;
-  }
-  .tier .reward .currency {
-    font-family: 'Inter', sans-serif;
     font-size: 22px;
     font-weight: 600;
-    color: var(--muted);
-    margin-left: 6px;
-    letter-spacing: -0.5px;
+    letter-spacing: -0.3px;
+    line-height: 1.45;
+    color: var(--text);
   }
-  .tier .desc {
-    font-size: 15px;
-    color: var(--ink);
-    line-height: 1.55;
-  }
-  .tier.top {
-    background: var(--tier-top-bg);
-    color: var(--tier-top-text);
-  }
-  .tier.top .when { color: rgba(255,255,255,0.65); }
-  .tier.top .reward { color: var(--tier-top-text) !important; }
-  .tier.top .reward .currency { color: rgba(255,255,255,0.5); }
-  .tier.top .desc { color: rgba(255,255,255,0.88); }
+  .motto .quote .accent { color: var(--accent); }
 
   /* === Rules === */
-  .rules {
-    background: var(--card-glass);
-    backdrop-filter: blur(8px);
-    border-radius: 20px;
-    padding: 32px 36px;
-    border: 1px solid var(--line);
-  }
+  .rules { padding: 22px 24px; }
   .rules h3 {
     font-size: 11px;
-    color: var(--muted);
+    color: var(--text3);
     text-transform: uppercase;
-    letter-spacing: 2.5px;
-    font-weight: 700;
-    margin-bottom: 18px;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    margin-bottom: 14px;
   }
   .rules ul { list-style: none; }
   .rules li {
-    padding: 12px 0;
-    border-top: 1px solid var(--line);
-    font-size: 14px;
-    color: var(--ink);
-    line-height: 1.6;
+    padding: 10px 0;
+    border-top: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.55;
     display: flex;
-    gap: 16px;
+    gap: 12px;
   }
   .rules li:first-child { border-top: 0; }
   .rules li .num {
-    color: var(--tiffany-deep);
-    font-weight: 800;
+    color: var(--accent);
+    font-weight: 700;
     flex-shrink: 0;
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 16px;
+    min-width: 14px;
   }
 
   .footer-note {
     text-align: center;
-    color: var(--muted);
+    color: var(--text3);
     font-size: 12px;
-    margin-top: 30px;
+    margin-top: 24px;
   }
-  .footer-note a { color: var(--tiffany-deep); text-decoration: none; font-weight: 600; }
+  .footer-note a { color: var(--accent); text-decoration: none; }
 
-  @media (max-width: 768px) {
-    .header h1 { font-size: 38px; letter-spacing: -1px; }
-    .progress-card .big-number { font-size: 72px; letter-spacing: -3px; }
+  @media (max-width: 720px) {
+    .header h1 { font-size: 28px; letter-spacing: -0.8px; }
+    .progress-row .big-number { font-size: 44px; }
     .pace-grid, .tiers-grid { grid-template-columns: 1fr; }
-    .motto .quote { font-size: 22px; }
-    .tier .reward { font-size: 44px; }
+    .tier .reward { font-size: 28px; }
+    .motto .quote { font-size: 17px; }
   }
 </style>
 </head>
@@ -398,7 +317,7 @@
 
 <div class="container">
 
-  <!-- Top bar with brand + theme + language switcher -->
+  <!-- Top bar -->
   <div class="topbar">
     <div class="brand">V7 <span class="accent">Padel</span></div>
     <div class="topbar-right">
@@ -422,60 +341,64 @@
   </div>
 
   <!-- Big progress -->
-  <div class="progress-card">
-    <div class="label" data-i18n="progressLabel">Current daily average for May</div>
-    <div class="big-number" id="big-avg">—<span class="unit" data-i18n="hourPerDay">h/day</span></div>
-    <div class="target"><span data-i18n="targetPrefix">of</span> <b>40 <span data-i18n="hourPerDay">h/day</span></b> <span data-i18n="targetSuffix">target</span> · <span id="days-info">—</span></div>
-
-    <div class="bar-container">
-      <div class="bar-bg">
-        <div class="bar-fill" id="bar-fill"></div>
-        <div class="bar-tier-marker" style="left:95%"><div class="lbl">40 h</div></div>
-        <div class="bar-tier-marker dim" style="left:90.5%"><div class="lbl">38 h</div></div>
+  <div class="card progress-card">
+    <div class="progress-row">
+      <div>
+        <div class="label" data-i18n="progressLabel">Current daily average for May</div>
+        <div class="big-number" id="big-avg">—<span class="unit" data-i18n="hourPerDay">h/day</span></div>
       </div>
+      <div class="target" style="margin-left:auto"><span data-i18n="targetPrefix">of</span> <b>40 <span data-i18n="hourPerDay">h/day</span></b> <span data-i18n="targetSuffix">target</span> · <span id="days-info">—</span></div>
     </div>
 
-    <div class="progress-tier t-zero" id="tier-status" data-i18n="tierStart">Starting May 1 · let's go</div>
+    <div class="bar-bg">
+      <div class="bar-fill" id="bar-fill"></div>
+    </div>
+    <div class="bar-markers">
+      <span>0 h</span>
+      <span><b data-i18n="bar38">38 h · bonus zone</b></span>
+      <span><b data-i18n="bar40">40 h · goal</b></span>
+      <span>42 h</span>
+    </div>
+
+    <div class="progress-tier t-zero" id="tier-status" data-i18n="tierStart">Starting May 1</div>
   </div>
 
   <!-- Pace -->
   <div class="pace-grid">
-    <div class="pace-card">
+    <div class="card pace-card">
       <div class="label" data-i18n="paceTopLabel">To reach 40 h</div>
       <div class="value" id="pace-40">—</div>
       <div class="extra" data-i18n="paceExtra">average hours/day for the remaining days</div>
     </div>
-    <div class="pace-card">
+    <div class="card pace-card">
       <div class="label" data-i18n="paceLowLabel">To reach 38 h</div>
       <div class="value" id="pace-38">—</div>
       <div class="extra" data-i18n="paceExtra">average hours/day for the remaining days</div>
     </div>
   </div>
 
-  <!-- Tiers -->
-  <div class="tiers-section">
-    <h2 data-i18n="bonusTitle">Team bonus — equal for all 7</h2>
-    <div class="tiers-grid">
-      <div class="tier" id="tier-card-low">
-        <div class="when" data-i18n="lowWhen">38 — 39.9 h/day · "better than April"</div>
-        <div class="reward">10 000<span class="currency">₺ NET</span></div>
-        <div class="desc" data-i18n="lowDesc">Even if we don't reach 40, this is locked in. Better than any previous month.</div>
-      </div>
-      <div class="tier top" id="tier-card-top">
-        <div class="when" data-i18n="topWhen">40+ h/day · GOAL</div>
-        <div class="reward">20 000<span class="currency">₺ NET</span></div>
-        <div class="desc" data-i18n="topDesc">A month at the level of April's peak day. This level has never been reached before.</div>
-      </div>
+  <!-- Tier cards -->
+  <div class="section-title" data-i18n="bonusTitle">Team bonus — equal for all 7</div>
+  <div class="tiers-grid">
+    <div class="card tier" id="tier-card-low">
+      <div class="when" data-i18n="lowWhen">38 — 39.9 h/day · "better than April"</div>
+      <div class="reward">10 000<span class="currency">₺ NET</span></div>
+      <div class="desc" data-i18n="lowDesc">Even if we don't reach 40, this is locked in. Better than any previous month.</div>
+    </div>
+    <div class="card tier top" id="tier-card-top">
+      <div class="when" data-i18n="topWhen">40+ h/day · GOAL</div>
+      <div class="reward">20 000<span class="currency">₺ NET</span></div>
+      <div class="desc" data-i18n="topDesc">A month at the level of April's peak day. This level has never been reached before.</div>
     </div>
   </div>
 
   <!-- Motto -->
-  <div class="motto">
+  <div class="card motto">
     <div class="quote" data-i18n-html="motto">One club. <span class="accent">One team.</span> One result.</div>
   </div>
 
   <!-- Rules -->
-  <div class="rules">
+  <div class="card rules">
     <h3 data-i18n="rulesTitle">Rules</h3>
     <ul>
       <li><span class="num">1</span><span data-i18n-html="r1">The metric is the <b>average daily court hours for the month</b>. Total over 31 days, divided by the number of days played.</span></li>
@@ -493,11 +416,10 @@
 
 </div>
 
-<script src="assets/data.js?v=20260427b"></script>
+<script src="assets/data.js?v=20260427c"></script>
 <script>
 /* ============================================================
    I18N — three languages with proper orthography.
-   Default: EN. Persisted in localStorage.
    ============================================================ */
 var I18N = {
   en: {
@@ -508,9 +430,11 @@ var I18N = {
     hourPerDay: "h/day",
     targetPrefix: "of",
     targetSuffix: "target",
-    tierStart: "Starting May 1 · let's go",
-    tierGoal: "🎯 GOAL ACHIEVED · 20 000 ₺ each",
-    tierMidPrefix: "✓ In the 10 000 ₺ tier · ",
+    bar38: "38 h · bonus zone",
+    bar40: "40 h · goal",
+    tierStart: "Starting May 1",
+    tierGoal: "Goal achieved · 20 000 ₺ each",
+    tierMidPrefix: "In the 10 000 ₺ tier · ",
     tierMidSuffix: " h to goal",
     tierLowPrefix: "Need ",
     tierLowSuffix: " h to enter the bonus zone",
@@ -542,9 +466,11 @@ var I18N = {
     hourPerDay: "ч/день",
     targetPrefix: "из",
     targetSuffix: "цели",
-    tierStart: "Стартуем 1 мая · поехали",
-    tierGoal: "🎯 ЦЕЛЬ ВЗЯТА · 20 000 ₺ каждому",
-    tierMidPrefix: "✓ В уровне 10 000 ₺ · до цели ещё ",
+    bar38: "38 ч · бонусная зона",
+    bar40: "40 ч · цель",
+    tierStart: "Стартуем 1 мая",
+    tierGoal: "Цель взята · 20 000 ₺ каждому",
+    tierMidPrefix: "В уровне 10 000 ₺ · до цели ещё ",
     tierMidSuffix: " ч",
     tierLowPrefix: "До бонусной зоны ",
     tierLowSuffix: " ч",
@@ -576,9 +502,11 @@ var I18N = {
     hourPerDay: "saat/gün",
     targetPrefix: "hedef",
     targetSuffix: "",
-    tierStart: "1 Mayıs'ta başlıyoruz · hadi başlayalım",
-    tierGoal: "🎯 HEDEFE ULAŞILDI · Kişi başı 20 000 ₺",
-    tierMidPrefix: "✓ 10 000 ₺ seviyesinde · hedefe ",
+    bar38: "38 saat · bonus bölgesi",
+    bar40: "40 saat · hedef",
+    tierStart: "1 Mayıs'ta başlıyoruz",
+    tierGoal: "Hedefe ulaşıldı · kişi başı 20 000 ₺",
+    tierMidPrefix: "10 000 ₺ seviyesinde · hedefe ",
     tierMidSuffix: " saat kaldı",
     tierLowPrefix: "Bonus bölgesine ",
     tierLowSuffix: " saat kaldı",
@@ -626,7 +554,6 @@ function applyLang(lang) {
   document.querySelectorAll('.lang-switcher button').forEach(function(b) {
     b.classList.toggle('active', b.dataset.lang === lang);
   });
-  // Re-render dynamic content (tier status, pace, days info)
   if (typeof window._renderState === 'function') window._renderState();
 }
 
@@ -635,23 +562,21 @@ document.querySelectorAll('.lang-switcher button').forEach(function(b) {
 });
 applyLang(CURRENT_LANG);
 
-/* ============================================================
-   THEME — light (Tiffany, default) / dark
-   ============================================================ */
+/* THEME — uses theme.js if available, otherwise local fallback */
 function applyTheme(theme) {
   if (theme !== 'dark' && theme !== 'light') theme = 'light';
-  if (theme === 'light') {
-    document.documentElement.removeAttribute('data-theme');
-  } else {
-    document.documentElement.setAttribute('data-theme', 'dark');
-  }
-  try { localStorage.setItem('v7theme', theme); } catch(e) {}
+  var t = theme === 'light' ? 'tiffany' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem('v7-theme', t); } catch(e) {}
   document.querySelectorAll('.theme-switcher button').forEach(function(b) {
     b.classList.toggle('active', b.dataset.themeBtn === theme);
   });
 }
 var savedTheme = (function() {
-  try { return localStorage.getItem('v7theme') || 'light'; } catch(e) { return 'light'; }
+  try {
+    var t = localStorage.getItem('v7-theme');
+    return t === 'dark' ? 'dark' : 'light';
+  } catch(e) { return 'light'; }
 })();
 document.querySelectorAll('.theme-switcher button').forEach(function(b) {
   b.addEventListener('click', function() { applyTheme(this.dataset.themeBtn); });
@@ -680,33 +605,28 @@ applyTheme(savedTheme);
     return s;
   }
 
-  // State stored for re-render on language change
   var STATE = { mode: 'pre', avg: 0, days: 0, daysLeft: 0, sum: 0 };
 
   function setBigNumber(num) {
     document.getElementById('big-avg').innerHTML =
       num + '<span class="unit">' + _t('hourPerDay') + '</span>';
   }
-
   function setBar(pct) {
     document.getElementById('bar-fill').style.width = Math.min(100, pct) + '%';
   }
-
   function setTier(avg) {
     var el = document.getElementById('tier-status');
     el.className = 'progress-tier ';
-    var lowCard = document.getElementById('tier-card-low');
-    var topCard = document.getElementById('tier-card-top');
-    lowCard.classList.remove('active');
-    topCard.classList.remove('active');
+    document.getElementById('tier-card-low').classList.remove('active');
+    document.getElementById('tier-card-top').classList.remove('active');
     if (avg >= TARGET_HOURS) {
       el.classList.add('t-top');
       el.textContent = _t('tierGoal');
-      topCard.classList.add('active');
+      document.getElementById('tier-card-top').classList.add('active');
     } else if (avg >= LOW_HOURS) {
       el.classList.add('t-mid');
       el.textContent = _t('tierMidPrefix') + (TARGET_HOURS - avg).toFixed(1) + _t('tierMidSuffix');
-      lowCard.classList.add('active');
+      document.getElementById('tier-card-low').classList.add('active');
     } else if (avg > 0) {
       el.classList.add('t-low');
       el.textContent = _t('tierLowPrefix') + (LOW_HOURS - avg).toFixed(1) + _t('tierLowSuffix');
@@ -715,7 +635,6 @@ applyTheme(savedTheme);
       el.textContent = _t('tierStart');
     }
   }
-
   function _setPace(daysLeft, currentSum, target) {
     if (daysLeft <= 0) return '—';
     var stillNeed = Math.max(0, target * DAYS_IN_MONTH - currentSum);
