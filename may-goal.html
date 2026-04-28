@@ -6,8 +6,8 @@
 <title>V7 Padel — May Team Goal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/theme.css?v=20260427e">
-<link rel="stylesheet" href="assets/may-goal-common.css?v=20260427e">
+<link rel="stylesheet" href="assets/theme.css?v=20260427f">
+<link rel="stylesheet" href="assets/may-goal-common.css?v=20260427f">
 <style>
   /* === V3+V1 hybrid: ring focus + full tier descriptions === */
   .container { max-width: 980px; }
@@ -18,8 +18,9 @@
     padding: 5px 12px; border-radius: 30px; letter-spacing: 1.5px;
     text-transform: uppercase; margin-bottom: 12px;
   }
-  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 1.15; }
+  .header h1 { font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 1.15; margin-bottom: 10px; }
   .header h1 .accent { color: var(--accent); }
+  .header .sub { color: var(--text2); font-size: 14px; max-width: 720px; margin: 0 auto; line-height: 1.6; }
 
   /* HERO — circular progress */
   .hero-card { padding: 50px 30px; text-align: center; margin-bottom: 16px; }
@@ -90,26 +91,26 @@
   .motto .quote { font-size: 18px; font-weight: 600; line-height: 1.4; }
   .motto .quote .accent { color: var(--accent); }
 
-  /* Rules collapsible */
-  details.rules {
-    background: var(--surface); border: 1px solid var(--border);
-    border-radius: var(--radius); padding: 0; box-shadow: var(--shadow);
+  /* Rules — always visible card */
+  .rules { padding: 22px 26px; }
+  .rules h3 {
+    font-size: 11px; color: var(--text3); text-transform: uppercase;
+    letter-spacing: 1.5px; font-weight: 700; margin-bottom: 14px;
   }
-  details.rules summary {
-    padding: 16px 22px; cursor: pointer; font-size: 12px;
-    color: var(--text3); text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;
-    list-style: none;
+  .rules ul { list-style: none; }
+  .rules li {
+    padding: 11px 0; border-top: 1px solid var(--border);
+    font-size: 14px; color: var(--text); line-height: 1.6; display: flex; gap: 12px;
   }
-  details.rules summary::-webkit-details-marker { display: none; }
-  details.rules summary::after { content: '▸'; float: right; transition: transform .2s; }
-  details.rules[open] summary::after { transform: rotate(90deg); }
-  details.rules ul { list-style: none; padding: 0 22px 18px; }
-  details.rules li {
-    padding: 9px 0; border-top: 1px solid var(--border);
-    font-size: 13px; color: var(--text); line-height: 1.55; display: flex; gap: 10px;
+  .rules li:first-child { border-top: 0; }
+  .rules li .num {
+    color: var(--accent); font-weight: 800; flex-shrink: 0;
+    min-width: 22px; height: 22px; border-radius: 50%;
+    background: var(--accent-soft); border: 1px solid var(--accent-border);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 11px;
   }
-  details.rules li:first-child { border-top: 0; }
-  details.rules li .num { color: var(--accent); font-weight: 700; flex-shrink: 0; min-width: 14px; }
+  .rules li b { font-weight: 700; color: var(--text); }
 
   @media (max-width: 720px) {
     .ring-wrap { width: 220px; height: 220px; }
@@ -138,8 +139,9 @@
   </div>
 
   <div class="header">
-    <span class="pill" data-i18n="pill"></span>
-    <h1 data-i18n-html="title"></h1>
+    <span class="pill" data-i18n="pill">MAY 2026 · PEAK SEASON</span>
+    <h1 data-i18n-html="title">Goal — <span class="accent">40 hours per day</span></h1>
+    <p class="sub" data-i18n="sub">The best month for V7 Padel since opening. Full team. Perfect weather. No rain. Tourists already here. This is our moment.</p>
   </div>
 
   <!-- HERO with circular ring -->
@@ -203,17 +205,17 @@
     <div class="quote" data-i18n-html="motto"></div>
   </div>
 
-  <!-- Rules (collapsed by default) -->
-  <details class="rules">
-    <summary data-i18n="rulesTitle">Rules</summary>
+  <!-- Rules — always visible -->
+  <div class="card rules">
+    <h3 data-i18n="rulesTitle">Rules</h3>
     <ul>
-      <li><span class="num">1</span><span data-i18n-html="r1"></span></li>
-      <li><span class="num">2</span><span data-i18n-html="r2"></span></li>
-      <li><span class="num">3</span><span data-i18n-html="r3"></span></li>
-      <li><span class="num">4</span><span data-i18n-html="r4"></span></li>
-      <li><span class="num">5</span><span data-i18n="r5"></span></li>
+      <li><span class="num">1</span><span data-i18n-html="r1">The metric is the <b>average daily court hours for the month</b>. Total over 31 days, divided by the number of days played.</span></li>
+      <li><span class="num">2</span><span data-i18n-html="r2">Hours count only from <b>real bookings of paying clients</b>. Maintenance and 0 ₺ club events do not count.</span></li>
+      <li><span class="num">3</span><span data-i18n-html="r3">The bonus is team-wide — <b>same for every one of 7 people</b>.</span></li>
+      <li><span class="num">4</span><span data-i18n-html="r4">Payment: <b>50% in the first week of June</b>, <b>50% at the end of June</b> if June stays at 36 h/day average or higher.</span></li>
+      <li><span class="num">5</span><span data-i18n="r5">This page updates daily — check it, adjust the pace.</span></li>
     </ul>
-  </details>
+  </div>
 
   <p class="footer-note">
     <span data-i18n="updated">Updated</span>: <span id="updated-at">—</span> ·
@@ -222,8 +224,8 @@
 
 </div>
 
-<script src="assets/data.js?v=20260427e"></script>
-<script src="assets/may-goal-shared.js?v=20260427e"></script>
+<script src="assets/data.js?v=20260427f"></script>
+<script src="assets/may-goal-shared.js?v=20260427f"></script>
 <script>
 (async function() {
   await window._mgLoadData();
