@@ -47,6 +47,7 @@
 
     // ── Strategic docs (admin-only) ──
     'baseline.html':             ['admin'],
+    'schedule-v2.html':          ['admin'],
   };
 
   var DASHBOARDS = {

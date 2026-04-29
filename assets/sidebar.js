@@ -61,6 +61,7 @@
       { label: 'Baseline',    href: 'baseline.html',             icon: 'knowledge',  roles: ['admin'] },
       { label: 'База знаний', href: 'brain.html',                icon: 'knowledge',  roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Расписание',  href: 'schedule-builder.html',     icon: 'schedule',   roles: ['admin', 'manager', 'coach', 'administrator'] },
+      { label: 'Расписание v2', href: 'schedule-v2.html',         icon: 'schedule',   roles: ['admin'] },
       { label: 'Калькулятор', href: 'club-coach-calculator.html', icon: 'calculator', roles: ['admin', 'manager', 'coach', 'administrator'] },
     ]},
   ];
