@@ -3,237 +3,226 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V7 Расписание — Корты</title>
+<title>V7 Корты — Расписание</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
 :root {
   --cream:#FFF7E8; --lime:#E5FF2B; --teal:#2AF6FA; --coral:#FF675A;
-  --dark:#303030; --gray:#777; --border:rgba(48,48,48,0.11);
-  /* block colours by type */
-  --c-tournament-bg:#E5FF2B; --c-tournament-bd:#c4dc00; --c-tournament-tx:#303030;
-  --c-training-bg:#fff3cd;   --c-training-bd:#f0c040;   --c-training-tx:#7a5000;
-  --c-match-bg:#d4eaff;      --c-match-bd:#7cb8f0;      --c-match-tx:#1a4a7a;
-  --c-booking-bg:#ebebeb;    --c-booking-bd:#c4c4c4;    --c-booking-tx:#555;
+  --dark:#303030; --gray:#777; --border:rgba(48,48,48,0.12);
+  --c-t-bg:#E5FF2B; --c-t-bd:#b8cc00; --c-t-tx:#303030;
+  --c-tr-bg:#FFF0C8; --c-tr-bd:#e8c04a; --c-tr-tx:#6b4800;
+  --c-m-bg:#D6ECFF;  --c-m-bd:#6AABEE;  --c-m-tx:#0d3d7a;
+  --c-b-bg:#ECECEC;  --c-b-bd:#BDBDBD;  --c-b-tx:#505050;
+  --sh:56px; --tw:58px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
-body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--dark);display:flex;flex-direction:column}
-
-/* HEADER */
-.hdr{background:var(--dark);height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:200}
+body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--dark);display:flex;flex-direction:column;font-size:13px}
+.hdr{background:var(--dark);height:52px;flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:300}
 .logo{font-family:'Bebas Neue';font-size:22px;color:var(--lime);letter-spacing:2px}
 .hdr-r{display:flex;align-items:center;gap:8px}
-.btn{font-family:'Inter';font-size:11px;font-weight:700;padding:6px 13px;border-radius:6px;border:none;cursor:pointer;transition:.15s;white-space:nowrap;letter-spacing:.3px}
-.btn-ghost{background:transparent;color:#aaa;border:1px solid rgba(255,255,255,.2)}
+.btn{font-family:'Inter';font-size:12px;font-weight:700;padding:6px 14px;border-radius:6px;border:none;cursor:pointer;transition:.15s;white-space:nowrap}
+.btn-ghost{background:transparent;color:#bbb;border:1px solid rgba(255,255,255,.2)}
 .btn-ghost:hover{color:#fff;border-color:rgba(255,255,255,.5)}
 .btn-lime{background:var(--lime);color:var(--dark)}
 .btn-lime:hover{filter:brightness(.92)}
-.btn-teal{background:var(--teal);color:var(--dark)}
-.btn-teal:hover{filter:brightness(.92)}
 .btn-red{background:#fee2e2;color:#dc2626}
 .btn-red:hover{background:#fca5a5}
-
-/* TOOLBAR */
+.save-ind{font-size:10px;color:#888;display:flex;align-items:center;gap:4px}
+.sdot{width:6px;height:6px;border-radius:50%;background:#555;transition:.3s}
+.sdot.saved{background:#28a745}
+.sdot.saving{background:#ffc107;animation:pulse .5s infinite alternate}
+@keyframes pulse{to{opacity:.3}}
 .tb{background:#fff;border-bottom:1px solid var(--border);padding:7px 20px;flex-shrink:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .nav{display:flex;align-items:center;gap:5px}
-.arr{width:29px;height:29px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.15s}
-.arr:hover{background:var(--cream);border-color:#555}
-.period{font-family:'Bebas Neue';font-size:18px;letter-spacing:1px;min-width:190px;text-align:center}
+.arr{width:30px;height:30px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;transition:.15s}
+.arr:hover{background:var(--cream);border-color:#444}
+.period{font-family:'Bebas Neue';font-size:19px;letter-spacing:1px;min-width:200px;text-align:center}
 .vtog{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
-.vb{padding:5px 12px;border:none;background:#fff;font-size:11px;font-weight:700;cursor:pointer;color:var(--gray);transition:.15s}
+.vb{padding:5px 13px;border:none;background:#fff;font-size:12px;font-weight:700;cursor:pointer;color:var(--gray);transition:.15s}
 .vb.on{background:var(--dark);color:var(--lime)}
 .sp{flex:1}
-.leg{display:flex;align-items:center;gap:14px;font-size:10px;color:var(--gray)}
-.li{display:flex;align-items:center;gap:4px}
-.ld{width:11px;height:11px;border-radius:2px;flex-shrink:0}
-.mp-status{font-size:10px;color:var(--gray);display:flex;align-items:center;gap:5px}
-.mp-dot{width:7px;height:7px;border-radius:50%;background:#ccc}
-.mp-dot.ok{background:#28a745}
-
-/* BODY */
+.filters{display:flex;align-items:center;gap:6px}
+.ftog{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;border:1.5px solid transparent;cursor:pointer;font-size:11px;font-weight:700;transition:.15s;user-select:none}
+.ftog.off{opacity:.35;text-decoration:line-through}
+.f-tr{background:var(--c-tr-bg);border-color:var(--c-tr-bd);color:var(--c-tr-tx)}
+.f-m{background:var(--c-m-bg);border-color:var(--c-m-bd);color:var(--c-m-tx)}
+.f-b{background:var(--c-b-bg);border-color:var(--c-b-bd);color:var(--c-b-tx)}
 .body{display:flex;flex:1;overflow:hidden}
-.sidebar{width:200px;min-width:200px;background:#fff;border-right:1px solid var(--border);overflow-y:auto;padding:10px 0;flex-shrink:0}
-.sb-sec{margin-bottom:6px}
-.sb-hd{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);padding:4px 12px 5px}
-.sb-item{display:flex;align-items:flex-start;gap:7px;padding:5px 12px;cursor:pointer;transition:.1s}
-.sb-item:hover{background:var(--cream)}
-.sb-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0;margin-top:2px}
-.sb-name{font-size:10px;font-weight:600;line-height:1.3;flex:1}
-.sb-meta{font-size:9px;color:var(--gray)}
-.sb-count{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin:0 12px 4px;text-align:center}
+.sidebar{width:220px;min-width:220px;background:#fff;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0;display:flex;flex-direction:column}
+.sb-top{padding:10px 12px 8px;border-bottom:1px solid var(--border)}
+.sb-top-title{font-family:'Bebas Neue';font-size:13px;letter-spacing:1px;color:var(--gray);margin-bottom:6px}
+.stats-box{background:var(--cream);border-radius:8px;padding:10px}
+.srow{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;font-size:11px}
+.srow:last-child{margin-bottom:0}
+.sval{font-family:'Bebas Neue';font-size:18px;color:var(--dark);line-height:1}
+.slbl{font-size:10px;color:var(--gray)}
+.sb-section{padding:8px 0}
+.sb-hd{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);padding:3px 12px 5px}
+.drag-hint{font-size:10px;color:var(--gray);padding:2px 12px 5px;font-style:italic}
+.tpl-item{display:flex;align-items:flex-start;gap:7px;padding:7px 12px;cursor:grab;transition:.12s;border-left:3px solid transparent;user-select:none}
+.tpl-item:hover{background:var(--cream);border-left-color:var(--lime)}
+.tpl-item.dragging{opacity:.35;cursor:grabbing}
+.tpl-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;margin-top:2px;background:var(--c-t-bg);border:1px solid var(--c-t-bd)}
+.tpl-name{font-size:12px;font-weight:600;line-height:1.3;flex:1}
+.tpl-meta{font-size:10px;color:var(--gray)}
 .ca{flex:1;overflow:auto;position:relative}
-
-/* EMPTY STATE */
-.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:var(--gray)}
-.empty-icon{font-size:48px;opacity:.3}
-.empty-title{font-family:'Bebas Neue';font-size:26px;letter-spacing:1px;opacity:.5}
-.empty-sub{font-size:12px;opacity:.6;text-align:center;max-width:280px;line-height:1.6}
-
-/* GRID — shared */
+.sticky-h{position:sticky;top:0;z-index:50}
 .grid-wrap{min-width:580px}
-.sticky-hdr{position:sticky;top:0;z-index:50}
-
-/* DAY VIEW: hours×courts */
-.dg{display:grid}
-.dg-th{background:var(--dark);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;border-right:1px solid rgba(255,255,255,.1);height:50px}
-.dg-th .cl{font-family:'Bebas Neue';font-size:22px;color:var(--lime);letter-spacing:2px;line-height:1}
-.dg-th .cs{font-size:8px;color:#aaa;letter-spacing:1px;text-transform:uppercase}
-.dg-corner{background:var(--dark);border-right:1px solid rgba(255,255,255,.12);height:50px;display:flex;align-items:flex-end;padding:0 8px 7px}
+.dg-corner{background:var(--dark);height:52px;border-right:1px solid rgba(255,255,255,.12);display:flex;align-items:flex-end;padding:0 10px 8px}
 .dg-corner span{font-family:'Bebas Neue';font-size:14px;color:var(--lime);letter-spacing:1px}
-.dg-tlabel{font-size:10px;color:var(--gray);text-align:right;padding:3px 8px 0;border-right:1px solid var(--border);border-bottom:1px solid rgba(0,0,0,.06);background:var(--cream);display:flex;align-items:flex-start;justify-content:flex-end}
-.dg-cell{background:#fff;border-right:1px solid rgba(0,0,0,.05);border-bottom:1px solid rgba(0,0,0,.06);position:relative;cursor:pointer}
-.dg-cell:hover{background:rgba(229,255,43,.07)}
-.cell-plus{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(0,0,0,.1);opacity:0;transition:.15s;pointer-events:none}
+.dg-th{background:var(--dark);height:52px;border-right:1px solid rgba(255,255,255,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+.dg-th .cl{font-family:'Bebas Neue';font-size:24px;color:var(--lime);letter-spacing:2px;line-height:1}
+.dg-th .cs{font-size:9px;color:#aaa;letter-spacing:1px;text-transform:uppercase}
+.dg-tlabel{font-size:12px;color:var(--gray);text-align:right;padding:4px 9px 0;border-right:1px solid var(--border);border-bottom:1px solid rgba(0,0,0,.06);background:var(--cream);display:flex;align-items:flex-start;justify-content:flex-end;font-weight:500}
+.dg-cell{background:#fff;border-right:1px solid rgba(0,0,0,.06);border-bottom:1px solid rgba(0,0,0,.06);position:relative;cursor:pointer;transition:background .1s}
+.dg-cell:hover{background:rgba(229,255,43,.08)}
+.dg-cell.dov{background:rgba(229,255,43,.22)!important;outline:2px dashed #b8cc00;outline-offset:-2px}
+.cell-plus{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(0,0,0,.1);opacity:0;transition:.15s;pointer-events:none}
 .dg-cell:hover .cell-plus{opacity:1}
-
-/* WEEK VIEW */
-.wg{display:grid}
-.wg-corner{background:var(--dark);height:54px;border-right:1px solid rgba(255,255,255,.1)}
-.wg-dh{background:var(--cream);border-right:1px solid var(--border);border-bottom:2px solid var(--dark);padding:8px;text-align:center;height:54px}
+.wg-corner{background:var(--dark);height:56px;border-right:1px solid rgba(255,255,255,.1)}
+.wg-dh{background:var(--cream);border-right:1px solid var(--border);border-bottom:2px solid var(--dark);padding:6px;text-align:center;height:56px}
 .wg-dh.today{background:var(--dark)}
+.wg-dh.today .wdn,.wg-dh.today .wdd{color:#fff}
 .wg-dh.today .wdn{color:var(--lime)}
-.wg-dh.today .wdd{color:#fff}
-.wdn{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray)}
-.wdd{font-family:'Bebas Neue';font-size:22px;color:var(--dark);line-height:1}
-.wocc{height:3px;background:#eee;border-radius:2px;margin:3px 6px 0;overflow:hidden}
+.wdn{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray)}
+.wdd{font-family:'Bebas Neue';font-size:24px;color:var(--dark);line-height:1}
+.wocc{height:4px;background:#e8e8e8;border-radius:2px;margin:3px 6px 0;overflow:hidden}
 .woccf{height:100%;border-radius:2px;background:var(--lime);transition:width .5s}
 .woccf.hi{background:var(--coral)}
-.wt{font-size:10px;color:var(--gray);text-align:right;padding:3px 7px 0;border-right:1px solid var(--border);border-bottom:1px solid rgba(0,0,0,.05);background:var(--cream);display:flex;align-items:flex-start;justify-content:flex-end}
-.wc{border-right:1px solid var(--border);border-bottom:1px solid rgba(0,0,0,.05);position:relative;cursor:pointer}
-.wc:hover{background:rgba(229,255,43,.06)}
-
-/* MONTH VIEW */
+.wt{font-size:12px;color:var(--gray);text-align:right;padding:4px 8px 0;border-right:1px solid var(--border);border-bottom:1px solid rgba(0,0,0,.05);background:var(--cream);display:flex;align-items:flex-start;justify-content:flex-end;font-weight:500}
+.wc{border-right:1px solid var(--border);border-bottom:1px solid rgba(0,0,0,.05);position:relative;cursor:pointer;transition:background .1s}
+.wc:hover{background:rgba(229,255,43,.07)}
+.wc.dov{background:rgba(229,255,43,.22)!important;outline:2px dashed #b8cc00;outline-offset:-2px}
 .mg{display:grid;grid-template-columns:repeat(7,1fr)}
-.mh{padding:7px;text-align:center;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray);border-right:1px solid var(--border);border-bottom:2px solid var(--dark);background:var(--cream)}
-.mc{min-height:108px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;cursor:pointer;transition:.1s}
+.mh{padding:8px;text-align:center;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--gray);border-right:1px solid var(--border);border-bottom:2px solid var(--dark);background:var(--cream)}
+.mc{min-height:110px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);padding:5px;cursor:pointer}
 .mc:hover{background:rgba(229,255,43,.05)}
 .mc.other{background:rgba(0,0,0,.02)}
 .mc.today{background:rgba(229,255,43,.1)}
-.mdate{font-family:'Bebas Neue';font-size:17px;margin-bottom:3px;line-height:1}
-.mc.today .mdate{background:var(--dark);color:var(--lime);width:23px;height:23px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px}
-.mev{font-size:9px;font-weight:600;padding:2px 5px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.mdate{font-family:'Bebas Neue';font-size:18px;margin-bottom:3px;line-height:1}
+.mc.today .mdate{background:var(--dark);color:var(--lime);width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px}
+.mev{font-size:11px;font-weight:600;padding:2px 6px;border-radius:3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
 .mev:hover{opacity:.8}
-.mmore{font-size:9px;color:var(--gray);font-weight:600;padding:1px 0;cursor:pointer}
-
-/* EVENT BLOCKS */
-.eb{position:absolute;left:2px;right:2px;border-radius:5px;padding:3px 6px;font-size:10px;font-weight:600;cursor:pointer;overflow:hidden;transition:.15s;border:1px solid transparent;line-height:1.3;z-index:10}
-.eb:hover{z-index:30;box-shadow:0 3px 16px rgba(0,0,0,.22);transform:translateY(-1px)}
-.eb.tournament{background:var(--c-tournament-bg);border-color:var(--c-tournament-bd);color:var(--c-tournament-tx)}
-.eb.training   {background:var(--c-training-bg);border-color:var(--c-training-bd);color:var(--c-training-tx)}
-.eb.match      {background:var(--c-match-bg);border-color:var(--c-match-bd);color:var(--c-match-tx)}
-.eb.booking    {background:var(--c-booking-bg);border-color:var(--c-booking-bd);color:var(--c-booking-tx)}
-.eb.manual     {/* manual additions keep their color class */}
-/* manual tournament colors */
-.eb.c-green  {background:#28a745;color:#fff;border-color:#1e8135}
-.eb.c-orange {background:#fd7e14;color:#fff;border-color:#e56a00}
-.eb.c-blue   {background:#0d6efd;color:#fff;border-color:#0a52c7}
-.eb.c-purple {background:#6f42c1;color:#fff;border-color:#5a32a3}
-.eb.c-coral  {background:#FF675A;color:#fff;border-color:#e04f3e}
-.eb.c-lime   {background:#8bc34a;color:#fff;border-color:#6d9c35}
-.eb.c-pink   {background:#e91e8c;color:#fff;border-color:#c01870}
-.eb.c-teal   {background:#0dcaf0;color:var(--dark);border-color:#0aa8cc}
-.eb.c-indigo {background:#3f51b5;color:#fff;border-color:#2c3e9e}
-.eb-name{font-size:10px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.eb-sub{font-size:9px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.eb-tags{display:flex;gap:2px;margin-top:2px;flex-wrap:wrap}
-.eb-tag{font-size:8px;font-weight:700;padding:1px 4px;border-radius:3px;background:rgba(0,0,0,.15);letter-spacing:.3px;text-transform:uppercase}
+.mmore{font-size:10px;color:var(--gray);font-weight:600;padding:1px 0}
+.mc.dov{background:rgba(229,255,43,.2)!important;outline:2px dashed #b8cc00;outline-offset:-2px}
+.eb{position:absolute;left:2px;right:2px;border-radius:5px;padding:4px 7px;font-size:11px;font-weight:600;cursor:pointer;overflow:hidden;transition:.15s;border:1px solid transparent;line-height:1.35;z-index:10}
+.eb:hover{z-index:30;box-shadow:0 4px 16px rgba(0,0,0,.2);transform:translateY(-1px)}
+.eb.tournament{background:var(--c-t-bg);border-color:var(--c-t-bd);color:var(--c-t-tx)}
+.eb.training{background:var(--c-tr-bg);border-color:var(--c-tr-bd);color:var(--c-tr-tx)}
+.eb.match{background:var(--c-m-bg);border-color:var(--c-m-bd);color:var(--c-m-tx)}
+.eb.booking{background:var(--c-b-bg);border-color:var(--c-b-bd);color:var(--c-b-tx)}
+.eb.mc-green{background:#28a745;color:#fff;border-color:#1a6e30}
+.eb.mc-orange{background:#fd7e14;color:#fff;border-color:#c45e00}
+.eb.mc-blue{background:#0d6efd;color:#fff;border-color:#0045cc}
+.eb.mc-purple{background:#6f42c1;color:#fff;border-color:#4e2d8a}
+.eb.mc-coral{background:#FF675A;color:#fff;border-color:#cc3a2e}
+.eb.mc-pink{background:#e91e8c;color:#fff;border-color:#b01566}
+.eb.mc-indigo{background:#3f51b5;color:#fff;border-color:#2a3a8c}
+.eb.mc-teal{background:#0dcaf0;color:var(--dark);border-color:#09a0bf}
+.eb-name{font-size:11px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eb-sub{font-size:10px;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.eb-tags{display:flex;gap:3px;margin-top:3px}
+.eb-tag{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,.14);letter-spacing:.3px;text-transform:uppercase}
 .eb-tag.mp{background:rgba(42,246,250,.3);color:#0a7e80}
-.eb-tag.manual-tag{background:rgba(255,255,255,.25);color:inherit}
-
-/* MODAL */
+.wev{position:absolute;left:2px;right:2px;border-radius:4px;padding:3px 5px;font-size:10px;font-weight:700;cursor:pointer;overflow:hidden;transition:.15s;border:1px solid transparent;line-height:1.3;z-index:10}
+.wev:hover{z-index:30;box-shadow:0 3px 12px rgba(0,0,0,.18)}
+.wev.tournament{background:var(--c-t-bg);border-color:var(--c-t-bd);color:var(--c-t-tx)}
+.wev.training{background:var(--c-tr-bg);border-color:var(--c-tr-bd);color:var(--c-tr-tx)}
+.wev.match{background:var(--c-m-bg);border-color:var(--c-m-bd);color:var(--c-m-tx)}
+.wev.booking{background:var(--c-b-bg);border-color:var(--c-b-bd);color:var(--c-b-tx)}
+.wev.mc-green{background:#28a745;color:#fff;border-color:#1a6e30}
+.wev.mc-orange{background:#fd7e14;color:#fff;border-color:#c45e00}
+.wev.mc-blue{background:#0d6efd;color:#fff;border-color:#0045cc}
+.wev.mc-purple{background:#6f42c1;color:#fff;border-color:#4e2d8a}
+.wev.mc-coral{background:#FF675A;color:#fff;border-color:#cc3a2e}
+.wev.mc-pink{background:#e91e8c;color:#fff;border-color:#b01566}
+.wev.mc-indigo{background:#3f51b5;color:#fff;border-color:#2a3a8c}
+.wev.mc-teal{background:#0dcaf0;color:var(--dark);border-color:#09a0bf}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s}
 .ov.open{opacity:1;pointer-events:all}
 .modal{background:#fff;border-radius:12px;padding:26px;width:460px;max-width:95vw;max-height:90vh;overflow-y:auto;transform:scale(.95);transition:transform .2s;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .ov.open .modal{transform:scale(1)}
 .mt{font-family:'Bebas Neue';font-size:22px;letter-spacing:1px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between}
-.mc-btn{background:none;border:none;font-size:18px;cursor:pointer;color:var(--gray)}
-.mc-btn:hover{color:var(--dark)}
-.fl{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray);margin-bottom:4px;display:block}
-.fi{width:100%;padding:8px 11px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter';transition:.15s;background:var(--cream)}
+.mclose{background:none;border:none;font-size:18px;cursor:pointer;color:var(--gray)}
+.mclose:hover{color:var(--dark)}
+.fl{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--gray);margin-bottom:4px;display:block}
+.fi{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:7px;font-size:13px;font-family:'Inter';transition:.15s;background:var(--cream)}
 .fi:focus{outline:none;border-color:var(--dark)}
 .fr{margin-bottom:13px}
 .fr2{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:13px}
-.cdots{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.cd{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.15s}
-.cd:hover{transform:scale(1.15)}
+.cdots{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
+.cd{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:.15s}
+.cd:hover{transform:scale(1.12)}
 .cd.on{border-color:var(--dark);transform:scale(1.1)}
 .mact{display:flex;gap:8px;margin-top:18px;justify-content:flex-end}
-.mp-info-box{background:#f8f8f8;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:14px;font-size:11px;color:var(--gray);line-height:1.7}
-.mp-info-box strong{color:var(--dark)}
+.mpbox{background:#f5f5f5;border:1px solid var(--border);border-radius:8px;padding:11px;margin-bottom:13px;font-size:12px;line-height:1.7;color:var(--gray)}
+.mpbox strong{color:var(--dark)}
 select.fi{appearance:auto}
-
-/* TOAST */
-.toast{position:fixed;bottom:16px;right:16px;background:var(--dark);color:#fff;padding:11px 15px;border-radius:8px;font-size:12px;z-index:600;display:flex;align-items:center;gap:8px;transform:translateY(60px);opacity:0;transition:.3s;max-width:320px}
+.toast{position:fixed;bottom:16px;right:16px;background:var(--dark);color:#fff;padding:11px 16px;border-radius:8px;font-size:12px;z-index:600;display:flex;align-items:center;gap:8px;transform:translateY(60px);opacity:0;transition:.3s}
 .toast.show{transform:translateY(0);opacity:1}
-.spin{width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;flex-shrink:0}
+.spin{width:13px;height:13px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .6s linear infinite;flex-shrink:0}
 @keyframes sp{to{transform:rotate(360deg)}}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;color:var(--gray)}
+.empty-icon{font-size:52px;opacity:.25}
+.empty-title{font-family:'Bebas Neue';font-size:28px;opacity:.4;letter-spacing:1px}
+.empty-sub{font-size:13px;opacity:.55;text-align:center;max-width:260px;line-height:1.7}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px}
 </style>
 </head>
 <body>
-
-<!-- HEADER -->
 <div class="hdr">
   <div class="logo">V7 КОРТЫ</div>
   <div class="hdr-r">
-    <div class="mp-status">
-      <div class="mp-dot" id="mpDot"></div>
-      <span id="mpStatusText">Нет данных</span>
-    </div>
-    <button class="btn btn-ghost" onclick="loadMP()">⬇ Обновить из Matchpoint</button>
+    <div class="save-ind"><div class="sdot" id="sdot"></div><span id="stxt">—</span></div>
+    <button class="btn btn-ghost" onclick="loadMP()">⬇ Matchpoint</button>
     <button class="btn btn-lime" onclick="openAddModal()">+ Добавить</button>
   </div>
 </div>
-
-<!-- TOOLBAR -->
 <div class="tb">
   <div class="nav">
     <button class="arr" onclick="nav(-1)">‹</button>
     <div class="period" id="period"></div>
     <button class="arr" onclick="nav(1)">›</button>
   </div>
-  <button class="btn btn-ghost" style="font-size:10px;padding:4px 10px" onclick="goToday()">Сегодня</button>
+  <button class="btn btn-ghost" style="font-size:11px;padding:5px 10px" onclick="goToday()">Сегодня</button>
   <div class="vtog">
-    <button class="vb" id="vb-day"   onclick="setView('day')">День</button>
+    <button class="vb" id="vb-day" onclick="setView('day')">День</button>
     <button class="vb on" id="vb-week" onclick="setView('week')">Неделя</button>
     <button class="vb" id="vb-month" onclick="setView('month')">Месяц</button>
   </div>
   <div class="sp"></div>
-  <div class="leg">
-    <div class="li"><div class="ld" style="background:var(--c-tournament-bg);border:1px solid var(--c-tournament-bd)"></div>Турнир</div>
-    <div class="li"><div class="ld" style="background:var(--c-training-bg);border:1px solid var(--c-training-bd)"></div>Тренировка</div>
-    <div class="li"><div class="ld" style="background:var(--c-match-bg);border:1px solid var(--c-match-bd)"></div>Матч</div>
-    <div class="li"><div class="ld" style="background:var(--c-booking-bg);border:1px solid var(--c-booking-bd)"></div>Бронирование</div>
+  <div class="filters">
+    <span style="font-size:11px;font-weight:700;color:var(--gray)">Показать:</span>
+    <div class="ftog f-tr" id="f-training" onclick="toggleFilter('training')">🎾 Тренировки</div>
+    <div class="ftog f-m"  id="f-match"    onclick="toggleFilter('match')">⚡ Матчи</div>
+    <div class="ftog f-b"  id="f-booking"  onclick="toggleFilter('booking')">📋 Брони</div>
   </div>
 </div>
-
-<!-- BODY -->
 <div class="body">
-  <div class="sidebar" id="sidebar"></div>
-  <div class="ca" id="ca"></div>
+  <div class="sidebar" id="sidebar">
+    <div class="sb-top">
+      <div class="sb-top-title">ЗАНЯТОСТЬ КОРТАМИ</div>
+      <div id="statsBox"></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-hd">Шаблоны турниров</div>
+      <div class="drag-hint">↕ Перетащи на расписание</div>
+      <div id="tplList"></div>
+    </div>
+  </div>
+  <div class="ca" id="ca" ondragover="caDragOver(event)" ondragleave="caDragLeave(event)" ondrop="caDrop(event)"></div>
 </div>
-
-<!-- MODAL: view/edit any block -->
 <div class="ov" id="ov" onclick="ovClick(event)">
   <div class="modal">
-    <div class="mt"><span id="mTitle">Редактировать</span><button class="mc-btn" onclick="closeModal()">✕</button></div>
-
-    <!-- MP info (readonly) — shown when block is from Matchpoint -->
-    <div class="mp-info-box" id="mpInfoBox" style="display:none">
-      <strong id="mpInfoName"></strong><br>
-      <span id="mpInfoDetails"></span>
-    </div>
-
-    <!-- Editable fields -->
-    <div class="fr">
-      <label class="fl">Название</label>
-      <input class="fi" type="text" id="fName" placeholder="Название">
-    </div>
+    <div class="mt"><span id="mTitle">Событие</span><button class="mclose" onclick="closeModal()">✕</button></div>
+    <div class="mpbox" id="mpbox" style="display:none"><strong id="mpboxName"></strong><br><span id="mpboxDet"></span></div>
+    <div class="fr"><label class="fl">Название</label><input class="fi" type="text" id="fName" placeholder="Название"></div>
     <div class="fr2">
       <div><label class="fl">Дата</label><input class="fi" type="date" id="fDate"></div>
       <div><label class="fl">Тип</label>
-        <select class="fi" id="fType">
+        <select class="fi" id="fType" onchange="typeChanged()">
           <option value="tournament">🏆 Турнир</option>
           <option value="training">🎾 Тренировка</option>
           <option value="match">⚡ Матч</option>
@@ -246,7 +235,7 @@ select.fi{appearance:auto}
       <div><label class="fl">Конец</label><input class="fi" type="time" id="fEnd"></div>
     </div>
     <div class="fr2">
-      <div><label class="fl">Корт (0=PA … 3=PD)</label>
+      <div><label class="fl">Корт</label>
         <select class="fi" id="fCourt">
           <option value="0">PA — Корт 1</option>
           <option value="1">PB — Корт 2</option>
@@ -257,14 +246,11 @@ select.fi{appearance:auto}
       </div>
       <div><label class="fl">Игроков</label><input class="fi" type="number" id="fPersons" value="4" min="1"></div>
     </div>
-    <div class="fr" id="colorRow-wrap">
-      <label class="fl">Цвет (для турнира)</label>
+    <div class="fr" id="colorWrap">
+      <label class="fl">Цвет турнира</label>
       <div class="cdots" id="cdots"></div>
     </div>
-    <div class="fr">
-      <label class="fl">Заметка</label>
-      <input class="fi" type="text" id="fNote" placeholder="Необязательно">
-    </div>
+    <div class="fr"><label class="fl">Заметка</label><input class="fi" type="text" id="fNote" placeholder="Необязательно"></div>
     <div class="mact">
       <button class="btn btn-red" id="delBtn" onclick="deleteBlock()" style="display:none">Удалить</button>
       <button class="btn btn-ghost" onclick="closeModal()">Отмена</button>
@@ -272,600 +258,312 @@ select.fi{appearance:auto}
     </div>
   </div>
 </div>
-
-<!-- TOAST -->
 <div class="toast" id="toast"><div class="spin" id="tspin"></div><span id="ttext"></span></div>
-
 <script>
-// ════════════════════════════════════════════
-// CONSTANTS
-// ════════════════════════════════════════════
-const COURTS      = 4;
-const COURT_LBLS  = ['PA','PB','PC','PD'];
-const H_START     = 8;
-const H_END       = 23;
-const SLOT_H      = 52;   // px per hour
-const TIME_W      = 54;   // px for time column
-
-const DOW_SHORT   = ['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'];
-const DOW_FULL    = ['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
-const MONTHS      = ['ЯНВАРЬ','ФЕВРАЛЬ','МАРТ','АПРЕЛЬ','МАЙ','ИЮНЬ','ИЮЛЬ','АВГУСТ','СЕНТЯБРЬ','ОКТЯБРЬ','НОЯБРЬ','ДЕКАБРЬ'];
-
-// mpTipo → category
-const TIPO_MAP = {
-  reserva_actividad_abierta: 'tournament',
-  clase_suelta:              'training',
-  reserva_partida:           'match',
-  reserva_club:              'booking',
-  reserva_individual:        'booking',
-};
-
-const TYPE_LABEL = { tournament:'Турнир', training:'Тренировка', match:'Матч', booking:'Бронирование' };
-const TYPE_ICON  = { tournament:'🏆', training:'🎾', match:'⚡', booking:'📋' };
-
-const COLORS = [
-  {cls:'c-green',  hex:'#28a745'}, {cls:'c-orange', hex:'#fd7e14'},
-  {cls:'c-blue',   hex:'#0d6efd'}, {cls:'c-purple', hex:'#6f42c1'},
-  {cls:'c-coral',  hex:'#FF675A'}, {cls:'c-lime',   hex:'#8bc34a'},
-  {cls:'c-pink',   hex:'#e91e8c'}, {cls:'c-teal',   hex:'#0dcaf0'},
-  {cls:'c-indigo', hex:'#3f51b5'},
+const COURTS=4,CLBLS=['PA','PB','PC','PD'],H0=8,H1=23,SH=56,TW=58;
+const DOW_S=['ВС','ПН','ВТ','СР','ЧТ','ПТ','СБ'];
+const DOW_F=['Воскресенье','Понедельник','Вторник','Среда','Четверг','Пятница','Суббота'];
+const MONTHS=['ЯНВАРЬ','ФЕВРАЛЬ','МАРТ','АПРЕЛЬ','МАЙ','ИЮНЬ','ИЮЛЬ','АВГУСТ','СЕНТЯБРЬ','ОКТЯБРЬ','НОЯБРЬ','ДЕКАБРЬ'];
+const TIPO={reserva_actividad_abierta:'tournament',reserva_club:'tournament',clase_suelta:'training',reserva_partida:'match',reserva_individual:'booking'};
+const TLBL={tournament:'Турнир',training:'Тренировка',match:'Матч',booking:'Бронирование'};
+const TICO={tournament:'🏆',training:'🎾',match:'⚡',booking:'📋'};
+const COLORS=[{c:'mc-green',h:'#28a745'},{c:'mc-orange',h:'#fd7e14'},{c:'mc-blue',h:'#0d6efd'},{c:'mc-purple',h:'#6f42c1'},{c:'mc-coral',h:'#FF675A'},{c:'mc-pink',h:'#e91e8c'},{c:'mc-indigo',h:'#3f51b5'},{c:'mc-teal',h:'#0dcaf0'}];
+const TPLS=[
+  {id:'morning_coffee',name:'MORNING COFFEE',s:'10:00',e:'12:00',c:4,p:16},
+  {id:'americano_1100m',name:'AMERICANO 1100−',s:'19:00',e:'21:30',c:2,p:8},
+  {id:'ladys_ranked',name:"LADY'S RANKED",s:'10:00',e:'12:00',c:4,p:16},
+  {id:'pair_americano',name:'PAIR AMERICANO',s:'14:00',e:'16:30',c:2,p:8},
+  {id:'evening_coffee',name:'EVENING COFFEE',s:'19:00',e:'21:00',c:4,p:16},
+  {id:'morning_americano',name:'MORNING AMERICANO 900−1100',s:'10:00',e:'12:30',c:2,p:8},
+  {id:'americano_1100p',name:'V7 AMERICANO 1100+',s:'19:00',e:'21:30',c:2,p:8},
+  {id:'mixed_pair',name:'MIXED PAIR AMERICANO',s:'19:00',e:'21:30',c:2,p:8},
+  {id:'morning_beginners',name:'V7 MORNING BEGINNERS',s:'10:00',e:'11:30',c:2,p:8},
+  {id:'pair_mexicano',name:'PAIR MEXICANO',s:'10:00',e:'12:00',c:4,p:16},
+  {id:'sunday_1100p',name:'SUNDAY RANKED 1100+',s:'10:00',e:'12:00',c:4,p:16},
+  {id:'sunday_1100m',name:'SUNDAY RANKED ≤1100',s:'12:30',e:'14:30',c:4,p:16},
+  {id:'ladys_evening',name:"LADY'S EVENING",s:'19:00',e:'21:00',c:2,p:8},
+  {id:'sunrise_americano',name:'SUNRISE AMERICANO',s:'08:00',e:'10:00',c:2,p:8},
 ];
+const LS='v7_schedule_v3';
+let view='week',curDate=new Date(),blocks=[],editId=null,selColor='mc-green',mpLoaded=false;
+let filters={training:true,match:true,booking:true};
+let dragTpl=null,dragOverEl=null,saveTimer=null;
 
-// ════════════════════════════════════════════
-// STATE
-// ════════════════════════════════════════════
-let view      = 'week';
-let curDate   = new Date();           // today by default
-let blocks    = [];                   // all blocks (MP + manual)
-let editId    = null;
-let selColor  = 'c-green';
-let mpLoaded  = false;
+const fD=d=>d.toISOString().split('T')[0];
+const toMin=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};
+const addD=(d,n)=>{const r=new Date(d);r.setDate(r.getDate()+n);return r};
+const isToday=d=>{const t=new Date();return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate()};
+const uid=()=>'b'+Date.now().toString(36)+Math.random().toString(36).substr(2,4);
+function getMon(d){const r=new Date(d),dw=r.getDay(),df=dw===0?-6:1-dw;r.setDate(r.getDate()+df);r.setHours(0,0,0,0);return r}
+function bCls(b){return(b.manual&&b.type==='tournament')?b.color||'mc-green':b.type||'booking'}
+function vis(){return blocks.filter(b=>b.type==='tournament'||filters[b.type]!==false)}
+function tHours(bl){return bl.filter(b=>b.type==='tournament').reduce((s,b)=>s+(toMin(b.end)-toMin(b.start))/60,0)}
 
-// ════════════════════════════════════════════
-// HELPERS
-// ════════════════════════════════════════════
-const fmtD   = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-const toMin  = t => { const[h,m]=t.split(':').map(Number); return h*60+m; };
-const addD   = (d,n) => { const r=new Date(d); r.setDate(r.getDate()+n); return r; };
-const isToday= d => { const t=new Date(); return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate(); };
-const uid    = () => 'b_'+Math.random().toString(36).substr(2,8);
-function getMonday(d) {
-  const r=new Date(d), dw=r.getDay(), diff=dw===0?-6:1-dw;
-  r.setDate(r.getDate()+diff); r.setHours(0,0,0,0); return r;
+// SAVE
+function saveManual(){
+  setSave('saving');clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>{
+    try{localStorage.setItem(LS,JSON.stringify(blocks.filter(b=>b.manual)));setSave('saved');document.getElementById('stxt').textContent='Сохранено '+new Date().toLocaleTimeString('ru',{hour:'2-digit',minute:'2-digit'})}catch(e){setSave('')}
+  },700);
 }
-function typeClass(b) {
-  if (b.manual) return b.color || 'c-green';
-  return b.type || 'booking';
+function loadManual(){
+  try{const r=localStorage.getItem(LS);if(!r)return;const m=JSON.parse(r);blocks=blocks.filter(b=>!b.manual);blocks.push(...m);if(m.length){setSave('saved');document.getElementById('stxt').textContent=m.length+' ручных';}}catch(e){}
 }
+function setSave(s){document.getElementById('sdot').className='sdot'+(s?' '+s:'')}
 
-// ════════════════════════════════════════════
+// MP IMPORT
+function importMP(data){
+  if(!data?.blocks?.length)return 0;
+  blocks=blocks.filter(b=>b.manual);
+  data.blocks.forEach(b=>blocks.push({id:b.id||uid(),date:b.date,courtIdx:b.courtIdx,start:b.start,end:b.end,type:TIPO[b.mpTipo]||'booking',mpTipo:b.mpTipo,name:b.name||'',persons:b.persons||0,fromMP:true,manual:false}));
+  mpLoaded=true;return data.blocks.length;
+}
+async function loadMP(){
+  showToast('Загрузка...');
+  try{const r=await fetch('/schedule_data.json?t='+Date.now());if(!r.ok)throw 0;const data=await r.json();const n=importMP(data);hideToast();showToast('✓ Загружено '+n+' записей',true);buildSidebar();render();}
+  catch(e){hideToast();alert('schedule_data.json не найден.\nЗапусти: python etl/fetch_schedule.py\nЗатем git push');}
+}
+async function autoLoadMP(){try{const r=await fetch('/schedule_data.json');if(!r.ok)return;importMP(await r.json());buildSidebar();render();}catch(e){}}
+
 // INIT
-// ════════════════════════════════════════════
-function init() {
-  buildColorDots();
-  buildSidebar();
-  // Try to auto-load schedule_data.json
-  autoLoadMP();
-  render();
-}
+function init(){buildColorDots();buildSidebar();loadManual();autoLoadMP();setView('week')}
 
-async function autoLoadMP() {
-  try {
-    const r = await fetch('/schedule_data.json');
-    if (!r.ok) return;
-    const data = await r.json();
-    importBlocks(data);
-    updateMPStatus(true, data);
-    render();
-  } catch(e) { /* silent */ }
-}
+// FILTERS
+function toggleFilter(t){filters[t]=!filters[t];document.getElementById('f-'+t).classList.toggle('off',!filters[t]);render()}
 
-function importBlocks(data) {
-  if (!data?.blocks?.length) return;
-  // Remove old MP blocks, keep manual ones
-  blocks = blocks.filter(b => b.manual);
-  data.blocks.forEach(b => {
-    blocks.push({
-      id:        b.id || uid(),
-      date:      b.date,
-      courtIdx:  b.courtIdx,
-      start:     b.start,
-      end:       b.end,
-      type:      TIPO_MAP[b.mpTipo] || 'booking',
-      mpTipo:    b.mpTipo,
-      name:      b.name || '',
-      persons:   b.persons || 0,
-      fromMP:    true,
-      manual:    false,
-    });
-  });
-  mpLoaded = true;
-}
-
-function updateMPStatus(ok, data) {
-  document.getElementById('mpDot').className = 'mp-dot' + (ok ? ' ok' : '');
-  const count = data?.blocks?.length || 0;
-  document.getElementById('mpStatusText').textContent = ok
-    ? `MP: ${count} записей`
-    : 'Нет данных';
-}
-
-// ════════════════════════════════════════════
 // SIDEBAR
-// ════════════════════════════════════════════
-function buildSidebar() {
-  const el = document.getElementById('sidebar');
-  const types = ['tournament','training','match','booking'];
-  const counts = {};
-  types.forEach(t => counts[t] = blocks.filter(b=>b.type===t).length);
+function buildSidebar(){buildStats();buildTpls()}
+function buildStats(){
+  const el=document.getElementById('statsBox');
+  const all=blocks.filter(b=>b.type==='tournament');
+  const ds=fD(curDate);
+  const ms=getMon(curDate);
+  const wds=Array.from({length:7},(_,i)=>fD(addD(ms,i)));
+  const y=curDate.getFullYear(),m=curDate.getMonth();
+  const dayL=all.filter(b=>b.date===ds);
+  const weekL=all.filter(b=>wds.includes(b.date));
+  const monL=all.filter(b=>{const bd=new Date(b.date+'T00:00:00');return bd.getFullYear()===y&&bd.getMonth()===m});
+  const fmt=h=>h.toFixed(1)+'ч';
+  el.innerHTML=`<div style="background:var(--cream);border-radius:8px;padding:10px">
+    <div class="srow"><div><div class="slbl">День</div><div class="sval">${fmt(tHours(dayL))}</div></div><div style="text-align:right"><div class="slbl">турниров</div><div class="sval">${dayL.length}</div></div></div>
+    <div class="srow"><div><div class="slbl">Неделя</div><div class="sval">${fmt(tHours(weekL))}</div></div><div style="text-align:right"><div class="slbl">турниров</div><div class="sval">${weekL.length}</div></div></div>
+    <div class="srow"><div><div class="slbl">${MONTHS[m].substr(0,3)}</div><div class="sval">${fmt(tHours(monL))}</div></div><div style="text-align:right"><div class="slbl">турниров</div><div class="sval">${monL.length}</div></div></div>
+  </div>`;
+}
+function buildTpls(){
+  document.getElementById('tplList').innerHTML=TPLS.map(t=>`
+    <div class="tpl-item" draggable="true" id="tpl_${t.id}"
+      ondragstart="tplDS(event,'${t.id}')" ondragend="tplDE()"
+      onclick="quickTpl('${t.id}')">
+      <div class="tpl-dot"></div>
+      <div style="flex:1">
+        <div class="tpl-name">${t.name}</div>
+        <div class="tpl-meta">${t.s}–${t.e} · ${t.c===4?'4к':'2к'} · ${t.p}чел</div>
+      </div>
+    </div>`).join('');
+}
 
-  const typeColors = {
-    tournament: {bg:'var(--c-tournament-bg)',bd:'var(--c-tournament-bd)'},
-    training:   {bg:'var(--c-training-bg)',  bd:'var(--c-training-bd)'},
-    match:      {bg:'var(--c-match-bg)',      bd:'var(--c-match-bd)'},
-    booking:    {bg:'var(--c-booking-bg)',    bd:'var(--c-booking-bd)'},
-  };
+// DRAG
+function tplDS(e,id){dragTpl=id;e.dataTransfer.effectAllowed='copy';e.dataTransfer.setData('text/plain',id);document.getElementById('tpl_'+id).classList.add('dragging')}
+function tplDE(){dragTpl=null;document.querySelectorAll('.tpl-item').forEach(el=>el.classList.remove('dragging'));clearDOV()}
+function clearDOV(){if(dragOverEl){dragOverEl.classList.remove('dov');dragOverEl=null}}
+function caDragOver(e){if(!dragTpl)return;e.preventDefault();e.dataTransfer.dropEffect='copy';const t=e.target.closest('.dg-cell,.wc,.mc');if(t&&t!==dragOverEl){clearDOV();dragOverEl=t;t.classList.add('dov')}}
+function caDragLeave(e){if(!e.relatedTarget||!e.currentTarget.contains(e.relatedTarget))clearDOV()}
+function caDrop(e){
+  e.preventDefault();if(!dragTpl)return;
+  const tpl=TPLS.find(t=>t.id===dragTpl);if(!tpl)return;
+  const target=e.target.closest('.dg-cell,.wc,.mc');if(!target)return;
+  const date=target.dataset.date,hour=target.dataset.h?parseInt(target.dataset.h):null,court=target.dataset.c?parseInt(target.dataset.c):0;
+  if(!date)return;
+  openAddModalWithTpl(tpl,date,hour,court);
+  clearDOV();dragTpl=null;
+}
+function openAddModalWithTpl(tpl,date,hour,court){
+  editId=null;
+  document.getElementById('mTitle').textContent='Новый турнир';
+  document.getElementById('fName').value=tpl.name;
+  document.getElementById('fDate').value=date;
+  document.getElementById('fStart').value=hour!=null?String(hour).padStart(2,'0')+':00':tpl.s;
+  document.getElementById('fEnd').value=hour!=null?String(Math.min(hour+2,23)).padStart(2,'0')+':00':tpl.e;
+  document.getElementById('fType').value='tournament';
+  document.getElementById('fCourt').value=tpl.c===4?'all':String(court);
+  document.getElementById('fPersons').value=tpl.p;
+  document.getElementById('fNote').value='';
+  document.getElementById('mpbox').style.display='none';
+  document.getElementById('delBtn').style.display='none';
+  document.getElementById('colorWrap').style.display='';
+  selColor='mc-green';buildColorDots();
+  document.getElementById('ov').classList.add('open');
+}
+function quickTpl(id){const t=TPLS.find(x=>x.id===id);if(t)openAddModalWithTpl(t,fD(curDate),null,0)}
 
-  let html = `<div class="sb-sec"><div class="sb-hd">Статистика</div>`;
-  types.forEach(t => {
-    const c = typeColors[t];
-    html += `<div class="sb-item" style="cursor:default">
-      <div class="sb-dot" style="background:${c.bg};border:1px solid ${c.bd}"></div>
-      <div style="flex:1"><div class="sb-name">${TYPE_ICON[t]} ${TYPE_LABEL[t]}</div></div>
-      <div class="sb-meta" style="font-weight:700">${counts[t]}</div>
-    </div>`;
+// NAV
+function setView(v){view=v;['day','week','month'].forEach(x=>document.getElementById('vb-'+x).classList.toggle('on',x===v));render()}
+function nav(d){if(view==='day')curDate=addD(curDate,d);else if(view==='week')curDate=addD(getMon(curDate),d*7);else curDate=new Date(curDate.getFullYear(),curDate.getMonth()+d,1);render()}
+function goToday(){curDate=new Date();render()}
+function updatePeriod(){
+  const el=document.getElementById('period');
+  if(view==='day')el.textContent=`${DOW_S[curDate.getDay()]} ${curDate.getDate()} ${MONTHS[curDate.getMonth()].substr(0,3)}`;
+  else if(view==='week'){const ms=getMon(curDate),me=addD(ms,6);el.textContent=`${ms.getDate()}–${me.getDate()} ${MONTHS[ms.getMonth()]} ${ms.getFullYear()}`}
+  else el.textContent=`${MONTHS[curDate.getMonth()]} ${curDate.getFullYear()}`;
+}
+
+// RENDER
+function render(){updatePeriod();buildStats();const v=vis();if(view==='day')renderDay(v);else if(view==='week')renderWeek(v);else renderMonth(v)}
+
+// DAY
+function renderDay(vis){
+  const ca=document.getElementById('ca'),ds=fD(curDate);
+  const dayV=vis.filter(b=>b.date===ds);
+  const hours=[];for(let h=H0;h<=H1;h++)hours.push(h);
+  let html=`<div class="grid-wrap" style="display:grid;grid-template-columns:${TW}px repeat(${COURTS},1fr)">`;
+  html+=`<div class="dg-corner sticky-h"><span>${DOW_S[curDate.getDay()]} ${curDate.getDate()} ${MONTHS[curDate.getMonth()].substr(0,3)}</span></div>`;
+  for(let c=0;c<COURTS;c++)html+=`<div class="dg-th sticky-h"><div class="cl">${CLBLS[c]}</div><div class="cs">Корт ${c+1}</div></div>`;
+  hours.forEach(h=>{
+    html+=`<div class="dg-tlabel" style="height:${SH}px">${h}:00</div>`;
+    for(let c=0;c<COURTS;c++)html+=`<div class="dg-cell" id="dc_${h}_${c}" style="height:${SH}px" data-date="${ds}" data-h="${h}" data-c="${c}" onclick="cellClick(event,'${ds}',${h},${c})"><div class="cell-plus">+</div></div>`;
   });
-  html += `</div>`;
-
-  // Tournaments list (clickable, jump to date)
-  const tournaments = blocks.filter(b=>b.type==='tournament').sort((a,b)=>a.date.localeCompare(b.date));
-  if (tournaments.length) {
-    html += `<div class="sb-sec"><div class="sb-hd">Турниры</div>`;
-    tournaments.slice(0,30).forEach(b => {
-      const d = new Date(b.date+'T00:00:00');
-      html += `<div class="sb-item" onclick="jumpToDate('${b.date}')">
-        <div class="sb-dot" style="background:var(--c-tournament-bg);border:1px solid var(--c-tournament-bd)"></div>
-        <div style="flex:1">
-          <div class="sb-name">${b.name||'Турнир'}</div>
-          <div class="sb-meta">${d.getDate()} ${MONTHS[d.getMonth()].substr(0,3)} · ${b.start}–${b.end}</div>
-        </div>
-      </div>`;
-    });
-    html += `</div>`;
-  }
-
-  el.innerHTML = html;
-}
-
-function jumpToDate(ds) {
-  curDate = new Date(ds+'T00:00:00');
-  if (view === 'week') curDate = getMonday(curDate);
-  render();
-}
-
-// ════════════════════════════════════════════
-// NAVIGATION
-// ════════════════════════════════════════════
-function setView(v) {
-  view = v;
-  ['day','week','month'].forEach(x => document.getElementById('vb-'+x).classList.toggle('on', x===v));
-  render();
-}
-function nav(d) {
-  if (view==='day')   curDate = addD(curDate, d);
-  else if (view==='week') curDate = addD(getMonday(curDate), d*7);
-  else curDate = new Date(curDate.getFullYear(), curDate.getMonth()+d, 1);
-  render();
-}
-function goToday() { curDate = new Date(); render(); }
-
-function updatePeriod() {
-  const el = document.getElementById('period');
-  if (view==='day') {
-    el.textContent = `${DOW_FULL[curDate.getDay()].substr(0,2)}, ${curDate.getDate()} ${MONTHS[curDate.getMonth()].substr(0,3)} ${curDate.getFullYear()}`;
-  } else if (view==='week') {
-    const ms=getMonday(curDate), me=addD(ms,6);
-    el.textContent = `${ms.getDate()}–${me.getDate()} ${MONTHS[ms.getMonth()]} ${ms.getFullYear()}`;
-  } else {
-    el.textContent = `${MONTHS[curDate.getMonth()]} ${curDate.getFullYear()}`;
-  }
-}
-
-// ════════════════════════════════════════════
-// RENDER DISPATCHER
-// ════════════════════════════════════════════
-function render() {
-  updatePeriod();
-  buildSidebar();
-  if (view==='day')   renderDay();
-  else if (view==='week') renderWeek();
-  else renderMonth();
-}
-
-// ════════════════════════════════════════════
-// DAY VIEW
-// hours as rows (left) × PA PB PC PD as columns (top)
-// ════════════════════════════════════════════
-function renderDay() {
-  const ca  = document.getElementById('ca');
-  const ds  = fmtD(curDate);
-  const dayBlocks = blocks.filter(b => b.date === ds);
-
-  if (!mpLoaded && !dayBlocks.length) {
-    ca.innerHTML = emptyState();
-    return;
-  }
-
-  const hours = [];
-  for (let h = H_START; h <= H_END; h++) hours.push(h);
-  const cols = `${TIME_W}px repeat(${COURTS}, 1fr)`;
-
-  let html = `<div class="grid-wrap" style="display:grid;grid-template-columns:${cols}">`;
-
-  // ── Sticky header row ──
-  html += `<div class="dg-corner sticky-hdr"><span>${DOW_SHORT[curDate.getDay()]} ${curDate.getDate()}</span></div>`;
-  for (let c = 0; c < COURTS; c++) {
-    html += `<div class="dg-th sticky-hdr">
-      <div class="cl">${COURT_LBLS[c]}</div>
-      <div class="cs">Корт ${c+1}</div>
-    </div>`;
-  }
-
-  // ── Hour rows ──
-  hours.forEach(h => {
-    html += `<div class="dg-tlabel" style="height:${SLOT_H}px">${h}:00</div>`;
-    for (let c = 0; c < COURTS; c++) {
-      html += `<div class="dg-cell" id="dc_${h}_${c}" style="height:${SLOT_H}px"
-        data-date="${ds}" data-h="${h}" data-c="${c}"
-        onclick="cellClick(event,'${ds}',${h},${c})">
-        <div class="cell-plus">+</div>
-      </div>`;
-    }
-  });
-  html += `</div>`;
-  ca.innerHTML = html;
-
-  // ── Inject blocks per court ──
-  for (let c = 0; c < COURTS; c++) {
-    const courtBlocks = dayBlocks.filter(b =>
-      b.courtIdx === c || (b.allCourts && c === 0)
-    );
-    courtBlocks.forEach(b => {
-      const h = parseInt(b.start.split(':')[0]);
-      const cell = document.getElementById(`dc_${h}_${c}`);
-      if (!cell) return;
-      const startMin = toMin(b.start);
-      const endMin   = toMin(b.end);
-      const topPx    = (startMin - h*60) / 60 * SLOT_H;
-      const hPx      = Math.max((endMin - startMin) / 60 * SLOT_H - 2, 16);
-      const cls      = typeClass(b);
-      const icon     = TYPE_ICON[b.type] || '';
-
-      const el = document.createElement('div');
-      el.className = `eb ${cls}`;
-      el.style.cssText = `top:${topPx}px;height:${hPx}px`;
-      el.onclick = e => { e.stopPropagation(); openEditModal(b.id); };
-      el.title = `${b.name} | ${b.start}–${b.end}${b.persons?` | ${b.persons}чел`:''}`;
-      el.innerHTML = `
-        <div class="eb-name">${icon} ${b.name||TYPE_LABEL[b.type]||''}</div>
-        ${hPx>28 ? `<div class="eb-sub">${b.start}–${b.end}${b.persons?` · ${b.persons}чел`:''}</div>` : ''}
-        ${hPx>44 ? `<div class="eb-tags">
-          ${b.fromMP ? '<span class="eb-tag mp">MP</span>' : '<span class="eb-tag manual-tag">ред.</span>'}
-        </div>` : ''}
-      `;
-      cell.appendChild(el);
+  html+=`</div>`;ca.innerHTML=html;
+  for(let c=0;c<COURTS;c++){
+    dayV.filter(b=>b.courtIdx===c&&!b.allCourts).forEach(b=>{
+      const cell=document.getElementById(`dc_${parseInt(b.start)}_${c}`);if(!cell)return;
+      injEB(cell,b,parseInt(b.start));
     });
   }
-
-  // ── All-court tournament overlay (manual, spans all 4 courts) ──
-  injectAllCourtBlocks(ds, hours);
+  injAllCourt(ds,dayV,hours);
 }
-
-function injectAllCourtBlocks(ds, hours) {
-  const ca = document.getElementById('ca');
-  const allCourtBlocks = blocks.filter(b => b.date === ds && b.allCourts);
-  if (!allCourtBlocks.length) return;
-
-  // measure grid
-  const firstCell = document.getElementById(`dc_${hours[0]}_0`);
-  if (!firstCell) return;
-  const courtW = firstCell.offsetWidth;
-  const headerH = 50;
-
-  const ov = document.createElement('div');
-  ov.style.cssText = `position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:25`;
-  ca.style.position = 'relative';
-  ca.appendChild(ov);
-
-  allCourtBlocks.forEach(b => {
-    const startMin = toMin(b.start), endMin = toMin(b.end);
-    const topPx  = headerH + (startMin - H_START*60) / 60 * SLOT_H;
-    const hPx    = Math.max((endMin - startMin) / 60 * SLOT_H - 4, 24);
-    const leftPx = TIME_W + 2;
-    const wPx    = courtW * COURTS - 6;
-
-    const el = document.createElement('div');
-    el.className = `eb ${b.color||'c-green'}`;
-    el.style.cssText = `position:absolute;top:${topPx}px;left:${leftPx}px;width:${wPx}px;height:${hPx}px;pointer-events:all;z-index:30`;
-    el.onclick = e => { e.stopPropagation(); openEditModal(b.id); };
-    el.innerHTML = `
-      <div class="eb-name">🏆 ${b.name}</div>
-      ${hPx>26 ? `<div class="eb-sub">${b.start}–${b.end} · ${COURT_LBLS.join(' ')}</div>` : ''}
-    `;
+function injEB(cell,b,sh){
+  const sM=toMin(b.start),eM=toMin(b.end),top=(sM-sh*60)/60*SH,h=Math.max((eM-sM)/60*SH-2,16);
+  const el=document.createElement('div');el.className=`eb ${bCls(b)}`;
+  el.style.cssText=`top:${top}px;height:${h}px`;
+  el.onclick=e=>{e.stopPropagation();openEditModal(b.id)};
+  el.title=`${b.name} | ${b.start}–${b.end}${b.persons?` | ${b.persons}чел`:''}`;
+  el.innerHTML=`<div class="eb-name">${TICO[b.type]||''} ${b.name||TLBL[b.type]}</div>${h>28?`<div class="eb-sub">${b.start}–${b.end}${b.persons?` · ${b.persons}ч`:''}</div>`:''}${h>46?`<div class="eb-tags">${b.fromMP?'<span class="eb-tag mp">MP</span>':'<span class="eb-tag">ред.</span>'}</div>`:''}`;
+  cell.appendChild(el);
+}
+function injAllCourt(ds,dayV,hours){
+  const ca=document.getElementById('ca'),allB=dayV.filter(b=>b.allCourts);if(!allB.length)return;
+  const fc=document.getElementById(`dc_${hours[0]}_0`);if(!fc)return;
+  const cw=fc.offsetWidth,ov=document.createElement('div');
+  ov.style.cssText=`position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:25`;
+  ca.style.position='relative';ca.appendChild(ov);
+  allB.forEach(b=>{
+    const sM=toMin(b.start),eM=toMin(b.end),top=52+(sM-H0*60)/60*SH,h=Math.max((eM-sM)/60*SH-4,24);
+    const el=document.createElement('div');el.className=`eb ${bCls(b)}`;
+    el.style.cssText=`position:absolute;top:${top}px;left:${TW+2}px;width:${cw*COURTS-6}px;height:${h}px;pointer-events:all;z-index:30`;
+    el.onclick=e=>{e.stopPropagation();openEditModal(b.id)};
+    el.innerHTML=`<div class="eb-name">🏆 ${b.name}</div>${h>26?`<div class="eb-sub">${b.start}–${b.end} · ${CLBLS.join(' ')}</div>`:''}`;
     ov.appendChild(el);
   });
 }
 
-// ════════════════════════════════════════════
-// WEEK VIEW
-// ════════════════════════════════════════════
-function renderWeek() {
-  const ca = document.getElementById('ca');
-  const ms = getMonday(curDate);
-  const days = Array.from({length:7}, (_,i) => addD(ms, i));
-  const hours = [];
-  for (let h = H_START; h <= H_END; h++) hours.push(h);
-
-  // occupancy per day (count of blocks / max possible)
-  const occ = days.map(d => {
-    const ds = fmtD(d);
-    const cnt = blocks.filter(b=>b.date===ds).length;
-    return Math.min(100, cnt * 4); // rough estimate
+// WEEK
+function renderWeek(vis){
+  const ca=document.getElementById('ca'),ms=getMon(curDate);
+  const days=Array.from({length:7},(_,i)=>addD(ms,i));
+  const hours=[];for(let h=H0;h<=H1;h++)hours.push(h);
+  const occ=days.map(d=>Math.min(100,vis.filter(b=>b.date===fD(d)&&b.type==='tournament').length*12));
+  let html=`<div class="grid-wrap" style="display:grid;grid-template-columns:${TW}px repeat(7,1fr)">`;
+  html+=`<div class="wg-corner sticky-h"></div>`;
+  days.forEach((d,i)=>{const tc=isToday(d)?'today':'';html+=`<div class="wg-dh ${tc} sticky-h"><div class="wdn">${DOW_S[d.getDay()]}</div><div class="wdd">${d.getDate()}</div><div class="wocc"><div class="woccf ${occ[i]>70?'hi':''}" style="width:${occ[i]}%"></div></div></div>`});
+  hours.forEach(h=>{
+    html+=`<div class="wt" style="height:${SH}px">${h}:00</div>`;
+    days.forEach(d=>{const ds=fD(d);html+=`<div class="wc" id="wc_${ds}_${h}" style="height:${SH}px" data-date="${ds}" data-h="${h}" data-c="0" onclick="cellClick(event,'${ds}',${h},0)"><div class="cell-plus">+</div></div>`});
   });
-
-  let html = `<div class="grid-wrap" style="display:grid;grid-template-columns:${TIME_W}px repeat(7,1fr)">`;
-
-  // Header
-  html += `<div class="wg-corner sticky-hdr"></div>`;
-  days.forEach((d,i) => {
-    const tc = isToday(d) ? 'today' : '';
-    html += `<div class="wg-dh ${tc} sticky-hdr">
-      <div class="wdn">${DOW_SHORT[d.getDay()]}</div>
-      <div class="wdd">${d.getDate()}</div>
-      <div class="wocc"><div class="woccf ${occ[i]>70?'hi':''}" style="width:${occ[i]}%"></div></div>
-    </div>`;
-  });
-
-  // Body rows
-  hours.forEach(h => {
-    html += `<div class="wt" style="height:${SLOT_H}px">${h}:00</div>`;
-    days.forEach(d => {
-      const ds = fmtD(d);
-      html += `<div class="wc" id="wc_${ds}_${h}" style="height:${SLOT_H}px"
-        data-date="${ds}" data-h="${h}"
-        onclick="cellClick(event,'${ds}',${h},0)">
-        <div class="cell-plus">+</div>
-      </div>`;
-    });
-  });
-  html += `</div>`;
-  ca.innerHTML = html;
-
-  if (!mpLoaded && !blocks.length) {
-    ca.innerHTML = emptyState(); return;
-  }
-
-  // Inject blocks
-  days.forEach(d => {
-    const ds = fmtD(d);
-    blocks.filter(b=>b.date===ds).forEach(b => {
-      const h = parseInt(b.start.split(':')[0]);
-      const cell = document.getElementById(`wc_${ds}_${h}`);
-      if (!cell) return;
-      const startMin = toMin(b.start), endMin = toMin(b.end);
-      const topPx = (startMin - h*60) / 60 * SLOT_H;
-      const hPx   = Math.max((endMin - startMin) / 60 * SLOT_H - 2, 14);
-      const cls   = typeClass(b);
-      const icon  = TYPE_ICON[b.type] || '';
-
-      const el = document.createElement('div');
-      el.className = `eb ${cls}`;
-      el.style.cssText = `top:${topPx}px;height:${hPx}px`;
-      el.onclick = e => { e.stopPropagation(); openEditModal(b.id); };
-      el.title = `${COURT_LBLS[b.courtIdx]||''} ${b.name} ${b.start}–${b.end}`;
-      el.innerHTML = `<div class="eb-name" style="font-size:9px">${icon} ${b.name||TYPE_LABEL[b.type]||''}</div>
-        ${hPx>26?`<div class="eb-sub" style="font-size:8px">${COURT_LBLS[b.courtIdx]||''} · ${b.start}–${b.end}</div>`:''}`;
+  html+=`</div>`;ca.innerHTML=html;
+  days.forEach(d=>{
+    const ds=fD(d);
+    vis.filter(b=>b.date===ds).forEach(b=>{
+      const h=parseInt(b.start),cell=document.getElementById(`wc_${ds}_${h}`);if(!cell)return;
+      const sM=toMin(b.start),eM=toMin(b.end),top=(sM-h*60)/60*SH,ht=Math.max((eM-sM)/60*SH-2,14);
+      const el=document.createElement('div');el.className=`wev ${bCls(b)}`;
+      el.style.cssText=`top:${top}px;height:${ht}px`;
+      el.onclick=e=>{e.stopPropagation();openEditModal(b.id)};
+      el.title=`${CLBLS[b.courtIdx]||''} ${b.name} ${b.start}–${b.end}`;
+      el.innerHTML=`<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${TICO[b.type]||''} ${b.name||TLBL[b.type]}</div>${ht>28?`<div style="font-size:9px;opacity:.75">${CLBLS[b.courtIdx]||''} ${b.start}–${b.end}</div>`:''}`;
       cell.appendChild(el);
     });
   });
 }
 
-// ════════════════════════════════════════════
-// MONTH VIEW
-// ════════════════════════════════════════════
-function renderMonth() {
-  const ca = document.getElementById('ca');
-  const year = curDate.getFullYear(), month = curDate.getMonth();
-  const first = new Date(year,month,1), last = new Date(year,month+1,0);
-  let start = new Date(first);
-  const dw = first.getDay();
-  start.setDate(start.getDate() - (dw===0?6:dw-1));
-
-  if (!mpLoaded && !blocks.length) { ca.innerHTML = emptyState(); return; }
-
-  let html = `<div class="grid-wrap"><div class="mg">`;
-  ['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'].forEach(d => html+=`<div class="mh">${d}</div>`);
-
-  const total = Math.ceil((last.getDate()+(dw===0?6:dw-1))/7)*7;
-  let d = new Date(start);
-  for (let i=0; i<total; i++) {
-    const ds = fmtD(d), isOther = d.getMonth()!==month;
-    const dayBl = blocks.filter(b=>b.date===ds);
-    const tc = isToday(d)?'today':'';
-    html += `<div class="mc ${isOther?'other':''} ${tc}" onclick="dayCellClick('${ds}')">`;
-    if (tc) html+=`<div class="mdate"><span>${d.getDate()}</span></div>`;
-    else html+=`<div class="mdate">${d.getDate()}</div>`;
-
-    dayBl.slice(0,3).forEach(b => {
-      const cls = typeClass(b);
-      const tCls = b.type==='tournament'?'tournament':b.type==='training'?'training':b.type==='match'?'match':'booking';
-      html += `<div class="mev ${cls}" onclick="openEditModal('${b.id}');event.stopPropagation()"
-        title="${b.start}–${b.end} ${b.name}">${TYPE_ICON[b.type]||''} ${b.name||TYPE_LABEL[b.type]||''}</div>`;
-    });
-    if (dayBl.length>3) html+=`<div class="mmore">+${dayBl.length-3} ещё</div>`;
-    html += `</div>`;
-    d.setDate(d.getDate()+1);
+// MONTH
+function renderMonth(vis){
+  const ca=document.getElementById('ca'),y=curDate.getFullYear(),m=curDate.getMonth();
+  const first=new Date(y,m,1),last=new Date(y,m+1,0);
+  let start=new Date(first);const dw=first.getDay();start.setDate(start.getDate()-(dw===0?6:dw-1));
+  let html=`<div class="grid-wrap"><div class="mg">`;
+  ['ПН','ВТ','СР','ЧТ','ПТ','СБ','ВС'].forEach(d=>html+=`<div class="mh">${d}</div>`);
+  const total=Math.ceil((last.getDate()+(dw===0?6:dw-1))/7)*7;
+  let d=new Date(start);
+  for(let i=0;i<total;i++){
+    const ds=fD(d),isO=d.getMonth()!==m,tc=isToday(d)?'today':'';
+    const dayBl=vis.filter(b=>b.date===ds);
+    html+=`<div class="mc ${isO?'other':''} ${tc}" data-date="${ds}" ondragover="mcDO(event)" ondrop="mcDrop(event,'${ds}')" onclick="dayCC('${ds}')">`;
+    if(tc)html+=`<div class="mdate"><span>${d.getDate()}</span></div>`;else html+=`<div class="mdate">${d.getDate()}</div>`;
+    dayBl.slice(0,3).forEach(b=>html+=`<div class="mev ${bCls(b)}" onclick="openEditModal('${b.id}');event.stopPropagation()" title="${b.start}–${b.end} ${b.name}">${TICO[b.type]||''} ${b.name||TLBL[b.type]}</div>`);
+    if(dayBl.length>3)html+=`<div class="mmore">+${dayBl.length-3} ещё</div>`;
+    html+=`</div>`;d.setDate(d.getDate()+1);
   }
-  html += `</div></div>`;
-  ca.innerHTML = html;
+  html+=`</div></div>`;ca.innerHTML=html;
 }
+function mcDO(e){if(!dragTpl)return;e.preventDefault();e.currentTarget.classList.add('dov')}
+function mcDrop(e,ds){e.preventDefault();e.currentTarget.classList.remove('dov');if(!dragTpl)return;const t=TPLS.find(x=>x.id===dragTpl);if(t)openAddModalWithTpl(t,ds,null,0);dragTpl=null}
 
-// ════════════════════════════════════════════
-// EMPTY STATE
-// ════════════════════════════════════════════
-function emptyState() {
-  return `<div class="empty-state">
-    <div class="empty-icon">📅</div>
-    <div class="empty-title">Нет данных</div>
-    <div class="empty-sub">Загрузи данные из Matchpoint нажав<br>«⬇ Обновить из Matchpoint»<br>или добавь событие вручную</div>
-  </div>`;
-}
-
-// ════════════════════════════════════════════
 // MODAL
-// ════════════════════════════════════════════
-function buildColorDots() {
-  document.getElementById('cdots').innerHTML = COLORS.map(c=>
-    `<div class="cd ${c.cls===selColor?'on':''}" style="background:${c.hex}"
-      onclick="pickColor('${c.cls}',this)" title="${c.cls}"></div>`
-  ).join('');
-}
-function pickColor(cls, el) {
-  selColor=cls;
-  document.querySelectorAll('.cd').forEach(d=>d.classList.remove('on'));
-  el.classList.add('on');
-}
+function buildColorDots(){document.getElementById('cdots').innerHTML=COLORS.map(c=>`<div class="cd ${c.c===selColor?'on':''}" style="background:${c.h}" onclick="pickColor('${c.c}',this)"></div>`).join('')}
+function pickColor(cls,el){selColor=cls;document.querySelectorAll('.cd').forEach(d=>d.classList.remove('on'));el.classList.add('on')}
+function typeChanged(){document.getElementById('colorWrap').style.display=document.getElementById('fType').value==='tournament'?'':'none'}
 
-function openAddModal(date, hour, courtIdx) {
-  editId = null;
-  document.getElementById('mTitle').textContent = 'Новое событие';
-  document.getElementById('fName').value = '';
-  document.getElementById('fDate').value = date || fmtD(curDate);
-  document.getElementById('fStart').value = hour!=null ? String(hour).padStart(2,'0')+':00' : '10:00';
-  document.getElementById('fEnd').value   = hour!=null ? String(hour+2).padStart(2,'0')+':00' : '12:00';
-  document.getElementById('fType').value = 'tournament';
-  document.getElementById('fCourt').value = courtIdx!=null ? String(courtIdx) : '0';
-  document.getElementById('fPersons').value = '4';
-  document.getElementById('fNote').value = '';
-  document.getElementById('mpInfoBox').style.display = 'none';
-  document.getElementById('delBtn').style.display = 'none';
-  document.getElementById('colorRow-wrap').style.display = '';
-  selColor = 'c-green'; buildColorDots();
+function openAddModal(date,hour,court){
+  editId=null;
+  document.getElementById('mTitle').textContent='Новое событие';
+  document.getElementById('fName').value='';
+  document.getElementById('fDate').value=date||fD(curDate);
+  document.getElementById('fStart').value=hour!=null?String(hour).padStart(2,'0')+':00':'10:00';
+  document.getElementById('fEnd').value=hour!=null?String(Math.min(hour+2,23)).padStart(2,'0')+':00':'12:00';
+  document.getElementById('fType').value='tournament';
+  document.getElementById('fCourt').value=court!=null?String(court):'0';
+  document.getElementById('fPersons').value='4';
+  document.getElementById('fNote').value='';
+  document.getElementById('mpbox').style.display='none';
+  document.getElementById('delBtn').style.display='none';
+  document.getElementById('colorWrap').style.display='';
+  selColor='mc-green';buildColorDots();
   document.getElementById('ov').classList.add('open');
 }
-
-function openEditModal(id) {
-  const b = blocks.find(x=>x.id===id); if (!b) return;
-  editId = id;
-  document.getElementById('mTitle').textContent = b.fromMP ? 'Просмотр / Редактировать' : 'Редактировать';
-  document.getElementById('fName').value  = b.name || '';
-  document.getElementById('fDate').value  = b.date;
-  document.getElementById('fStart').value = b.start;
-  document.getElementById('fEnd').value   = b.end;
-  document.getElementById('fType').value  = b.type || 'booking';
-  document.getElementById('fCourt').value = b.allCourts ? 'all' : String(b.courtIdx||0);
-  document.getElementById('fPersons').value = b.persons || 0;
-  document.getElementById('fNote').value  = b.note || '';
-  document.getElementById('delBtn').style.display = 'inline-flex';
-  document.getElementById('colorRow-wrap').style.display = b.type==='tournament'?'':'none';
-
-  if (b.fromMP) {
-    document.getElementById('mpInfoBox').style.display = '';
-    document.getElementById('mpInfoName').textContent = b.name || TYPE_LABEL[b.type];
-    document.getElementById('mpInfoDetails').textContent =
-      `${b.date} · ${b.start}–${b.end} · Корт ${COURT_LBLS[b.courtIdx]||b.courtIdx} · ${b.persons||0} чел · Тип: ${b.mpTipo||b.type}`;
-  } else {
-    document.getElementById('mpInfoBox').style.display = 'none';
-  }
-
-  selColor = b.color || 'c-green'; buildColorDots();
+function openEditModal(id){
+  const b=blocks.find(x=>x.id===id);if(!b)return;
+  editId=id;
+  document.getElementById('mTitle').textContent=b.fromMP?'Просмотр / Редактировать':'Редактировать';
+  document.getElementById('fName').value=b.name||'';
+  document.getElementById('fDate').value=b.date;
+  document.getElementById('fStart').value=b.start;
+  document.getElementById('fEnd').value=b.end;
+  document.getElementById('fType').value=b.type||'booking';
+  document.getElementById('fCourt').value=b.allCourts?'all':String(b.courtIdx??0);
+  document.getElementById('fPersons').value=b.persons||0;
+  document.getElementById('fNote').value=b.note||'';
+  document.getElementById('delBtn').style.display='inline-flex';
+  document.getElementById('colorWrap').style.display=b.type==='tournament'?'':'none';
+  if(b.fromMP){document.getElementById('mpbox').style.display='';document.getElementById('mpboxName').textContent=b.name||TLBL[b.type];document.getElementById('mpboxDet').textContent=`${b.date} · ${b.start}–${b.end} · ${CLBLS[b.courtIdx]||''} · ${b.persons||0}чел · ${b.mpTipo||b.type}`;}
+  else document.getElementById('mpbox').style.display='none';
+  selColor=b.color||'mc-green';buildColorDots();
   document.getElementById('ov').classList.add('open');
 }
-
-function closeModal() { document.getElementById('ov').classList.remove('open'); editId=null; }
-function ovClick(e)   { if(e.target===document.getElementById('ov')) closeModal(); }
-
-function saveBlock() {
-  const name  = document.getElementById('fName').value.trim();
-  const type  = document.getElementById('fType').value;
-  const court = document.getElementById('fCourt').value;
-  const allCourts = court === 'all';
-
-  const data = {
-    name,
-    date:      document.getElementById('fDate').value,
-    start:     document.getElementById('fStart').value,
-    end:       document.getElementById('fEnd').value,
-    type,
-    courtIdx:  allCourts ? 0 : parseInt(court),
-    allCourts,
-    persons:   parseInt(document.getElementById('fPersons').value)||0,
-    note:      document.getElementById('fNote').value,
-    color:     type==='tournament' ? selColor : undefined,
-    manual:    true,
-    fromMP:    false,
-  };
-
-  if (editId) {
-    const i = blocks.findIndex(b=>b.id===editId);
-    if (i!==-1) blocks[i] = { ...blocks[i], ...data };
-  } else {
-    blocks.push({ id: uid(), ...data });
-  }
-  closeModal(); render();
+function closeModal(){document.getElementById('ov').classList.remove('open');editId=null}
+function ovClick(e){if(e.target===document.getElementById('ov'))closeModal()}
+function saveBlock(){
+  const type=document.getElementById('fType').value,court=document.getElementById('fCourt').value,allC=court==='all';
+  const data={name:document.getElementById('fName').value.trim(),type,date:document.getElementById('fDate').value,start:document.getElementById('fStart').value,end:document.getElementById('fEnd').value,courtIdx:allC?0:parseInt(court),allCourts:allC,persons:parseInt(document.getElementById('fPersons').value)||0,note:document.getElementById('fNote').value,color:type==='tournament'?selColor:undefined,manual:true,fromMP:false};
+  if(editId){const i=blocks.findIndex(b=>b.id===editId);if(i!==-1)blocks[i]={...blocks[i],...data};}
+  else blocks.push({id:uid(),...data});
+  saveManual();closeModal();render();
 }
-
-function deleteBlock() {
-  if (!editId) return;
-  if (!confirm('Удалить это событие?')) return;
-  blocks = blocks.filter(b=>b.id!==editId);
-  closeModal(); render();
-}
-
-// ════════════════════════════════════════════
-// CLICK HANDLERS
-// ════════════════════════════════════════════
-function cellClick(e, date, hour, court) {
-  if (e.target.closest('.eb')) return;
-  openAddModal(date, hour, court);
-}
-function dayCellClick(date) {
-  curDate = new Date(date+'T00:00:00');
-  setView('day');
-}
-
-// ════════════════════════════════════════════
-// MATCHPOINT LOAD
-// ════════════════════════════════════════════
-async function loadMP() {
-  showToast('Загрузка из Matchpoint...');
-  try {
-    const r = await fetch('/schedule_data.json?t='+Date.now());
-    if (!r.ok) throw new Error('not found');
-    const data = await r.json();
-    importBlocks(data);
-    updateMPStatus(true, data);
-    hideToast();
-    showToast(`✓ Загружено ${data.blocks?.length||0} записей`, true);
-    render();
-  } catch(e) {
-    hideToast();
-    alert('Файл schedule_data.json не найден.\n\nЧтобы обновить данные:\n1. Запусти: python etl/fetch_schedule.py --month 5 --year 2026\n2. git add schedule_data.json && git commit -m "Update MP data" && git push');
-  }
-}
-
-function showToast(txt, done) {
-  const t=document.getElementById('toast');
-  document.getElementById('ttext').textContent=txt;
-  document.getElementById('tspin').style.display=done?'none':'block';
-  t.classList.add('show');
-  if(done) setTimeout(hideToast,2500);
-}
-function hideToast() { document.getElementById('toast').classList.remove('show'); }
-
-// ════════════════════════════════════════════
-// START
-// ════════════════════════════════════════════
+function deleteBlock(){if(!editId||!confirm('Удалить?'))return;blocks=blocks.filter(b=>b.id!==editId);saveManual();closeModal();render()}
+function cellClick(e,date,hour,court){if(e.target.closest('.eb,.wev'))return;openAddModal(date,hour,court)}
+function dayCC(ds){curDate=new Date(ds+'T00:00:00');setView('day')}
+function showToast(txt,done){const t=document.getElementById('toast');document.getElementById('ttext').textContent=txt;document.getElementById('tspin').style.display=done?'none':'block';t.classList.add('show');if(done)setTimeout(hideToast,2500)}
+function hideToast(){document.getElementById('toast').classList.remove('show')}
 init();
 </script>
 </body>
