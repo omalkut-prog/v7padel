@@ -1633,16 +1633,17 @@ function renderWeeklyTable(prefix) {
     html += '<td class="num">' + fmtInt(Math.round(avg)) + '</td>';
     // Hours + ₺/hour (income tab only)
     if (isIncome) {
-      // Фикс 2026-04-27: считаем часы только за УЖЕ ПРОШЕДШИЕ дни недели.
-      // Раньше суммировались будущие забронированные дни (occupancy_daily
-      // включает плановые часы вперёд) → ₺/час занижался для текущей недели.
-      var _today = new Date(); _today.setHours(0,0,0,0);
+      // Фикс 2026-04-29: считаем часы ТОЛЬКО за дни где есть выручка.
+      // Раньше суммировали все прошедшие дни недели — но текущий день
+      // мог уже иметь плановые часы (Matchpoint их видит вперёд),
+      // а выручка ещё не введена → ₺/час занижался.
+      // Корректная формула: ₺/час = sum(rev в дни X) / sum(часы в дни X),
+      // где X — те же самые дни. Симметрично.
       var weekHours = 0;
       for (var dh = 0; dh < 7; dh++) {
+        if (w.days[dh] <= 0) continue; // нет выручки — не учитываем часы
         var dd = new Date(w.mon); dd.setDate(dd.getDate() + dh);
-        if (dd > _today) break; // будущие дни не считаем
-        var dk = localDateKey(dd);
-        weekHours += (utlDayMap[dk] || 0);
+        weekHours += (utlDayMap[localDateKey(dd)] || 0);
       }
       var revPerH = weekHours > 0 ? w.total / weekHours : 0;
       html += '<td class="num">' + (weekHours > 0 ? weekHours.toFixed(0) : '—') + '</td>';
@@ -1668,14 +1669,15 @@ function renderWeeklyTable(prefix) {
   footHtml += '<td class="num" style="font-weight:700">' + fmtInt(Math.round(grandTotal)) + '</td>';
   footHtml += '<td class="num">' + fmtInt(Math.round(grandTotal / totalDaysWithRevenue)) + '</td>';
   if (isIncome) {
-    // Фикс 2026-04-27: только прошедшие дни (как и в строках выше).
-    var _todayF = new Date(); _todayF.setHours(0,0,0,0);
+    // Фикс 2026-04-29: учитываем часы только за дни с выручкой
+    // (симметрично с числителем). Иначе ₺/час занижается на текущей
+    // неделе из-за плановых часов на будущие дни.
     var totalUtlH = 0;
     keysDesc.forEach(function(wk) {
       var w = wMap[wk];
       for (var dh = 0; dh < 7; dh++) {
+        if (w.days[dh] <= 0) continue;
         var dd = new Date(w.mon); dd.setDate(dd.getDate() + dh);
-        if (dd > _todayF) break;
         totalUtlH += (utlDayMap[localDateKey(dd)] || 0);
       }
     });
