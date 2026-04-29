@@ -324,7 +324,7 @@ let mpLoaded  = false;
 // ════════════════════════════════════════════
 // HELPERS
 // ════════════════════════════════════════════
-const fmtD   = d => d.toISOString().split('T')[0];
+const fmtD   = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const toMin  = t => { const[h,m]=t.split(':').map(Number); return h*60+m; };
 const addD   = (d,n) => { const r=new Date(d); r.setDate(r.getDate()+n); return r; };
 const isToday= d => { const t=new Date(); return d.getFullYear()===t.getFullYear()&&d.getMonth()===t.getMonth()&&d.getDate()===t.getDate(); };
