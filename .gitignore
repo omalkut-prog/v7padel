@@ -7,8 +7,9 @@
 ehthumbs.db
 Thumbs.db
 
-# ETL output (generated data, not source)
-etl/output/
+# ETL output: raw sync data (large, regenerated on each run)
+etl/output/trainings_*.json
+# salary records ARE committed (source of truth for payroll)
 etl/salary/
 
 # Python
