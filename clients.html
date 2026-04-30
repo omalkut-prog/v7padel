@@ -256,6 +256,44 @@
     </div>
   </section>
 
+  <!-- BLOCK 1.5: TOP 60 — ЗАЩИТА ДОХОДНОЙ БАЗЫ -->
+  <section class="section" id="top60-section">
+    <div class="section-head">
+      <h2>1.5 · Top 60 — ядро (48% выручки клуба)</h2>
+      <span class="hint">кто остыл / снизился / активен · клик → WhatsApp / детали</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:16px">
+      <div style="background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.25);border-radius:12px;padding:14px 18px">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:600">🔴 Остыли (>14 дней)</div>
+        <div style="font-size:28px;font-weight:700;color:#e74c3c;margin:6px 0" id="top60-cold-n">—</div>
+        <div style="font-size:12px;color:var(--text2)" id="top60-cold-fee">—</div>
+      </div>
+      <div style="background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.25);border-radius:12px;padding:14px 18px">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:600">🟡 Снижение (7-14 дней)</div>
+        <div style="font-size:28px;font-weight:700;color:#f39c12;margin:6px 0" id="top60-slow-n">—</div>
+        <div style="font-size:12px;color:var(--text2)" id="top60-slow-fee">—</div>
+      </div>
+      <div style="background:rgba(19,194,150,0.08);border:1px solid rgba(19,194,150,0.25);border-radius:12px;padding:14px 18px">
+        <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1.5px;font-weight:600">🟢 Активны (≤7 дней)</div>
+        <div style="font-size:28px;font-weight:700;color:var(--good);margin:6px 0" id="top60-active-n">—</div>
+        <div style="font-size:12px;color:var(--text2)" id="top60-active-fee">—</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="clients" id="tbl-top60">
+        <thead>
+          <tr>
+            <th>#</th><th>Клиент</th><th class="num">90д, ₺</th><th>Пропал</th><th>Сегмент</th><th>Телефон / WhatsApp</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="6" class="loading">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:12px;color:var(--text2)">
+      💡 <b>Owner</b>: Настя VIP. Action: 🔴 — звонок сегодня. 🟡 — WhatsApp до конца недели. 🟢 — touch раз в месяц.
+    </div>
+  </section>
+
   <!-- BLOCK 2: TOP CLIENTS — REVENUE + VISITS + SEGMENTS -->
   <section class="section">
     <div class="section-head">
@@ -1093,12 +1131,85 @@ openCard = function(c) {
       if (r.customer_id) topState.byCid[String(r.customer_id)] = r;
     });
     renderTopClients();
+    // Top 60 защита — отдельный рендер
+    renderTop60Protection(data);
   } catch (e) {
     console.warn('top_clients load failed:', e);
     document.getElementById('top-tbody').innerHTML =
       '<tr><td colspan="8" class="error">Ошибка загрузки кэша</td></tr>';
   }
 })();
+
+/* === BLOCK 1.5: Top 60 защита =========================== */
+function renderTop60Protection(rows) {
+  // Sort by amount_all (или amount_90d если all нет) и берём первые 60
+  var sorted = rows.slice().sort(function(a, b) {
+    var aa = V7.num(a.amount_all || a.amount_90d || 0);
+    var bb = V7.num(b.amount_all || b.amount_90d || 0);
+    return bb - aa;
+  });
+  var top60 = sorted.slice(0, 60);
+
+  // Классификация по days_since_last_tx
+  var cold = [], slow = [], active = [];
+  top60.forEach(function(r) {
+    var d = parseInt(r.days_since_last_tx, 10);
+    if (isNaN(d)) d = 999; // нет данных — считаем cold
+    if (d > 14) cold.push(r);
+    else if (d > 7) slow.push(r);
+    else active.push(r);
+  });
+
+  function sumFee(arr) {
+    return arr.reduce(function(s, r) { return s + V7.num(r.amount_90d || 0); }, 0);
+  }
+
+  // Заполняем 3 KPI карточки
+  document.getElementById('top60-cold-n').textContent = cold.length;
+  document.getElementById('top60-cold-fee').textContent = '90d: ' + V7.fmtMoney(sumFee(cold)) + ' ₺';
+  document.getElementById('top60-slow-n').textContent = slow.length;
+  document.getElementById('top60-slow-fee').textContent = '90d: ' + V7.fmtMoney(sumFee(slow)) + ' ₺';
+  document.getElementById('top60-active-n').textContent = active.length;
+  document.getElementById('top60-active-fee').textContent = '90d: ' + V7.fmtMoney(sumFee(active)) + ' ₺';
+
+  // Таблица: cold → slow → active (приоритет внимания)
+  var ordered = cold.concat(slow).concat(active);
+  var tbody = document.querySelector('#tbl-top60 tbody');
+  if (!ordered.length) {
+    tbody.innerHTML = '<tr><td colspan="7" class="loading">Нет данных</td></tr>';
+    return;
+  }
+  var html = '';
+  ordered.forEach(function(r, i) {
+    var d = parseInt(r.days_since_last_tx, 10);
+    var statusBadge, status;
+    if (isNaN(d) || d > 14) { status = 'cold'; statusBadge = '<span style="color:#e74c3c;font-weight:700">🔴 ' + (isNaN(d) ? '?' : d + 'д назад') + '</span>'; }
+    else if (d > 7) { status = 'slow'; statusBadge = '<span style="color:#f39c12;font-weight:600">🟡 ' + d + 'д</span>'; }
+    else { status = 'active'; statusBadge = '<span style="color:var(--good);font-weight:600">🟢 ' + d + 'д</span>'; }
+
+    var seg = (r.segment || '').toLowerCase();
+    var segBadge = seg === 'core' ? '🟣 ядро' :
+                   seg === 'risk' ? '🟠 risk' :
+                   seg === 'growing' ? '🟢 grow' :
+                   '⚫ ' + (seg || '—');
+    var phone = r.phone || '';
+    var waLink = '';
+    if (phone) {
+      var clean = String(phone).replace(/[^\d+]/g, '');
+      if (clean) waLink = '<a href="https://wa.me/' + clean.replace(/^\+?/, '') + '" target="_blank" style="color:var(--accent);text-decoration:none">' + phone + ' 💬</a>';
+      else waLink = phone;
+    }
+    html += '<tr>' +
+      '<td class="muted">' + (i + 1) + '</td>' +
+      '<td><b>' + (r.name || '—') + '</b></td>' +
+      '<td class="num">' + V7.fmtMoney(V7.num(r.amount_90d || 0)) + '</td>' +
+      '<td>' + statusBadge + '</td>' +
+      '<td>' + segBadge + '</td>' +
+      '<td>' + waLink + '</td>' +
+      '</tr>';
+  });
+  tbody.innerHTML = html;
+}
 
 /* ========================================================================
  * BLOCK 4: Отмены (перенесено с /dashboard 2026-04-17)

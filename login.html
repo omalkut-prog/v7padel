@@ -360,13 +360,27 @@
 </div>
 
 <script>
-const PASSWORDS = {
-  'V7admin2026':     { role: 'admin',         redirect: 'index.html' },
-  'V7manager2026':   { role: 'manager',        redirect: 'manager-dashboard.html' },
-  'V7coach2026':     { role: 'coach',          redirect: 'coach-dashboard.html' },
-  'V7clubadmin2026': { role: 'administrator',  redirect: 'admin-dashboard.html' },
-  'V7fin2025':       { role: 'finance',        redirect: 'club-coach-calculator.html' },
+/* SECURITY 2026-04-30: пароли заменены на SHA-256 хеши.
+ * Plaintext НЕ хранится в коде (раньше был — видно в DevTools).
+ * Реальные пароли — в /c/Users/volod/v7padel-passwords.local.txt
+ * (только локально, не в git). Долгосрочное решение: Google OAuth (backlog).
+ */
+const PASSWORD_HASHES = {
+  'd8f66368520176de383e02ee066ed2efd4956e9012a4ef32460227199430d586': { role: 'admin',         redirect: 'index.html' },
+  '19d5b62a9ee18a2851c460886c6fb8c39a7f3f947d8171715a5cb93aa67f6e58': { role: 'manager',       redirect: 'manager-dashboard.html' },
+  'aa63d120453194a96fd8aa7756338b116b1f989957a5768041aaf6e02939cb1f': { role: 'coach',         redirect: 'coach-dashboard.html' },
+  'd272e321ab1fa0cc579865fdaf4c21c9088db28870839cf8aed7acd6871c957a': { role: 'administrator', redirect: 'admin-dashboard.html' },
+  'c930950f3e50f54b61ad35501227dec81439c1874e2240c7ac63c9ff6093eeb4': { role: 'finance',       redirect: 'club-coach-calculator.html' },
 };
+
+// Backward-compat for auth-guard.js: PASSWORDS is no longer needed but kept empty
+const PASSWORDS = {};
+
+async function hashPassword(pw) {
+  const buf = new TextEncoder().encode(pw);
+  const hashBuf = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 var pwInput  = document.getElementById('pw-input');
 var toggleBtn = document.getElementById('toggle-btn');
@@ -401,8 +415,9 @@ function doSignIn() {
   signinBtn.disabled = true;
   errorMsg.classList.remove('visible');
 
-  setTimeout(function() {
-    var match = PASSWORDS[val];
+  setTimeout(async function() {
+    var hash = await hashPassword(val);
+    var match = PASSWORD_HASHES[hash];
     if (match) {
       sessionStorage.setItem('v7role', match.role);
       if (match.role === 'coach' || match.role === 'administrator') {
