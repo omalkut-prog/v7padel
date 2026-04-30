@@ -1,7 +1,16 @@
 # 05 — Backlog
 
-*Last updated: 2026-04-16*
-*Пересматривается*: воскресенье 18:00 (Володимир + ИИ)
+*Last updated: 2026-04-30*
+*Пересматривается: воскресенье 18:00 (Володимир + ИИ)*
+
+## Контекст: переход на AI-driven сетевую модель
+
+С 2026-04-30 backlog **перестроен** под org-structure из `v7_org_structure.html`:
+
+- **3-уровневая модель**: CEO → V7 Group (global УК) → V7 Турция (региональная УК) → Клубы
+- **AI Layer** = 8 cross-cutting агентов которые масштабируются на всю сеть
+- Стратегический фокус смещается с «допилить 1 клуб» на «построить инфраструктуру под сеть»
+- Backend + Auth + multi-tenant **становятся блокером** для AI-агентов и 2-го клуба
 
 ## Правила
 
@@ -12,174 +21,209 @@
 
 ---
 
-## NOW (5 max)
+## NOW (5 max) — Foundation для AI-сети
 
-### 1. ~~Fix `bookings.customer_id` пустой для ~XX% записей~~ ✅ DONE (2026-04-16)
-- Закрыто: см. ADR в `09_DECISIONS.md` / запись `sync_bookings_matchpoint.py`.
-- Было: stale xlsx-дамп, `customer_id` пустой для ~93%, fuzzy_match не помогал (мало имён в карточке).
-- **Phase F (временная заплатка)**: в `build_cache.compute_client_kpis` union cid из `bookings ∪ client_transactions` (последний имеет точные cid). `clients_active_30d`: 68 → 199.
-- **Phase D (основное решение)**: новый скрипт `sync_bookings_matchpoint.py` — два Matchpoint API (`ObtenerCuadro` + `ObtenerInformacionReservaTooltip`), окно −90 / +60 дней, расширенная схема (`customer_ids, amount, debt, origen, reg_*`). Покрытие cid: 100% на `reserva_individual/partida/clase_suelta`, 77% на `actividad_abierta`, 0% на `reserva_club/mantenimiento` (by design).
-- Следствие: можно считать воронку «бронирование → клиент → повтор» и точный recall по активности.
+### 1. Backend + Auth — multi-tenant фундамент
 
-### 2. Заполнить стратегические блоки `00_NORTH_STAR.md`
-- **Impact on NS**: высокий. Без этого другой ИИ и сам Володимир не имеют опорных цифр для приоритизации.
-- **Effort**: 1-2 ч (Володимир выписывает) + 30 мин (ИИ форматирует)
-- **Owner**: Володимир + Claude
-- **Что заполнить**: топ-3 цели Q2, остальные позиционные правила, все KPI-числа (цели заполняемости, MRR, конверсии, retention, ATV).
+- **Impact on NS**: критический. Без backend нельзя:
+  - Подключить AI-агентов к данным безопасно (сейчас Sheets публичны)
+  - Изолировать данные между клубами (Anталия 1 vs 2 vs Харьков)
+  - Сделать proper auth (вместо хардкод-паролей в `login.html`)
+- **Стек**: FastAPI + Postgres (Supabase) + Google OAuth + JWT с `club_id` claim
+- **Что включает**:
+  1. Postgres schema с `club_id` во всех таблицах
+  2. Миграция текущих Sheets → Postgres (one-time + 2-3 нед параллельной работы для сверки)
+  3. API endpoints с RLS (Row-Level Security) — каждый запрос видит только свой `club_id`
+  4. Google OAuth + JWT — заменить `login.html` хардкод
+  5. AI-агенты подключаются через service-account с full-network read-only
+- **Effort**: 5-7 дней Claude (полный sprint) + 1 день твой (UI/UX обзоры) = 1 неделя
+- **Owner**: Claude (back) + Володимир (приоритеты доменной модели)
+- **Стоимость infra**: Supabase Pro $25/мес + Fly.io $5/мес = $30/мес
+- **Блокирует**: M1-M8 AI агенты, 2-й клуб
 
-### 3. Редизайн навигации (сайдбар)
-- **Impact on NS**: средний. 15+ пунктов в сайдбаре — «привет из 90-х». Замедляет навигацию всех ролей.
-- **Effort**: 1-2 дня + обсуждение с Володимиром
-- **Owner**: Claude + Володимир (приоритеты разделов)
-- **Детали**: группировка по частоте использования, ролевая видимость уже есть, но структура групп «Обзор / Бизнес / Клуб / Инструменты» требует пересмотра. Рассмотреть мега-меню для свёрнутого режима.
+### 2. AI Agent #1 — **Retention Agent** (первый production AI)
 
-### 4. Миграция: удалить `V7_Padel_Brain.md`, `knowledge.html`, превратить `brain.html` в ридер `docs/`
-- **Impact on NS**: низкий (косметика), но устраняет фрагментацию.
-- **Effort**: 1 ч
-- **Owner**: Claude
-- **Детали**: контент из `V7_Padel_Brain.md` уже перенесён в новые доки → удалить. `knowledge.html` — redirect без смысла. `brain.html` переделать: рендерить `docs/*.md` через marked.js (или ссылки на GitHub).
+- **Impact on NS**: высокий. У нас есть at_risk + membership_candidates списки — превратить их в действия.
+- **MVP**: Python скрипт на cron, читает at_risk_top + membership_candidates, отправляет:
+  - **WhatsApp персонализированные сообщения** через WhatsApp Business API (Meta Cloud)
+  - 1 раз в неделю (вторник 14:00) для каждого сегмента
+  - Шаблоны: «Не были у нас 2 недели — можем зарезервировать корт?», «Видим вы много играете — рассмотрите Club card»
+- **Без backend** работает на скриптах + Sheets (для MVP)
+- **Effort**: 2 дня Claude + 1 день настроек WhatsApp Business
+- **Зависимости**: WhatsApp Business аккаунт (есть у Эрдема), template approval (1-2 дня Meta)
+- **Метрика успеха**: % восстановленных клиентов, retention LTV+30d
+- **Owner**: Claude + Эрдем (templates approval) + Настя VIP (review messages)
 
-### 5. Fix `is_paid` / `is_cancel` парсинг в `sync_client_transactions.py`
-- **Impact on NS**: низкий, но данные врут. Сейчас всегда 0 — невозможно отсечь отмены.
+### 3. ETL на GitHub Actions (надёжность 100%)
+
+- **Контекст**: cron на ноутбуке Володимира — single point of failure. AI-агенты требуют 100% uptime данных.
+- **Локально готово** (не запушено): `/c/Users/volod/v7padel-etl/` с workflow.
+- **Что осталось** (10 мин действий пользователя):
+  1. Создать приватный репо `omalkut-prog/v7padel-etl`
+  2. Personal Access Token для cross-repo push
+  3. 3 GitHub Secrets: `SA_JSON`, `MP_CREDS`, `PUBLIC_REPO_PAT`
+  4. Claude: `git push` + manual workflow run для теста
+- **Impact on NS**: высокий — без этого нельзя ехать на 2 недели спокойно
 - **Effort**: 30 мин
+
+### 4. Заполнить `00_NORTH_STAR.md`
+
+- **Impact on NS**: высокий. Без чисел Q3 (после результатов мая) приоритизация — догадки.
+- **Effort**: 1.5-2 ч (Володимир выписывает) + 30 мин (Claude форматирует)
+- **Owner**: Володимир + Claude
+- **Что заполнить**: топ-3 цели Q3 (после результатов мая), KPI цели (загрузка, MRR, retention, ATV).
+- **Когда**: после 31 мая — будут точные числа потолка команды.
+
+### 5. Fix `bookings` старые `cancelled` записи
+
+- **Impact on NS**: низкий, но мешает audit_consistency
+- Из audit warning: «bookings содержит status=cancelled — должны быть в cancellations таблице»
+- **Effort**: 30 мин — single sync скрипт перевести
 - **Owner**: Claude
-- **Детали**: проверить реальные значения в колонках Paid/Cancel HTML-таблицы, обновить маппинг в `rows_to_records`.
 
 ---
 
-## NEXT (до 10)
+## NEXT (10 max)
 
-### A. Раздел маркетинга (`11_MARKETING.md`)
-- Аватар клиента (primary/secondary)
-- Каналы (что работает, что тестируем, что отвергли)
-- Позиционные месседжи (что говорим, что НЕ говорим)
-- Контент-стратегия
-- **Effort**: 2-4 ч совместной работы Володимира и ИИ
-- **Блокер**: приоритизация по текущим целям квартала
+### M2-M8. Остальные AI Agents (после M1 + backend)
 
-### B. Расширить `probe_service_prices.py` → добавить бар/снеки как отдельную категорию
-- Сейчас бар и магазин смешаны в `shop_bar`. Разделить по Matchpoint-категориям.
+Всего 7 агентов после Retention. Каждый — отдельный pull request, ~2-3 дня работы.
 
-### C. Опциональный ETL для saldo и bono движений
-- Добавить если activity_bucket перестанет покрывать кейсы.
-- Сейчас не нужен.
+| ID | Агент | Что делает | Кому помогает | Effort |
+|---|---|---|---|---|
+| **M2** | **Customer Support** | 24/7 WhatsApp/Telegram бот: бронирования, FAQ, расписание | Админы (разгрузка) | 3-4 дня |
+| **M3** | **Marketing Agent** | Генерирует контент, посты, captions из брэнд-гайдов | CMO + Эрдем | 2-3 дня |
+| **M4** | **Sales / Outreach** | Холодные касания корп. клиентам, follow-up | будущий Sales/CS Lead | 3 дня |
+| **M5** | **Brand / Design** | Креативы, баннеры, видео-сториз через AI gen | CMO | 2 дня |
+| **M6** | **Coach-Ops Assistant** | Расписание тренеров, списки клиентов, конфликты | Настя Одесса | 2-3 дня |
+| **M7** | **Finance Ops** | Auto-сверка PnL, fixed_opex, аномалии в Sheets | CFO Саша | 3 дня |
+| **M8** | **Analytics Agent (Claude)** | Уже работает (этот ассистент) — нужна формализация в SOP | CEO + CFO | 1 день |
 
-### D. Dashboards KPI vs target
-- Виджет на главной: текущая выручка/день vs 80k, MRR vs target, заполняемость vs цель.
-- Зависит от: пункт 3 в NOW (числа целей).
+**Архитектура**: каждый агент — Python service на Fly.io, читает данные через backend API (post Foundation #1), пишет результаты в Postgres. Coordinator pattern: master-агент распределяет задачи, специализированные исполняют.
 
-### E. Воронка корт → клиент → повтор
-- Блокер: пункт 2 в NOW (bookings.customer_id).
+### N1. 2-й клуб Анталья (А2) — операционная подготовка
 
-### F. Tournament analytics: заполнить реальной логикой
-- Сейчас страница есть, но содержание неясно.
+- Поиск площадки (Володимир, не я)
+- Шаблон команды копируем с А1 (Daша → Manager А2, и т.д.)
+- Onboarding playbook через `docs/`
+- **Когда**: после Foundation (#1 NOW) — multi-tenant ready
 
-### G. Скрипт контроля качества ETL
-- После каждого run проверять: нет garbage-строк в client_transactions, customer_id полнота, distinct buckets, etc.
-- Fails → письмо/notify.
+### N2. Харьков (UA) — план
 
-### J. Наполнить «пустые» страницы контентом (маркетинг / персонал / турниры / ивенты)
-- **Контекст** (2026-04-24): пользователь указал что есть пустые разделы блокирующие работу.
-- **Разбивка на 4 независимых подзадачи**:
-  - **J1. Маркетинг (`11_MARKETING.md` + страница)**: аватар клиента, каналы, месседжинг, контент-стратегия, UTM-разметка. Зависит от: brainstorm с Володимиром ~2ч.
-  - **J2. Персонал (страница Team/HR)**: расписание, KPI тренеров, checklist'ы админов, compensation tracking. Сейчас заглушки `admin-*.html`, `coach-*.html`, `manager-*.html` (15 пустых файлов по 3KB).
-  - **J3. Турниры analytics** (пункт F из backlog): реальные метрики — fill rate, ROI, участники, победители, retention после турнира.
-  - **J4. Ивенты/спец.мероприятия**: camps, intensive, корпоративы — tracking + воронка + ROI.
-- **Приоритет**: решить в каком порядке наполнять. Персонал скорее всего первое (связано с coach/admin роли → мотивация, ретеншн команды).
-- **Effort**: каждая подзадача — 2-4ч совместной работы.
+- Автономная команда (Group делит CEO/CFO/CMO/COS)
+- Отдельный SMM (UA), Lawyer + Accountant UA
+- **Когда**: 6+ месяцев после А2
 
-### K. Тесты + CI/CD
-- **Контекст** (2026-04-24): написали первую версию `etl/test_build_cache.py` (64 теста), сразу нашли 1 баг (Top-up категория). См. `docs/17_TESTING.md`.
-- **Что ещё покрыть** (в 17_TESTING.md таблица TODO из 8 пунктов):
-  - compute_opex_by_month_cat, compute_top_clients_revenue, compute_clients_enriched,
-    merge_manual_entries, compute_occupancy_planfact, compute_member_churn,
-    sync_bookings_matchpoint (parser), sync_cancellations_matchpoint (parser).
-- **CI/CD setup**:
-  - GitHub Actions `.github/workflows/tests.yml` — pytest на PR.
-  - Pre-commit hook — блокирует коммит если tests fail.
-  - pytest-cov для coverage metrics.
-- **Приоритет**: средний. Тесты растут органично — по 1-2 за code review раз в 2 мес.
+### N3. Раздел маркетинга (`11_MARKETING.md`)
 
-### I. Инкрементальный ETL — frozen-month caching (8 мин → 2-3 мин)
-- **Контекст**: сейчас каждый cron пересчитывает ВСЁ с нуля. Исторические месяцы (Сент-2025 … прошлый месяц) **не меняются** но мы их пересчитываем каждую ночь. 80% времени build_cache + 75% scraping bookings тратится на frozen данные.
-- **3 параллельных фикса** (можно делать независимо):
-  - **A. Racket.ID раз в неделю** (~2 мин реализации). Новая Task Scheduler запись раз в 3 дня. Экономия: 110 с/день. Риск: нулевой.
-  - **B. Инкрементальный `build_cache`** (~15-20 мин). 2 слоя: `cache_frozen.json` (месяцы ≤ current-2, rebuild 1-го числа) + hot rebuild текущий/прошлый каждый cron. Экономия: 95 с. Риск: backfill-инвалидация (решается кнопкой `--rebuild-frozen` + auto-rebuild если файл >30 дней).
-  - **C. Инкрементальный `sync_bookings_matchpoint`** (~20-25 мин). Ежедневно окно `[-7, +14]`, воскресенье ночью full `[-90, +60]`. Экономия: 110 с/день. Риск: правки старше 7 дней подхватятся только к воскресенью.
-- **Общая экономия**: 495 с (8.3 мин) → ~150 с (2.5 мин) = **−70% времени**.
-- **Effort**: ~45 мин суммарно (с Claude Code).
-- **Приоритет**: средний — cron и так работает, это оптимизация. Но позволит уменьшить окно «юзер ждёт утром пока обновится».
+- Аватар клиента (primary/secondary), каналы, месседжинг, контент-стратегия
+- **Зависимость**: AI Marketing Agent (M3) использует это как brand-guidelines
+- **Effort**: 2-4 ч совместной работы
 
-### H. Перевести ETL на GitHub Actions (надёжность 100%, не зависит от компа)
-- **Контекст**: сейчас cron крутится через Windows Task Scheduler на ноутбуке Володимира. Работает только если комп включён (или спит с WakeToRun). Если выключил на ночь — задача не запустится. 22.04.2026 настроили `WakeToRun + StartWhenAvailable` как временное решение, но надёжность всё равно не 100%.
-- **Решение**: перенести ETL в GitHub Actions. Cron запускается в датацентре GitHub, комп не нужен. Бесплатно (до 2000 мин/мес, хватит с запасом). Cron `0 0 * * *` (00:00 UTC = 03:00 Turkey).
-- **Локально уже готово** (2026-04-22, не запушено — отложено пользователем):
-  - Папка `/c/Users/volod/v7padel-etl/` с полной структурой.
-  - `etl/` — 18 production-скриптов скопированы (sync_*, build_cache, scrape_occupancy, etc.).
-  - `site_scripts/` — racketid_extract + cross_match.
-  - `.github/workflows/etl.yml` — workflow: checkout обоих репо, python 3.12, secrets → sa.json/matchpoint_creds.json, запуск run_all_etl, commit+push обновлений в публичный репо, upload логов как artifacts.
-  - `requirements.txt`, `.gitignore` (защищает sa.json), `README.md`.
-  - `git init` + initial commit уже сделан локально.
-- **Что остаётся (действия пользователя ~10 мин)**:
-  1. Создать приватный репо `omalkut-prog/v7padel-etl` через GitHub UI.
-  2. Создать Personal Access Token (fine-grained, 1 год) с правом Contents: Read&Write для `omalkut-prog/v7padel` (публичного).
-  3. Добавить 3 Secrets в приватный репо: `SA_JSON` (содержимое etl/sa.json), `MP_CREDS` (etl/matchpoint_creds.json), `PUBLIC_REPO_PAT` (токен из шага 2).
-  4. Мне: `git remote add origin` + push → запуск workflow manually для теста.
-- **После успеха 2-3 циклов**: отключить локальный Task Scheduler `V7Padel_ETL_Daily`.
-- **Приоритет**: не срочный — Task Scheduler с wake-таймером на ноут пока работает. Когда пользователь решит закрыть ноут на неделю — активировать.
-- **Effort**: 30 мин настройки + тестовый прогон после того как пользователь сделает 3 шага в UI.
+### N4. Tournament analytics: реальная логика
+
+- Метрики: fill rate, ROI турнира, LTV участников после, win-rate, ср. ставка
+- Под Camp/Intensive analytics
+- **Effort**: 1 день
+
+### N5. Mobile UI
+
+- Сайт desktop-first. Команда смотрит с телефонов
+- На /dashboard, /revenue, /clients responsive нужен fix
+- **Effort**: 2 дня
+
+### N6. Тесты + CI/CD (расширение)
+
+- Сейчас 64 pytest теста локально. После backend — нужны API тесты.
+- GitHub Actions `.github/workflows/tests.yml`
+- pytest-cov для coverage
+
+### N7. Telegram bot для recall
+
+- Альтернатива WhatsApp. Если WhatsApp Business approval затянется
+- Можно начать как fallback для M1
+
+### N8. Инкрементальный ETL (8 → 2.5 мин)
+
+- 3 фикса: Racket.ID weekly, frozen build_cache, incremental bookings
+- **Приоритет упал**: с переходом на GitHub Actions (NOW #3) — это вторично
+
+### N9. Fraud-detect
+
+- Дубль бронирований, abnormal cancels, suspicious refunds
+- Алёрты CFO + Manager
+
+### N10. Customer portal на нашем бренде
+
+- Замена Matchpoint customer-side: бронирование, оплаты, история
+- **Effort**: огромный (1-2 месяца)
+- **Когда**: после 3+ клубов сети
 
 ---
 
 ## LATER
 
-- **[REVIEW 2026-04-18 · P0] Login.html — заменить hardcoded пароли на нормальную auth**. Сейчас в `login.html` JS-объект `PASSWORDS` со всеми паролями (`V7admin2026`, `V7manager2026`, `V7coach2026`, `V7clubadmin2026`) виден в DevTools любому. Володимир (2026-04-18): пока никому доступы не раздаём — отложено. Когда придёт время раздавать команде — реализовать OAuth Google (рекомендация: ~3-4ч, у всех в команде есть Google, whitelist email-ов в коде). Альтернативы — Supabase password-based (~5-6ч) или просто менее очевидные пароли (минимум, риск остаётся).
-- **[REVIEW 2026-04-18 · P1] Решение по `manager-*.html` страницам** (4 заглушки ~3KB). Нужна ли вообще роль manager? Если нет — удалить 4 HTML + nav-ссылки. Если да — приоритизировать наполнение (2-6ч работы). Impact: низкий · Effort: зависит от решения.
-- **[REVIEW 2026-04-18 · P1] `scrape_debts.py` в cron или removal**. Скрипт для debts/balance_log существует, не вызывается. Проверить используются ли `debts` / `balance_log` табы на сайте. Если да — добавить в run_all_etl (10 мин). Если нет — пометить как ad-hoc в docstring.
-- **[REVIEW 2026-04-18 · P1] Рефакторинг `revenue.html`** (179KB, 3500 строк inline JS). Вынести общие helpers в `revenue-helpers.js`. Дубли между табами (income/goods/margins/utilization). Effort: 2-3ч. Impact: mobile performance.
-- **[REVIEW 2026-04-18 · P1] Проверить `intensive.html`** (2 МB!). Что внутри, почему такой большой. Возможно embedded base64 или старая версия. Effort: 30 мин.
-- **Snapshot-based tracking для отмен → cid**. Сейчас ТОП-20 клиентов по отменам невозможен: Matchpoint удаляет связь `booking_id → customer_id` при отмене, tooltip/FichaReserva не работают для cancelled. Эвристика парсинга `booking_text` дала только ~28% покрытия → метрика снята с сайта как не репрезентативная (2026-04-17). Решение: расширить `sync_bookings_matchpoint` чтобы при исчезновении booking_id из ObtenerCuadro — помечать его `status=cancelled` в табе `bookings` (не удалять), сохраняя `customer_ids`. Тогда для новых отмен будет 100% покрытие. История не восстановится — только с момента внедрения. Функция `compute_cancel_top_clients` сохранена в `build_cache.py`, но не вызывается. Impact: средний · Effort: 2-3ч · Owner: Claude
-- Telegram/WhatsApp bot для recall (отправка по одной кнопке)
-- AI-предсказание churn risk (фича по activity_bucket + сегмент + частота визитов)
-- Автоматическая классификация description → service_type в транзакциях
-- Интеграция с Google Calendar для тренерских слотов
-- Push-уведомления клиентам из приложения (нужно API Matchpoint)
-- Fraud-детект: duplicate bookings, abnormal cancels
-- Мобильный UI (сейчас desktop-first)
-- Экспорт в CSV/Excel из всех страниц (сейчас только в recall)
-- Фильтры в clients.html по bucket + сегмент + visits
-- Dashboard для тренера: его ученики, их прогресс, следующие сессии
+- **Snapshot-tracking отмен → cid** (для ТОП клиентов по отменам). Расширить sync_bookings_matchpoint
+- AI-предсказание churn risk (фича бы по activity_bucket + segment + visit frequency)
+- Автоматическая классификация description → service_type
+- Интеграция с Google Calendar (тренерские слоты)
+- Push-уведомления клиентам (через Matchpoint API если откроют)
+- Экспорт CSV/Excel со всех страниц
+- Фильтры в clients.html (bucket × segment × visits)
+- Dashboard для тренера (его ученики, прогресс, сессии)
+- Решение по `manager-*.html` (4 заглушки) — наполнить или удалить
+- Рефакторинг `revenue.html` (179KB → разбить на helpers)
+- Проверить `intensive.html` (2МБ — почему такой)
+- `scrape_debts.py` в cron или удалить
+- Редизайн навигации (15+ пунктов в сайдбаре)
+- Миграция: брандбук в `11_MARKETING.md`
+- ETL для saldo и bono движений
 
 ---
 
 ## PARKING LOT (идеи без решения делать)
 
-- Программа рефералов (но идёт против «никаких скидок» → надо продумать формат: ap подарок, а не скидка?)
-- NFC-карточки вместо QR для входа клиентов
-- Собственное приложение V7 (Matchpoint уже даёт, но не наше)
-- Мерч-магазин онлайн
-- Интеграция с Racket.ID для турниров (есть, но мёртво)
+- Программа рефералов (без скидок — подарки?)
+- NFC-карточки вход
+- Своё приложение V7 (Matchpoint покрывает)
+- Мерч онлайн
+- Реанимация Racket.ID интеграции
 
 ---
 
 ## Done / Archive (что сделано — для истории)
 
+### 2026-04-30
+- ✅ **#5 (старого backlog) Fix `is_paid` / `is_cancel`** — был всегда 0, парсинг checkbox в HTML, теперь 97% paid 3% cancel реальные
+- ✅ **#4 (старого backlog) brain.html → markdown reader** — single source of truth `site/docs/`, удалены legacy `V7_Padel_Brain.md` + `knowledge.html`
+
+### 2026-04-25
+- ✅ Memberships block переписан с нуля — независимый IIFE, читает `memberships` напрямую
+- ✅ may-goal.html: 3 категории (Тренировки/Турниры/Брони) + графика по дням + 4 языка (EN/RU/UA/TR)
+
+### 2026-04-24
+- ✅ pytest suite (64 теста) — нашли баг Top-up
+- ✅ docs/16_CONSISTENCY_AUDIT.md + audit_consistency.py
+- ✅ docs/15_FINANCE_RECONCILIATION.md
+- ✅ Cache buster + dashboard блоки независимые
+
+### 2026-04-22
+- ✅ docs/14_CODE_REVIEW.md + первый bi-monthly review
+- ✅ docs/13_ACCOUNTING_RULES.md (cash-basis + dedup ADR-015,016)
+- ✅ ADR-017 cancellation tracking + ADR-018 per-court KPI
+- ✅ Solo-toggle на legend в Chart.js
+
 ### 2026-04-16
-- ✅ **Топ клиентов по выручке** — `clients.html` Block 2, фильтры по периоду/сегментам (`top_clients_revenue`, 786 строк)
-- ✅ **sync_memberships_matchpoint.py** интегрирован в `run_all_etl.py` (шаг 11, перед Racket.ID) → пишет в таблицу `memberships` v7padel_db
-- ✅ **build_cache**: считает formal (status=Active) и paid (paid_until>=today) варианты отдельно — см. ADR-010
-- ✅ **club-members.html** — новая страница: VIP/Club фильтры, bucket (active/expiring/expired), поиск, сортировка, CSV, контакты (тел/WA/TG/email), ДР
-- ✅ **Lite refresh button** в сайдбаре — `V7.clearCache()` + reload (данные на проде обновляются 1×/день cron-ом)
-- ✅ **Task Scheduler**: `23:50 + 06:00` → один триггер `07:00` ежедневно
-- ✅ **`clients_active_30d`** в `build_cache` + `dashboard.html` — уникальные клиенты с ≥1 бронью за 30д (отличается от `bookings_30d`)
-- ✅ **revenue.html**: подпись «Средний чек клуба» (выручка/тр, продажи/тр), чтобы отличать от ср.чека клиента
-- ✅ **revenue.html**: тоггл **Календарь ↔ Rolling** на кнопках 1М/3М/6М/Всё (календарный период vs last N·30 days)
-- ✅ **revenue.html refactor**: DRY для period handlers — вынесена общая `_rerenderAllAfterPeriodChange()`, ранний return если клик по уже активной кнопке
-- ✅ **Авто-генератор `04_CURRENT_STATE.md`** (`etl/generate_state_doc.py`, интегрирован в `run_all_etl.py`)
+- ✅ **#1 (старого backlog) Fix `bookings.customer_id`** — Phase D `sync_bookings_matchpoint.py` с tooltip API, 100% покрытие на reserva_individual/partida/clase_suelta
+- ✅ Топ клиентов по выручке `clients.html`
+- ✅ `sync_memberships_matchpoint.py` в `run_all_etl.py`
+- ✅ club-members.html
+- ✅ Lite refresh button
+- ✅ Авто-генератор `04_CURRENT_STATE.md`
 
 ### 2026-04-14/15
-- ✅ Миграция `last_tx` → `activity_bucket` (2026-04-14) — см. `09_DECISIONS.md` #002
-- ✅ Фикс garbage pagination в `sync_client_transactions.py` (регекс `^[A-Z]\d{2}-\d+$`) — см. `07_ANTI_PATTERNS.md`
-- ✅ Страница `recall.html` для обзвона `31_90d`/`old`
-- ✅ Реальные цены из транзакций → `10_PRICES_AND_HOURS.md`
-- ✅ Реструктуризация базы знаний в `docs/` (2026-04-15)
+- ✅ Миграция `last_tx` → `activity_bucket`
+- ✅ Фикс garbage pagination в `sync_client_transactions.py`
+- ✅ Страница `recall.html`
+- ✅ Реальные цены → `10_PRICES_AND_HOURS.md`
+- ✅ Реструктуризация базы знаний в `docs/`
