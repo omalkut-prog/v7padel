@@ -241,6 +241,29 @@ def lookup_pack(training_key, coach_level, price_per_client):
     return "unknown"
 
 
+def get_standard_price(training_key, coach_level, pack):
+    """
+    Return the standard (list) price for a given training_key + coach_level + pack.
+    Used for salary calculation — ignores actual discounted amount paid.
+    Returns None if not found (e.g. 'free').
+    """
+    if pack in ("free", "unknown"):
+        return None
+
+    maps_to_try = []
+    if coach_level == "head":
+        maps_to_try = [training_key + "_head", training_key]
+    else:
+        maps_to_try = [training_key]
+
+    for mk in maps_to_try:
+        price_map = PRICE_MAP.get(mk, {})
+        for price, p in price_map.items():
+            if p == pack:
+                return float(price)
+    return None
+
+
 def extract_court(texto1):
     """Pull court short code from end of Texto1, map to full name."""
     parts = texto1.strip().split()
@@ -266,11 +289,28 @@ def build_record(tooltip):
 
     n_clients        = len(usuarios)
     price_per_client = float(usuarios[0].get("ImporteTotal", 0)) if usuarios else 0.0
-    total_revenue    = sum(float(u.get("ImporteTotal", 0)) for u in usuarios)
+    actual_revenue   = sum(float(u.get("ImporteTotal", 0)) for u in usuarios)
     paid             = all(not u.get("PendientePago", True) for u in usuarios)
     pending_payment  = sum(float(u.get("ImportePendientePago", 0)) for u in usuarios)
 
     pack = lookup_pack(training_key, coach_level, price_per_client)
+
+    # Fallback: if pack unrecognised → treat as "single" for salary purposes.
+    # Salary is always calculated on the standard list price, not the discounted amount.
+    price_override = False
+    if pack == "unknown":
+        pack           = "single"
+        price_override = True
+
+    # Standard (list) price for salary calculation
+    std_price = get_standard_price(training_key, coach_level, pack)
+    if std_price is not None:
+        calc_revenue = std_price * n_clients
+        if std_price != price_per_client:
+            price_override = True
+    else:
+        # free session — no salary base
+        calc_revenue   = 0.0
 
     # Date ISO
     fecha    = tooltip.get("StrFecha", "")
@@ -293,9 +333,11 @@ def build_record(tooltip):
         "training_key":     training_key,
         "training_name":    texto1_desc,
         "pack":             pack,
+        "price_override":   price_override,
         "n_clients":        n_clients,
         "price_per_client": price_per_client,
-        "total_revenue":    total_revenue,
+        "actual_revenue":   actual_revenue,
+        "calc_revenue":     calc_revenue,
         "paid":             paid,
         "pending_payment":  pending_payment,
         "clients":          [u.get("Nombre", "") for u in usuarios],
@@ -355,13 +397,22 @@ def sync_month(year, month):
         try:
             tooltip = page_post(session, "ObtenerInformacionReservaTooltip", {"id": bid})
             if tooltip and isinstance(tooltip, dict):
+                # Skip sessions where every client paid 0 (trial/free classes — not counted for salary)
+                usuarios = tooltip.get("Usuarios") or []
+                if usuarios and all(float(u.get("ImporteTotal", 0)) == 0 for u in usuarios):
+                    print(f"  [{i:3d}/{len(clase_ids)}] {fecha}  SKIP (free — all ImporteTotal=0)")
+                    continue
+
                 rec = build_record(tooltip)
                 trainings.append(rec)
+                override_flag = " ⚡" if rec["price_override"] else ""
                 print(
                     f"  [{i:3d}/{len(clase_ids)}] {fecha}  {rec['time']:5s}  "
                     f"{rec['training_key']:12s}  pack={rec['pack']:8s}  "
                     f"coach={rec['coach'] or '?':18s}  "
-                    f"n={rec['n_clients']}  rev={rec['total_revenue']:.0f}₺"
+                    f"n={rec['n_clients']}  "
+                    f"act={rec['actual_revenue']:.0f}₺  calc={rec['calc_revenue']:.0f}₺"
+                    f"{override_flag}"
                 )
         except Exception as exc:
             print(f"  [{i:3d}] {fecha} id={bid}  ERROR: {exc}")
@@ -372,22 +423,20 @@ def sync_month(year, month):
         json.dump(trainings, f, ensure_ascii=False, indent=2)
 
     # ── Summary ──────────────────────────────────────────────────────────────
-    total_rev = sum(t["total_revenue"] for t in trainings)
-    by_coach  = {}
+    actual_rev   = sum(t["actual_revenue"] for t in trainings)
+    calc_rev     = sum(t["calc_revenue"]   for t in trainings)
+    overrides    = [t for t in trainings if t["price_override"]]
+    by_coach     = {}
     for t in trainings:
         c = t["coach"] or "Unknown"
         by_coach[c] = by_coach.get(c, 0) + 1
 
-    unknown_packs = [t for t in trainings if t["pack"] == "unknown"]
-
     print(f"\n{'='*60}")
     print(f"✅  DONE  —  {len(trainings)} sessions saved")
-    print(f"   Total revenue  : {total_rev:,.0f} ₺")
+    print(f"   Actual revenue : {actual_rev:,.0f} ₺  (from Matchpoint)")
+    print(f"   Calc revenue   : {calc_rev:,.0f} ₺  (standard prices, for salary)")
+    print(f"   Price overrides: {len(overrides)} sessions ⚡ (discount applied or unknown price)")
     print(f"   By coach       : {dict(sorted(by_coach.items(), key=lambda x: -x[1]))}")
-    if unknown_packs:
-        print(f"   ⚠  Unknown pack: {len(unknown_packs)} sessions (price not in PRICE_MAP)")
-        for t in unknown_packs[:5]:
-            print(f"      {t['date']} {t['training_key']} {t['coach']} {t['price_per_client']}₺/client")
     print(f"   File           : {out_file}")
     print(f"{'='*60}\n")
 
