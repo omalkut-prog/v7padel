@@ -1,0 +1,136 @@
+================================================================
+MATCHPOINT API RESEARCH RESULTS
+Дата дослідження: 2026-04-30
+BASE URL: https://app-v7padel-tur.matchpoint.com.es
+================================================================
+
+== ЛОГІН ==
+✅ Логін успішний — двокроковий.
+
+Крок 1: GET /Login.aspx → POST /Temas/Matchpoint_2_5/Login.aspx
+  Поля: username="Club", password="v7padelclub2025new"
+  __EVENTTARGET="btnLogin", __EVENTARGUMENT=""
+  + всі ViewState/EventValidation з GET-форми
+
+Крок 2: POST знову на ту ж URL
+  Поля: DropDownListCajas="1" (Main cashbox)
+  __EVENTTARGET="btnAcceder"
+  Результат: redirect на /default.aspx ✅
+  Cookies: ASP.NET_SessionId, MatchPointCookie, cajausuario, Idioma
+
+================================================================
+== СТОРІНКИ ЩО ВІДПОВІЛИ ==
+
+✅ /Reservas/CuadroReservasNuevo.aspx  → 200 OK (основна сторінка)
+✅ /Reservas/CuadroReservas.aspx       → redirect на CuadroReservasNuevo.aspx
+❌ /Clases/ListaClases.aspx             → Error.aspx (недоступно для цього user)
+❌ /Profesores/ListaProfesores.aspx     → Error.aspx
+❌ /Reservas/ListaReservas.aspx        → Error.aspx
+❌ /Actividades/ListaActividades.aspx  → Error.aspx
+❌ /ClasesYCursos/ListaClasesEscuela.aspx → Error.aspx
+
+Примітка: "Club" — касовий користувач (TPV). Admin-сторінки недоступні.
+Основна сторінка з даними: CuadroReservasNuevo.aspx
+
+================================================================
+== ЗНАЙДЕНІ PAGEMETHODS на /Reservas/CuadroReservasNuevo.aspx ==
+
+PageMethods.set_path("CuadroReservasNuevo.aspx")
+POST URL патерн: /Reservas/CuadroReservasNuevo.aspx/<MethodName>
+
+1. ObtenerCuadros({})
+   → список кортів: [{"Id":3,"Nombre":"PADEL","Tipo_Cuadro":"general"}]
+
+2. ObtenerCuadro({idCuadro, fecha})
+   → структура корту з розкладом (Columnas, PorcentajeOcupacion, NumeroPersonas)
+
+3. ObtenerDiario({idCuadro, fecha})  ⭐ ГОЛОВНИЙ МЕТОД
+   → ВСІ бронювання за день, включаючи тренування (clase_suelta)
+   Типи записів: clase_suelta, reserva_partida, reserva_club,
+                 reserva_individual, reserva_actividad_abierta
+
+4. ObtenerEstadisticasOcupacion({idCuadro, fecha})
+   → статистика: {reserva, partida, clases, actividades, centro}
+
+5. ObtenerInformacionReserva({id})
+   → деталі бронювання: Tipo, Minutos, StrFecha, StrHoraInicio, StrHoraFin,
+     Texto1 (опис), Texto2 (клієнт)
+
+6. ObtenerInformacionReservaTooltip({id})  ⭐ НАЙДЕТАЛЬНІШИЙ
+   → повні деталі: Monitor (тренер), Usuarios (клієнти + телефони),
+     ImporteTotal, PendientePago, Usuario_Registro, StrFecha_Registro
+
+7. ExportarCuadroReservas_Click({idCuadro, fecha})
+   → Excel-формат: кожна пів-година по кортах
+
+8. HayActualizacionReservasDesdeUltimaConsulta({idCuadro, fechaHoraUltimaConsulta})
+9. ObtenerListaEspera({idCuadro, fecha})  [500 — можливо порожньо]
+10. MoverReserva, IntercambiarReserva, ReservaRapida, etc. (write endpoints)
+
+================================================================
+== УСПІШНІ POST ЗАПИТИ ==
+
+POST /Reservas/CuadroReservasNuevo.aspx/ObtenerCuadros
+Body: {}
+Status: 200
+Response (500 chars): {"d":[{"__type":"AplicacionWebGestion.Reservas.CuadroReservasNuevo+RegistroListadoCuadrosReservaWeb","Id":3,"Nombre":"PADEL","Tipo_Cuadro":"general"}]}
+
+POST /Reservas/CuadroReservasNuevo.aspx/ObtenerDiario
+Body: {"idCuadro": 3, "fecha": "01/04/2026"}
+Status: 200
+Response preview (500 chars):
+{"d":{"Entradas":[{"Id":8995,"Recurso":"P2","Id_Recurso":14,"Texto1":"Training with BOB (BOB clients). . 1 hour","Texto2":"-Bob.","Tipo":"clase_suelta","Color":"#b6e7af"},{"Id":8985,"Recurso":"P3","Texto1":"Kids group training (3-4 pl). Umur . 60 MIN","Texto2":"-Svetlana Efimova.","Tipo":"clase_suelta"},...23 записи]}}
+
+POST /Reservas/CuadroReservasNuevo.aspx/ObtenerInformacionReservaTooltip
+Body: {"id": 9009}
+Status: 200
+Response preview:
+{"Tipo":"clase_suelta","Minutos":60,"StrFecha":"01/04/2026","StrHoraInicio":"12:00","StrHoraFin":"13:00","Texto1":"Clase Individual Adult Training 60 MIN 01/04/2026 12:00 P3","Texto2":"Monitor: Umur","Usuarios":[{"IdCliente":21,"Nombre":"Mikle Marchenko","Telefono":"+90 5377283291","PendientePago":false,"ImporteTotal":0.0}],"Usuario_Registro":"Admin UMUR","StrFecha_Registro":"30/03/2026"}
+
+================================================================
+== СТРУКТУРА ДАНИХ ПО ТРЕНУВАННЮ ==
+
+Тип: clase_suelta
+Поля:
+  Id              — унікальний ID тренування
+  StrFecha        — дата "DD/MM/YYYY"
+  StrHoraInicio   — час початку "HH:MM"
+  StrHoraFin      — час кінця "HH:MM"
+  Minutos         — тривалість хвилин (60)
+  Recurso         — корт (P1/P2/P3/P4)
+  Id_Recurso      — ID корту (13=P1, 14=P2, 15=P3, 16=P4)
+  Texto1          — "Тип тренування. Тренер. Тривалість"
+  Texto2          — "Monitor: Ім'я тренера" (з tooltip)
+  Usuarios[]      — список клієнтів з Id, Nombre, Telefono
+  Usuario_Registro — хто зареєстрував
+
+Приклади записів ObtenerDiario за 01/04/2026:
+  clase_suelta: 6 тренувань
+  reserva_partida: 5 матчів
+  reserva_club: 4 клубних
+  reserva_individual: 6 індивідуальних
+  reserva_actividad_abierta: 2 відкриті активності
+
+================================================================
+== ТРЕНЕРИ ВИЯВЛЕНІ ==
+
+- Umur (Admin UMUR)
+- Hüseyin Köprücü
+- Bob (BOB clients)
+
+================================================================
+== РЕКОМЕНДАЦІЇ ДЛЯ ETL ==
+
+Для отримання всіх тренувань за місяць:
+  for fecha in all_dates_in_month:
+      data = POST ObtenerDiario(idCuadro=3, fecha=fecha)
+      clases = [e for e in data["d"]["Entradas"] if e["Tipo"] == "clase_suelta"]
+      for clase in clases:
+          details = POST ObtenerInformacionReservaTooltip(id=clase["Id"])
+          # details містить: тренер, клієнти, час, корт
+
+Для фінансових даних:
+  - PendientePago + ImporteTotal в Usuarios[] через tooltip
+  - ImputarParticipanteAsistencia можливо доступне
+
+================================================================

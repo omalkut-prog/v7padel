@@ -259,7 +259,115 @@
   .summary-block .sub { font-size: 12px; color: var(--muted); margin-top: 3px; }
   .divider { width: 1px; height: 54px; background: var(--border); }
 
-  /* Monthly totals mini-table */
+  /* ── Matchi panel ───────────────────────────────────────────────────── */
+  .matchi-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .matchi-toggle {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .matchi-toggle button {
+    padding: 7px 14px;
+    background: var(--surface2);
+    border: none;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .matchi-toggle button.active {
+    background: var(--accent);
+    color: var(--accent-on);
+  }
+  .matchi-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+  .matchi-controls select,
+  .matchi-controls input[type="month"] {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    padding: 7px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .matchi-controls select:focus,
+  .matchi-controls input[type="month"]:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .matchi-load-btn {
+    background: var(--accent);
+    color: var(--accent-on);
+    border: none;
+    border-radius: 4px;
+    padding: 7px 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    white-space: nowrap;
+  }
+  .matchi-load-btn:hover { opacity: 0.85; }
+  .matchi-load-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .matchi-status {
+    font-size: 12px;
+    color: var(--muted);
+    flex: 1;
+    min-width: 120px;
+  }
+  .matchi-status.ok  { color: var(--success); }
+  .matchi-status.err { color: var(--accent2); }
+
+  /* ── Save button ─────────────────────────────────────────────────────── */
+  .save-btn-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 4px 0 8px;
+  }
+  .save-calc-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 5px;
+    padding: 10px 28px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .save-calc-btn:hover {
+    border-color: var(--accent);
+    color: var(--text);
+  }
+  .save-calc-btn.saved {
+    border-color: var(--success);
+    color: var(--success);
+  }
+
+  /* ── Monthly totals mini-table */
   .month-table { width: 100%; border-collapse: collapse; margin-top: 0; }
   .month-table th { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 7px 10px; border-bottom: 1px solid var(--border); font-weight: 500; text-align: left; }
   .month-table th.right { text-align: right; }
@@ -296,6 +404,22 @@
 
 <div class="container">
 
+  <!-- MATCHI PANEL -->
+  <div class="matchi-panel" id="matchiPanel">
+    <div class="matchi-toggle">
+      <button class="active" id="btnModeManual" onclick="setMode('manual')">✏️ Ручний ввід</button>
+      <button id="btnModeMatchi" onclick="setMode('matchi')">🔄 Завантажити з Matchi</button>
+    </div>
+    <div class="matchi-controls" id="matchiControls" style="display:none">
+      <select id="matchiCoach">
+        <option value="">— тренер —</option>
+      </select>
+      <input type="month" id="matchiMonth" value="2026-04">
+      <button class="matchi-load-btn" id="matchiLoadBtn" onclick="loadFromMatchi()">Завантажити</button>
+      <span class="matchi-status" id="matchiStatus">Сервер: <code>localhost:5055</code></span>
+    </div>
+  </div>
+
   <!-- LEVEL -->
   <div class="card">
     <h2>🎾 <span data-i18n="levelTitle">Уровень тренера</span> <span class="tag" data-i18n="levelTag">ВЫБЕРИТЕ</span></h2>
@@ -312,7 +436,7 @@
       </div>
       <div class="level-btn" data-level="head" onclick="setLevel('head')">
         <span class="lvl-name">Head Coach</span>
-        <span class="lvl-pct">60%</span>
+        <span class="lvl-pct">20%</span>
         <span class="lvl-desc" data-i18n="headDesc">Umur · тариф Head Coach</span>
       </div>
     </div>
@@ -450,6 +574,13 @@
   <!-- FINAL BAR -->
   <div class="summary" id="finalSummary"></div>
 
+  <!-- SAVE -->
+  <div class="save-btn-wrap">
+    <button class="save-calc-btn" id="saveCalcBtn" onclick="saveCalculation()">
+      💾 Зберегти розрахунок за місяць
+    </button>
+  </div>
+
 </div>
 
 <script>
@@ -466,7 +597,7 @@ const i18n = {
     colCourt:'− Корт', colBase:'= База', colPct:'%', colEarn:'→ / сессия',
     activityTitle:'Сессии за месяц', activityTag:'ПО ПАКЕТАМ',
     summaryTitle:'Итог за месяц', colSource:'Источник', colSess:'Сес.', colAmount:'Сумма (₺)',
-    noteText:'<strong>Логика:</strong> База = цена − корт. Пакет влияет на цену за сессию. Club Coach 45% · Mid Coach 50% · Head Coach 60%.',
+    noteText:'<strong>Логика:</strong> База = цена − корт. Пакет влияет на цену за сессию. Club Coach 45% · Mid Coach 50% · Head Coach 20%.',
     summaryMin:'Мин. ставка', summaryGuarantee:'гарантия',
     summaryBonus:'Бонус от тренировок', summaryBonusSub:'% от базы',
     summaryTournaments:'Турниры', summaryTournSub:'оба режима',
@@ -479,7 +610,8 @@ const i18n = {
     sectionInd:'ИНДИВИДУАЛЬНЫЕ', sectionPairAdult:'ПАРНЫЕ · ВЗРОСЛЫЕ',
     sectionPairKids:'ПАРНЫЕ · ДЕТИ', sectionGrpAdult:'ГРУППОВЫЕ · ВЗРОСЛЫЕ',
     sectionGrpKids:'ГРУППОВЫЕ · ДЕТИ',
-    packSingle:'Разово', pack4:'Пакет 4', pack8:'Пакет 8', pack12:'Пакет 12',
+    packSingle:'Разово', pack3:'Пакет 3', pack4:'Пакет 4', pack5:'Пакет 5',
+    pack8:'Пакет 8', pack10:'Пакет 10', pack12:'Пакет 12',
     ppHint:'/чел', sessHint:'сес.',
     tournTitle:'Турнир под ключ', tournTag:'ДЛЯ ВСЕХ УРОВНЕЙ',
     tournPctTitle:'Расчёт по %', tournPctMode:'РЕЖИМ %',
@@ -506,7 +638,7 @@ const i18n = {
     colCourt:'− Kort', colBase:'= Baz', colPct:'%', colEarn:'→ / seans',
     activityTitle:'Aylık Seanslar', activityTag:'PAKETLERE GÖRE',
     summaryTitle:'Aylık Özet', colSource:'Kaynak', colSess:'Seans', colAmount:'Tutar (₺)',
-    noteText:'<strong>Mantık:</strong> Baz = fiyat − kort. Paket seans fiyatını etkiler. Club Coach %45 · Mid Coach %50 · Head Coach %60.',
+    noteText:'<strong>Mantık:</strong> Baz = fiyat − kort. Paket seans fiyatını etkiler. Club Coach %45 · Mid Coach %50 · Head Coach %20.',
     summaryMin:'Asgari ücret', summaryGuarantee:'garanti',
     summaryBonus:'Antrenman bonusu', summaryBonusSub:'bazdan %',
     summaryTournaments:'Turnuvalar', summaryTournSub:'her iki mod',
@@ -519,7 +651,8 @@ const i18n = {
     sectionInd:'BİREYSEL', sectionPairAdult:'ÇİFT · YETİŞKİN',
     sectionPairKids:'ÇİFT · ÇOCUK', sectionGrpAdult:'GRUP · YETİŞKİN',
     sectionGrpKids:'GRUP · ÇOCUK',
-    packSingle:'Tekli', pack4:'Paket 4', pack8:'Paket 8', pack12:'Paket 12',
+    packSingle:'Tekli', pack3:'Paket 3', pack4:'Paket 4', pack5:'Paket 5',
+    pack8:'Paket 8', pack10:'Paket 10', pack12:'Paket 12',
     ppHint:'/kişi', sessHint:'seans',
     tournTitle:'Anahtar Turnuva', tournTag:'TÜM SEVİYELER',
     tournPctTitle:'Yüzde modu', tournPctMode:'MOD %',
@@ -546,7 +679,7 @@ const i18n = {
     colCourt:'− Court', colBase:'= Base', colPct:'%', colEarn:'→ / session',
     activityTitle:'Sessions this month', activityTag:'BY PACKAGE',
     summaryTitle:'Monthly Summary', colSource:'Source', colSess:'Sess.', colAmount:'Amount (₺)',
-    noteText:'<strong>Logic:</strong> Base = price − court. Package affects per-session price. Club Coach 45% · Mid Coach 50% · Head Coach 60%.',
+    noteText:'<strong>Logic:</strong> Base = price − court. Package affects per-session price. Club Coach 45% · Mid Coach 50% · Head Coach 20%.',
     summaryMin:'Min. salary', summaryGuarantee:'guaranteed',
     summaryBonus:'Training bonus', summaryBonusSub:'% from base',
     summaryTournaments:'Tournaments', summaryTournSub:'both modes',
@@ -559,7 +692,8 @@ const i18n = {
     sectionInd:'INDIVIDUAL', sectionPairAdult:'PAIR · ADULTS',
     sectionPairKids:'PAIR · KIDS', sectionGrpAdult:'GROUP · ADULTS',
     sectionGrpKids:'GROUP · KIDS',
-    packSingle:'Single', pack4:'Pack 4', pack8:'Pack 8', pack12:'Pack 12',
+    packSingle:'Single', pack3:'Pack 3', pack4:'Pack 4', pack5:'Pack 5',
+    pack8:'Pack 8', pack10:'Pack 10', pack12:'Pack 12',
     ppHint:'/pp', sessHint:'sess',
     tournTitle:'Turnkey Tournament', tournTag:'ALL LEVELS',
     tournPctTitle:'Percentage mode', tournPctMode:'MODE %',
@@ -576,19 +710,31 @@ const i18n = {
   }
 };
 
-const levelPcts = { club: 45, mid: 50, head: 60 };
+const levelPcts = { club: 45, mid: 50, head: 20 };
 
 // price = total court revenue per session (all players)
 const TRAININGS = [
   { key:'indAdult',  labelKey:'indAdult',  badge:'badge-ind',   section:'sectionInd',
     ppCount:1, isKids:false,
-    packages:{ single:{club:2800,head:3700} },
-    availablePacks:['single'] },
+    packages:{
+      single:{club:2800,head:3700},
+      pack3: {club:2700,head:3600},
+      pack5: {club:2600,head:3500},
+      pack8: {club:2500,head:3400},
+      pack10:{club:2400,head:3300},
+    },
+    availablePacks:['single','pack3','pack5','pack8','pack10'] },
 
   { key:'indKids',   labelKey:'indKids',   badge:'badge-ind',   section:null,
     ppCount:1, isKids:true,
-    packages:{ single:{club:2600,head:3400} },
-    availablePacks:['single'] },
+    packages:{
+      single:{club:2600,head:3400},
+      pack3: {club:2500,head:3300},
+      pack5: {club:2400,head:3200},
+      pack8: {club:2300,head:3100},
+      pack10:{club:2200,head:3000},
+    },
+    availablePacks:['single','pack3','pack5','pack8','pack10'] },
 
   { key:'pairAdult', labelKey:'pairAdult', badge:'badge-pair',  section:'sectionPairAdult',
     ppCount:2, isKids:false,
@@ -645,7 +791,11 @@ const TRAININGS = [
     availablePacks:['single','pack8'] },
 ];
 
-const packLabelKeys = { single:'packSingle', pack4:'pack4', pack8:'pack8', pack12:'pack12' };
+const packLabelKeys = {
+  single:'packSingle',
+  pack3:'pack3', pack4:'pack4', pack5:'pack5',
+  pack8:'pack8', pack10:'pack10', pack12:'pack12',
+};
 
 // State
 let currentLang  = 'ru';
@@ -957,6 +1107,172 @@ function recalc() {
       <div class="sub">+${fmt(grandBonus)} ${t('summaryBonusSub')}</div>
     </div>
   `;
+}
+
+// ── Matchi panel ─────────────────────────────────────────────────────────────
+const API_BASE = 'http://localhost:5055';
+
+function setMode(mode) {
+  const isMatchi = (mode === 'matchi');
+  document.getElementById('btnModeManual').className  = isMatchi ? '' : 'active';
+  document.getElementById('btnModeMatchi').className  = isMatchi ? 'active' : '';
+  document.getElementById('matchiControls').style.display = isMatchi ? 'flex' : 'none';
+  if (isMatchi) {
+    fetchCoaches();
+  }
+}
+
+async function fetchCoaches() {
+  const sel = document.getElementById('matchiCoach');
+  try {
+    const res  = await fetch(`${API_BASE}/api/coaches`);
+    const data = await res.json();
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">— тренер —</option>';
+    data.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c; opt.textContent = c;
+      if (c === prev) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  } catch(e) {
+    const st = document.getElementById('matchiStatus');
+    st.textContent = '⚠ Сервер недоступний. Запусти: python etl/api_server.py';
+    st.className = 'matchi-status err';
+  }
+}
+
+async function loadFromMatchi() {
+  const coach = document.getElementById('matchiCoach').value;
+  const monthVal = document.getElementById('matchiMonth').value; // "2026-04"
+  const st  = document.getElementById('matchiStatus');
+  const btn = document.getElementById('matchiLoadBtn');
+
+  if (!monthVal) { st.textContent = '⚠ Оберіть місяць'; st.className='matchi-status err'; return; }
+  if (!coach)    { st.textContent = '⚠ Оберіть тренера'; st.className='matchi-status err'; return; }
+
+  const [year, month] = monthVal.split('-');
+  btn.disabled = true;
+  st.textContent = 'Завантажую…';
+  st.className = 'matchi-status';
+
+  try {
+    const res  = await fetch(`${API_BASE}/api/trainings?month=${month}&year=${year}&coach=${encodeURIComponent(coach)}`);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    const trainings = await res.json();
+
+    // Detect coach level from data
+    const levels = trainings.map(t => t.coach_level).filter(Boolean);
+    const detectedLevel = levels.includes('head') ? 'head' :
+                          levels.includes('mid')  ? 'mid'  : 'club';
+    setLevel(detectedLevel);
+
+    // Map training_key + n_clients → calculator key
+    const calcKey = (key, n) => {
+      if (key === 'grpAdult') return n >= 4 ? 'grp4Adult' : 'grp3Adult';
+      if (key === 'grpKids')  return n >= 4 ? 'grp4Kids'  : 'grp3Kids';
+      return key; // indAdult, indKids, pairAdult, pairKids — direct match
+    };
+
+    // Count sessions by calcKey + pack
+    const counts = {};
+    trainings.forEach(t => {
+      const ck   = calcKey(t.training_key, t.n_clients);
+      const pack = t.pack || 'single';
+      const k    = `${ck}_${pack}`;
+      counts[k]  = (counts[k] || 0) + 1;
+    });
+
+    // Fill inputs — first zero all, then fill found
+    document.querySelectorAll('.sess-input').forEach(el => { el.value = '0'; });
+    let filled = 0;
+    Object.entries(counts).forEach(([k, n]) => {
+      const el = document.getElementById(`sess_${k}`);
+      if (el) { el.value = n; filled++; }
+    });
+
+    recalc();
+    st.textContent = `✅ Завантажено ${trainings.length} сесій за ${month}/${year} (${filled} типів заповнено)`;
+    st.className = 'matchi-status ok';
+
+    // Update month input for save
+    document.getElementById('matchiMonth').value = monthVal;
+
+  } catch(e) {
+    st.textContent = `❌ ${e.message}`;
+    st.className = 'matchi-status err';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// ── Save calculation ──────────────────────────────────────────────────────────
+async function saveCalculation() {
+  const btn = document.getElementById('saveCalcBtn');
+  const monthVal = document.getElementById('matchiMonth').value || '2026-04';
+  const [year, month] = monthVal.split('-');
+  const coachEl = document.getElementById('matchiCoach');
+  const coach = coachEl ? coachEl.value || 'unknown' : 'unknown';
+
+  // Collect all session data
+  const sessions = {};
+  TRAININGS.forEach(tr => {
+    tr.availablePacks.forEach(pack => {
+      const el = document.getElementById(`sess_${tr.key}_${pack}`);
+      const v  = el ? +el.value || 0 : 0;
+      if (v > 0) sessions[`${tr.key}_${pack}`] = v;
+    });
+  });
+
+  const minSal  = +document.getElementById('minSalary').value  || 28000;
+  const court   = +document.getElementById('courtCost').value  || 2000;
+  const summary = document.getElementById('finalSummary');
+
+  const payload = {
+    coach,
+    month,
+    year,
+    coach_level:  currentLevel,
+    min_salary:   minSal,
+    court_cost:   court,
+    sessions,
+    summary_html: summary ? summary.innerHTML : '',
+    saved_at:     new Date().toISOString(),
+  };
+
+  btn.textContent = '⏳ Зберігаю…';
+  btn.disabled    = true;
+  btn.className   = 'save-calc-btn';
+
+  try {
+    const res = await fetch(`${API_BASE}/api/salary/save`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.ok) {
+      btn.textContent = '✓ Збережено';
+      btn.className   = 'save-calc-btn saved';
+      setTimeout(() => {
+        btn.textContent = '💾 Зберегти розрахунок за місяць';
+        btn.className   = 'save-calc-btn';
+        btn.disabled    = false;
+      }, 3000);
+    } else {
+      throw new Error(data.error || 'Unknown error');
+    }
+  } catch(e) {
+    btn.textContent = `❌ ${e.message}`;
+    btn.disabled    = false;
+    setTimeout(() => {
+      btn.textContent = '💾 Зберегти розрахунок за місяць';
+      btn.className   = 'save-calc-btn';
+    }, 4000);
+  }
 }
 
 // INIT
