@@ -302,11 +302,16 @@ def build_record(tooltip):
         pack           = "single"
         price_override = True
 
+    # For group sessions: minimum 3 clients for salary calc regardless of actual attendance.
+    # (Coach is paid as if the group is full — low turnout is not their problem.)
+    GROUP_KEYS = {"grpAdult", "grpKids", "grp3Adult", "grp4Adult", "grp3Kids", "grp4Kids"}
+    n_clients_for_calc = max(n_clients, 3) if training_key in GROUP_KEYS else n_clients
+
     # Standard (list) price for salary calculation
     std_price = get_standard_price(training_key, coach_level, pack)
     if std_price is not None:
-        calc_revenue = std_price * n_clients
-        if std_price != price_per_client:
+        calc_revenue = std_price * n_clients_for_calc
+        if std_price != price_per_client or n_clients_for_calc != n_clients:
             price_override = True
     else:
         # free session — no salary base
@@ -333,9 +338,10 @@ def build_record(tooltip):
         "training_key":     training_key,
         "training_name":    texto1_desc,
         "pack":             pack,
-        "price_override":   price_override,
-        "n_clients":        n_clients,
-        "price_per_client": price_per_client,
+        "price_override":      price_override,
+        "n_clients":           n_clients,
+        "n_clients_for_calc":  n_clients_for_calc,
+        "price_per_client":    price_per_client,
         "actual_revenue":   actual_revenue,
         "calc_revenue":     calc_revenue,
         "paid":             paid,
