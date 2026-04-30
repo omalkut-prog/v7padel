@@ -4,394 +4,359 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="assets/auth-guard.js"></script>
-<title>V7 Padel — Brain · Правила и спецификация</title>
+<title>V7 Padel — База знаний</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="assets/theme.js"></script>
-<script src="assets/data.js?v=20260424d"></script>
-<link rel="stylesheet" href="assets/theme.css?v=20260418">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/marked@9.1.6/marked.min.js"></script>
+<link rel="stylesheet" href="assets/theme.css?v=20260430a">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
-  :root {
-    --bg: #0f172a; --surface: #1e293b; --surface2: #0b1220;
-    --border: rgba(148,163,184,0.14); --border-hover: rgba(148,163,184,0.3);
-    --text: #f1f5f9; --text2: #cbd5e1; --text3: #64748b;
-    --accent: #7C3AED; --accent-soft: rgba(124,58,237,0.14); --accent-border: rgba(124,58,237,0.3);
-    --good: #13c296; --bad: #e74c3c; --warn: #f39c12; --radius: 16px;
-  }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
-  nav { position: sticky; top: 0; z-index: 100; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; }
-  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
-  .nav-logo em { color: var(--accent); font-style: normal; }
-  .nav-links li { list-style: none; }
-  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
-  .nav-links a:hover { color: var(--text); }
-  .nav-links a.active { color: var(--accent); }
-  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .brain-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 0;
+    min-height: 100vh;
+  }
+  .brain-toc {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 18px;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    max-height: 100vh;
+  }
+  .brain-main {
+    padding: 32px 40px 80px;
+    max-width: 920px;
+  }
+  .toc-header { margin-bottom: 18px; }
+  .toc-header .brand {
+    font-size: 16px; font-weight: 700; letter-spacing: -0.3px; color: var(--text);
+    margin-bottom: 4px;
+  }
+  .toc-header .brand .accent { color: var(--accent); }
+  .toc-header .sub { font-size: 12px; color: var(--text3); }
+  .toc-search { margin-bottom: 16px; }
+  .toc-search input {
+    width: 100%; padding: 8px 12px; border: 1px solid var(--border);
+    border-radius: 8px; background: var(--surface2); color: var(--text);
+    font-family: inherit; font-size: 13px; outline: none;
+    transition: border-color .15s;
+  }
+  .toc-search input:focus { border-color: var(--accent); }
+  .toc-list { list-style: none; }
+  .toc-list li { margin: 1px 0; }
+  .toc-list a {
+    display: block; padding: 7px 10px; border-radius: 6px;
+    color: var(--text2); text-decoration: none; font-size: 13px;
+    line-height: 1.4; transition: all .12s;
+  }
+  .toc-list a:hover { background: var(--surface2); color: var(--text); }
+  .toc-list a.active {
+    background: var(--accent-soft); color: var(--accent); font-weight: 600;
+  }
+  .toc-list a .num {
+    display: inline-block; min-width: 22px;
+    color: var(--text3); font-weight: 600; font-size: 11px;
+    margin-right: 6px;
+  }
+  .toc-list a.active .num { color: var(--accent); }
+  .toc-divider {
+    margin: 16px 0 8px; padding: 0 10px;
+    font-size: 10px; color: var(--text3);
+    text-transform: uppercase; letter-spacing: 1.5px; font-weight: 600;
+  }
+  .toc-foot {
+    margin-top: 24px; padding-top: 16px;
+    border-top: 1px solid var(--border);
+    font-size: 11px; color: var(--text3); line-height: 1.6;
+  }
+  .toc-foot a { color: var(--accent); text-decoration: none; }
 
-  main { max-width: 960px; margin: 0 auto; padding: 32px 20px 80px; }
-  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
-  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 32px; }
+  .md-body { font-size: 15px; line-height: 1.7; color: var(--text); }
+  .md-body h1 {
+    font-size: 30px; font-weight: 700; letter-spacing: -1px;
+    margin: 0 0 16px; padding-bottom: 12px;
+    border-bottom: 2px solid var(--border);
+  }
+  .md-body h2 {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.4px;
+    margin: 30px 0 12px;
+  }
+  .md-body h3 {
+    font-size: 17px; font-weight: 700;
+    margin: 22px 0 10px; color: var(--text);
+  }
+  .md-body h4 { font-size: 15px; font-weight: 700; margin: 18px 0 8px; }
+  .md-body p { margin: 0 0 12px; }
+  .md-body ul, .md-body ol { margin: 0 0 14px 22px; }
+  .md-body li { margin: 4px 0; }
+  .md-body strong, .md-body b { font-weight: 700; color: var(--text); }
+  .md-body em { font-style: italic; }
+  .md-body a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed var(--accent-border); }
+  .md-body a:hover { border-bottom-style: solid; }
+  .md-body code {
+    background: var(--surface2); padding: 1px 6px; border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+    color: var(--text);
+  }
+  .md-body pre {
+    background: var(--surface2); padding: 14px 18px; border-radius: 10px;
+    overflow-x: auto; margin: 14px 0; border: 1px solid var(--border);
+  }
+  .md-body pre code { background: none; padding: 0; font-size: 12.5px; }
+  .md-body blockquote {
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    padding: 10px 16px; margin: 14px 0;
+    border-radius: 0 8px 8px 0;
+    color: var(--text);
+  }
+  .md-body blockquote p:last-child { margin: 0; }
+  .md-body table {
+    width: 100%; border-collapse: collapse; margin: 14px 0;
+    font-size: 13px;
+  }
+  .md-body th, .md-body td {
+    border: 1px solid var(--border); padding: 8px 12px; text-align: left;
+  }
+  .md-body th {
+    background: var(--surface2); font-weight: 700; color: var(--text);
+  }
+  .md-body td { color: var(--text); }
+  .md-body hr {
+    border: 0; border-top: 1px solid var(--border); margin: 26px 0;
+  }
+  .md-body .doc-meta {
+    background: var(--surface);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 16px; margin-bottom: 22px;
+    font-size: 12px; color: var(--text3);
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .md-body .doc-meta a { color: var(--accent); text-decoration: none; border-bottom: 0; }
+  .md-body .doc-meta a:hover { text-decoration: underline; }
 
-  .section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 28px 30px; margin-bottom: 20px; }
-  .section h2 { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-  .section h3 { font-size: 14px; font-weight: 600; color: var(--text); margin: 18px 0 8px; }
-  .section p, .section li { font-size: 14px; color: var(--text2); line-height: 1.65; }
-  .section ul, .section ol { padding-left: 22px; margin-bottom: 14px; }
-  .section li { margin-bottom: 6px; }
-  .section code { background: var(--surface2); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; }
+  .loading {
+    text-align: center; padding: 60px 20px; color: var(--text3); font-size: 14px;
+  }
+  .err {
+    background: rgba(231,76,60,0.08); border: 1px solid rgba(231,76,60,0.2);
+    color: var(--bad); border-radius: 8px; padding: 14px 18px; font-size: 13px;
+  }
 
-  table.schema { width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0 16px; }
-  table.schema th { text-align: left; padding: 8px 10px; background: var(--surface2); color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; font-size: 10px; border-bottom: 1px solid var(--border); }
-  table.schema td { padding: 8px 10px; color: var(--text2); border-bottom: 1px solid var(--border); font-family: monospace; font-size: 11px; }
-  table.schema tr:last-child td { border-bottom: 0; }
-
-  .rule { display: flex; gap: 14px; margin-bottom: 12px; padding: 12px 14px; background: var(--surface2); border-radius: 10px; }
-  .rule .num { font-size: 12px; font-weight: 700; color: var(--accent); min-width: 22px; padding-top: 1px; }
-  .rule .text { font-size: 13px; color: var(--text2); line-height: 1.55; }
-  .rule .text strong { color: var(--text); }
-
-  .tag { display: inline-block; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 8px; border-radius: 6px; }
-  .tag-ok   { background: rgba(19,194,150,0.12); color: var(--good); }
-  .tag-warn { background: rgba(243,156,18,0.12); color: var(--warn); }
-  .tag-block{ background: rgba(231,76,60,0.12); color: var(--bad); }
-  .tag-info { background: var(--accent-soft); color: var(--accent); }
-
-  @media (max-width: 720px) { main { padding: 16px 12px 60px; } .section { padding: 20px 18px; } }
+  .toc-toggle {
+    display: none;
+    position: fixed; top: 16px; left: 16px; z-index: 100;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px; cursor: pointer;
+    font-family: inherit; font-size: 14px; font-weight: 600; color: var(--text);
+  }
+  @media (max-width: 880px) {
+    .brain-layout { grid-template-columns: 1fr; }
+    .brain-toc {
+      position: fixed; top: 0; left: -300px; bottom: 0; width: 280px;
+      transition: left .25s; z-index: 90;
+      box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+    }
+    .brain-toc.open { left: 0; }
+    .brain-main { padding: 60px 22px 80px; }
+    .toc-toggle { display: block; }
+  }
 </style>
 </head>
 <body>
 
-<nav>
-  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
-  <ul class="nav-links">
-    <li><a href="index.html">Главная</a></li>
-    <li><a href="dashboard.html">Дашборд</a></li>
-    <li><a href="revenue.html">Выручка</a></li>
-    <li><a href="management.html">Управление</a></li>
-    <li><a href="finance.html">Финансы</a></li>
-    <li><a href="clients.html">Клиенты</a></li>
-    <li><a href="data.html">Данные</a></li>
-    <li class="team-link"><a href="team.html">Команда</a></li>
-    <li><a href="tournament-analytics.html">Турниры</a></li>
-    <li><a href="risk.html">Риски</a></li>
-    <li><a href="variance.html">Variance</a></li>
-    <li><a href="audit.html">Аудит</a></li>
-    <li><a href="brain.html" class="active">Brain</a></li>
-  </ul>
-  <span class="nav-pill">Внутренний портал</span>
-</nav>
+<button class="toc-toggle" id="toc-toggle">📚 Меню</button>
 
-<main>
-  <h1 class="page-title">V7 Padel Brain</h1>
-  <p class="page-sub">10 разделов правил + спецификация v7padel_db · обновлено 2026-04-13</p>
+<div class="brain-layout">
 
-  <!-- 1. ЯЗЫКИ -->
-  <div class="section">
-    <h2>1 · Языки</h2>
-    <ul>
-      <li>Сайт (CEO/Оля): <strong>русский</strong> — основной</li>
-      <li>Персонал (турки): <strong>турецкий + английский</strong></li>
-      <li>Турецкий — строгая орфография: <code>İ Ş Ğ Ü Ö Ç</code> обязательно</li>
-      <li>Если не уверен в турецком — пометка <span class="tag tag-warn">нужна проверка носителем</span></li>
-      <li>Никакого транслита</li>
-    </ul>
-  </div>
+  <aside class="brain-toc" id="brain-toc">
+    <div class="toc-header">
+      <div class="brand">V7 <span class="accent">База знаний</span></div>
+      <div class="sub">Single source of truth · git-versioned</div>
+    </div>
+    <div class="toc-search">
+      <input type="text" id="toc-search-input" placeholder="🔎 Поиск по разделам..." autocomplete="off">
+    </div>
+    <ul class="toc-list" id="toc-list"></ul>
+    <div class="toc-foot">
+      <p>Все markdown файлы:<br>
+        <a href="https://github.com/omalkut-prog/v7padel/tree/main/site/docs" target="_blank" rel="noopener">→ GitHub /site/docs</a>
+      </p>
+      <p style="margin-top:10px"><a href="dashboard.html">↗ Внутренний дашборд</a></p>
+    </div>
+  </aside>
 
-  <!-- 2. ДАННЫЕ И ИСТОЧНИКИ -->
-  <div class="section">
-    <h2>2 · Данные и источники</h2>
-    <ul>
-      <li>P&amp;L — <strong>только из PnL бухгалтера</strong> (новый файл). Старый pnl_monthly в v7padel_db — deprecated</li>
-      <li>Названия колонок — <strong>точные</strong>, не угадывать</li>
-      <li>Fallback без пометки в UI — <span class="tag tag-block">запрещён</span></li>
-      <li>Нет данных для блока = сообщи что добавить в ETL, не строй на заглушках</li>
-      <li>Нет данных в UI = явное сообщение с причиной, никогда пустой блок или вечный спиннер</li>
-    </ul>
+  <main class="brain-main">
+    <div id="brain-content" class="md-body">
+      <div class="loading">Загружаю базу знаний…</div>
+    </div>
+  </main>
 
-    <h3>Реальная спецификация колонок v7padel_db</h3>
-    <p>Проверено через gviz CSV аудит 2026-04-09.</p>
+</div>
 
-    <table class="schema">
-      <thead><tr><th>Вкладка</th><th>Колонки</th><th>Статус</th></tr></thead>
-      <tbody>
-        <tr><td>customers</td><td>customer_id, name, phone, email, gender, age, subs_date, level, nationality</td><td><span class="tag tag-ok">ok</span></td></tr>
-        <tr><td>bookings</td><td>booking_id, customer_id, court_id, start_ts, end_ts, status, price</td><td><span class="tag tag-block">customer_id пуст 100%</span></td></tr>
-        <tr><td>occupancy_daily</td><td>date, weekday, hours, pct, persons, h_reserva, h_partida, h_clases, h_actividades, h_centro, bk_admin, bk_web, bk_mobile, hourly_json</td><td><span class="tag tag-ok">195 дней · Matchpoint API</span></td></tr>
-        <tr><td>memberships</td><td>membership_id, holder, card_type, rate, payment, subs_date, paid_until, next_fee, status, first_fee, fee</td><td><span class="tag tag-ok">ok</span></td></tr>
-        <tr><td>transactions</td><td>date, month, category, subcategory, status, players, price, amount1, method1, currency1, amount2, method2, currency2, coach, comment, admin, total, source, transaction_id</td><td><span class="tag tag-ok">ok</span></td></tr>
-        <tr><td>expenses</td><td>date, month, category, item, comment, amount, currency, method, payer, capex_flag, prepaid, amortize_months, source, amort_monthly_try, expense_id</td><td><span class="tag tag-ok">ok</span></td></tr>
-        <tr><td>pnl_monthly</td><td>period_month, code, parent_code, level, article_name, branch, cashless, cash, total, source, pnl_row_id</td><td><span class="tag tag-warn">deprecated → PnL бухгалтера</span></td></tr>
-        <tr><td>liabilities</td><td>liability_id, date, amount, currency, creditor, description, status</td><td><span class="tag tag-ok">ok</span></td></tr>
-        <tr><td>pnl_monthly</td><td colspan="2"><span class="tag tag-warn">deprecated — используем PnL бухгалтера напрямую</span></td></tr>
-        <tr><td colspan="3" style="padding:8px;font-weight:600;background:var(--surface2)">Racket.ID (Firestore, публичный доступ)</td></tr>
-        <tr><td>racketid_members</td><td>user_id, name, padel_rating, phone, gender, email</td><td><span class="tag tag-ok">351 записей</span></td></tr>
-        <tr><td>racketid_tournaments</td><td>product_id, title, status, date, end_time, sport, doubles, slots, participants_count, gameplan_state</td><td><span class="tag tag-ok">338 записей</span></td></tr>
-        <tr><td>racketid_participants</td><td>product_id, user_id, title, date</td><td><span class="tag tag-ok">2,597 записей</span></td></tr>
-        <tr><td>customer_linkage</td><td>rid_user_id, rid_name, rid_rating, rid_phone, rid_participations, mp_code, mp_name, confidence, method</td><td><span class="tag tag-ok">269/349 matched (77%)</span></td></tr>
-      </tbody>
-    </table>
+<script>
+/* V7 Brain — markdown reader for site/docs/*.md
+   Single source of truth: site/docs/. Этот файл — клиентский ридер
+   через marked.js, не дублирует контент. */
 
-    <h3>Агрегация P&amp;L (НОВЫЙ формат — PnL бухгалтера)</h3>
-    <p>Источник: <code>1wLvhEUAsS08K6LvxSKAx5-soh5NxayMpU3brvd4rQ54</code>, GID <code>1844112584</code></p>
-    <ul>
-      <li>Месяцы — <strong>колонки</strong> (не строки). Каждый месяц = 4 колонки: Cashless, Cash, итого, Уд.вес</li>
-      <li><strong>Revenue</strong> = строка «Доход от деятельности» → колонка «итого»</li>
-      <li><strong>OPEX</strong> = строка «Условно-постоянные расходы» → |итого| (abs)</li>
-      <li><strong>PnL</strong> = строка «Прибыль» → итого</li>
-      <li>Детализация: Падел, Bookings, Membership, Classes, Tournaments, Goods (revenue); Admin, Bank, Utilities, Marketing, Staff, Taxes (opex)</li>
-    </ul>
+var TOC_GROUPS = [
+  {
+    title: "Старт",
+    docs: [
+      { id: "00_NORTH_STAR",       label: "00 · North Star", desc: "Цели, стратегия 4 контуров, KPI" },
+      { id: "04_CURRENT_STATE",    label: "04 · Current State", desc: "Live числа: клиенты, выручка" },
+      { id: "05_BACKLOG",          label: "05 · Backlog", desc: "Приоритеты NOW / NEXT / LATER" },
+    ]
+  },
+  {
+    title: "Технология",
+    docs: [
+      { id: "01_ARCHITECTURE",     label: "01 · Architecture", desc: "Стек, таблицы, страницы, деплой" },
+      { id: "02_MATCHPOINT_API",   label: "02 · Matchpoint API", desc: "Эндпоинты, ASP.NET, пагинация" },
+      { id: "03_ETL_PLAYBOOK",     label: "03 · ETL Playbook", desc: "Каталог скриптов" },
+      { id: "16_CONSISTENCY_AUDIT", label: "16 · Consistency Audit", desc: "Cross-checks формул" },
+      { id: "17_TESTING",          label: "17 · Testing", desc: "pytest, как добавлять тесты" },
+    ]
+  },
+  {
+    title: "Бизнес",
+    docs: [
+      { id: "06_PRINCIPLES",       label: "06 · Principles", desc: "Как работаем" },
+      { id: "07_ANTI_PATTERNS",    label: "07 · Anti-Patterns", desc: "Как НЕ работаем" },
+      { id: "08_TEAM_AND_ROLES",   label: "08 · Team and Roles", desc: "Команда, cid, доступы" },
+      { id: "10_PRICES_AND_HOURS", label: "10 · Prices and Hours", desc: "Реальные цены и часы" },
+      { id: "11_MARKETING",        label: "11 · Marketing", desc: "Аватар, каналы, месседжинг" },
+    ]
+  },
+  {
+    title: "Решения и правила",
+    docs: [
+      { id: "09_DECISIONS",        label: "09 · ADR Log", desc: "Архитектурные решения" },
+      { id: "13_ACCOUNTING_RULES", label: "13 · Accounting Rules", desc: "Cash-basis + dedup" },
+      { id: "14_CODE_REVIEW",      label: "14 · Code Review", desc: "Bi-monthly процесс" },
+      { id: "15_FINANCE_RECONCILIATION", label: "15 · Finance Reconciliation", desc: "Сверка с финикой" },
+    ]
+  },
+  {
+    title: "Работа с Claude",
+    docs: [
+      { id: "12_WORKING_WITH_CLAUDE", label: "12 · Working with Claude", desc: "Двусторонние правила" },
+    ]
+  },
+  {
+    title: "События",
+    docs: [
+      { id: "18_TEAM_MEETING_2026-05", label: "18 · Team Meeting Май 2026", desc: "Речь, цели, бонус" },
+      { id: "antalya-baseline",    label: "Antalya Baseline", desc: "Базовая модель клуба" },
+    ]
+  },
+];
 
-    <h3>Fuzzy matching: bookings ↔ customers</h3>
-    <ul>
-      <li>Скрипт: <code>scripts/fuzzy_match.py</code>, результаты: <code>data/booking_matches.csv</code></li>
-      <li>Покрытие: <strong>1,027 бронирований (14.0%)</strong> привязаны к <strong>267 уникальным клиентам</strong></li>
-      <li>Методы: exact name (1,003 high), substring (24 medium)</li>
-      <li>Staff exclusion: Gulcan Yanar (бывший тренер, 255 бронирований = work records)</li>
-      <li>Не матчатся: турниры (team VS team), generic bookings, match records — нужен Racket.ID</li>
-    </ul>
+var DOCS_PATH = 'docs/';
 
-    <h3>Маппинг категорий выручки (transactions.category)</h3>
-    <table class="schema">
-      <thead><tr><th>Текст в category</th><th>Группа</th></tr></thead>
-      <tbody>
-        <tr><td>Rent from 07..., Rent from 11...</td><td>Корты</td></tr>
-        <tr><td>Equipment rental, Equipment</td><td>Инвентарь</td></tr>
-        <tr><td>Club cards</td><td>Клубные карты</td></tr>
-        <tr><td>*training*, Individual*, Group*, Children*, Kids*, Adult*</td><td>Тренировки</td></tr>
-        <tr><td>Tournaments</td><td>Турниры</td></tr>
-        <tr><td>Sale of goods, *inventory*, Giftboxes, *accessor*</td><td>Товары</td></tr>
-        <tr><td>Internal movements, Depositing money...</td><td><em>пропускается</em></td></tr>
-        <tr><td>Всё остальное</td><td>Прочее</td></tr>
-      </tbody>
-    </table>
+function buildTOC() {
+  var list = document.getElementById('toc-list');
+  var html = '';
+  TOC_GROUPS.forEach(function(group) {
+    html += '<li class="toc-divider">' + group.title + '</li>';
+    group.docs.forEach(function(d) {
+      var num = d.id.split('_')[0].replace(/^0+/, '') || '·';
+      html += '<li><a href="#' + d.id + '" data-doc-id="' + d.id + '" title="' + (d.desc || '') + '">';
+      html += '<span class="num">' + num + '</span>' + d.label.replace(/^\d+ · /, '');
+      html += '</a></li>';
+    });
+  });
+  list.innerHTML = html;
 
-    <h3>Связь клиент ← → членство</h3>
-    <ul>
-      <li>В memberships нет <code>customer_id</code> — связь через <code>holder</code> (имя) ← → <code>customers.name</code></li>
-      <li>Нормализация: <code>trim().toLowerCase().replace(/\s+/g, ' ')</code></li>
-      <li>39 из 39 holders совпадают с customers.name (100% linkage)</li>
-    </ul>
-  </div>
+  list.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+      var id = this.dataset.docId;
+      loadDoc(id);
+      window.location.hash = id;
+      document.getElementById('brain-toc').classList.remove('open');
+    });
+  });
+}
 
-  <!-- 3. КОД -->
-  <div class="section">
-    <h2>3 · Код</h2>
-    <div class="rule"><span class="num">3.1</span><div class="text"><strong>Перед написанием — проверь есть ли уже в codebase.</strong> Не дублируй.</div></div>
-    <div class="rule"><span class="num">3.2</span><div class="text">Общий код (gviz парсер, утилиты) — <strong>только в assets/data.js?v=20260424d</strong>.</div></div>
-    <div class="rule"><span class="num">3.3</span><div class="text">Все константы и ID таблиц — только в шапке файла (<code>V7.SHEET_ID</code> в data.js).</div></div>
-    <div class="rule"><span class="num">3.4</span><div class="text"><strong>Максимум 3 gviz запроса на страницу.</strong> Если нужно больше — объединяй в ETL (pre-aggregated sheets).</div></div>
-    <div class="rule"><span class="num">3.5</span><div class="text">Не добавляй новые библиотеки без разрешения. Разрешённые: <code>Chart.js</code>, <code>marked.js</code>, <code>Inter</code> (шрифт).</div></div>
-    <div class="rule"><span class="num">3.6</span><div class="text">Если решение больше 50 строк — остановись, скорее всего есть проще.</div></div>
-    <div class="rule"><span class="num">3.7</span><div class="text">Не трогай файлы вне задачи без явного разрешения.</div></div>
-    <h3>Технический долг</h3>
-    <ul>
-      <li><span class="tag tag-warn">management.html: 6 gviz запросов</span> — нужен pre-aggregated лист в ETL</li>
-      <li><span class="tag tag-warn">finance.html: 5 gviz запросов</span> — аналогично</li>
-      <li><span class="tag tag-warn">bookings.customer_id пуст, но fuzzy match дал 14%</span> — 1,027 из 7,322 бронирований привязаны. Для полного покрытия нужен Racket.ID (турниры) + Matchpoint API/scraping (generic bookings).</li>
-    </ul>
-  </div>
+function setActive(id) {
+  document.querySelectorAll('.toc-list a').forEach(function(a) {
+    a.classList.toggle('active', a.dataset.docId === id);
+  });
+}
 
-  <!-- 4. ETL -->
-  <div class="section">
-    <h2>4 · ETL</h2>
-    <div class="rule"><span class="num">4.1</span><div class="text">При изменении логики ETL — <strong>dry-run обязателен</strong> перед реальным запуском.</div></div>
-    <div class="rule"><span class="num">4.2</span><div class="text">При обычном ежедневном прогоне — dry-run не нужен.</div></div>
-    <div class="rule"><span class="num">4.3</span><div class="text">Не ломай базу — перед любым rebuild проверь что схема не изменилась.</div></div>
-  </div>
+async function loadDoc(id) {
+  var content = document.getElementById('brain-content');
+  setActive(id);
+  content.innerHTML = '<div class="loading">Загружаю ' + id + '.md…</div>';
 
-  <!-- 4.5 MATCHPOINT API -->
-  <div class="section">
-    <h2>4.5 · Matchpoint API</h2>
-    <p>ASP.NET WebForms. API через PageMethods (JSON POST). Все вызовы требуют аутентифицированную сессию.</p>
-    <p><strong>Base URL:</strong> <code>https://app-v7padel-tur.matchpoint.com.es</code></p>
+  try {
+    var url = DOCS_PATH + encodeURIComponent(id) + '.md?t=' + Math.floor(Date.now() / 60000);
+    var r = await fetch(url, { cache: 'no-cache' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    var md = await r.text();
 
-    <h3>Аутентификация (двухшаговая)</h3>
-    <ol>
-      <li><code>GET /Login.aspx</code> → извлечь <code>__VIEWSTATE</code>, <code>__VIEWSTATEGENERATOR</code>, <code>__EVENTVALIDATION</code></li>
-      <li><code>POST</code> форму: <code>username</code>, <code>password</code>, <code>ddlLenguaje=en-GB</code>, <code>__EVENTTARGET=btnLogin</code></li>
-      <li>Если ответ содержит <code>btnAcceder</code> → <code>POST</code> выбор кассы: <code>DropDownListCajas=1</code>, <code>__EVENTTARGET=btnAcceder</code></li>
-    </ol>
-    <p>Креды: <code>etl/matchpoint_creds.json</code>. Реализация: <code>etl/sync_customers_matchpoint.py</code> → <code>mp_login()</code></p>
+    marked.setOptions({ breaks: false, gfm: true });
+    var html = marked.parse(md);
 
-    <h3>Эндпоинт: Загрузка кортов (Occupancy) <span class="tag tag-ok">TOP 3 KPI</span></h3>
-    <table class="schema">
-      <thead><tr><th>Параметр</th><th>Значение</th></tr></thead>
-      <tbody>
-        <tr><td>URL</td><td><code>POST /Reservas/CuadroReservasNuevo.aspx/ObtenerEstadisticasOcupacion</code></td></tr>
-        <tr><td>Content-Type</td><td><code>application/json; charset=utf-8</code></td></tr>
-        <tr><td>Body</td><td><code>{"idCuadro": "3", "fecha": "DD/MM/YYYY"}</code></td></tr>
-        <tr><td>Контекст</td><td>Перед вызовом посетить <code>/Reservas/CuadroReservas.aspx?id_cuadro=3</code></td></tr>
-        <tr><td>idCuadro</td><td><code>3</code> = PADEL</td></tr>
-      </tbody>
-    </table>
+    var ghUrl = 'https://github.com/omalkut-prog/v7padel/blob/main/site/docs/' + encodeURIComponent(id) + '.md';
+    var meta = '<div class="doc-meta">' +
+      '<span><b>' + id + '.md</b> · markdown source · <a href="' + ghUrl + '" target="_blank" rel="noopener">edit on GitHub</a></span>' +
+      '<span>загружено: ' + new Date().toLocaleString('ru-RU') + '</span>' +
+      '</div>';
 
-    <h3>Ответ (внутри <code>{"d": {...}}</code>)</h3>
-    <table class="schema">
-      <thead><tr><th>Поле</th><th>Тип</th><th>Описание</th></tr></thead>
-      <tbody>
-        <tr><td>HorasOcupadas</td><td>float</td><td>Часы загрузки за день</td></tr>
-        <tr><td>PorcentajeOcupacion</td><td>float</td><td>% загрузки от максимума</td></tr>
-        <tr><td>NumeroPersonas</td><td>int</td><td>Количество человек</td></tr>
-        <tr><td>Pie</td><td>array</td><td>Разбивка: reserva, partida, clases, actividades, centro, mantenimiento.<br>
-          <strong>Маппинг на наши категории:</strong><br>
-          • <b>Бронирования</b> = reserva + partida (все букинги включая опен-игры)<br>
-          • <b>Тренировки</b> = clases (индивидуальные/групповые с тренером, 1-4 чел.)<br>
-          • <b>Турниры</b> = actividades + centro (мероприятия + время заблокированное центром)<br>
-          • mantenimiento = техобслуживание (вычитается из hours, не считается загрузкой)</td></tr>
-        <tr><td>GraficoOcupacion</td><td>array</td><td>Почасовая загрузка %: <code>[{category: "9", value: 75.0}, ...]</code></td></tr>
-        <tr><td>ReservasCantidadRealizadaAdministracion</td><td>int</td><td>Бронирования через админку</td></tr>
-        <tr><td>ReservasCantidadRealizadaWeb</td><td>int</td><td>Бронирования через сайт</td></tr>
-        <tr><td>ReservasCantidadRealizadaMovil</td><td>int</td><td>Бронирования через мобилку</td></tr>
-      </tbody>
-    </table>
+    content.innerHTML = meta + html;
+    document.title = 'V7 Brain · ' + id;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  } catch (e) {
+    content.innerHTML = '<div class="err">⚠ Не удалось загрузить ' + id + '.md: ' + (e.message || e) + '</div>';
+  }
+}
 
-    <h3>Эндпоинт: Список клиентов (Customers)</h3>
-    <table class="schema">
-      <thead><tr><th>Параметр</th><th>Значение</th></tr></thead>
-      <tbody>
-        <tr><td>URL</td><td><code>POST /Administracion/Clientes/ListaClientes.aspx/ObtenerClientes</code></td></tr>
-        <tr><td>Результат</td><td>1173 клиентов → <code>customers</code> таб</td></tr>
-        <tr><td>Скрипт</td><td><code>etl/sync_customers_matchpoint.py</code></td></tr>
-      </tbody>
-    </table>
+function searchToc() {
+  var q = document.getElementById('toc-search-input').value.toLowerCase().trim();
+  var items = document.querySelectorAll('.toc-list a');
+  items.forEach(function(a) {
+    var text = a.textContent.toLowerCase();
+    var title = (a.title || '').toLowerCase();
+    var match = !q || text.indexOf(q) >= 0 || title.indexOf(q) >= 0;
+    a.parentElement.style.display = match ? '' : 'none';
+  });
+  document.querySelectorAll('.toc-divider').forEach(function(d) {
+    var nextLi = d.nextElementSibling;
+    var hasVisible = false;
+    while (nextLi && !nextLi.classList.contains('toc-divider')) {
+      if (nextLi.style.display !== 'none') { hasVisible = true; break; }
+      nextLi = nextLi.nextElementSibling;
+    }
+    d.style.display = hasVisible ? '' : 'none';
+  });
+}
 
-    <h3>Скрипты и расписание</h3>
-    <table class="schema">
-      <thead><tr><th>Скрипт</th><th>Что делает</th><th>Расписание</th></tr></thead>
-      <tbody>
-        <tr><td><code>scrape_occupancy.py</code></td><td>Occupancy API → <code>occupancy_daily</code> таб (195 дней, 14 полей)</td><td>Ежедневно 06:00 (run_all_etl.py)</td></tr>
-        <tr><td><code>sync_customers_matchpoint.py</code></td><td>Customers API → <code>customers</code> таб (1173 записей)</td><td>Вс 05:30</td></tr>
-      </tbody>
-    </table>
+buildTOC();
+document.getElementById('toc-search-input').addEventListener('input', searchToc);
+document.getElementById('toc-toggle').addEventListener('click', function() {
+  document.getElementById('brain-toc').classList.toggle('open');
+});
 
-    <h3>Заметки</h3>
-    <ul>
-      <li><code>session.verify = False</code> — SSL сертификат проблемный</li>
-      <li>Rate limit: ~150мс между запросами</li>
-      <li>Grid page может редиректить: <code>CuadroReservas.aspx</code> → <code>CuadroReservasNuevo.aspx</code></li>
-      <li>Все PageMethods возвращают ответ в обёртке <code>{"d": {...}}</code></li>
-      <li>Потенциально доступны другие PageMethods — исследовать по мере надобности</li>
-    </ul>
-  </div>
+var initialDoc = window.location.hash.slice(1) || '00_NORTH_STAR';
+loadDoc(initialDoc);
 
-  <!-- 5. КАЧЕСТВО -->
-  <div class="section">
-    <h2>5 · Качество — перед каждым пушем</h2>
-    <div class="rule"><span class="num">5.1</span><div class="text">Все блоки показывают <strong>реальные данные</strong> — не нули, не спиннер.</div></div>
-    <div class="rule"><span class="num">5.2</span><div class="text">Мобилка: таблицы скроллятся горизонтально, кнопки <strong>минимум 44px</strong>, текст читаем без зума.</div></div>
-    <div class="rule"><span class="num">5.3</span><div class="text">Существующие страницы не сломаны после изменений общих файлов.</div></div>
-    <div class="rule"><span class="num">5.4</span><div class="text"><strong>Один коммит = одна задача</strong> с описанием что и зачем изменено.</div></div>
-    <div class="rule"><span class="num">5.5</span><div class="text">Если блок показывает нули — это баг, не норма. Разберись до пуша.</div></div>
-  </div>
-
-  <!-- 6. UI -->
-  <div class="section">
-    <h2>6 · UI</h2>
-    <ul>
-      <li>Все тексты на <strong>русском</strong> (CEO/Оля интерфейс)</li>
-      <li>Персонал видит <strong>турецкий + английский</strong></li>
-      <li>Если gviz не ответил за 10 секунд — <strong>кнопка «Обновить»</strong>, не вечный спиннер</li>
-      <li>Нет данных = сообщение с причиной на нужном языке</li>
-    </ul>
-  </div>
-
-  <!-- 7. ПОРЯДОК РАБОТЫ -->
-  <div class="section">
-    <h2>7 · Порядок работы</h2>
-    <div class="rule"><span class="num">7.1</span><div class="text">Задачи выполняются строго в том порядке в котором написаны.</div></div>
-    <div class="rule"><span class="num">7.2</span><div class="text">Если встретил блокер без тебя — принимаешь решение сам, фиксируешь в сообщении, продолжаешь.</div></div>
-    <div class="rule"><span class="num">7.3</span><div class="text">Перед сдачей — <strong>самоаудит</strong>: code review + проверка данных + тест мобилки + отчёт.</div></div>
-  </div>
-
-  <!-- 8. АРХИТЕКТУРНЫЕ ПРИНЦИПЫ -->
-  <div class="section">
-    <h2>8 · Архитектурные принципы</h2>
-    <div class="rule"><span class="num">1</span><div class="text"><strong>Не автоматизируй плохой процесс — убери его.</strong></div></div>
-    <div class="rule"><span class="num">2</span><div class="text"><strong>Один источник правды</strong> для каждой цифры.</div></div>
-    <div class="rule"><span class="num">3</span><div class="text">Данные вводятся один раз.</div></div>
-    <div class="rule"><span class="num">4</span><div class="text">Не оптимизируй то чего не должно существовать.</div></div>
-    <div class="rule"><span class="num">5</span><div class="text"><strong>Простота важнее полноты</strong> — если можно проще, делай проще.</div></div>
-    <div class="rule"><span class="num">6</span><div class="text">Каждое решение проверяется: <strong>работает ли это в сети из 10 клубов?</strong></div></div>
-    <div class="rule"><span class="num">7</span><div class="text">Всё измеряется. Если метрику нельзя посчитать — фича не считается готовой.</div></div>
-  </div>
-  <!-- 9. РАБОТА С ИИ (CLAUDE) -->
-  <div class="section">
-    <h2>9 · Работа с ИИ (Claude Code)</h2>
-    <p>Проект разрабатывается с помощью <strong>Claude Code</strong> (CLI). Для продолжения контекста ИИ использует файлы <code>CLAUDE.md</code> и <code>V7_Padel_Brain.md</code>.</p>
-
-    <h3>Как запустить Claude Code</h3>
-    <ol>
-      <li>Терминал (PowerShell или cmd): <code>cd C:\Users\volod\v7padel\site</code></li>
-      <li>Запуск: <code>claude</code> (или <code>claude --dangerously-skip-permissions</code> для автоматического режима)</li>
-      <li>Описать задачу на русском. Давать конкретные числа для проверки.</li>
-    </ol>
-
-    <h3>Правила взаимодействия</h3>
-    <div class="rule"><span class="num">9.1</span><div class="text"><strong>Все ответы на русском.</strong> Без английских вставок в тексте.</div></div>
-    <div class="rule"><span class="num">9.2</span><div class="text"><strong>Одна задача за раз.</strong> Не смешивать 1-минутную правку с 10-часовой фичей.</div></div>
-    <div class="rule"><span class="num">9.3</span><div class="text"><strong>Сначала доделай, потом переходи к следующему.</strong></div></div>
-    <div class="rule"><span class="num">9.4</span><div class="text"><strong>Не дублируй данные.</strong> Если данные уже есть на другой вкладке — сообщи.</div></div>
-    <div class="rule"><span class="num">9.5</span><div class="text"><strong>Метрики:</strong> выручка/корто-час важнее tx/день. Цели = скользящий тренд +15%.</div></div>
-    <div class="rule"><span class="num">9.6</span><div class="text"><strong>Приоритет задач:</strong> приоритет + тип + длительность + исполнитель.</div></div>
-
-    <h3>Файлы контекста</h3>
-    <table class="schema">
-      <thead><tr><th>Файл</th><th>Назначение</th></tr></thead>
-      <tbody>
-        <tr><td><code>CLAUDE.md</code></td><td>Технические правила: ID таблиц, маппинг категорий, архитектура, ETL</td></tr>
-        <tr><td><code>V7_Padel_Brain.md</code></td><td>Бизнес-правила и спецификация данных (markdown-версия этой страницы)</td></tr>
-        <tr><td><code>.claude/</code></td><td>Настройки Claude Code: launch.json (превью-сервер), memory</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- 10. ССЫЛКИ И РЕСУРСЫ -->
-  <div class="section">
-    <h2>10 · Ссылки и ресурсы</h2>
-    <table class="schema">
-      <thead><tr><th>Ресурс</th><th>Ссылка / ID</th><th>Описание</th></tr></thead>
-      <tbody>
-        <tr><td>Matchpoint</td><td><code>app-v7padel-tur.matchpoint.com.es</code></td><td>CRM: бронирования, клиенты, транзакции</td></tr>
-        <tr><td>v7padel_db</td><td><code>1BfRgbVldM6sZUbNxSo77sS5XTaqf9-TKLnoce1jq1UY</code></td><td>Основная Google Sheet (bookings, customers, occupancy...)</td></tr>
-        <tr><td>PnL бухгалтера</td><td><code>1wLvhEUAsS08K6LvxSKAx5-soh5NxayMpU3brvd4rQ54</code></td><td>P&amp;L отчёты (источник правды для финансов)</td></tr>
-        <tr><td>GitHub</td><td><code>omalkut-prog/v7padel</code></td><td>Репозиторий сайта</td></tr>
-        <tr><td>Racket.ID</td><td>Firestore (публичный)</td><td>Рейтинги, турниры, участники</td></tr>
-        <tr><td>Сайт (превью)</td><td><code>localhost:8765</code></td><td>Локальный Python HTTP сервер</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Структура сайта</h3>
-    <table class="schema">
-      <thead><tr><th>Страница</th><th>Файл</th><th>Что показывает</th></tr></thead>
-      <tbody>
-        <tr><td>Главная</td><td><code>index.html</code></td><td>Обзор с навигацией</td></tr>
-        <tr><td>Выручка</td><td><code>revenue.html</code></td><td>Доход + Доп.продажи + Маржинальность + Загрузка кортов</td></tr>
-        <tr><td>Дашборд</td><td><code>dashboard.html</code></td><td>Сводка KPI</td></tr>
-        <tr><td>Управление</td><td><code>management.html</code></td><td>Операционные метрики</td></tr>
-        <tr><td>Финансы</td><td><code>finance.html</code></td><td>P&amp;L, расходы</td></tr>
-        <tr><td>Клиенты</td><td><code>clients.html</code></td><td>База клиентов, удержание</td></tr>
-        <tr><td>Данные</td><td><code>data.html</code></td><td>Сырые данные из таблиц</td></tr>
-        <tr><td>Brain</td><td><code>brain.html</code></td><td>Эта страница — база знаний</td></tr>
-      </tbody>
-    </table>
-
-    <h3>Корты</h3>
-    <table class="schema">
-      <thead><tr><th>ID</th><th>Название</th><th>Тип</th></tr></thead>
-      <tbody>
-        <tr><td>P1</td><td>Pista 1</td><td>Крытый</td></tr>
-        <tr><td>P2</td><td>Pista 2</td><td>Крытый</td></tr>
-        <tr><td>P3</td><td>Pista 3</td><td>Крытый</td></tr>
-        <tr><td>P4</td><td>Pista 4</td><td>Открытый</td></tr>
-      </tbody>
-    </table>
-    <p>Режим работы: <strong>8:00–23:00</strong> (15 часов). Макс. корто-часов/день = 60 ч (4 × 15).</p>
-  </div>
-</main>
-
-<script src="assets/nav.js"></script>
-<script src="assets/sidebar.js"></script>
+window.addEventListener('hashchange', function() {
+  var id = window.location.hash.slice(1);
+  if (id) loadDoc(id);
+});
+</script>
 </body>
 </html>
