@@ -306,12 +306,24 @@
       <button class="chip top-view active" data-view="revenue">по выручке</button>
       <button class="chip top-view" data-view="visits">по визитам</button>
       <span style="width:14px"></span>
-      <!-- period -->
+      <!-- period (V4 — пресеты + custom) -->
       <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Период:</span>
-      <button class="chip top-period active" data-period="all">всё время</button>
-      <button class="chip top-period" data-period="90d">90 дн</button>
-      <button class="chip top-period" data-period="30d">30 дн</button>
+      <button class="chip top-period" data-period="last_month">Прошлый месяц</button>
+      <button class="chip top-period" data-period="this_month">Этот месяц</button>
       <button class="chip top-period" data-period="7d">7 дн</button>
+      <button class="chip top-period" data-period="30d">30 дн</button>
+      <button class="chip top-period" data-period="90d">90 дн</button>
+      <button class="chip top-period" id="top-period-custom" data-period="custom">📅</button>
+      <button class="chip top-period active" data-period="all">Всё</button>
+      <span id="top-period-custom-label" style="font-size:11px;color:var(--text2);display:none"></span>
+    </div>
+    <div id="top-period-custom-panel" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;margin:0 0 10px;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--text2);font-weight:500">С:</span>
+      <input type="date" id="top-period-from" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px">
+      <span style="font-size:11px;color:var(--text2);font-weight:500">По:</span>
+      <input type="date" id="top-period-to" style="padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px">
+      <button class="chip" id="top-period-apply" style="background:var(--accent);color:#fff;border-color:var(--accent)">Применить</button>
+      <button class="chip" id="top-period-cancel">Отмена</button>
     </div>
     <div class="filters" style="row-gap:8px">
       <!-- segments -->
@@ -913,7 +925,45 @@ function segBadge(seg) {
   return '<span class="seg-badge seg-' + (seg || 'occasional') + '">' + lbl + '</span>';
 }
 
-function renderTopClients() {
+/* V4: dynamic aggregation для произвольных периодов из client_transactions.
+ * Pre-agg fields (amount_7d/30d/90d/all) — для быстрых пресетов.
+ * 'this_month' / 'last_month' / 'custom' — runtime aggregation.
+ */
+function _topPeriodBounds() {
+  var p = topState.period;
+  var now = new Date(); now.setHours(0,0,0,0);
+  if (p === 'this_month') {
+    return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+  }
+  if (p === 'last_month') {
+    return {
+      from: new Date(now.getFullYear(), now.getMonth() - 1, 1),
+      to: new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999)
+    };
+  }
+  if (p === 'custom' && topState.customFrom && topState.customTo) {
+    return { from: topState.customFrom, to: topState.customTo };
+  }
+  return null; // fallback to pre-agg fields
+}
+
+function _isPreAggPeriod(p) {
+  return p === '7d' || p === '30d' || p === '90d' || p === 'all';
+}
+
+async function _loadClientTxs() {
+  if (window._clientTxsCache) return window._clientTxsCache;
+  try {
+    var rows = await V7.loadSheet('client_transactions');
+    window._clientTxsCache = rows || [];
+    return window._clientTxsCache;
+  } catch (e) {
+    console.warn('client_transactions load failed:', e);
+    return [];
+  }
+}
+
+async function renderTopClients() {
   var tbody = document.getElementById('top-tbody');
   var info = document.getElementById('top-info');
   if (!tbody) return;
@@ -923,15 +973,52 @@ function renderTopClients() {
   var seg = topState.segment;
   var minAmt = Number(topState.minAmt) || 0;
 
-  var amtField = 'amount_' + period;
-  var bkField  = 'bookings_' + period;
-
-  var rows = (topState.rows || []).map(function(r) {
-    var amt = Number(r[amtField]) || 0;
-    var bk  = Number(r[bkField])  || 0;
-    var avg = bk > 0 ? amt / bk : 0;
-    return Object.assign({}, r, { _amt: amt, _bk: bk, _avg: avg });
-  });
+  var rows;
+  if (_isPreAggPeriod(period)) {
+    // Быстрый путь — pre-agg fields из top_clients_revenue
+    var amtField = 'amount_' + period;
+    var bkField  = 'bookings_' + period;
+    rows = (topState.rows || []).map(function(r) {
+      var amt = Number(r[amtField]) || 0;
+      var bk  = Number(r[bkField])  || 0;
+      var avg = bk > 0 ? amt / bk : 0;
+      return Object.assign({}, r, { _amt: amt, _bk: bk, _avg: avg });
+    });
+  } else {
+    // Dynamic agg для this_month / last_month / custom
+    var bounds = _topPeriodBounds();
+    if (!bounds) {
+      // No bounds — fallback to all
+      rows = (topState.rows || []).map(function(r) {
+        return Object.assign({}, r, { _amt: Number(r.amount_all) || 0, _bk: Number(r.bookings_all) || 0, _avg: 0 });
+      });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="8" class="loading">Считаю период…</td></tr>';
+      var txs = await _loadClientTxs();
+      var aggByCid = {};
+      txs.forEach(function(t) {
+        var dStr = String(t.date || '').slice(0, 10);
+        if (!dStr) return;
+        var dt = new Date(dStr + 'T00:00:00');
+        if (isNaN(dt) || dt < bounds.from || dt > bounds.to) return;
+        if (String(t.is_cancel || '0') === '1') return;
+        var cid = String(t.customer_id || '').trim();
+        if (!cid) return;
+        var amt = Number(t.total) || 0;
+        if (!aggByCid[cid]) aggByCid[cid] = { amt: 0, n: 0 };
+        aggByCid[cid].amt += amt;
+        aggByCid[cid].n += 1;
+      });
+      // Map в формат как у pre-agg: используем base data из topState.rows и переписываем _amt/_bk
+      rows = (topState.rows || []).map(function(r) {
+        var cid = String(r.customer_id || '');
+        var a = aggByCid[cid] || { amt: 0, n: 0 };
+        return Object.assign({}, r, {
+          _amt: a.amt, _bk: a.n, _avg: a.n > 0 ? a.amt / a.n : 0
+        });
+      });
+    }
+  }
 
   // фильтры
   if (seg !== 'all') rows = rows.filter(function(r) { return r.segment === seg; });
@@ -1014,11 +1101,51 @@ function bindTopFilters() {
   });
   document.querySelectorAll('.chip.top-period').forEach(function(btn) {
     btn.addEventListener('click', function() {
+      var p = btn.dataset.period;
+      if (p === 'custom') {
+        var panel = document.getElementById('top-period-custom-panel');
+        panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+        if (panel.style.display === 'flex') {
+          var fmt = function(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+          var now = new Date();
+          var defaultFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          var defaultTo = new Date(now.getFullYear(), now.getMonth(), 0);
+          document.getElementById('top-period-from').value = fmt(defaultFrom);
+          document.getElementById('top-period-to').value = fmt(defaultTo);
+        }
+        return;
+      }
       document.querySelectorAll('.chip.top-period').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      topState.period = btn.dataset.period;
+      document.getElementById('top-period-custom-panel').style.display = 'none';
+      document.getElementById('top-period-custom-label').style.display = 'none';
+      topState.period = p;
+      topState.customFrom = null;
+      topState.customTo = null;
       renderTopClients();
     });
+  });
+  document.getElementById('top-period-apply').addEventListener('click', function() {
+    var fromStr = document.getElementById('top-period-from').value;
+    var toStr = document.getElementById('top-period-to').value;
+    if (!fromStr || !toStr) { alert('Выбери обе даты'); return; }
+    var from = new Date(fromStr + 'T00:00:00');
+    var to = new Date(toStr + 'T23:59:59');
+    if (from > to) { alert('«С» должно быть раньше «По»'); return; }
+    topState.period = 'custom';
+    topState.customFrom = from;
+    topState.customTo = to;
+    document.querySelectorAll('.chip.top-period').forEach(function(b) { b.classList.remove('active'); });
+    document.getElementById('top-period-custom').classList.add('active');
+    document.getElementById('top-period-custom-panel').style.display = 'none';
+    var lbl = document.getElementById('top-period-custom-label');
+    var fmtDay = function(d) { return String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0'); };
+    lbl.textContent = fmtDay(from) + '—' + fmtDay(to);
+    lbl.style.display = '';
+    renderTopClients();
+  });
+  document.getElementById('top-period-cancel').addEventListener('click', function() {
+    document.getElementById('top-period-custom-panel').style.display = 'none';
   });
   document.querySelectorAll('.chip.top-seg').forEach(function(btn) {
     btn.addEventListener('click', function() {
