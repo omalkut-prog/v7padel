@@ -1223,9 +1223,11 @@ function recalcKPIs(prefix) {
 
   var $ = function(id) { return document.getElementById(prefix + '-' + id); };
 
-  // If period is current month (1M) in CALENDAR mode, use the smart formula with prev month comparison.
-  // Rolling 1M = последние 30 дней — идёт общим путём ниже.
-  if (_periodMonths === 1 && _periodMode === 'calendar') {
+  // V4: умная ветка с прогнозом + сравнение с прошлым месяцем — ТОЛЬКО для
+  // 'this_month'. Для 'last_month' / 'days_*' / 'custom' / 'all' — общая ветка ниже.
+  // Раньше было _periodMonths===1 && mode==='calendar' что включало 'last_month'
+  // как «текущий месяц» (May брал данные May=0 вместо April).
+  if (_periodType === 'this_month') {
     var curMonth = today.getMonth(), curYear = today.getFullYear();
     var dimCur = daysInMonth(curYear, curMonth);
     var completedDays = Math.max(today.getDate() - 1, 1);
@@ -1239,8 +1241,6 @@ function recalcKPIs(prefix) {
         if (dd.getMonth() === curMonth && dd.getFullYear() === curYear) {
           monthSoFar += w.days[d];
           if (w.days[d] > 0) daysWithRev++;
-          // Реальное количество транзакций — из dayTx (появляется после _lazyBackfillTxDetails).
-          // Если ещё не загружены — txCount останется 0 и мы покажем fallback в renderKPIs.
           if (w.dayTx && w.dayTx[d]) txCount += w.dayTx[d].length;
         }
         if (dd.getMonth() === prevM && dd.getFullYear() === prevY) prevMonthFull += w.days[d];
@@ -1249,7 +1249,6 @@ function recalcKPIs(prefix) {
     var prevDim = daysInMonth(prevY, prevM);
     var prevPace = prevDim > 0 ? (prevMonthFull / prevDim) * completedDays : 0;
     renderKPIs(prefix, monthSoFar, completedDays, dimCur, prevPace, txCount, _goals[tabName] || 0);
-    // ₺/корто-час — пересчёт по текущему периоду и в 1M ветке (раньше был ранний return до вызова).
     if (prefix === 'inc') updateRevPerHourKPI();
     return;
   }
