@@ -2153,31 +2153,80 @@ function updateRevPerHourKPI() {
   }
 }
 
+/* V4: Per-court KPI теперь period-dependent.
+ * Revenue/court = period_revenue / 4 (sum income + goods)
+ * RPCH = period_revenue / period_hours
+ * OPEX/court — приблизительная пропорция от cache last_month
+ *   (нет daily-OPEX в текущей инфре). Маркируем как «оценка».
+ */
 function _renderPerCourtKpisInPulse() {
-  var k = window._dashKpisCache || {};
   var rpcEl = document.getElementById('inc-kpi-rev-per-court');
   var rpcSub = document.getElementById('inc-kpi-rev-per-court-sub');
   var opcEl = document.getElementById('inc-kpi-opex-per-court');
   var opcSub = document.getElementById('inc-kpi-opex-per-court-sub');
-  var rpc = num(k.revenue_per_court_lm);
-  var opc = num(k.opex_per_court_lm);
-  var pnlpc = num(k.pnl_per_court_lm);
-  var rpch = num(k.rpch_lm);
-  var courtsN = num(k.courts_count) || 4;
-  if (rpcEl && rpc > 0) {
-    rpcEl.textContent = fmtInt(Math.round(rpc)) + ' ₺';
-    if (rpcSub) {
-      var rpchTxt = rpch > 0 ? ' · RPCH ' + fmtInt(Math.round(rpch)) + ' ₺/ч' : '';
-      rpcSub.textContent = 'PnL ' + (k.last_month || '') + ' / ' + courtsN + rpchTxt;
-    }
+  if (!rpcEl) return;
+
+  var today = new Date(); today.setHours(0,0,0,0);
+  var courtsN = 4;
+  var periodLbl = _periodLabel();
+
+  // Revenue в периоде из weekMap (income + goods)
+  var periodRev = 0;
+  var collectRev = function(wMap) {
+    if (!wMap) return;
+    Object.values(wMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd >= today) continue;
+        if (!inPeriod(dd)) continue;
+        periodRev += w.days[d];
+      }
+    });
+  };
+  collectRev(tabData.income && tabData.income.weekMap);
+  collectRev(tabData.goods && tabData.goods.weekMap);
+
+  // Hours в периоде из _utlParsed
+  var utl = window._utlParsed || [];
+  var periodHours = utl.reduce(function(s, r) {
+    if (r.hours <= 0 || r.dt >= today || !inPeriod(r.dt)) return s;
+    return s + r.hours;
+  }, 0);
+
+  // Revenue / корт + RPCH
+  var revPerCourt = periodRev / courtsN;
+  var rpch = periodHours > 0 ? periodRev / periodHours : 0;
+
+  if (revPerCourt > 0) {
+    rpcEl.textContent = fmtInt(Math.round(revPerCourt)) + ' ₺';
+  } else {
+    rpcEl.textContent = '0 ₺';
   }
-  if (opcEl && opc > 0) {
-    opcEl.textContent = fmtInt(Math.round(opc)) + ' ₺';
-    if (opcSub) {
-      var sign = pnlpc >= 0 ? '+' : '';
-      opcSub.textContent = 'P&L/корт: ' + sign + fmtInt(Math.round(pnlpc)) + ' ₺';
-      opcSub.style.color = pnlpc >= 0 ? 'var(--good)' : 'var(--bad)';
-    }
+  if (rpcSub) {
+    var rpchTxt = rpch > 0 ? 'RPCH ' + fmtInt(Math.round(rpch)) + ' ₺/ч' : 'нет данных';
+    rpcSub.textContent = periodLbl + ' / ' + courtsN + ' кортов · ' + rpchTxt;
+  }
+
+  // OPEX/корт — пропорция от cache last_month по дням периода
+  var k = window._dashKpisCache || {};
+  var opcLm = num(k.opex_per_court_lm);     // OPEX/корт за last_month (полный месяц)
+  var pnlpcLm = num(k.pnl_per_court_lm);    // P&L/корт за last_month
+  if (!opcEl) return;
+  if (opcLm <= 0) {
+    opcEl.textContent = '—';
+    if (opcSub) opcSub.textContent = 'нет данных PnL';
+    return;
+  }
+  // Пересчёт OPEX/корт пропорционально дням периода / 30 (грубая оценка)
+  var periodDays = utl.filter(function(r) { return r.hours > 0 && r.dt < today && inPeriod(r.dt); }).length;
+  if (periodDays === 0) periodDays = 1;
+  var opcEst = opcLm * (periodDays / 30);
+  var pnlpcEst = revPerCourt - opcEst;
+  opcEl.textContent = fmtInt(Math.round(opcEst)) + ' ₺';
+  if (opcSub) {
+    var sign = pnlpcEst >= 0 ? '+' : '';
+    opcSub.textContent = 'P&L/корт: ' + sign + fmtInt(Math.round(pnlpcEst)) + ' ₺ · ' + periodLbl;
+    opcSub.style.color = pnlpcEst >= 0 ? 'var(--good)' : 'var(--bad)';
   }
 }
 
