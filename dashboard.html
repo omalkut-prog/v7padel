@@ -1240,10 +1240,11 @@ document.getElementById('kpi-rev-card').addEventListener('click', async function
   document.getElementById('modal-title').textContent = 'Структура выручки по периодам';
   document.getElementById('modal-body').innerHTML =
     '<div class="modal-period">' +
-    '  <button data-months="1">Месяц</button>' +
-    '  <button data-months="3">3 мес.</button>' +
-    '  <button data-months="6">6 мес.</button>' +
-    '  <button data-months="0">Всё</button>' +
+    '  <button data-months="1">Текущий месяц</button>' +
+    '  <button data-months="3">Последние 3 мес.</button>' +
+    '  <button data-months="6">Последние 6 мес.</button>' +
+    '  <button data-months="12">Последние 12 мес.</button>' +
+    '  <button data-months="0">Всё время</button>' +
     '</div>' +
     '<div id="rev-modal-table"><div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div></div>';
   document.getElementById('dash-modal').classList.add('active');
@@ -1334,10 +1335,11 @@ document.getElementById('kpi-opex-card').addEventListener('click', async functio
   document.getElementById('modal-title').textContent = 'Структура OPEX по периодам';
   document.getElementById('modal-body').innerHTML =
     '<div class="modal-period">' +
-    '  <button data-months="1">Месяц</button>' +
-    '  <button data-months="3">3 мес.</button>' +
-    '  <button data-months="6">6 мес.</button>' +
-    '  <button data-months="0">Всё</button>' +
+    '  <button data-months="1">Текущий месяц</button>' +
+    '  <button data-months="3">Последние 3 мес.</button>' +
+    '  <button data-months="6">Последние 6 мес.</button>' +
+    '  <button data-months="12">Последние 12 мес.</button>' +
+    '  <button data-months="0">Всё время</button>' +
     '</div>' +
     '<div id="opex-modal-table"><div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div></div>';
   document.getElementById('dash-modal').classList.add('active');
