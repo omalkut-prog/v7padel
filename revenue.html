@@ -266,16 +266,26 @@
     <div class="sum-bar" id="sum-bar"></div>
   </div>
 
-  <!-- PERIOD FILTER -->
+  <!-- PERIOD FILTER (V4 — пресеты + custom date picker) -->
   <div class="period-filter" id="period-filter">
     <span class="pf-label">Период:</span>
-    <button class="pf-btn active" data-months="1">1М</button>
-    <button class="pf-btn" data-months="3">3М</button>
-    <button class="pf-btn" data-months="6">6М</button>
-    <button class="pf-btn" data-months="0">Всё</button>
-    <span class="pf-label" style="margin-left:16px">Режим:</span>
-    <button class="pf-btn active" id="mode-calendar" data-mode="calendar" title="Календарные границы: 1М = с 1 числа, 3М = с 1 числа месяца 2 назад, и т.д.">Календарь</button>
-    <button class="pf-btn" id="mode-rolling" data-mode="rolling" title="Rolling окно от сегодня: 1М = посл. 30 дн., 3М = посл. 90 дн., 6М = посл. 180 дн.">Rolling</button>
+    <button class="pf-btn" data-period="last_month" title="Прошлый календарный месяц целиком">Прошлый месяц</button>
+    <button class="pf-btn active" data-period="this_month" title="Текущий календарный месяц">Этот месяц</button>
+    <button class="pf-btn" data-period="days_7" title="Последние 7 дней (rolling)">7 дн</button>
+    <button class="pf-btn" data-period="days_30" title="Последние 30 дней (rolling)">30 дн</button>
+    <button class="pf-btn" data-period="days_90" title="Последние 90 дней (rolling)">90 дн</button>
+    <button class="pf-btn" data-period="custom" id="period-custom-btn" title="Произвольный диапазон дат">📅 Custom</button>
+    <button class="pf-btn" data-period="all" title="Все данные с открытия">Всё</button>
+    <span id="period-custom-label" style="margin-left:10px;font-size:12px;color:var(--text2);display:none"></span>
+  </div>
+  <!-- Custom date range picker (hidden by default) -->
+  <div id="period-custom-panel" style="display:none;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin:0 0 14px;align-items:center;gap:10px;flex-wrap:wrap">
+    <span style="font-size:12px;color:var(--text2);font-weight:500">С:</span>
+    <input type="date" id="period-from" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px">
+    <span style="font-size:12px;color:var(--text2);font-weight:500">По:</span>
+    <input type="date" id="period-to" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px">
+    <button class="pf-btn" id="period-apply" style="background:var(--accent);color:#fff;border-color:var(--accent)">Применить</button>
+    <button class="pf-btn" id="period-cancel">Отмена</button>
   </div>
 
   <!-- TAB SWITCHER -->
@@ -932,8 +942,11 @@ function isGoods(cat) { return categorizeRevenue(cat) === 'Товары'; }
 /* ---- Tab switcher ---- */
 var _marginsRendered = false;
 var _utilizationRendered = false;
-var _periodMonths = 1; // default: current month
-var _periodMode = 'calendar'; // 'calendar' | 'rolling'
+var _periodMonths = 1; // default: current month — backward compat для существующего кода
+var _periodMode = 'calendar'; // 'calendar' | 'rolling' — backward compat
+var _periodType = 'this_month'; // NEW: 'this_month' | 'last_month' | 'days_7' | 'days_30' | 'days_90' | 'custom' | 'all'
+var _periodFrom = null; // NEW: Date or null
+var _periodTo = null;   // NEW: Date or null (null = до сегодня)
 
 /* ---- Full re-render after period/mode change (shared by both handlers) ---- */
 function _rerenderAllAfterPeriodChange() {
@@ -951,29 +964,99 @@ function _rerenderAllAfterPeriodChange() {
   }
 }
 
-/* ---- Period filter (1M/3M/6M/All) ---- */
-document.querySelectorAll('#period-filter .pf-btn[data-months]').forEach(function(btn) {
+/* ---- Period filter (V4 — пресеты + custom) ---- */
+function _setPeriodType(type, opts) {
+  _periodType = type;
+  opts = opts || {};
+  var now = new Date(); now.setHours(0,0,0,0);
+
+  // Маппинг новых типов на старые _periodMonths/_periodMode (для backward compat)
+  // и расчёт _periodFrom / _periodTo
+  if (type === 'this_month') {
+    _periodFrom = new Date(now.getFullYear(), now.getMonth(), 1);
+    _periodTo = null; // до сегодня
+    _periodMonths = 1; _periodMode = 'calendar';
+  } else if (type === 'last_month') {
+    _periodFrom = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    _periodTo = new Date(now.getFullYear(), now.getMonth(), 0); // последний день прошлого месяца
+    _periodTo.setHours(23,59,59,999);
+    _periodMonths = 1; _periodMode = 'calendar';
+  } else if (type === 'days_7') {
+    _periodFrom = new Date(now); _periodFrom.setDate(_periodFrom.getDate() - 7);
+    _periodTo = null;
+    _periodMonths = 1; _periodMode = 'rolling'; // приблизительно
+  } else if (type === 'days_30') {
+    _periodFrom = new Date(now); _periodFrom.setDate(_periodFrom.getDate() - 30);
+    _periodTo = null;
+    _periodMonths = 1; _periodMode = 'rolling';
+  } else if (type === 'days_90') {
+    _periodFrom = new Date(now); _periodFrom.setDate(_periodFrom.getDate() - 90);
+    _periodTo = null;
+    _periodMonths = 3; _periodMode = 'rolling';
+  } else if (type === 'all') {
+    _periodFrom = null;
+    _periodTo = null;
+    _periodMonths = 0; _periodMode = 'calendar';
+  } else if (type === 'custom') {
+    _periodFrom = opts.from || null;
+    _periodTo = opts.to || null;
+    if (_periodTo) _periodTo.setHours(23,59,59,999);
+    _periodMonths = -1; // custom marker
+    _periodMode = 'custom';
+  }
+}
+
+document.querySelectorAll('#period-filter .pf-btn[data-period]').forEach(function(btn) {
   btn.addEventListener('click', function() {
-    var months = parseInt(btn.dataset.months, 10) || 0;
-    if (months === _periodMonths) return; // no-op if already selected
-    document.querySelectorAll('#period-filter .pf-btn[data-months]').forEach(function(b) { b.classList.remove('active'); });
+    var type = btn.dataset.period;
+    if (type === 'custom') {
+      // Toggle custom panel
+      var panel = document.getElementById('period-custom-panel');
+      panel.style.display = panel.style.display === 'flex' ? 'none' : 'flex';
+      if (panel.style.display === 'flex') {
+        // Pre-fill with current period bounds
+        var fmt = function(d) { return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); };
+        var from = _periodFrom || new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1);
+        var to = _periodTo || new Date();
+        document.getElementById('period-from').value = fmt(from);
+        document.getElementById('period-to').value = fmt(to);
+      }
+      return;
+    }
+    document.querySelectorAll('#period-filter .pf-btn[data-period]').forEach(function(b) { b.classList.remove('active'); });
     btn.classList.add('active');
-    _periodMonths = months;
+    document.getElementById('period-custom-panel').style.display = 'none';
+    document.getElementById('period-custom-label').style.display = 'none';
+    _setPeriodType(type);
     _rerenderAllAfterPeriodChange();
   });
 });
 
-/* ---- Period mode toggle (calendar vs rolling) ---- */
-document.querySelectorAll('#period-filter .pf-btn[data-mode]').forEach(function(btn) {
-  btn.addEventListener('click', function() {
-    var mode = btn.dataset.mode;
-    if (mode === _periodMode) return; // no-op if already selected
-    document.querySelectorAll('#period-filter .pf-btn[data-mode]').forEach(function(b) { b.classList.remove('active'); });
-    btn.classList.add('active');
-    _periodMode = mode;
-    _rerenderAllAfterPeriodChange();
-  });
+document.getElementById('period-apply').addEventListener('click', function() {
+  var fromStr = document.getElementById('period-from').value;
+  var toStr = document.getElementById('period-to').value;
+  if (!fromStr || !toStr) { alert('Выбери обе даты'); return; }
+  var from = new Date(fromStr + 'T00:00:00');
+  var to = new Date(toStr + 'T00:00:00');
+  if (from > to) { alert('«С» должно быть раньше «По»'); return; }
+  _setPeriodType('custom', { from: from, to: to });
+  document.querySelectorAll('#period-filter .pf-btn[data-period]').forEach(function(b) { b.classList.remove('active'); });
+  document.getElementById('period-custom-btn').classList.add('active');
+  document.getElementById('period-custom-panel').style.display = 'none';
+  // Show label
+  var lbl = document.getElementById('period-custom-label');
+  var fmt = function(d) { return String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0'); };
+  lbl.textContent = fmt(from) + ' — ' + fmt(to);
+  lbl.style.display = '';
+  _rerenderAllAfterPeriodChange();
 });
+
+document.getElementById('period-cancel').addEventListener('click', function() {
+  document.getElementById('period-custom-panel').style.display = 'none';
+});
+
+// Init defaults
+_setPeriodType('this_month');
 
 /* ---- Recalculate utilization KPIs based on period (Matchpoint source) ---- */
 function recalcUtilizationKPIs() {
@@ -986,7 +1069,7 @@ function recalcUtilizationKPIs() {
 
   var filtered = parsed.filter(function(r) {
     if (r.dt > today) return false;
-    if (cutoff && r.dt < cutoff) return false;
+    if (!inPeriod(r.dt)) return false;
     return true;
   });
 
@@ -1024,7 +1107,7 @@ function recalcUtilizationKPIs() {
       for (var d = 0; d < 7; d++) {
         var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
         if (dd >= today) continue;
-        if (cutoff && dd < cutoff) continue;
+        if (!inPeriod(dd)) continue;
         incRev += w.days[d];
       }
     });
@@ -1034,7 +1117,7 @@ function recalcUtilizationKPIs() {
       for (var d = 0; d < 7; d++) {
         var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
         if (dd >= today) continue;
-        if (cutoff && dd < cutoff) continue;
+        if (!inPeriod(dd)) continue;
         goodsRev += w.days[d];
       }
     });
@@ -1058,7 +1141,47 @@ function recalcUtilizationKPIs() {
      6M = последние 180 дней
      Всё = нет cutoff.
 */
+/* Возвращает верхнюю границу периода (Date или null = до сегодня).
+   Используется только для "Прошлый месяц" + "Custom" — остальные типы
+   до сегодня (null). */
+function getPeriodEnd() {
+  return _periodTo;
+}
+
+/* Унифицированный label периода — используется во всех KPI / charts заголовках */
+function _periodLabel() {
+  var MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  if (_periodType === 'this_month') {
+    var now = new Date();
+    return MONTHS_RU[now.getMonth()] + ' ' + now.getFullYear();
+  }
+  if (_periodType === 'last_month') {
+    var lm = new Date(); lm.setMonth(lm.getMonth() - 1);
+    return MONTHS_RU[lm.getMonth()] + ' ' + lm.getFullYear();
+  }
+  if (_periodType === 'days_7') return 'посл. 7 дн.';
+  if (_periodType === 'days_30') return 'посл. 30 дн.';
+  if (_periodType === 'days_90') return 'посл. 90 дн.';
+  if (_periodType === 'all') return 'всё время';
+  if (_periodType === 'custom') {
+    var fmt = function(d) { return d ? String(d.getDate()).padStart(2,'0') + '.' + String(d.getMonth()+1).padStart(2,'0') : '?'; };
+    return fmt(_periodFrom) + ' — ' + fmt(_periodTo);
+  }
+  return 'период';
+}
+
+/* Helper: проверка date в периоде с учётом обеих границ. */
+function inPeriod(d) {
+  var from = getPeriodCutoff();
+  var to = getPeriodEnd();
+  if (from && d < from) return false;
+  if (to && d > to) return false;
+  return true;
+}
+
+/* Backward compat: возвращает _periodFrom если задан (V4 model). Иначе старая логика. */
 function getPeriodCutoff() {
+  if (_periodFrom !== null) return _periodFrom;
   if (_periodMonths <= 0) return null; // "All" — no cutoff
   var cutoff = new Date();
   if (_periodMode === 'rolling') {
@@ -1086,7 +1209,7 @@ function recalcKPIs(prefix) {
       var dayDate = new Date(w.mon);
       dayDate.setDate(dayDate.getDate() + d);
       if (dayDate >= today) continue; // skip future
-      if (cutoff && dayDate < cutoff) continue; // skip before cutoff
+      if (!inPeriod(dayDate)) continue; // skip before cutoff
       dayValues.push({ date: dayDate, val: w.days[d] });
     }
   });
@@ -1095,19 +1218,8 @@ function recalcKPIs(prefix) {
   var daysWithRevenue = dayValues.filter(function(d) { return d.val > 0; }).length;
   var totalRev = dayValues.reduce(function(s, d) { return s + d.val; }, 0);
 
-  // Period label
-  var periodLabel;
-  if (_periodMonths <= 0) {
-    periodLabel = 'всё время';
-  } else if (_periodMode === 'rolling') {
-    periodLabel = 'посл. ' + (_periodMonths * 30) + ' дн. (rolling)';
-  } else {
-    // Calendar mode
-    periodLabel = _periodMonths === 1 ? 'текущий месяц'
-                : _periodMonths === 3 ? '3 месяца'
-                : _periodMonths === 6 ? '6 месяцев'
-                : _periodMonths + ' мес.';
-  }
+  // Period label (V4)
+  var periodLabel = _periodLabel();
 
   var $ = function(id) { return document.getElementById(prefix + '-' + id); };
 
@@ -1151,7 +1263,7 @@ function recalcKPIs(prefix) {
     for (var d = 0; d < 7; d++) {
       var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
       if (dd >= today) continue;
-      if (cutoff && dd < cutoff) continue;
+      if (!inPeriod(dd)) continue;
       if (w.dayTx && w.dayTx[d]) txCountPeriod += w.dayTx[d].length;
     }
   });
@@ -1560,13 +1672,19 @@ function renderWeeklyTable(prefix) {
   if (isIncome && window._utlParsed) {
     window._utlParsed.forEach(function(r) { if (r.hours > 0) utlDayMap[r.date] = r.hours; });
   }
-  // Apply period filter
-  if (_periodMonths > 0) {
-    var cutoff = new Date();
-    cutoff.setMonth(cutoff.getMonth() - _periodMonths);
-    cutoff.setDate(1); cutoff.setHours(0,0,0,0);
-    var cutoffStr = cutoff.toISOString().slice(0,10);
-    keysChron = keysChron.filter(function(wk) { return wk >= cutoffStr; });
+  // Apply period filter (V4: use both bounds for last_month / custom)
+  var cutoff = getPeriodCutoff();
+  var endDt = getPeriodEnd();
+  if (cutoff || endDt) {
+    keysChron = keysChron.filter(function(wk) {
+      // wk = monday YYYY-MM-DD, неделя = wk до wk+6 дней
+      var monDate = new Date(wk + 'T00:00:00');
+      var sunDate = new Date(monDate); sunDate.setDate(sunDate.getDate() + 6);
+      // включаем неделю если хотя бы её часть в периоде
+      if (endDt && monDate > endDt) return false;
+      if (cutoff && sunDate < cutoff) return false;
+      return true;
+    });
   }
   const keysDesc = td.showAll ? [...keysChron].reverse() : keysChron.slice(-VISIBLE_WEEKS).reverse();
   const { maxDay, maxTotal } = computeMaxes(wMap, wKeys);
@@ -1906,7 +2024,7 @@ function renderIncCatDonutFromTxns() {
     if (_periodMonths === 1) {
       if (t.date.getMonth() !== curM || t.date.getFullYear() !== curY) return;
     } else if (cutoff) {
-      if (t.date < cutoff) return;
+      if (!inPeriod(t.date)) return;
     }
     var cat = categorizeRevenue(t.category);
     if (!cat) return;
@@ -1940,14 +2058,14 @@ function updateRevPerHourKPI() {
     for (var d = 0; d < 7; d++) {
       var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
       if (dd >= today) continue;
-      if (cutoff && dd < cutoff) continue;
+      if (!inPeriod(dd)) continue;
       periodRev += w.days[d];
     }
   });
   var periodHoursArr = utl.filter(function(r) {
     if (r.hours <= 0) return false;
     if (r.dt >= today) return false;
-    if (cutoff && r.dt < cutoff) return false;
+    if (!inPeriod(r.dt)) return false;
     return true;
   });
   var periodHours = periodHoursArr.reduce(function(s, r) { return s + r.hours; }, 0);
@@ -1968,10 +2086,7 @@ function updateRevPerHourKPI() {
     revHourEl.textContent = periodHours > 0 ? fmtInt(Math.round(periodPerH)) + ' ₺' : '—';
 
     // Подсказка: часы периода + справка за 30 дней
-    var periodLabel = _periodMonths === 1 ? 'текущий мес.'
-                    : _periodMonths === 3 ? '3 мес.'
-                    : _periodMonths === 6 ? '6 мес.'
-                    : 'всё';
+    var periodLabel = _periodLabel();
     var hint = periodHours > 0 ? Math.round(periodHours) + ' ч / ' + periodDays + ' дн. (' + periodLabel + ')' : 'нет данных';
 
     // Всегда показываем справку за последние 30 дней (бенчмарк)
@@ -2762,7 +2877,7 @@ function _renderUtilizationCharts() {
 
   // Filter by period
   var filtered = parsed.filter(function(r) {
-    if (cutoff && r.dt < cutoff) return false;
+    if (!inPeriod(r.dt)) return false;
     return true;
   });
 
@@ -3300,7 +3415,7 @@ async function loadPerCourtData() {
     var occTotal = 0;
     parsed.forEach(function(r) {
       if (r.dt >= now) return;
-      if (cutoff && r.dt < cutoff) return;
+      if (!inPeriod(r.dt)) return;
       var ym = ymKey(r.dt);
       occByMonth[ym] = (occByMonth[ym] || 0) + r.hours;
       occTotal += r.hours;
@@ -3337,7 +3452,7 @@ async function loadPerCourtData() {
       }
       if (!start || isNaN(start)) return;
       if (start >= now) return;
-      if (cutoff && start < cutoff) return;
+      if (!inPeriod(start)) return;
       var hours = 0;
       if (isCancellation) {
         // cancellations: есть duration_min
@@ -3580,7 +3695,7 @@ function _renderMarginsData(goodsTxns) {
   var cutoff = getPeriodCutoff();
   var filtered = goodsTxns;
   if (cutoff) {
-    filtered = goodsTxns.filter(function(t) { return t.date >= cutoff; });
+    filtered = goodsTxns.filter(function(t) { return inPeriod(t.date); });
   }
 
   var byProduct = {};
@@ -3632,7 +3747,7 @@ function _renderMarginsData(goodsTxns) {
   document.getElementById('mrg-kpi-matched-hint').textContent = 'сопоставлено с PnL';
 
   // Period label
-  var periodLabel = _periodMonths === 1 ? 'текущий месяц' : _periodMonths === 3 ? '3 месяца' : _periodMonths === 6 ? '6 месяцев' : 'всё время';
+  var periodLabel = _periodLabel();
   document.getElementById('mrg-kpi-period-label').textContent = 'Выручка товаров (' + periodLabel + ')';
 
   _mrgAllItems = items;
@@ -3869,7 +3984,7 @@ function _renderPeriodDow(prefix) {
     for (var d = 0; d < 7; d++) {
       var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
       if (dd >= today) continue;
-      if (cutoff && dd < cutoff) continue;
+      if (!inPeriod(dd)) continue;
       dowCalDays[d]++;
       dowTotals[d] += w.days[d];
       if (w.days[d] > 0) dowDaysWithRev[d]++;
@@ -3891,7 +4006,7 @@ function _renderPeriodMonthly(prefix) {
     for (var d = 0; d < 7; d++) {
       var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
       if (dd >= today) continue;
-      if (cutoff && dd < cutoff) continue;
+      if (!inPeriod(dd)) continue;
       var ym = ymKey(dd);
       if (!monthMap[ym]) monthMap[ym] = { total: 0, daySet: new Set() };
       monthMap[ym].total += w.days[d];
