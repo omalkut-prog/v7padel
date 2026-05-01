@@ -4231,22 +4231,30 @@ async function mainFromCache() {
   _lazyBackfillTxDetails();
 }
 
-/* ---- Ленивый backfill: после отрисовки из cache подгружаем полную таблицу transactions,
-       впиливаем dayTx-детализацию в уже существующий weekMap, перерисовываем weekly tables
-       (суммы не меняются — только включаем hover-тултипы).
+/* ---- Ленивый backfill: после отрисовки из cache подгружаем полную таблицу transactions
+   и ПЕРЕСЧИТЫВАЕМ суммы дней из RAW (не только dayTx).
+   Иначе ячейка = из кэша (frozen), тултип = из raw → расхождение для дней
+   которые довносились после последней сборки кэша.
+   Например 2026-04-30 cache 03:00 показал 33k, raw 111k (Оля вечером ввела).
+   Fix 2026-05-01: re-aggregate days+total из raw для всех недель.
    ==== */
 async function _lazyBackfillTxDetails() {
   try {
     var rows = await loadSheet('transactions');
     if (!rows || !rows.length) return;
-    // Инициализируем dayTx на существующих weekMap
+
+    // RESET days[], total и dayTx[] на существующих weekMap — будем пересчитывать
     ['income','goods'].forEach(function(tn) {
       var wm = tabData[tn] && tabData[tn].weekMap;
       if (!wm) return;
       Object.values(wm).forEach(function(w) {
-        if (!w.dayTx) w.dayTx = [[],[],[],[],[],[],[]];
+        w.days = [0,0,0,0,0,0,0];
+        w.total = 0;
+        w.dayTx = [[],[],[],[],[],[],[]];
       });
     });
+
+    // Re-aggregate из raw transactions
     rows.forEach(function(r) {
       var d = parseDate(r.date);
       if (!d) return;
@@ -4257,8 +4265,17 @@ async function _lazyBackfillTxDetails() {
       if (!tn) return;
       var wk = weekKey(d);
       var wm = tabData[tn].weekMap;
-      if (!wm[wk]) return; // неделю из кеша не знаем — пропускаем
+      // Если недели нет в weekMap — создаём (для самой свежей недели когда кэш ещё не догнал)
+      if (!wm[wk]) {
+        wm[wk] = { mon: getMonday(d), days: [0,0,0,0,0,0,0], total: 0, dayTx: [[],[],[],[],[],[],[]] };
+        if (tabData[tn].weekKeys) {
+          tabData[tn].weekKeys.unshift(wk); // самая свежая в начало (desc order)
+          tabData[tn].weekKeys.sort().reverse();
+        }
+      }
       var dow = isoWeekDow(d);
+      wm[wk].days[dow] += total;
+      wm[wk].total += total;
       wm[wk].dayTx[dow].push({
         total: total,
         category: cat,
@@ -4266,14 +4283,14 @@ async function _lazyBackfillTxDetails() {
         comment: r.comment || ''
       });
     });
-    // Перерисовываем, чтобы data-tx атрибуты появились
+
+    // Перерисовываем — теперь ячейки соответствуют raw, тултип не расходится
     renderWeeklyTable('inc');
     renderWeeklyTable('gds');
-    // Пересчитываем KPI — теперь txCount будет корректным (а не fallback '—')
+    // Пересчитываем KPI — теперь txCount корректный
     try { recalcKPIs('inc'); } catch (e) { console.warn('recalcKPIs inc failed:', e); }
     try { recalcKPIs('gds'); } catch (e) { console.warn('recalcKPIs gds failed:', e); }
   } catch (err) {
-    // Бэкфил опционален — если не получилось, тултип просто не появится
     console.warn('tx tooltip backfill failed:', err);
   }
 }
