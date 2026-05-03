@@ -189,15 +189,15 @@
       <div class="kpi-value" id="kpi-surplus-val">—</div>
       <div class="kpi-sub" id="kpi-surplus-sub">клиентов с положительным балансом</div>
     </div>
-    <div class="kpi-card danger" id="kpi-debt">
-      <div class="kpi-label">Чистый долг (debt − balance)</div>
-      <div class="kpi-value" id="kpi-debt-val">—</div>
-      <div class="kpi-sub" id="kpi-debt-sub">загрузка...</div>
+    <div class="kpi-card" style="opacity:0.5">
+      <div class="kpi-label">Чистый долг</div>
+      <div class="kpi-value" style="font-size:14px;color:var(--text3)">в работе</div>
+      <div class="kpi-sub">формула пересматривается · ADR-023</div>
     </div>
-    <div class="kpi-card" id="kpi-debtors">
+    <div class="kpi-card" style="opacity:0.5">
       <div class="kpi-label">Должников</div>
-      <div class="kpi-value" id="kpi-debtors-val">—</div>
-      <div class="kpi-sub" id="kpi-debtors-sub">клиентов с задолженностью</div>
+      <div class="kpi-value" style="font-size:14px;color:var(--text3)">в работе</div>
+      <div class="kpi-sub">включая штрафы за late-cancel с 1 мая</div>
     </div>
     <div class="kpi-card" id="kpi-movements">
       <div class="kpi-label">Движений баланса</div>
@@ -210,9 +210,12 @@
        видеть деньги КЛИЕНТОВ на балансе в первую очередь) -->
   <div class="tab-bar">
     <button class="tab-btn active" data-tab="surplus">Профицит</button>
-    <button class="tab-btn" data-tab="debtors">Должники</button>
+    <button class="tab-btn" data-tab="debtors" title="Формула долга в работе — текущий расчёт некорректный, см. ADR-023">Должники <span style="opacity:0.6;font-size:11px">⏸</span></button>
     <button class="tab-btn" data-tab="movements">Движения баланса</button>
     <button class="tab-btn" data-tab="chart">Графики</button>
+  </div>
+  <div id="debt-warning" style="display:none;background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);border-radius:10px;padding:14px 18px;margin-bottom:14px;font-size:13px;color:var(--text2)">
+    ⚠️ <strong>Расчёт долга временно скрыт</strong>. Текущая формула (sum of <code>OtrosImportesPendientes</code> + <code>PendienteReserva</code>) даёт некорректные числа — Matchpoint в своём отчёте «Clientes con Deudas» показывает 0 клиентов, наш расчёт — 25 на 90К ₺. Разрабатываем новую формулу: A) неоплаченные сыгранные брони, C) товары в долг, D) штрафы за late-cancel с 1 мая. См. ADR-023 (черновик).
   </div>
 
   <!-- Tab: Debtors -->
@@ -347,6 +350,9 @@
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      // Show warning banner ONLY on debtors tab
+      var dw = document.getElementById('debt-warning');
+      if (dw) dw.style.display = btn.dataset.tab === 'debtors' ? 'block' : 'none';
     });
   });
 
@@ -624,8 +630,8 @@
       return `<tr>
         <td>${nameHtml}</td>
         <td class="pos" style="font-weight:700">${fmt(d.balance)}</td>
-        <td>${d.realDebt > 0 ? fmt(d.realDebt) : '—'}</td>
-        <td>${d.netDebt < 0 ? '<span class="pos">переплата ' + fmt(Math.abs(d.netDebt)) + '</span>' : d.netDebt > 0 ? '<span class="neg">' + fmt(d.netDebt) + '</span>' : '—'}</td>
+        <td><span style="color:var(--text3);font-size:12px">в работе</span></td>
+        <td><span class="pos">+${fmt(d.balance)}</span></td>
       </tr>`;
     }).join('') + `<tr class="total-row">
       <td>ИТОГО (${surplusClients.length} клиентов)</td>
