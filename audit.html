@@ -407,13 +407,31 @@
   debtors.sort((a, b) => b.netDebt - a.netDebt);
 
   // Surplus: clients with balance > 0 (from API, no manual export needed)
-  const surplusClients = allClients
-    .filter(c => c.balance > 0)
+  // GUARD 2026-05-03: Matchpoint у нескольких клиентов глючит и пишет
+  // абсурдные балансы (десятки миллиардов ₺ — баланс в копейках * timestamp).
+  // Фильтруем нереалистичное (>1M ₺ — точно баг). Реальный max баланс в padel-
+  // клубе ~50-100K у самых VIP. Подсветим аномалии в отдельном warning.
+  const REALISTIC_MAX_BALANCE = 1_000_000;
+  const allWithBalance = allClients.filter(c => c.balance > 0);
+  const anomalies = allWithBalance.filter(c => c.balance > REALISTIC_MAX_BALANCE);
+  const surplusClients = allWithBalance
+    .filter(c => c.balance <= REALISTIC_MAX_BALANCE)
     .sort((a, b) => b.balance - a.balance);
 
   const totalDebt = debtors.reduce((s, d) => s + d.netDebt, 0);
   const totalGross = debtors.reduce((s, d) => s + d.realDebt, 0);
   const totalSurplus = surplusClients.reduce((s, d) => s + d.balance, 0);
+
+  // Anomalies banner (если есть)
+  if (anomalies.length) {
+    var fr = document.getElementById('audit-freshness');
+    if (fr) {
+      fr.innerHTML += '<br><span style="color:var(--bad)">⚠️ ' + anomalies.length +
+        ' клиентов с нереалистичным балансом >' + REALISTIC_MAX_BALANCE.toLocaleString() +
+        ' ₺ (' + anomalies.map(c => c.name).slice(0,3).join(', ') +
+        ') — глюк Matchpoint, исключены из общей суммы. Связаться с Matchpoint поддержкой.</span>';
+    }
+  }
 
   // ── KPIs ──
   document.getElementById('kpi-debt-val').textContent = fmt(totalDebt);
