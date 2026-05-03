@@ -49,6 +49,7 @@
     ]},
     { group: 'Клуб', items: [
       { label: 'Клиенты',    href: 'clients.html',             icon: 'clients',     roles: ['admin', 'manager', 'coach', 'administrator'] },
+      { label: 'Когорта',    href: 'cohort.html',              icon: 'clients',     roles: ['admin', 'manager'] },
       { label: 'Участники',  href: 'club-members.html',        icon: 'members',     roles: ['admin', 'manager'] },
       { label: 'Recall',     href: 'recall.html',              icon: 'recall',      roles: ['admin', 'manager'] },
       { label: 'Турниры',    href: 'tournament-analytics.html', icon: 'tournaments', roles: ['admin', 'manager', 'coach', 'administrator'] },
