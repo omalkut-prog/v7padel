@@ -2037,9 +2037,13 @@ function renderIncCatDonutFromPeriod() {
   var cutoffYM = cutoff ? ymKey(cutoff) : null;
   var incCatMap = {}, incCatTotal = 0;
   revMC.forEach(function(r) {
-    // Период 1M = только текущий месяц (как было), иначе от cutoff до current
-    if (_periodMonths === 1) {
+    // V4 fix: используем _periodType вместо _periodMonths (баг — last_month имел _periodMonths=1
+    // и попадал в ветку «только текущий», возвращая пусто)
+    if (_periodType === 'this_month') {
       if (r.month !== curYM) return;
+    } else if (_periodType === 'last_month' && _periodFrom) {
+      var lastYM = _periodFrom.getFullYear() + '-' + String(_periodFrom.getMonth()+1).padStart(2,'0');
+      if (r.month !== lastYM) return;
     } else if (cutoffYM) {
       if (r.month < cutoffYM) return;
     }
@@ -2062,9 +2066,10 @@ function renderIncCatDonutFromTxns() {
   var curM = today.getMonth(), curY = today.getFullYear();
   var incCatMap = {}, incCatTotal = 0;
   txns.forEach(function(t) {
-    if (_periodMonths === 1) {
+    if (_periodType === 'this_month') {
       if (t.date.getMonth() !== curM || t.date.getFullYear() !== curY) return;
-    } else if (cutoff) {
+    } else {
+      // last_month/days_*/custom/all — все через inPeriod (правильно)
       if (!inPeriod(t.date)) return;
     }
     var cat = categorizeRevenue(t.category);
@@ -2994,14 +2999,26 @@ function _renderUtilizationCharts() {
   });
 
   // ═══ 1. Days — bar chart + table ═══
+  // V4 fix (2026-05-03): раньше было `if (_periodMonths === 1)` → последний/this_month/days_7/30
+  // все попадали в одну ветку с жёстким текущим месяцем → данные за прошлый месяц
+  // фильтровались правильно, но allDays рисовал май → пустые бары.
+  // Теперь используем _periodType напрямую + _periodFrom/_periodTo (V4 model).
   var startDate, endDate;
-  if (_periodMonths === 1) {
+  if (_periodType === 'this_month') {
     startDate = new Date(today.getFullYear(), today.getMonth(), 1);
     endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-  } else if (cutoff) {
-    startDate = new Date(cutoff);
+  } else if (_periodType === 'last_month' && _periodFrom && _periodTo) {
+    startDate = new Date(_periodFrom);
+    endDate = new Date(_periodTo);
+  } else if (_periodType === 'custom' && _periodFrom && _periodTo) {
+    startDate = new Date(_periodFrom);
+    endDate = new Date(_periodTo);
+  } else if (_periodFrom) {
+    // days_7 / days_30 / days_90 — rolling от _periodFrom до today
+    startDate = new Date(_periodFrom);
     endDate = new Date(today);
   } else {
+    // 'all' — от первой даты в данных до today
     startDate = filtered.length ? new Date(filtered[0].date + 'T00:00:00') : new Date(today);
     endDate = new Date(today);
   }
@@ -3025,7 +3042,12 @@ function _renderUtilizationCharts() {
     cur = new Date(cur); cur.setDate(cur.getDate() + 1);
   }
 
-  var multiMonth = _periodMonths !== 1;
+  // multiMonth = период длиннее 31 дня (для рендера: dd.mm vs только день)
+  var multiMonth = (function() {
+    var msPerDay = 86400000;
+    var days = (endDate - startDate) / msPerDay;
+    return days > 35;
+  })();
   var dayLabels = multiMonth
     ? allDays.map(function(d) { return d.date.slice(8,10) + '.' + d.date.slice(5,7); })
     : allDays.map(function(d) { return parseInt(d.date.slice(8,10)) + ''; });
