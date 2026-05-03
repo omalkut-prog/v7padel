@@ -1343,9 +1343,13 @@ function renderTop60Protection(rows) {
       if (clean) waLink = '<a href="https://wa.me/' + clean.replace(/^\+?/, '') + '" target="_blank" style="color:var(--accent);text-decoration:none">' + phone + ' 💬</a>';
       else waLink = phone;
     }
+    var cid = r.customer_id || '';
+    var nameCell = cid
+      ? '<a href="#cid=' + cid + '" style="color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent)" title="Открыть карточку клиента"><b>' + (r.name || '—') + '</b></a>'
+      : '<b>' + (r.name || '—') + '</b>';
     html += '<tr>' +
       '<td class="muted">' + (i + 1) + '</td>' +
-      '<td><b>' + (r.name || '—') + '</b></td>' +
+      '<td>' + nameCell + '</td>' +
       '<td class="num">' + V7.fmtMoney(V7.num(r.amount_90d || 0)) + '</td>' +
       '<td>' + statusBadge + '</td>' +
       '<td>' + segBadge + '</td>' +

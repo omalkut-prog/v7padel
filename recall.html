@@ -385,9 +385,10 @@ function render() {
 
     var lastTxHint = r.last_tx ? '<div style="font-size:10px;color:var(--text3);margin-top:2px">ticket ' + r.last_tx + '</div>' : '';
 
+    var nameLink = '<a href="clients.html#cid=' + escHtml(cid) + '" style="color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent)" title="Карточка клиента">' + name + '</a>';
     return '<tr data-cid="' + escHtml(cid) + '">'
       + '<td style="color:var(--text3)">' + (i + 1) + '</td>'
-      + '<td class="name-cell">' + name + '<span class="cid">#' + escHtml(cid) + '</span>' + lastTxHint + '</td>'
+      + '<td class="name-cell">' + nameLink + '<span class="cid">#' + escHtml(cid) + '</span>' + lastTxHint + '</td>'
       + '<td><span class="bucket-badge bucket-' + bucket + '">' + bucketLabel + '</span></td>'
       + '<td class="amt">' + fmtFull(amtAll) + '</td>'
       + '<td class="amt">' + fmtMoney(amt90) + '</td>'
