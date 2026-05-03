@@ -487,6 +487,38 @@ OPEX per court = total_opex / N courts            (удельные затрат
 
 ---
 
+## ADR-021 · 2026-05-03 · Matchpoint customer_id off-by-one
+
+**Контекст**: Володимир дал ground truth по балансам клиентов из Matchpoint UI:
+- Volodymyr Rykov (display 000006): 19 009 ₺
+- Artem Ilin (000009): 18 151 ₺
+- Oleksandra Ilina (000038): 22 955 ₺
+- Ivanna Rykova (000019): 11 493 ₺
+
+Наш `scrape_debts.fetch_client_balance` возвращал **0 для всех** этих cid и **сдвинутые балансы для соседних** (cid=20 Marchenko возвращал 11 493 = баланс Rykova cid=19; cid=39 Volchenko возвращал 22 955 = баланс Ilina cid=38).
+
+**Раскопали**: Matchpoint имеет **2 разных customer_id namespace'а** (это уже было задокументировано в `compute_new_clients_retention`, но не было системно учтено):
+1. **ListadoClientes namespace** — то что хранится в нашей БД `customers.customer_id`. cid Rykova = 19.
+2. **FichaCliente URL namespace** — то что нужно в `FichaCliente.aspx?id={X}`. Для того же Rykova нужен `id=20`.
+
+Разница систематическая: `URL_id = БД_cid + 1` для всех клиентов.
+
+**Решение** (hotfix): `fetch_client_balance` использует `url_id = int(cid) + 1`. Тест на 4 known клиентах подтвердил: после fix все балансы матчатся ground truth.
+
+**Где внимательно**:
+- ✅ `etl/scrape_debts.py::fetch_client_balance` — пофиксено
+- ⚠️ `etl/sync_bookings_matchpoint.py::ObtenerInformacionReservaTooltip` — использует **третий** namespace (tooltip cid). Mapping через bookings без join'а уже сделан в `compute_new_clients_retention`.
+- ⚠️ Будущий код (Telegram-боты, drill-down карточки клиентов) — должен использовать `cid+1` для FichaCliente. Чек-лист в `reference_mp_cid_namespaces.md`.
+
+**Долгосрочный фикс (P2 backlog)**: найти где в `sync_customers_matchpoint.py` теряется +1 и пересинкнуть. Если найдём — убрать workaround.
+
+**Где смотреть код**:
+- `etl/scrape_debts.py:317-345` (fetch_client_balance с +1)
+- Memory anchor: `reference_mp_cid_namespaces.md`
+- Тестовый pattern: при ЛЮБОМ новом коде с MP cid — взять 2-3 known клиента, сверить с MP UI.
+
+---
+
 ## Шаблон новой записи
 
 ```markdown
