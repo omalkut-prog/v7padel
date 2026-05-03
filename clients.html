@@ -695,6 +695,23 @@ const state = {
   renderSummary();
   applyFilters();
   bindUI();
+
+  // Auto-open client card если в URL есть #cid=N (приходим с /audit и др.)
+  function tryOpenFromHash() {
+    var m = location.hash.match(/cid=(\d+)/);
+    if (m) {
+      var cid = m[1];
+      // Try open. Если рендер ещё не готов — повторим через 300ms (max 5 раз).
+      var tries = 0;
+      var attempt = function() {
+        if (openCardByCid(cid)) return;
+        if (++tries < 5) setTimeout(attempt, 300);
+      };
+      attempt();
+    }
+  }
+  tryOpenFromHash();
+  window.addEventListener('hashchange', tryOpenFromHash);
 })();
 
 function renderSummary() {

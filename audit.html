@@ -534,7 +534,7 @@
   // ── Debtors table ──
   const dtBody = document.querySelector('#debtors-table tbody');
   const renderRow = d => `<tr>
-      <td>${d.name}</td>
+      <td>${d.clientId ? '<a href="clients.html#cid=' + d.clientId + '" style="color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)" title="Карточка клиента">' + d.name + '</a>' : d.name}</td>
       <td>${fmt(d.pendRes)}</td>
       <td>${d.debtLuz ? fmt(d.debtLuz) : '—'}</td>
       <td>${fmt(d.debtOther)}</td>
@@ -615,12 +615,19 @@
   if (!surplusClients.length) {
     sBody.innerHTML = '<tr><td colspan="4" class="loading">Нет клиентов с балансом</td></tr>';
   } else {
-    sBody.innerHTML = surplusClients.map((d, i) => `<tr>
-      <td><span class="surplus-name" style="cursor:help;border-bottom:1px dotted var(--text3)" data-name="${d.name.replace(/"/g,'&quot;')}">${d.name}</span></td>
-      <td class="pos" style="font-weight:700">${fmt(d.balance)}</td>
-      <td>${d.realDebt > 0 ? fmt(d.realDebt) : '—'}</td>
-      <td>${d.netDebt < 0 ? '<span class="pos">переплата ' + fmt(Math.abs(d.netDebt)) + '</span>' : d.netDebt > 0 ? '<span class="neg">' + fmt(d.netDebt) + '</span>' : '—'}</td>
-    </tr>`).join('') + `<tr class="total-row">
+    sBody.innerHTML = surplusClients.map((d, i) => {
+      // Кликабельное имя → /clients.html#cid=N открывает карточку клиента.
+      // Hover на имени всё ещё показывает popup с движениями баланса.
+      var nameHtml = d.clientId
+        ? '<a class="surplus-name" href="clients.html#cid=' + d.clientId + '" style="cursor:pointer;color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent);" data-name="' + d.name.replace(/"/g,'&quot;') + '" title="Кликни — карточка клиента · наведи — движения баланса">' + d.name + '</a>'
+        : '<span class="surplus-name" style="cursor:help;border-bottom:1px dotted var(--text3)" data-name="' + d.name.replace(/"/g,'&quot;') + '">' + d.name + '</span>';
+      return `<tr>
+        <td>${nameHtml}</td>
+        <td class="pos" style="font-weight:700">${fmt(d.balance)}</td>
+        <td>${d.realDebt > 0 ? fmt(d.realDebt) : '—'}</td>
+        <td>${d.netDebt < 0 ? '<span class="pos">переплата ' + fmt(Math.abs(d.netDebt)) + '</span>' : d.netDebt > 0 ? '<span class="neg">' + fmt(d.netDebt) + '</span>' : '—'}</td>
+      </tr>`;
+    }).join('') + `<tr class="total-row">
       <td>ИТОГО (${surplusClients.length} клиентов)</td>
       <td class="pos" style="font-weight:700">${fmt(totalSurplus)}</td>
       <td colspan="2"></td>
