@@ -111,7 +111,7 @@
 </nav>
 
 <main>
-  <h1 class="page-title">Variance Analysis · март vs февраль 2026</h1>
+  <h1 class="page-title" id="variance-title">Variance Analysis · март vs февраль 2026</h1>
   <p class="page-sub">Методика CFO: price × volume × mix декомпозиция. Источник — P&amp;L бухгалтера (NEW_PNL, обновляется ежемесячно). Фокус: что именно подняло мартовскую выручку на +129%? Какие драйверы повторяемые, а какие one-off?</p>
 
   <!-- ⚠️ Snapshot warning: данные захардкожены на момент анализа.
@@ -148,45 +148,25 @@
 
   <div class="hero-row">
     <div class="hero-kpi">
-      <div class="label">Revenue Variance · март vs февраль</div>
-      <div class="big">+903k₺</div>
-      <div class="sub">
-        Total variance <strong>+128.9%</strong>. Это не восстановление — это <strong>structural shift</strong>: установили крыши на 3 из 4 кортов в начале марта, membership renewal cycle, запуск весеннего турнирного календаря. 6 месяцев данных (окт'25 — мар'26) показывают: март — новый baseline, не пик.
+      <div class="label" id="hero-variance-label">Revenue Variance · загрузка…</div>
+      <div class="big" id="hero-variance-big">—</div>
+      <div class="sub" id="hero-variance-sub">
+        Загружаю PnL бухгалтера…
       </div>
     </div>
     <div class="hero-kpi" style="background: var(--accent-soft); border-color: var(--accent-border);">
       <div class="label">Materiality threshold</div>
       <div class="big" style="font-size:48px">±15%</div>
-      <div class="sub">По методике CFO для sequential MoM. Все 4 категории выручки превысили порог. Анализ обязательный.</div>
+      <div class="sub">По методике CFO для sequential MoM. Если |Δ%| > 15% — анализ обязательный.</div>
     </div>
   </div>
 
-  <div class="kpi-row">
-    <div class="kpi-card">
-      <div class="kpi-label">Февраль 2026</div>
-      <div class="kpi-value">700k₺</div>
-      <div class="kpi-delta">начальное значение</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Март 2026</div>
-      <div class="kpi-value">1 603k₺</div>
-      <div class="kpi-delta pos">+129% MoM</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Vs Октябрь 2025</div>
-      <div class="kpi-value">1 526k₺</div>
-      <div class="kpi-delta pos">+77k vs Okt · новый max</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">Ср. ₺/корто-час март</div>
-      <div class="kpi-value">~1 200₺</div>
-      <div class="kpi-delta">primetime premium</div>
-    </div>
-    <div class="kpi-card">
-      <div class="kpi-label">% от цели (80k/день)</div>
-      <div class="kpi-value">65%</div>
-      <div class="kpi-delta">2480k target · gap 877k</div>
-    </div>
+  <div class="kpi-row" id="variance-kpi-row">
+    <div class="kpi-card"><div class="kpi-label">Предыдущий месяц</div><div class="kpi-value" id="vk-prev">—</div><div class="kpi-delta" id="vk-prev-mo">загрузка…</div></div>
+    <div class="kpi-card"><div class="kpi-label">Последний закр. месяц</div><div class="kpi-value" id="vk-cur">—</div><div class="kpi-delta" id="vk-cur-mo">загрузка…</div></div>
+    <div class="kpi-card"><div class="kpi-label">MoM Δ ₺</div><div class="kpi-value" id="vk-delta">—</div><div class="kpi-delta" id="vk-delta-pct">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Vs Best (6 мес)</div><div class="kpi-value" id="vk-vs-best">—</div><div class="kpi-delta" id="vk-best-mo">—</div></div>
+    <div class="kpi-card"><div class="kpi-label">Δ от 6-мес avg</div><div class="kpi-value" id="vk-vs-avg">—</div><div class="kpi-delta" id="vk-avg-val">—</div></div>
   </div>
 
   <!-- WATERFALL -->
@@ -373,47 +353,176 @@
 </main>
 
 <script>
-new Chart(document.getElementById('trend-chart'), {
-  type: 'bar',
-  data: {
-    labels: ['Октябрь 25', 'Ноябрь 25', 'Декабрь 25', 'Январь 26', 'Февраль 26', 'Март 26'],
-    datasets: [
-      {
-        label: 'Revenue · итого (₺)',
-        data: [1525888, 1171400, 654411, 662953, 700447, 1603306],
-        backgroundColor: ['#0ABAB5cc', '#0ABAB5cc', '#e74c3ccc', '#e74c3ccc', '#e74c3ccc', '#13c296cc'],
-        borderRadius: 6,
-      }
-    ]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: function(ctx) { return ctx.raw.toLocaleString('ru-RU') + ' ₺'; },
-          afterLabel: function(ctx) {
-            if (ctx.dataIndex === 0) return 'pre-winter baseline';
-            if (ctx.dataIndex === 1) return '−23% vs oct · начало холодов';
-            if (ctx.dataIndex === 2) return '−44% · провал погодный';
-            if (ctx.dataIndex === 3) return '+1% · на дне';
-            if (ctx.dataIndex === 4) return '+5% · переходный';
-            if (ctx.dataIndex === 5) return '+129% · крыши установлены';
+/* ===========================================================================
+ * VARIANCE — динамика из PnL (ADR-020 SSoT).
+ * Раньше всё было захардкожено за март-февраль 2026. Теперь:
+ *   - Title, KPI row, hero — последние 2 закрытых месяца из pnl
+ *   - Trend chart — 6 закрытых месяцев из pnl
+ *   - Waterfall + narrative + advice — остаются snapshot за март (см. banner вверху)
+ * Когда апрель закроется → title/KPI/chart обновятся; waterfall пометится «устарел».
+ * =========================================================================== */
+(async function() {
+  var MONTHS_RU = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'];
+  var MONTHS_RU_SHORT = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  function ymLabel(ym) {
+    if (!ym) return '';
+    var p = ym.split('-'); var m = parseInt(p[1],10);
+    return MONTHS_RU[m-1] + ' ' + p[0].slice(2);
+  }
+  function ymLabelShort(ym) {
+    if (!ym) return '';
+    var p = ym.split('-'); var m = parseInt(p[1],10);
+    return MONTHS_RU_SHORT[m-1] + ' ' + p[0].slice(2);
+  }
+  function fmtK(v) { return (Math.round(v / 1000)).toLocaleString('ru-RU') + 'k'; }
+  function fmtMoneyShort(v) { return Math.round(v).toLocaleString('ru-RU'); }
+
+  var pnl = {};
+  try {
+    pnl = await V7.loadPnL();
+  } catch (e) {
+    console.warn('[variance] PnL load failed:', e);
+    return;
+  }
+  if (!pnl) return;
+
+  // Берём только закрытые месяцы (не live)
+  var nowYM = new Date().toISOString().slice(0,7);
+  var closedMonths = Object.keys(pnl).filter(function(m) {
+    return m < nowYM && pnl[m].source !== 'live';
+  }).sort();
+
+  if (closedMonths.length < 2) {
+    console.warn('[variance] нужно минимум 2 закрытых месяца, есть:', closedMonths);
+    return;
+  }
+
+  // Last 2: cur + prev
+  var curYM = closedMonths[closedMonths.length - 1];
+  var prevYM = closedMonths[closedMonths.length - 2];
+  var curRev = pnl[curYM].revenue;
+  var prevRev = pnl[prevYM].revenue;
+  var deltaAbs = curRev - prevRev;
+  var deltaPct = prevRev > 0 ? (100 * deltaAbs / prevRev) : 0;
+
+  // Title
+  var titleEl = document.getElementById('variance-title');
+  if (titleEl) titleEl.textContent = 'Variance Analysis · ' + ymLabel(curYM) + ' vs ' + ymLabel(prevYM);
+
+  // Hero
+  var heroLabel = document.getElementById('hero-variance-label');
+  var heroBig = document.getElementById('hero-variance-big');
+  var heroSub = document.getElementById('hero-variance-sub');
+  if (heroLabel) heroLabel.textContent = 'Revenue Variance · ' + ymLabel(curYM) + ' vs ' + ymLabel(prevYM);
+  if (heroBig) {
+    var sign = deltaAbs >= 0 ? '+' : '−';
+    heroBig.textContent = sign + fmtK(Math.abs(deltaAbs)) + '₺';
+    heroBig.style.color = deltaAbs >= 0 ? 'var(--good)' : 'var(--bad)';
+  }
+  if (heroSub) {
+    var sign2 = deltaPct >= 0 ? '+' : '';
+    var matLabel = Math.abs(deltaPct) > 15 ? '<strong>выше materiality threshold ±15%</strong> — анализ обязательный.' : 'в пределах materiality (±15%).';
+    heroSub.innerHTML = 'MoM <strong>' + sign2 + deltaPct.toFixed(1) + '%</strong>. ' + matLabel +
+      ' Источник: PnL бухгалтера (last closed: ' + curYM + '). 6-месячный контекст ниже.';
+  }
+
+  // KPI row
+  var $ = function(id) { return document.getElementById(id); };
+  if ($('vk-prev')) $('vk-prev').textContent = fmtK(prevRev) + '₺';
+  if ($('vk-prev-mo')) $('vk-prev-mo').textContent = ymLabel(prevYM);
+  if ($('vk-cur')) $('vk-cur').textContent = fmtK(curRev) + '₺';
+  if ($('vk-cur-mo')) $('vk-cur-mo').textContent = ymLabel(curYM);
+  if ($('vk-delta')) {
+    $('vk-delta').textContent = (deltaAbs >= 0 ? '+' : '−') + fmtK(Math.abs(deltaAbs)) + '₺';
+    $('vk-delta').style.color = deltaAbs >= 0 ? 'var(--good)' : 'var(--bad)';
+  }
+  if ($('vk-delta-pct')) {
+    $('vk-delta-pct').textContent = (deltaPct >= 0 ? '+' : '') + deltaPct.toFixed(1) + '% MoM';
+  }
+
+  // Vs Best (6 months including cur)
+  var last6 = closedMonths.slice(-6);
+  var bestYM = last6[0]; var bestVal = pnl[bestYM].revenue;
+  last6.forEach(function(m) {
+    if (pnl[m].revenue > bestVal) { bestVal = pnl[m].revenue; bestYM = m; }
+  });
+  if ($('vk-vs-best')) {
+    var diffBest = curRev - bestVal;
+    $('vk-vs-best').textContent = (diffBest >= 0 ? '+' : '−') + fmtK(Math.abs(diffBest)) + '₺';
+    $('vk-vs-best').style.color = diffBest >= 0 ? 'var(--good)' : 'var(--bad)';
+  }
+  if ($('vk-best-mo')) {
+    $('vk-best-mo').textContent = bestYM === curYM ? 'это новый max!' : 'best: ' + ymLabel(bestYM) + ' = ' + fmtK(bestVal) + '₺';
+  }
+
+  // 6-month average
+  var sum6 = last6.reduce(function(s, m) { return s + pnl[m].revenue; }, 0);
+  var avg6 = sum6 / last6.length;
+  if ($('vk-vs-avg')) {
+    var diffAvg = curRev - avg6;
+    var diffAvgPct = avg6 > 0 ? (100 * diffAvg / avg6) : 0;
+    $('vk-vs-avg').textContent = (diffAvg >= 0 ? '+' : '') + diffAvgPct.toFixed(0) + '%';
+    $('vk-vs-avg').style.color = diffAvg >= 0 ? 'var(--good)' : 'var(--bad)';
+  }
+  if ($('vk-avg-val')) {
+    $('vk-avg-val').textContent = '6-мес avg = ' + fmtK(avg6) + '₺';
+  }
+
+  // === Trend chart — 6 закрытых месяцев ===
+  var canvas = document.getElementById('trend-chart');
+  if (canvas) {
+    var labels = last6.map(ymLabelShort);
+    var data = last6.map(function(m) { return pnl[m].revenue; });
+    var maxV = Math.max.apply(null, data);
+    var minV = Math.min.apply(null, data);
+    var avgV = data.reduce(function(s,v){return s+v;},0) / data.length;
+    var colors = data.map(function(v) {
+      if (v === maxV) return '#13c296cc'; // best
+      if (v === minV) return '#e74c3ccc'; // worst
+      return v >= avgV ? '#0ABAB5cc' : '#f39c12cc';
+    });
+    new Chart(canvas, {
+      type: 'bar',
+      data: { labels: labels, datasets: [{ label: 'Revenue · итого (₺)', data: data, backgroundColor: colors, borderRadius: 6 }] },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) { return ctx.raw.toLocaleString('ru-RU') + ' ₺'; },
+              afterLabel: function(ctx) {
+                var i = ctx.dataIndex;
+                if (i === 0) return 'baseline (6 мес назад)';
+                var diff = data[i] - data[i-1];
+                var dpct = data[i-1] > 0 ? (100 * diff / data[i-1]) : 0;
+                return (diff >= 0 ? '+' : '') + dpct.toFixed(1) + '% MoM';
+              }
+            }
+          }
+        },
+        scales: {
+          x: { grid: { display: false } },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'var(--border)' },
+            ticks: { callback: function(v) { return (v/1000).toFixed(0) + 'k'; } }
           }
         }
       }
-    },
-    scales: {
-      x: { grid: { display: false } },
-      y: {
-        beginAtZero: true,
-        grid: { color: 'var(--border)' },
-        ticks: { callback: function(v) { return (v/1000).toFixed(0) + 'k'; } }
-      }
+    });
+  }
+
+  // Подсветка banner вверху: если cur != snapshot (март 2026), пометить waterfall как stale
+  if (curYM !== '2026-03') {
+    var hint = document.getElementById('variance-current-pnl-hint');
+    if (hint) {
+      hint.innerHTML = '⚠️ Сейчас актуальный анализ: <strong>' + ymLabel(curYM) + ' vs ' + ymLabel(prevYM) +
+        '</strong>. KPI и chart выше обновлены автоматически. Waterfall и narrative ниже — <strong>устаревший snapshot за март 2026</strong>, обновляются вручную.';
+      hint.style.color = 'var(--bad)';
     }
   }
-});
+})();
 </script>
 </body>
 </html>
