@@ -10,7 +10,6 @@
 <script src="assets/theme.js"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
-<link rel="stylesheet" href="assets/sidebar.css">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -140,13 +139,52 @@
   </div>
 
   <div class="portrait">
-    <div class="avatar">RB</div>
+    <div class="avatar" style="background:#0ABAB5">📋</div>
     <div>
-      <div class="who">Russell Barnes</div>
-      <div class="role">CEO · David Lloyd Clubs · 200+ клубов в UK/EU</div>
-      <p class="quote">«Padel club — это <strong>member retention business</strong>, не court rental. Если через 12 месяцев 70% из ваших первых membership'ов не продлились — продукт сломан, а не цена. Реестр рисков — не бумажка для аудитора, это ваш мониторинг здоровья member base.»</p>
+      <div class="who">Синтез индустриальных best practices</div>
+      <div class="role">David Lloyd Clubs · Premier Padel · Life Time Athletic · DD checklist'ы инвесторов</div>
+      <p class="quote">Реестр рисков для падел-клуба премиум-сегмента: <strong>member retention business</strong>, не court rental. Если через 12 мес 70% первых membership'ов не продлились — продукт сломан, а не цена. Этот реестр — мониторинг здоровья member base, не отчёт для инвестора.</p>
     </div>
   </div>
+
+  <!-- Hero: Top-3 приоритета (поднято наверх 2026-05-03) -->
+  <section class="section">
+    <div class="section-head">
+      <h2>🎯 Топ-3 приоритета на сейчас</h2>
+      <span class="hint">что делать <strong>на этой неделе</strong>, чтобы снизить главные риски</span>
+    </div>
+    <div class="panel" style="background:linear-gradient(135deg,rgba(231,76,60,0.04),rgba(243,156,18,0.04))">
+      <table class="risk-table">
+        <thead><tr><th style="width:30px">#</th><th>Действие</th><th>Защищает</th><th>Owner</th><th>Status</th><th>Next step</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>1</strong></td>
+            <td><strong>Контакт-rotation Top-60</strong> (cold/slow alerts). Личная коммуникация раз в 2 недели с теми кто >14д не приходил.</td>
+            <td><span id="risk-top1-fact">~48% месячной выручки</span></td>
+            <td>Володимир + менеджер</td>
+            <td><span class="pill amber">в работе</span></td>
+            <td>WhatsApp 15 cold-клиентам сегодня · /clients блок 1.5</td>
+          </tr>
+          <tr>
+            <td><strong>2</strong></td>
+            <td><strong>Coach retention pack</strong>: revenue share + квартальный bonus для топ-4 тренеров.</td>
+            <td>15-20% тренировочной выручки</td>
+            <td>Володимир</td>
+            <td><span class="pill red">не начато</span></td>
+            <td>Прописать formulas · meeting с каждым 1-on-1 до конца мая</td>
+          </tr>
+          <tr>
+            <td><strong>3</strong></td>
+            <td><strong>Календарь турниров на 6 мес</strong> + sponsor pipeline (Bullpadel/Head).</td>
+            <td>26% месячной выручки (мартовский пик)</td>
+            <td>Оля (PM)</td>
+            <td><span class="pill amber">в работе</span></td>
+            <td>Список 6 событий май-окт + 2 sponsor предложения отправить</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 
   <div class="kpi-row">
     <div class="kpi-card">
@@ -251,7 +289,8 @@
           <th>ID</th>
           <th>Риск</th>
           <th>Severity</th>
-          <th>Митигация</th>
+          <th>Status</th>
+          <th>Митигация · Next action</th>
           <th>Owner</th>
         </tr></thead>
         <tbody>
@@ -259,91 +298,104 @@
             <td><strong>R1</strong></td>
             <td><strong>Top клиенты уходят разом.</strong> <span id="risk-r1-fact">Топ клиенты с ≥10k₺/мес держат значимую долю выручки</span>. Если 3 из них уйдут — провал.</td>
             <td><span class="pill red">high / high</span></td>
-            <td>Персональный relationship manager для top-10 клиентов. Exit interviews за 30 дней до окончания member. Tailored offers (мастер-класс с тренером-про, закрытый турнир).</td>
+            <td><span class="pill amber">в работе</span></td>
+Персональный relationship manager для top-10 клиентов. Exit interviews за 30 дней до окончания member. Tailored offers (мастер-класс с тренером-про, закрытый турнир).</td>
             <td>Володимир + Оля</td>
           </tr>
           <tr>
             <td><strong>R2</strong></td>
             <td><strong>Coach turnover · топ-4 тренера.</strong> Клиенты приходят ЗА конкретными людьми. Уход одного = −15-20% выручки от тренировок.</td>
             <td><span class="pill red">high / high</span></td>
-            <td>Golden handcuffs: equity / revenue share для топов. Quarterly retention bonus. Cross-train: 2 клиента на каждого тренера получают оценку и от второго — снижает bus factor.</td>
+            <td><span class="pill red">не начато</span></td>
+Golden handcuffs: equity / revenue share для топов. Quarterly retention bonus. Cross-train: 2 клиента на каждого тренера получают оценку и от второго — снижает bus factor.</td>
             <td>Оля (PM)</td>
           </tr>
           <tr>
             <td><strong>R3</strong></td>
             <td><strong>FX TL-EUR волатильность.</strong> Лира падает, часть клиентов в EUR (туристы, экспаты).</td>
             <td><span class="pill amber">high / low</span></td>
-            <td>Положительный carry сейчас (расходы TL, часть выручки EUR). Но tax/social TL растёт. Индексировать membership fees раз в 6 мес.</td>
+            <td><span class="pill amber">в работе</span></td>
+Положительный carry сейчас (расходы TL, часть выручки EUR). Но tax/social TL растёт. Индексировать membership fees раз в 6 мес.</td>
             <td>Володимир</td>
           </tr>
           <tr>
             <td><strong>R4</strong></td>
             <td><strong>Новый конкурент в Анталии.</strong> Падел растёт 30%+ YoY. За 2 года может появиться 2-3 новых клуба премиум-сегмента.</td>
             <td><span class="pill red">medium / high</span></td>
-            <td>Быстрее строить community (турниры, уроки-знакомства, клубные карты). NPS &gt;60. Рефералки. Позиционирование «первый премиум-клуб Анталии» закрепить 12 мес форы.</td>
+            <td><span class="pill amber">в работе</span></td>
+Быстрее строить community (турниры, уроки-знакомства, клубные карты). NPS &gt;60. Рефералки. Позиционирование «первый премиум-клуб Анталии» закрепить 12 мес форы.</td>
             <td>Володимир</td>
           </tr>
           <tr>
             <td><strong>R5</strong></td>
             <td><strong>Турниры не продаются.</strong> 26% март 2026 выручки — турниры. Если сезон пропустить — провал квартала.</td>
             <td><span class="pill red">medium / high</span></td>
-            <td>Календарь на 6 мес вперёд. Партнёрство с Racket.ID для рейтингового покрытия. Sponsor от beauty/equipment брендов (Bullpadel, Head).</td>
+            <td><span class="pill amber">в работе</span></td>
+Календарь на 6 мес вперёд. Партнёрство с Racket.ID для рейтингового покрытия. Sponsor от beauty/equipment брендов (Bullpadel, Head).</td>
             <td>Оля (турниры)</td>
           </tr>
           <tr>
             <td><strong>R6</strong></td>
             <td><strong>55-member cap достигнут.</strong> Membership revenue cap. Дальше — только через увеличение чека.</td>
             <td><span class="pill amber">medium / medium</span></td>
-            <td>VIP tier: 100к₺/год — 5 слотов · personal coach · primetime-слоты. Club tier = текущие 55. Family tier. Расширять объёмом при постройке 5-го корта (next 12 мес план).</td>
+            <td><span class="pill green">спланировано</span></td>
+VIP tier: 100к₺/год — 5 слотов · personal coach · primetime-слоты. Club tier = текущие 55. Family tier. Расширять объёмом при постройке 5-го корта (next 12 мес план).</td>
             <td>Володимир</td>
           </tr>
           <tr>
             <td><strong>R7</strong></td>
             <td><strong>Политический кризис Турция.</strong> Санкции, capital controls, локдаун.</td>
             <td><span class="pill amber">low / high</span></td>
-            <td>3 мес operating cash вне Турции (евро-счёт в Грузии/Кипре). Плавная диверсификация клиентов на EU-туристов (50%+ через 3 года).</td>
+            <td><span class="pill red">не начато</span></td>
+3 мес operating cash вне Турции (евро-счёт в Грузии/Кипре). Плавная диверсификация клиентов на EU-туристов (50%+ через 3 года).</td>
             <td>Володимир</td>
           </tr>
           <tr>
             <td><strong>R8</strong></td>
             <td><strong>Court maintenance cycle.</strong> Искусственный газон ~5-7 лет life. Ремонт = простой 2 недели.</td>
             <td><span class="pill amber">medium / medium</span></td>
-            <td>Capex reserve 150k₺/год × 4 корта в отдельном аккаунте. График replacement по очереди — один корт зимой (low season), не все сразу.</td>
+            <td><span class="pill red">не начато</span></td>
+Capex reserve 150k₺/год × 4 корта в отдельном аккаунте. График replacement по очереди — один корт зимой (low season), не все сразу.</td>
             <td>Володимир</td>
           </tr>
           <tr>
             <td><strong>R9</strong></td>
             <td><strong>Matchpoint API изменения.</strong> Весь портал зависит от их scraping. Если они закроют — полный refactor.</td>
             <td><span class="pill amber">low / medium</span></td>
-            <td>Еженедельный backup через ETL в v7padel_db. Если откажут — месяц работы мигрировать на другой CRM (Playtomic, Padel Go).</td>
+            <td><span class="pill green">мониторим</span></td>
+Еженедельный backup через ETL в v7padel_db. Если откажут — месяц работы мигрировать на другой CRM (Playtomic, Padel Go).</td>
             <td>Володимир (tech)</td>
           </tr>
           <tr>
             <td><strong>R10</strong></td>
             <td><strong>Травма клиента на корте · liability.</strong> Падел = высокая scoring-скорость мяча. Порванная связка у клиента = иск.</td>
             <td><span class="pill green">medium / low</span></td>
-            <td>Страхование ответственности клуба (public liability) до 5M₺. Waiver при membership. Прокат защиты глаз. Первая помощь 24/7 в клубе.</td>
+            <td><span class="pill amber">частично</span></td>
+Страхование ответственности клуба (public liability) до 5M₺. Waiver при membership. Прокат защиты глаз. Первая помощь 24/7 в клубе.</td>
             <td>Володимир</td>
           </tr>
           <tr>
             <td><strong>R11</strong></td>
             <td><strong>Оля (PM) single point of failure.</strong> Если уйдёт/заболеет — встанет операционка турниров, клиентов, коммуникаций.</td>
             <td><span class="pill amber">low / medium</span></td>
-            <td>Документирование процессов в Notion. Retention bonus / equity. Нанять junior-помощника уже сейчас — подготовка заместителя.</td>
+            <td><span class="pill red">не начато</span></td>
+Документирование процессов в Notion. Retention bonus / equity. Нанять junior-помощника уже сейчас — подготовка заместителя.</td>
             <td>Володимир</td>
           </tr>
           <tr>
             <td><strong>R12</strong></td>
             <td><strong>Covid-like shutdown.</strong> Принудительное закрытие по здоровью (маловероятно, но катастрофично).</td>
             <td><span class="pill green">low / medium</span></td>
-            <td>Business interruption insurance. Резерв на 2 мес operating cash. Outdoor events (корт 4 без крыши — можно тренировки с social distance).</td>
+            <td><span class="pill green">мониторим</span></td>
+Business interruption insurance. Резерв на 2 мес operating cash. Outdoor events (корт 4 без крыши — можно тренировки с social distance).</td>
             <td>Володимир</td>
           </tr>
           <tr>
             <td><strong>R13</strong></td>
             <td><strong>Data breach / Matchpoint CRM.</strong> Утечка клиентских данных.</td>
             <td><span class="pill green">low / low</span></td>
-            <td>Read-only scraping из Matchpoint. Никаких PII на v7padel_db вне согласования. GDPR-совместимые политики для EU-туристов.</td>
+            <td><span class="pill green">ОК</span></td>
+Read-only scraping из Matchpoint. Никаких PII на v7padel_db вне согласования. GDPR-совместимые политики для EU-туристов.</td>
             <td>Володимир (tech)</td>
           </tr>
         </tbody>
@@ -369,8 +421,8 @@
 
   <div class="advice-block">
     <div class="header">
-      <span class="title">Совет индустрии премиум-рэкет-клубов</span>
-      <span class="from">Russell Barnes · CEO David Lloyd Clubs</span>
+      <span class="title">Что говорит индустрия премиум-рэкет-клубов</span>
+      <span class="from">синтез: David Lloyd · Premier Padel · Life Time Athletic</span>
     </div>
     <ul>
       <li><span class="num">01</span><span><strong>Retention &gt; acquisition.</strong> Дешевле удержать существующего члена на 3-й год, чем найти нового. Фокус квартала: renewal rate &gt;85% (сейчас: need data). Измеряйте каждый месяц.</span></li>

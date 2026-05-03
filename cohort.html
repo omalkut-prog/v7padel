@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Когорта · 14d retention</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css?v=20260418">
+<link rel="stylesheet" href="assets/sidebar.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  nav { position: sticky; top: 0; z-index: 100; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 24px; }
+  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
+  .nav-logo em { color: var(--accent); font-style: normal; }
+  .nav-links { display: flex; list-style: none; }
+  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; }
+  .nav-links a:hover { color: var(--text); }
+  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 18px; max-width: 85ch; }
+  .section { margin-bottom: 28px; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); margin-bottom: 10px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; box-shadow: var(--shadow); }
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; }
+  .kpi .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); margin-bottom: 8px; }
+  .kpi .value { font-size: 28px; font-weight: 700; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+  .kpi .sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
+  .kpi.good .value { color: var(--good); }
+  .kpi.warn .value { color: var(--warn); }
+  .kpi.bad .value { color: var(--bad); }
+  table.fin { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.fin th { padding: 10px 12px; text-align: left; color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+  table.fin td { padding: 12px; border-bottom: 1px solid var(--border); }
+  table.fin td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .bar { height: 10px; background: var(--surface2); border-radius: 4px; overflow: hidden; margin-top: 4px; }
+  .bar .fill { height: 100%; transition: width .8s ease; }
+  .funnel { display: grid; gap: 14px; margin: 14px 0; }
+  .funnel-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 16px; padding: 16px 20px; background: var(--surface2); border-radius: 10px; border-left: 4px solid; }
+  .funnel-row.lvl1 { border-left-color: #0ABAB5; }
+  .funnel-row.lvl2 { border-left-color: #f39c12; }
+  .funnel-row.lvl3 { border-left-color: #e74c3c; }
+  .funnel-name { font-weight: 600; }
+  .funnel-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .funnel-num { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .definition { background: rgba(10,186,181,0.05); border: 1px solid rgba(10,186,181,0.25); border-radius: 10px; padding: 14px 18px; margin: 16px 0; font-size: 13px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<script src="assets/data.js?v=20260424d"></script>
+<nav>
+  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
+  <ul class="nav-links">
+    <li><a href="index.html">Главная</a></li>
+    <li><a href="dashboard.html">Дашборд</a></li>
+    <li><a href="revenue.html">Выручка</a></li>
+    <li><a href="finance.html">Финансы</a></li>
+    <li><a href="clients.html">Клиенты</a></li>
+    <li><a href="cohort.html" class="active">Когорта</a></li>
+    <li><a href="data.html">Данные</a></li>
+    <li><a href="brain.html">Brain</a></li>
+  </ul>
+  <span class="nav-pill">Внутренний портал</span>
+</nav>
+
+<main>
+  <h1 class="page-title">Когорта · 14-day retention</h1>
+  <p class="page-sub">Воронка top-of-funnel → активная база → ядро. Главный show-stop индикатор: % новичков которые вернулись на 2-й визит за 14 дней. Падение = продукт сломан, не маркетинг.</p>
+
+  <div class="definition">
+    <strong>Когорта</strong> = группа клиентов которые пришли впервые в один временной период (например все новички апреля). Мы трекаем что с ними <strong>стало дальше</strong>: вернулись через 14 дней? через 30? стали регулярными?
+    <br><br>
+    <strong>14-day retention</strong> = % когорты с ≥2 визитами в первые 14 дней. Это <strong>главный health-indicator</strong> качества опыта новичка. <strong>Бенчмарк padel-индустрии: 60-70%</strong>. Ниже 50% — продукт теряет людей.
+  </div>
+
+  <!-- KPI -->
+  <div class="kpi-row" id="kpi-row">
+    <div class="kpi"><div class="label">База всего</div><div class="value" id="k-total">—</div><div class="sub">все клиенты в customers</div></div>
+    <div class="kpi"><div class="label">Новых за месяц</div><div class="value" id="k-new">—</div><div class="sub" id="k-new-sub">—</div></div>
+    <div class="kpi"><div class="label">14-day retention</div><div class="value" id="k-r14">—</div><div class="sub" id="k-r14-sub">—</div></div>
+    <div class="kpi"><div class="label">30-day retention</div><div class="value" id="k-r30">—</div><div class="sub" id="k-r30-sub">—</div></div>
+  </div>
+
+  <!-- Funnel -->
+  <section class="section">
+    <div class="section-head"><h2>Воронка V7 — где мы сейчас</h2></div>
+    <div class="panel">
+      <div class="funnel" id="funnel-rows">
+        <div class="funnel-row lvl1">
+          <div>
+            <div class="funnel-name">📁 База (top-of-funnel)</div>
+            <div class="funnel-desc">все клиенты в Matchpoint, кто хоть раз был. Цель долгосрочная — 20 000 за 2-3 года · работают: маркетинг + sales (acquisition)</div>
+          </div>
+          <div class="funnel-num" id="fn-base">—</div>
+        </div>
+        <div class="funnel-row lvl2">
+          <div>
+            <div class="funnel-name">⚡ Активная когорта (mid)</div>
+            <div class="funnel-desc">клиенты с ≥1 бронью за 30 дней. Цель — 800-1000 регулярных · работают: тренеры + retention agent + community offers</div>
+          </div>
+          <div class="funnel-num" id="fn-active">—</div>
+        </div>
+        <div class="funnel-row lvl3">
+          <div>
+            <div class="funnel-name">🎯 Ядро Top-60 (bottom)</div>
+            <div class="funnel-desc">≥10к₺/мес — держат ~48% выручки. Цель — 60-80 sticky members · работают: Володимир + менеджер лично, weekly contact-rotation</div>
+          </div>
+          <div class="funnel-num" id="fn-top60">—</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-top:12px">
+        💡 Иерархия: воронка идёт сверху вниз. <strong>База → Активные → Ядро.</strong> Если фокусироваться только на Top-60 — клуб не растёт. Только на базу — нет ретеншна, деньги уходят.
+      </div>
+    </div>
+  </section>
+
+  <!-- Retention by month -->
+  <section class="section">
+    <div class="section-head"><h2>Когорты по месяцам · 14-day retention тренд</h2></div>
+    <div class="panel">
+      <table class="fin" id="retention-table">
+        <thead>
+          <tr>
+            <th>Месяц</th>
+            <th class="num">Новых клиентов</th>
+            <th class="num">Вернулись за 14 дн</th>
+            <th class="num">14d retention</th>
+            <th class="num">Вернулись за 30 дн</th>
+            <th class="num">30d retention</th>
+            <th>Тренд</th>
+          </tr>
+        </thead>
+        <tbody><tr><td colspan="7" style="text-align:center;color:var(--text3);padding:30px">Загружаю…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Action -->
+  <section class="section">
+    <div class="section-head"><h2>Что делать</h2></div>
+    <div class="panel">
+      <div id="cohort-recommendations" style="font-size:13px; line-height:1.7; color:var(--text2)">
+        <p>Загружаю анализ…</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(async function() {
+  // Load data in parallel
+  var [retention, customers, top60Total] = await Promise.all([
+    V7.loadCacheTab('new_clients_retention').catch(function(){return [];}),
+    V7.loadSheet('customers').catch(function(){return [];}),
+    V7.loadCacheTab('top_clients_revenue').catch(function(){return [];})
+  ]);
+
+  // === KPIs ===
+  var kpis = await V7.loadCacheTab('dashboard_kpis').catch(function(){return [{}];});
+  var k = (kpis && kpis[0]) || {};
+  document.getElementById('k-total').textContent = (parseInt(k.clients_total) || customers.length || 0).toLocaleString('ru-RU');
+  document.getElementById('k-new').textContent = parseInt(k.clients_new_30d) || 0;
+  document.getElementById('k-new-sub').textContent = 'за последние 30 дней';
+
+  // Last full retention month (skip current with <14d data)
+  var nowYM = new Date().toISOString().slice(0,7);
+  var validRetention = retention.filter(function(r) { return r.month && r.month !== nowYM && parseInt(r.cohort_size) > 5; });
+  var lastRet = validRetention[validRetention.length - 1] || {};
+  var r14 = parseInt(lastRet.ret_14d_pct) || 0;
+  var r30 = lastRet.cohort_size > 0 ? Math.round(100 * parseInt(lastRet.returned_30d) / parseInt(lastRet.cohort_size)) : 0;
+  var r14El = document.getElementById('k-r14');
+  r14El.textContent = r14 + '%';
+  r14El.parentElement.classList.add(r14 >= 60 ? 'good' : r14 >= 50 ? 'warn' : 'bad');
+  document.getElementById('k-r14-sub').textContent = lastRet.month + ': ' + lastRet.returned_14d + ' из ' + lastRet.cohort_size + ' (бенчмарк 60-70%)';
+  var r30El = document.getElementById('k-r30');
+  r30El.textContent = r30 + '%';
+  r30El.parentElement.classList.add(r30 >= 70 ? 'good' : r30 >= 55 ? 'warn' : 'bad');
+  document.getElementById('k-r30-sub').textContent = lastRet.returned_30d + ' из ' + lastRet.cohort_size + ' через 30 дн';
+
+  // === Funnel ===
+  document.getElementById('fn-base').textContent = (parseInt(k.clients_total) || 0).toLocaleString('ru-RU');
+  document.getElementById('fn-active').textContent = (parseInt(k.clients_active_30d) || 0).toLocaleString('ru-RU');
+
+  // Top60 — count clients with amount_30d >= 10000
+  var top60count = (top60Total || []).filter(function(c) {
+    return parseFloat(c.amount_30d) >= 10000;
+  }).length;
+  document.getElementById('fn-top60').textContent = top60count;
+
+  // === Retention table ===
+  var tbody = document.querySelector('#retention-table tbody');
+  if (!retention.length) {
+    tbody.innerHTML = '<tr><td colspan="7">Нет данных в new_clients_retention</td></tr>';
+    return;
+  }
+  // Sort newest first
+  retention.sort(function(a, b) { return a.month < b.month ? 1 : -1; });
+  var html = '';
+  var prevPct = null;
+  retention.forEach(function(r) {
+    var size = parseInt(r.cohort_size) || 0;
+    var ret14 = parseInt(r.returned_14d) || 0;
+    var ret30 = parseInt(r.returned_30d) || 0;
+    var pct14 = parseInt(r.ret_14d_pct) || 0;
+    var pct30 = size > 0 ? Math.round(100 * ret30 / size) : 0;
+    var trend = '';
+    if (prevPct !== null) {
+      var diff = pct14 - prevPct;
+      if (Math.abs(diff) >= 3) {
+        trend = '<span style="color:' + (diff >= 0 ? 'var(--good)' : 'var(--bad)') + ';font-size:12px">' + (diff >= 0 ? '↑+' : '↓') + diff + 'pp</span>';
+      } else { trend = '<span style="color:var(--text3);font-size:12px">≈</span>'; }
+    }
+    var color14 = pct14 >= 60 ? 'var(--good)' : pct14 >= 50 ? 'var(--warn)' : 'var(--bad)';
+    html += '<tr>' +
+      '<td><strong>' + r.month + '</strong></td>' +
+      '<td class="num">' + size + '</td>' +
+      '<td class="num">' + ret14 + '</td>' +
+      '<td class="num" style="color:' + color14 + ';font-weight:700">' + pct14 + '%' +
+      '<div class="bar"><div class="fill" style="width:' + Math.min(pct14, 100) + '%;background:' + color14 + '"></div></div></td>' +
+      '<td class="num">' + ret30 + '</td>' +
+      '<td class="num">' + pct30 + '%</td>' +
+      '<td>' + trend + '</td></tr>';
+    prevPct = pct14;
+  });
+  tbody.innerHTML = html;
+
+  // === Recommendations ===
+  var recs = '';
+  if (r14 < 50) {
+    recs += '<p style="color:var(--bad);font-weight:600">⚠️ 14d retention <strong>' + r14 + '%</strong> ниже бенчмарка 60-70%. <strong>Продукт теряет новичков.</strong></p>';
+    recs += '<p>Что проверить в первую очередь:</p><ul style="margin:8px 0 14px 20px"><li><strong>Опыт первого визита</strong> — встречает ли админ? Объясняет ли правила? Знакомит с тренером?</li>' +
+            '<li><strong>Follow-up в первые 3 дня</strong> — звонок/WhatsApp с предложением второй брони. Если нет — добавить в Retention Agent.</li>' +
+            '<li><strong>Pricing barrier</strong> — слишком дорого для новичка без опыта? Trial-сессия за 50%?</li>' +
+            '<li><strong>Партнёр для игры</strong> — пришёл один, не нашёл с кем играть → не вернулся. Open Games для новичков 1 раз в неделю.</li></ul>';
+  } else if (r14 < 60) {
+    recs += '<p style="color:var(--warn);font-weight:600">🟡 14d retention <strong>' + r14 + '%</strong> на грани. Бенчмарк 60-70%, ты близко.</p>';
+    recs += '<p>Что улучшить: автоматизация follow-up в первые 3 дня (WhatsApp template), Open Games для новичков, отзывы новых membership на 30-день mark.</p>';
+  } else {
+    recs += '<p style="color:var(--good);font-weight:600">✅ 14d retention <strong>' + r14 + '%</strong> в норме (бенчмарк 60-70%). Продукт работает.</p>';
+    recs += '<p>Дальше — масштабирование top-of-funnel: больше входящего трафика через маркетинг, рефералки, турниры-знакомства.</p>';
+  }
+  recs += '<p style="margin-top:14px;font-size:12px;color:var(--text3)">📚 Расчёт: cohort = новые клиенты за месяц X (first_visit ∈ X). Returned_14d = тех у кого ≥2 бронирований в первые 14 дней. Источник: bookings в v7padel_db. Cron 23:50 ежедневно.</p>';
+
+  document.getElementById('cohort-recommendations').innerHTML = recs;
+})();
+</script>
+<script src="assets/sidebar.js"></script>
+</body>
+</html>

@@ -175,77 +175,22 @@
       <span class="hint">декомпозиция по категориям выручки</span>
     </div>
     <div class="panel">
-      <table class="waterfall">
+      <table class="waterfall" id="waterfall-table">
         <thead><tr>
-          <th>Driver</th>
-          <th class="num">Feb 2026</th>
-          <th class="num">Mar 2026</th>
+          <th>Категория</th>
+          <th class="num" id="wt-prev-h">Prev</th>
+          <th class="num" id="wt-cur-h">Cur</th>
           <th class="num">Δ ₺</th>
           <th class="num">Δ %</th>
-          <th class="num">Contribution</th>
+          <th class="num">% from delta</th>
         </tr></thead>
-        <tbody>
-          <tr class="total"><td colspan="6">Падел · 65% всей выручки</td></tr>
-          <tr>
-            <td><strong>Membership fees</strong><br><span class="pill">renewal cycle + Club + VIP</span></td>
-            <td class="num">155 000</td>
-            <td class="num">471 500</td>
-            <td class="num pos">+316 500</td>
-            <td class="num pos">+204%</td>
-            <td class="num">35%</td>
-          </tr>
-          <tr>
-            <td><strong>Bookings</strong> (падел бронь кортов)<br><span class="pill green">все 4 корта доступны</span></td>
-            <td class="num">174 900</td>
-            <td class="num">372 450</td>
-            <td class="num pos">+197 550</td>
-            <td class="num pos">+113%</td>
-            <td class="num">22%</td>
-          </tr>
-          <tr>
-            <td><strong>Particular classes</strong> (индивидуальные тренировки)<br><span class="pill">+185% volume</span></td>
-            <td class="num">53 920</td>
-            <td class="num">153 550</td>
-            <td class="num pos">+99 630</td>
-            <td class="num pos">+185%</td>
-            <td class="num">11%</td>
-          </tr>
-          <tr>
-            <td><strong>Vouchers</strong><br><span class="pill amber">offset</span></td>
-            <td class="num">74 310</td>
-            <td class="num">44 620</td>
-            <td class="num neg">−29 690</td>
-            <td class="num neg">−40%</td>
-            <td class="num">−3%</td>
-          </tr>
-          <tr class="total"><td colspan="6">Турниры · 26% всей выручки</td></tr>
-          <tr>
-            <td><strong>Tournaments</strong><br><span class="pill green">весенний календарь</span></td>
-            <td class="num">193 500</td>
-            <td class="num">422 595</td>
-            <td class="num pos">+229 095</td>
-            <td class="num pos">+118%</td>
-            <td class="num">25%</td>
-          </tr>
-          <tr class="total"><td colspan="6">Товары + прочее · 9% выручки</td></tr>
-          <tr>
-            <td><strong>Товары / магазин</strong></td>
-            <td class="num">~48 000</td>
-            <td class="num">~139 000</td>
-            <td class="num pos">+91 000</td>
-            <td class="num pos">+190%</td>
-            <td class="num">10%</td>
-          </tr>
-          <tr class="hero">
-            <td><strong>Total variance</strong></td>
-            <td class="num">700 447</td>
-            <td class="num">1 603 306</td>
-            <td class="num pos">+902 859</td>
-            <td class="num pos">+129%</td>
-            <td class="num">100%</td>
-          </tr>
+        <tbody id="waterfall-tbody">
+          <tr><td colspan="6" style="text-align:center;color:var(--text3);padding:30px">Загружаю данные…</td></tr>
         </tbody>
       </table>
+      <div style="margin-top:14px;font-size:11px;color:var(--text3)">
+        💡 Динамическая декомпозиция из <code>rev_by_month_cat</code> (transactions cash). Авто-обновление при смене last closed месяца.
+      </div>
     </div>
   </div>
 
@@ -514,12 +459,86 @@
   }
 
   // Подсветка banner вверху: если cur != snapshot (март 2026), пометить waterfall как stale
+  // === Waterfall — динамика по категориям из rev_by_month_cat (cash) ===
+  try {
+    var revByCat = await V7.loadCacheTab('rev_by_month_cat');
+    if (revByCat && revByCat.length) {
+      var prevRow = revByCat.find(function(r) { return r.month === prevYM; });
+      var curRow = revByCat.find(function(r) { return r.month === curYM; });
+      if (prevRow && curRow) {
+        // Определяем категории: ключи row кроме month
+        var allCats = Object.keys(curRow).filter(function(k) { return k !== 'month' && k !== 'days_count'; });
+        // Также добавляем goods из goods_by_month_cat
+        var goodsCur = 0, goodsPrev = 0;
+        try {
+          var goodsRows = await V7.loadCacheTab('goods_by_month_cat');
+          if (goodsRows) {
+            var gp = goodsRows.find(function(r) { return r.month === prevYM; });
+            var gc = goodsRows.find(function(r) { return r.month === curYM; });
+            if (gp) Object.keys(gp).forEach(function(k) { if (k !== 'month') goodsPrev += parseFloat(gp[k]) || 0; });
+            if (gc) Object.keys(gc).forEach(function(k) { if (k !== 'month') goodsCur += parseFloat(gc[k]) || 0; });
+          }
+        } catch(e){}
+
+        // Build rows
+        var rows = [];
+        allCats.forEach(function(cat) {
+          var p = parseFloat(prevRow[cat]) || 0;
+          var c = parseFloat(curRow[cat]) || 0;
+          if (p === 0 && c === 0) return;
+          rows.push({ cat: cat, prev: p, cur: c, delta: c - p });
+        });
+        if (goodsPrev > 0 || goodsCur > 0) {
+          rows.push({ cat: 'Товары / магазин', prev: goodsPrev, cur: goodsCur, delta: goodsCur - goodsPrev });
+        }
+        // Sort by absolute delta descending
+        rows.sort(function(a, b) { return Math.abs(b.delta) - Math.abs(a.delta); });
+
+        var totalDelta = rows.reduce(function(s, r) { return s + r.delta; }, 0);
+        var totalPrev = rows.reduce(function(s, r) { return s + r.prev; }, 0);
+        var totalCur = rows.reduce(function(s, r) { return s + r.cur; }, 0);
+
+        function fmt(v) { return Math.round(v).toLocaleString('ru-RU'); }
+        function pct(v, base) { return base > 0 ? ((100 * v / base).toFixed(0) + '%') : '—'; }
+
+        var html = '';
+        rows.forEach(function(r) {
+          var dPct = r.prev > 0 ? (100 * r.delta / r.prev).toFixed(0) + '%' : (r.cur > 0 ? '+∞' : '0%');
+          var contrib = totalDelta !== 0 ? Math.round(100 * r.delta / Math.abs(totalDelta)) + '%' : '—';
+          var dCls = r.delta >= 0 ? 'pos' : 'neg';
+          var dPrefix = r.delta >= 0 ? '+' : '−';
+          html += '<tr><td><strong>' + r.cat + '</strong></td>' +
+            '<td class="num">' + fmt(r.prev) + '</td>' +
+            '<td class="num">' + fmt(r.cur) + '</td>' +
+            '<td class="num ' + dCls + '">' + dPrefix + fmt(Math.abs(r.delta)) + '</td>' +
+            '<td class="num ' + dCls + '">' + (r.delta >= 0 ? '+' : '') + dPct + '</td>' +
+            '<td class="num">' + contrib + '</td></tr>';
+        });
+        // Total
+        var tDPct = totalPrev > 0 ? ((100 * totalDelta / totalPrev).toFixed(1) + '%') : '—';
+        var tCls = totalDelta >= 0 ? 'pos' : 'neg';
+        html += '<tr class="hero"><td><strong>ИТОГО</strong></td>' +
+          '<td class="num">' + fmt(totalPrev) + '</td>' +
+          '<td class="num">' + fmt(totalCur) + '</td>' +
+          '<td class="num ' + tCls + '">' + (totalDelta >= 0 ? '+' : '−') + fmt(Math.abs(totalDelta)) + '</td>' +
+          '<td class="num ' + tCls + '">' + (totalDelta >= 0 ? '+' : '') + tDPct + '</td>' +
+          '<td class="num">100%</td></tr>';
+        document.getElementById('waterfall-tbody').innerHTML = html;
+        document.getElementById('wt-prev-h').textContent = ymLabel(prevYM);
+        document.getElementById('wt-cur-h').textContent = ymLabel(curYM);
+      }
+    }
+  } catch (e) {
+    console.warn('[variance] waterfall render failed:', e);
+  }
+
+  // Если cur != март (snapshot для narrative ниже устарел) — пометим
   if (curYM !== '2026-03') {
     var hint = document.getElementById('variance-current-pnl-hint');
     if (hint) {
-      hint.innerHTML = '⚠️ Сейчас актуальный анализ: <strong>' + ymLabel(curYM) + ' vs ' + ymLabel(prevYM) +
-        '</strong>. KPI и chart выше обновлены автоматически. Waterfall и narrative ниже — <strong>устаревший snapshot за март 2026</strong>, обновляются вручную.';
-      hint.style.color = 'var(--bad)';
+      hint.innerHTML = '✅ Анализ <strong>' + ymLabel(curYM) + ' vs ' + ymLabel(prevYM) +
+        '</strong> · KPI/chart/waterfall — live из cache · narrative ниже — snapshot за март 2026 (обновляется вручную при ежемесячном CFO-review).';
+      hint.style.color = 'var(--text2)';
     }
   }
 })();
