@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="assets/auth-guard.js"></script>
+<script src="assets/sidebar.js" defer></script>
 <title>V7 Padel — База знаний</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -20,14 +21,18 @@
   }
   .brain-layout {
     display: grid;
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 240px 1fr;
     gap: 0;
     min-height: 100vh;
+  }
+  /* Когда подключён site sidebar (.v7-page обёртка), сжимаем TOC */
+  .v7-page .brain-layout {
+    grid-template-columns: 220px 1fr;
   }
   .brain-toc {
     background: var(--surface);
     border-right: 1px solid var(--border);
-    padding: 24px 18px;
+    padding: 20px 14px;
     overflow-y: auto;
     position: sticky;
     top: 0;
