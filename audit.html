@@ -182,8 +182,13 @@
     })();
   </script>
 
-  <!-- KPI cards -->
+  <!-- KPI cards (порядок 2026-05-03: профицит сверху, потом долги) -->
   <div class="kpi-row">
+    <div class="kpi-card good" id="kpi-surplus">
+      <div class="kpi-label">Профицит балансов</div>
+      <div class="kpi-value" id="kpi-surplus-val">—</div>
+      <div class="kpi-sub" id="kpi-surplus-sub">клиентов с положительным балансом</div>
+    </div>
     <div class="kpi-card danger" id="kpi-debt">
       <div class="kpi-label">Чистый долг (debt − balance)</div>
       <div class="kpi-value" id="kpi-debt-val">—</div>
@@ -194,11 +199,6 @@
       <div class="kpi-value" id="kpi-debtors-val">—</div>
       <div class="kpi-sub" id="kpi-debtors-sub">клиентов с задолженностью</div>
     </div>
-    <div class="kpi-card good" id="kpi-surplus">
-      <div class="kpi-label">Профицит балансов</div>
-      <div class="kpi-value" id="kpi-surplus-val">—</div>
-      <div class="kpi-sub" id="kpi-surplus-sub">клиентов с положительным балансом</div>
-    </div>
     <div class="kpi-card" id="kpi-movements">
       <div class="kpi-label">Движений баланса</div>
       <div class="kpi-value" id="kpi-movements-val">—</div>
@@ -206,16 +206,17 @@
     </div>
   </div>
 
-  <!-- Tab bar -->
+  <!-- Tab bar (порядок 2026-05-03: профицит сверху, потом должники — приоритет
+       видеть деньги КЛИЕНТОВ на балансе в первую очередь) -->
   <div class="tab-bar">
-    <button class="tab-btn active" data-tab="debtors">Должники</button>
-    <button class="tab-btn" data-tab="surplus">Профицит</button>
+    <button class="tab-btn active" data-tab="surplus">Профицит</button>
+    <button class="tab-btn" data-tab="debtors">Должники</button>
     <button class="tab-btn" data-tab="movements">Движения баланса</button>
     <button class="tab-btn" data-tab="chart">Графики</button>
   </div>
 
   <!-- Tab: Debtors -->
-  <div class="tab-content active" id="tab-debtors">
+  <div class="tab-content" id="tab-debtors">
     <section class="section">
       <div class="section-head">
         <h2>Должники</h2>
@@ -245,7 +246,7 @@
   </div>
 
   <!-- Tab: Surplus -->
-  <div class="tab-content" id="tab-surplus">
+  <div class="tab-content active" id="tab-surplus">
     <section class="section">
       <div class="section-head">
         <h2>Клиенты с балансом</h2>
