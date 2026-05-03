@@ -357,19 +357,28 @@
   });
 
   // ── Load data ──
-  // client_balances теперь из ListadoClientesConSaldo.aspx (1 запрос, точные
-  // балансы как в MP UI). Раньше брали из debts.balance (некорректно).
+  // Главные источники: debts, balance_log, client_balances. Загружаем сначала
+  // их, чтобы UI отрисовался быстро. client_transactions большой (~10К строк) —
+  // грузим параллельно, но НЕ блокируем основной рендер. Tooltip с движениями
+  // обогащается когда clientTx загрузится.
   let debts = [], movements = [], balances = [], clientTx = [];
   try {
-    [debts, movements, balances, clientTx] = await Promise.all([
-      loadSheet('debts').catch(() => []),
-      loadSheet('balance_log').catch(() => []),
-      loadSheet('client_balances').catch(() => []),
-      loadSheet('client_transactions').catch(() => []),
+    const results = await Promise.allSettled([
+      loadSheet('debts'),
+      loadSheet('balance_log'),
+      loadSheet('client_balances'),
     ]);
+    debts = results[0].status === 'fulfilled' ? results[0].value : [];
+    movements = results[1].status === 'fulfilled' ? results[1].value : [];
+    balances = results[2].status === 'fulfilled' ? results[2].value : [];
   } catch (e) {
     console.error('Data load error:', e);
   }
+  // client_transactions грузится отдельно (background) — обогащает tooltip popup
+  loadSheet('client_transactions').then(rows => {
+    clientTx = rows || [];
+    rebuildBalLog(); // пересобираем мапинги когда tx подъехали
+  }).catch(() => {});
 
   // Map имя_клиента → last 10 движений баланса.
   // Источники:
@@ -377,72 +386,58 @@
   // 2) client_transactions с keyword «balance»/«saldo» в description — fallback
   //    для клиентов которые не попали в последние 25 операций
   function normName(n) { return (n || '').trim().toLowerCase(); }
-  const balLogByName = {};
-  movements.forEach(m => {
-    const k = normName(m.client);
-    if (!k) return;
-    if (!balLogByName[k]) balLogByName[k] = [];
-    balLogByName[k].push({
-      _src: 'balance_log',
-      date: m.date,
-      type: m.type,
-      description: m.description,
-      amount_num: m.amount_num,
-      balance_after: m.balance_after,
+  let balLogByName = {};
+  function rebuildBalLog() {
+    balLogByName = {};
+    movements.forEach(m => {
+      const k = normName(m.client);
+      if (!k) return;
+      if (!balLogByName[k]) balLogByName[k] = [];
+      balLogByName[k].push({
+        _src: 'balance_log',
+        date: m.date, type: m.type, description: m.description,
+        amount_num: m.amount_num, balance_after: m.balance_after,
+      });
     });
-  });
-
-  // Fallback: client_transactions с упоминанием balance в description
-  // Имена в client_transactions: client_name. Сопоставляем по cid → имени.
-  const cidToName = {};
-  balances.forEach(b => {
-    const cid = String(b.customer_id || '').trim();
-    if (cid) cidToName[cid] = (b.name || '').trim() ||
-      ((b.first_name || '') + ' ' + (b.last_name || '')).trim();
-  });
-  debts.forEach(d => {
-    const cid = String(d.client_id || '').trim();
-    if (cid && !cidToName[cid]) cidToName[cid] = (d.client_name || '').trim();
-  });
-  clientTx.forEach(t => {
-    const desc = (t.description || '').toLowerCase();
-    if (!desc.includes('balance') && !desc.includes('saldo') && !desc.includes('recharge')) return;
-    const cid = String(t.customer_id || '').trim();
-    const nm = (t.client_name || cidToName[cid] || '').trim();
-    if (!nm) return;
-    const k = normName(nm);
-    if (!balLogByName[k]) balLogByName[k] = [];
-    // Не добавляем дубликаты (если такая же дата+amount уже есть)
-    const total = parseFloat(t.total) || 0;
-    const dup = balLogByName[k].some(x =>
-      x.date === t.date && Math.abs((x.amount_num || 0) - total) < 0.01
-    );
-    if (dup) return;
-    // type: Recharge if Recharge in desc, иначе Purchase
-    const type = desc.includes('recharge') ? 'Recharge' : 'Purchase';
-    balLogByName[k].push({
-      _src: 'tx',
-      date: t.date,
-      type: type,
-      description: t.description,
-      amount_num: total,
-      balance_after: '',
+    // Fallback: client_transactions
+    const cidToName = {};
+    balances.forEach(b => {
+      const cid = String(b.customer_id || '').trim();
+      if (cid) cidToName[cid] = (b.name || '').trim() ||
+        ((b.first_name || '') + ' ' + (b.last_name || '')).trim();
     });
-  });
-
-  // Sort each client's history desc by date, take 10
-  Object.keys(balLogByName).forEach(k => {
-    balLogByName[k].sort((a, b) => {
-      // dates in different formats — normalize
-      const norm = (d) => {
-        if (!d) return '';
-        if (d.includes('/')) return d.split('/').reverse().join('-');
-        return d;
-      };
-      return norm(b.date) < norm(a.date) ? -1 : 1;
+    debts.forEach(d => {
+      const cid = String(d.client_id || '').trim();
+      if (cid && !cidToName[cid]) cidToName[cid] = (d.client_name || '').trim();
     });
-    balLogByName[k] = balLogByName[k].slice(0, 10);
-  });
+    clientTx.forEach(t => {
+      const desc = (t.description || '').toLowerCase();
+      if (!desc.includes('balance') && !desc.includes('saldo') && !desc.includes('recharge')) return;
+      const cid = String(t.customer_id || '').trim();
+      const nm = (t.client_name || cidToName[cid] || '').trim();
+      if (!nm) return;
+      const k = normName(nm);
+      if (!balLogByName[k]) balLogByName[k] = [];
+      const total = parseFloat(t.total) || 0;
+      const dup = balLogByName[k].some(x =>
+        x.date === t.date && Math.abs((x.amount_num || 0) - total) < 0.01
+      );
+      if (dup) return;
+      const type = desc.includes('recharge') ? 'Recharge' : 'Purchase';
+      balLogByName[k].push({
+        _src: 'tx', date: t.date, type: type, description: t.description,
+        amount_num: total, balance_after: '',
+      });
+    });
+    Object.keys(balLogByName).forEach(k => {
+      balLogByName[k].sort((a, b) => {
+        const norm = (d) => !d ? '' : (d.includes('/') ? d.split('/').reverse().join('-') : d);
+        return norm(b.date) < norm(a.date) ? -1 : 1;
+      });
+      balLogByName[k] = balLogByName[k].slice(0, 10);
+    });
+  }
+  rebuildBalLog();
 
   // ── Process debts ──
   // real_debt = OtrosPendientes + PendienteReserva (snapshot from latest booking)
