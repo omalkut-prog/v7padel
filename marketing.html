@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Маркетинг</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css?v=20260418">
+<link rel="stylesheet" href="assets/sidebar.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; max-width: 85ch; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; box-shadow: var(--shadow); }
+  .card h3 { font-size: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .card .icon { font-size: 20px; }
+  .card .desc { font-size: 13px; color: var(--text3); line-height: 1.6; margin-bottom: 12px; }
+  .card .status { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status.todo { background: rgba(243,156,18,0.1); color: var(--warn); }
+  .status.partial { background: rgba(243,156,18,0.15); color: var(--warn); }
+  .status.live { background: rgba(19,194,150,0.1); color: var(--good); }
+  .status.planning { background: rgba(15,23,42,0.06); color: var(--text2); }
+  .card .cta { display: inline-block; margin-top: 12px; padding: 8px 14px; background: var(--accent-soft); border: 1px solid var(--accent-border); border-radius: 8px; color: var(--accent); text-decoration: none; font-size: 12px; font-weight: 600; }
+  .card .cta:hover { background: var(--accent); color: white; }
+  .section { margin-bottom: 32px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; }
+  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
+  .section-head .hint { font-size: 11px; color: var(--text3); }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .funnel { display: grid; gap: 8px; }
+  .funnel-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 16px; padding: 14px 18px; background: var(--surface2); border-radius: 10px; border-left: 4px solid var(--accent); }
+  .funnel-row .name { font-weight: 600; font-size: 14px; }
+  .funnel-row .desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+  .funnel-row .num { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--text3); }
+  .seg-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+  .seg-card { background: var(--surface2); border-radius: 10px; padding: 14px 16px; border-left: 3px solid; }
+  .seg-card.s1 { border-left-color: #0ABAB5; }
+  .seg-card.s2 { border-left-color: #f39c12; }
+  .seg-card.s3 { border-left-color: #e74c3c; }
+  .seg-card.s4 { border-left-color: #9b59b6; }
+  .seg-card.s5 { border-left-color: #3498db; }
+  .seg-card .seg-name { font-weight: 600; font-size: 13px; margin-bottom: 4px; }
+  .seg-card .seg-desc { font-size: 11px; color: var(--text3); line-height: 1.5; }
+  .placeholder { background: rgba(243,156,18,0.06); border: 1px dashed rgba(243,156,18,0.3); border-radius: 10px; padding: 18px 22px; text-align: center; font-size: 13px; color: var(--text2); }
+  .placeholder strong { color: var(--warn); }
+  .table-mini { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .table-mini th { text-align: left; padding: 10px 12px; color: var(--text3); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+  .table-mini td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+</style>
+</head>
+<body>
+<main>
+  <h1 class="page-title">Маркетинг</h1>
+  <p class="page-sub">Аватары, воронка, замеры, бюджеты, контент-план, аналитика. Каркас. Каждый блок наполняется по мере готовности — backlog в `05_BACKLOG.md` (раздел N1.6 + N1.7 + N1.8).</p>
+
+  <!-- ═══════════════ 0. Свежие KPI ═══════════════ -->
+  <section class="section">
+    <div class="section-head"><h2>0 · Marketing health (KPI)</h2><span class="hint">по мере наполнения данными</span></div>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="icon">📈</span> Лидов / месяц</h3>
+        <div class="desc">Сейчас не считаем. Будет после N1.6 (Lead Funnel tracking).</div>
+        <span class="status todo">TODO</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">💰</span> CAC по сегменту</h3>
+        <div class="desc">Цена привлечения. Цель: <strong>&lt;30% от LTV90д</strong> для каждого сегмента.</div>
+        <span class="status todo">TODO</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">🎯</span> Конверсия лид → клиент</h3>
+        <div class="desc">% от лида до первой брони, по сегменту.</div>
+        <span class="status todo">TODO</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">⏱</span> Time to first booking</h3>
+        <div class="desc">От захода на сайт / лида до брони в днях.</div>
+        <span class="status todo">TODO</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">📷</span> Instagram followers</h3>
+        <div class="desc">Цель Q2: <strong>2.2K → 8K</strong>. См. блок IG ниже.</div>
+        <span class="status partial">2.2K live</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">💸</span> Marketing % от revenue</h3>
+        <div class="desc">SMM зарплата + Ads. Норма: <strong>8-10%</strong> от оборота. Сейчас Erdem (~36K) + Ads 50K = ~4-5%.</div>
+        <span class="status partial">~5%</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ 1. Аватары клиентов ═══════════════ -->
+  <section class="section">
+    <div class="section-head"><h2>1 · Аватары клиентов</h2><span class="hint">кому продаём — каждый сегмент свой подход</span></div>
+    <div class="panel">
+      <div class="seg-grid">
+        <div class="seg-card s1">
+          <div class="seg-name">🇹🇷 Турки — локальная элита</div>
+          <div class="seg-desc">Бизнесмены, владельцы компаний. 35-55 лет. CAC высокий, LTV максимальный. Каналы: рефералки, Inner Circle, business networking. Турниры.</div>
+        </div>
+        <div class="seg-card s2">
+          <div class="seg-name">🇹🇷 Турки — средний-плюс</div>
+          <div class="seg-desc">Менеджеры, freelance, IT. 28-45 лет. Open Games, дневное членство. Каналы: Instagram, Telegram, рефералки.</div>
+        </div>
+        <div class="seg-card s3">
+          <div class="seg-name">🌍 Экспаты (UA / EU / Asia)</div>
+          <div class="seg-desc">Постоянно живущие в Анталии. 30-50 лет. Длинный LTV, лояльные. Каналы: expat-чаты, Instagram, рефералки.</div>
+        </div>
+        <div class="seg-card s4">
+          <div class="seg-name">🏖 Туристы high-end</div>
+          <div class="seg-desc">Краткий цикл, объём. 25-50 лет. Booking premium, инфлюенсеры, отель-консьерж. Цель: бронь во время поездки.</div>
+        </div>
+        <div class="seg-card s5">
+          <div class="seg-name">👨‍👩‍👧 Семьи / дети</div>
+          <div class="seg-desc">Родители платят. Каналы: школы, детские мероприятия, рекомендации тренеров. Отдельная воронка.</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:12px;color:var(--text3)">
+        💡 <strong>RU аудитория не таргетируется</strong> (см. North Star). Если приходят — играют, но pro-RU/Putin → ban.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ 2. Воронка ═══════════════ -->
+  <section class="section">
+    <div class="section-head"><h2>2 · Воронка</h2><span class="hint">путь от незнакомца до VIP-члена</span></div>
+    <div class="panel">
+      <div class="funnel">
+        <div class="funnel-row" style="border-left-color:#94a3b8">
+          <div>
+            <div class="name">📡 Awareness</div>
+            <div class="desc">Узнал что V7 существует — IG reach, Maps, статьи, рефералки</div>
+          </div>
+          <div class="num">~?</div>
+        </div>
+        <div class="funnel-row" style="border-left-color:#0ABAB5">
+          <div>
+            <div class="name">👀 Interest (lead)</div>
+            <div class="desc">Кликнул → посмотрел сайт / IG profile / DM. Здесь начинается tracking (N1.6).</div>
+          </div>
+          <div class="num">~?</div>
+        </div>
+        <div class="funnel-row" style="border-left-color:#f39c12">
+          <div>
+            <div class="name">📞 Contact</div>
+            <div class="desc">Оставил заявку / написал в WhatsApp / DM / позвонил</div>
+          </div>
+          <div class="num">~?</div>
+        </div>
+        <div class="funnel-row" style="border-left-color:#9b59b6">
+          <div>
+            <div class="name">🎾 First booking (trial)</div>
+            <div class="desc">Сыграл первый раз. Critical: experience определяет 14d retention.</div>
+          </div>
+          <div class="num">~?</div>
+        </div>
+        <div class="funnel-row" style="border-left-color:#e74c3c">
+          <div>
+            <div class="name">🔁 Returning (≥2 visits 14d)</div>
+            <div class="desc">Зацепился. Ключевая метрика: 14d retention ≥60% (бенчмарк индустрии)</div>
+          </div>
+          <div class="num">41%</div>
+        </div>
+        <div class="funnel-row" style="border-left-color:#13c296">
+          <div>
+            <div class="name">⭐ Active (5+ визитов / 30 дней)</div>
+            <div class="desc">Sticky-клиент. Появляется регулярно. Кандидат в Club / VIP.</div>
+          </div>
+          <div class="num">580</div>
+        </div>
+        <div class="funnel-row" style="border-left-color:#0e8a87">
+          <div>
+            <div class="name">👑 Member (Club / VIP)</div>
+            <div class="desc">MRR-доход. Cap: 55. Цель Q2: 39 → 55 (см. /club-members)</div>
+          </div>
+          <div class="num">39</div>
+        </div>
+        <div class="funnel-row" style="border-left-color:#8b5cf6">
+          <div>
+            <div class="name">💎 Inner Circle (advocate)</div>
+            <div class="desc">Top-30-50 ядра. Driving рефералок, community lead, ambassador. Цель Q2: list руками Володимира.</div>
+          </div>
+          <div class="num">~?</div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:12px;color:var(--text3)">
+        🎯 Главная метрика воронки = <strong>14d retention</strong> (показывает где продукт ломается). Сейчас 41% — упало с 61% в феврале. Подробно: <a href="cohort.html" style="color:var(--accent)">/cohort.html</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ 3. Каналы ═══════════════ -->
+  <section class="section">
+    <div class="section-head"><h2>3 · Каналы привлечения</h2><span class="hint">где бьём, чем мерим</span></div>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="icon">📷</span> Instagram</h3>
+        <div class="desc">Главный канал для турков и экспатов. Reels, Stories, IG Live. Цель Q2: 2.2K → 8K followers. Erdem (SMM) + Володимир approval контента.</div>
+        <span class="status partial">Active</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">🎵</span> TikTok</h3>
+        <div class="desc">Короткие ролики игр / behind scenes / челленджи. Reuse контент с IG Reels. Реанимация в backlog (N3-N4).</div>
+        <span class="status todo">Заброшен</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">📺</span> YouTube</h3>
+        <div class="desc">Long-form: турниры, тренерские разборы, vlog клуба. Канал есть, заброшен — N3 в backlog.</div>
+        <span class="status todo">Заброшен</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">💬</span> WhatsApp Business</h3>
+        <div class="desc">Direct lead → conversation → booking. Подача templates в Meta идёт (NOW.4 в backlog).</div>
+        <span class="status partial">Setup</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">📩</span> Email (Brevo)</h3>
+        <div class="desc">Auto-welcome новичкам, monthly newsletter. Backlog N5.</div>
+        <span class="status todo">Не запущено</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">🤝</span> Рефералки / Inner Circle</h3>
+        <div class="desc">Топ канал по LTV. 1 VIP клиент = 2-3 рефералки/год. Inner Circle пока неструктурно.</div>
+        <span class="status partial">Стихийно</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">🏨</span> Hotel concierge / Booking</h3>
+        <div class="desc">Туристы. Партнёрства с premium-отелями. Не настроено системно.</div>
+        <span class="status todo">TODO</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">🏆</span> Турниры (стратегический канал)</h3>
+        <div class="desc">5-й контур выручки + driver community. См. /tournament-analytics.</div>
+        <span class="status live">Активный</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ 4. Контент-план ═══════════════ -->
+  <section class="section">
+    <div class="section-head"><h2>4 · Контент-план</h2><span class="hint">что и когда публикуем</span></div>
+    <div class="placeholder">
+      <strong>Контент-план не оцифрован.</strong> Сейчас Erdem ведёт по своим заметкам. План: единый календарь в Notion / Buffer, синхронизация с турнирным расписанием и сезонностью. Backlog: <strong>N3</strong> (YouTube реанимация даёт impulse сделать общий план для всех платформ).
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <h3 style="margin-bottom:14px;font-size:14px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:1px">Шаблон содержания (по неделе)</h3>
+      <table class="table-mini">
+        <thead><tr><th>День</th><th>Тип контента</th><th>Платформа</th><th>Цель</th></tr></thead>
+        <tbody>
+          <tr><td>ПН</td><td>Educational reel (приём недели)</td><td>IG / TikTok</td><td>Save rate</td></tr>
+          <tr><td>ВТ</td><td>Stories: behind the scenes</td><td>IG Stories</td><td>Profile clicks</td></tr>
+          <tr><td>СР</td><td>Member spotlight (топ-клиент)</td><td>IG Post + Story</td><td>Community feel</td></tr>
+          <tr><td>ЧТ</td><td>Tournament announcement / recap</td><td>IG / Telegram</td><td>Регистрации</td></tr>
+          <tr><td>ПТ</td><td>Long-form vlog (week recap)</td><td>YouTube / IG Reel</td><td>Awareness</td></tr>
+          <tr><td>СБ-ВС</td><td>Live игры, stories, hashtag-game</td><td>IG Stories / Live</td><td>Engagement</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ═══════════════ 5. Бюджеты ═══════════════ -->
+  <section class="section">
+    <div class="section-head"><h2>5 · Бюджеты</h2><span class="hint">8-10% от revenue — норма</span></div>
+    <div class="panel">
+      <table class="table-mini">
+        <thead><tr><th>Статья</th><th>Сейчас (~₺/мес)</th><th>Цель Q2</th><th>Owner</th></tr></thead>
+        <tbody>
+          <tr><td><strong>SMM payroll</strong> (Erdem)</td><td>~36 062</td><td>~50К с мая</td><td>Эрдем</td></tr>
+          <tr><td><strong>Meta Ads</strong> (IG/FB)</td><td>~50 000</td><td>50К + tracking N1.6</td><td>Эрдем + Володимир approval</td></tr>
+          <tr><td><strong>TikTok Ads</strong></td><td>0</td><td>10-20К после реанимации канала</td><td>Эрдем (после N4)</td></tr>
+          <tr><td><strong>Influencer / partnerships</strong></td><td>~?</td><td>20-30К</td><td>Володимир + Макс</td></tr>
+          <tr><td><strong>Контент-фрилансеры</strong> (фото/видео)</td><td>~?</td><td>5-10К на ивент</td><td>Эрдем</td></tr>
+          <tr><td><strong>Дизайн-система</strong> (one-off)</td><td>—</td><td>$1500-3000</td><td>Володимир + Макс</td></tr>
+          <tr><td><strong>Photoshoot мерча</strong> (one-off)</td><td>—</td><td>$500-800</td><td>Макс</td></tr>
+          <tr><td style="font-weight:600">ИТОГО маркетинг recurring</td><td style="font-weight:600">~86К</td><td style="font-weight:600">~120К</td><td>—</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;font-size:12px;color:var(--text3)">
+        💡 При обороте 1.6-2.3M ₺/мес = маркетинг 5-7%. Норма для растущего премиум-клуба = 8-10%. Можем увеличивать пропорционально росту revenue.
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ 6. Замеры / аналитика ═══════════════ -->
+  <section class="section">
+    <div class="section-head"><h2>6 · Замеры и аналитика</h2><span class="hint">leading vs outcome metrics</span></div>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="icon">📊</span> Lead Funnel dashboard</h3>
+        <div class="desc">CPL · Conversion · Time to booking · LTV proxy · CAC payback. По 5 сегментам.</div>
+        <span class="status todo">TODO N1.6</span>
+        <a class="cta" href="brain.html#05_BACKLOG">→ Спецификация</a>
+      </div>
+      <div class="card">
+        <h3><span class="icon">📷</span> Instagram Analytics</h3>
+        <div class="desc">Reach · Engagement · <strong>Save rate</strong> (главное leading) · Story completion · Sentiment.</div>
+        <span class="status todo">TODO N1.7</span>
+        <a class="cta" href="brain.html#05_BACKLOG">→ Спецификация</a>
+      </div>
+      <div class="card">
+        <h3><span class="icon">🎯</span> UTM-структура</h3>
+        <div class="desc">utm_source · utm_medium · utm_campaign · utm_content. Spec для Erdem (1 час).</div>
+        <span class="status todo">Phase 1 of N1.6</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">📋</span> NPS quarterly</h3>
+        <div class="desc">Client NPS + Coach NPS. Бенчмарк ≥60. Первый замер — конец июня.</div>
+        <span class="status todo">TODO N1.9</span>
+      </div>
+      <div class="card">
+        <h3><span class="icon">🔁</span> Cohort retention (14d/30d)</h3>
+        <div class="desc">Уже есть. Сейчас 14d retention 41% (упал с 61%). Главный leading-показатель.</div>
+        <span class="status live">Live</span>
+        <a class="cta" href="cohort.html">→ /cohort</a>
+      </div>
+      <div class="card">
+        <h3><span class="icon">🌐</span> Web/Site Analytics (GA4 + Meta Pixel)</h3>
+        <div class="desc">На v7padel.com — Макс настраивает (NOW.3 в backlog). Метрики: traffic source, conversion, bounce.</div>
+        <span class="status partial">В работе у Макса</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ 7. Mерч / Brand ═══════════════ -->
+  <section class="section">
+    <div class="section-head"><h2>7 · Мерч и Brand</h2><span class="hint">Two-tier стратегия</span></div>
+    <div class="panel">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
+        <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:3px solid var(--accent)">
+          <div style="font-weight:600;font-size:14px;margin-bottom:8px">🟢 Core (постоянный, массовый)</div>
+          <ul style="font-size:12px;color:var(--text3);line-height:1.7;list-style:none">
+            <li>• Stickers · 4 дизайна × 500 шт = 2000 шт</li>
+            <li>• Bottle steel 750ml · 150 шт</li>
+            <li>• Распространение: free со всеми бронями членов, продажа в Pro Shop</li>
+            <li>• Цель: узнаваемость + UGC</li>
+          </ul>
+        </div>
+        <div style="background:var(--surface2);border-radius:10px;padding:16px;border-left:3px solid #f39c12">
+          <div style="font-weight:600;font-size:14px;margin-bottom:8px">🟡 Limited (drop-формат)</div>
+          <ul style="font-size:12px;color:var(--text3);line-height:1.7;list-style:none">
+            <li>• Stickers Limited Series 01 · 5 дизайнов × 100 шт = 500</li>
+            <li>• Founder Series Limited bottles · 100 нумерованных</li>
+            <li>• «Discontinued forever» — scarcity</li>
+            <li>• Для первых 100 active members + Inner Circle</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:12px;color:var(--text3)">
+        Полный план: <strong>N1.8</strong> в backlog (8 часов работы Макс + Володимир + photoshoot).
+      </div>
+    </div>
+  </section>
+
+</main>
+<script src="assets/sidebar.js"></script>
+</body>
+</html>

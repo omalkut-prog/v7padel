@@ -47,6 +47,9 @@
       { label: 'Риски',    href: 'risk.html',       icon: 'risk',      roles: ['admin'] },
       { label: 'Аудит',    href: 'audit.html',      icon: 'audit',     roles: ['admin'] },
     ]},
+    { group: 'Маркетинг', roles: ['admin'], items: [
+      { label: 'Маркетинг',  href: 'marketing.html', icon: 'revenue',  roles: ['admin'] },
+    ]},
     { group: 'Клуб', items: [
       { label: 'Клиенты',    href: 'clients.html',             icon: 'clients',     roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Когорта',    href: 'cohort.html',              icon: 'clients',     roles: ['admin', 'manager'] },
