@@ -424,6 +424,69 @@ OPEX per court = total_opex / N courts            (удельные затрат
 
 ---
 
+## ADR-019 · 2026-05-03 · RPCH считаем по последнему ЗАКРЫТОМУ месяцу + дедуп occupancy_daily + sanity guard
+
+**Контекст**: на /revenue.html `₺ / корто-час` показывал ~1092 в любом периоде вместо ожидаемых 2000+. Раскопали — три бага сразу:
+
+1. **`occupancy_daily` имела дубликаты строк** — 90 дат с двумя строками каждая. `compute_court_occupancy_for_month` суммировал → 2067 ч за апрель вместо 1033.5. RPCH занижен **в 2 раза**.
+2. **`build_cache.last_pnl_month` брал последний месяц из `pnl` dict**, но `compute_live_month` добавляет туда **текущий live-месяц** (3 дня данных). RPCH считался как 148K/148ч ≈ 1002 ₺/ч.
+3. **`/revenue.html updateRevPerHourKPI` использовал только income** (без goods) в числителе. Маленький эффект (~5%), но несопоставимо с PnL-RPCH в cache.
+
+**Фикс**:
+- `scrape_occupancy.py`: при чтении existing_row_map берём ПОСЛЕДНЮЮ строку (`last wins`) и логируем дубликаты с предупреждением. Дедуп всего таба (90 строк удалено).
+- `build_cache.py::main`: `last_pnl_month = closed_months[-1]` где `closed_months = [m for m in pnl_months if m < cur_ym]`. Если случайно вернётся live-месяц — sanity check на RPCH < 500 или > 5000 сработает в логе.
+- `revenue.html updateRevPerHourKPI`: numerator = income+goods. Sanity guard в UI: если `periodPerH < 500` при `periodHours > 50` → показываем «⚠️ подозрительно низко» в подсказке.
+
+**Результат**: RPCH = 2219 ₺/ч (за март 2026, последний закрытый PnL). Совпадает с ожиданием Володимира.
+
+**Превентивно** (чтобы не возвращаться):
+- Sanity-check встроен прямо в build_cache → виден в логах cron, не нужно ходить руками.
+- UI guard на /revenue → пользователь сразу увидит подозрительные числа.
+- ETL дедуп происходит автоматически на каждом scrape_occupancy.
+
+**Где смотреть**: build_cache.py:2854-2876 (sanity), scrape_occupancy.py:312-330 (dedup guard), revenue.html:2058-2082 (numerator + UI guard).
+
+---
+
+## ADR-020 · 2026-05-03 · Single Source of Truth для оперативной выручки = transactions (cash), PnL = бухгалтерская сверка
+
+**Контекст**: Володимир увидел что на /finance Март 2026 = 1.6M ₺, на /revenue Март 2026 = 1.64M ₺. Разные числа для одной метрики в разных местах = data inconsistency. Принцип: одна метрика = одно число везде (Single Source of Truth).
+
+**Полный аудит расхождений PnL vs Tx по месяцам**:
+
+| Месяц | Tx (cash) | PnL | Δ | % |
+|-------|-----------|-----|---|---|
+| Окт 2025 | 1 629 593 | 1 525 888 | -103K | **-6.8%** |
+| Ноя 2025 | 1 206 482 | 1 171 400 | -35K | -3.0% |
+| Дек 2025 | 755 534 | 654 411 | **-101K** | **-15.5%** |
+| Янв 2026 | 708 895 | 662 953 | -46K | **-6.9%** |
+| Фев 2026 | 711 178 | 700 447 | -11K | -1.5% |
+| Мар 2026 | 1 639 332 | 1 603 306 | -36K | -2.2% |
+| Апр 2026 | 2 317 524 | **0 (не закрыт)** | — | — |
+
+**Системное расхождение**: PnL всегда МЕНЬШЕ чем raw cash transactions (бухгалтер вручную исключает что-то — возможно internal/voids, или отдельные категории идут в PnL отдельной строкой).
+
+**Решение** (по ADR-016 cash-basis):
+- **`transactions` cash-basis = Single Source of Truth** для оперативных метрик: /dashboard, /revenue, /clients, /may-goal, /risk и любого реал-тайм UI.
+- **PnL accountant data** = бухгалтерская сверка для /finance (отчёт за закрытый период). Используется как **референс**, не как primary.
+- **На /finance** показываем PnL и Tx (cash) рядом с дельтой → бухгалтер видит расхождение и подгоняет PnL → в идеале Δ → 0.
+
+**Реализация**:
+- `/dashboard kpi-rev` (Выручка посл. месяц): источник = `rev_monthly_tx` cache (transactions). Раньше был PnL → 1.6M, теперь 1.64M = совпадает с /revenue. PnL значение остаётся в tooltip для аудита (если Δ > 3%).
+- `/finance pnl-table`: добавлена колонка «Tx (cash)» и «Δ Tx-PnL» рядом с PnL. Подсветка: Δ>10% красный, Δ>5% обычный, иначе muted.
+- Будущие новые KPI с выручкой → ВСЕГДА из `transactions` (или `client_transactions` для per-client). НЕ из PnL.
+
+**Что НЕ делаем**:
+- Не пытаемся «исправить» PnL в build_cache — это бухгалтерская правда, мы её не трогаем.
+- Не дублируем формулы на стороне фронта — берём из cache (`rev_monthly_tx`, `rev_weekly_income`, `rev_weekly_goods`).
+
+**Где смотреть код**:
+- dashboard.html:957-985 (kpi-rev переключение PnL→Tx)
+- finance.html:176 (header), 332-345 (loadCacheTab tx), 367-410 (rendering)
+- ADR-019 (предыдущий шаг — RPCH дедуп)
+
+---
+
 ## Шаблон новой записи
 
 ```markdown

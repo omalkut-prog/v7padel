@@ -962,6 +962,11 @@ function _rerenderAllAfterPeriodChange() {
   if (typeof updateRevPerHourKPI === 'function' && document.getElementById('inc-kpi-rev-hour')) {
     updateRevPerHourKPI();
   }
+  // OPEX tab — если уже загружен, перерисовать с учётом периода (баг 2026-05-03:
+  // OPEX игнорировал фильтр периода и всегда показывал последний месяц).
+  if (_opexRendered && window._opexRowsCache) {
+    try { renderOpexTab(window._opexRowsCache); } catch (e) { console.warn('OPEX rerender failed:', e); }
+  }
 }
 
 /* ---- Period filter (V4 — пресеты + custom) ---- */
@@ -1374,31 +1379,68 @@ async function renderOpexTab(opexRows) {
   // opexRows — массив объектов {month, Категория1, ..., Итого}
   opexRows = opexRows.filter(function(r) { return r.month; }).sort(function(a, b) { return a.month < b.month ? -1 : 1; });
   if (!opexRows.length) return;
+  // Кэшируем для re-render при смене периода (см. _rerenderAllAfterPeriodChange)
+  window._opexRowsCache = opexRows;
 
   var allCats = Object.keys(opexRows[0]).filter(function(k) { return k !== 'month' && k !== 'Итого'; });
-  var lastMonth = opexRows[opexRows.length - 1];
-  var lastYM = lastMonth.month;
-  var lastTotal = num(lastMonth['Итого']);
 
-  // Выручка за последний месяц — из dashboard_kpis
-  var revLastMonth = 0;
+  // === V4 PERIOD: aggregate по выбранному периоду (баг 2026-05-03:
+  // раньше всегда показывал последний месяц, игнорировал фильтр) ===
+  var periodFrom = (typeof getPeriodCutoff === 'function') ? getPeriodCutoff() : null;
+  var periodTo = (typeof getPeriodEnd === 'function') ? getPeriodEnd() : null;
+  function ymInPeriod(ym) {
+    // ym = "2026-04". Считаем что месяц в периоде если последний день месяца >= periodFrom
+    // и первый день месяца <= periodTo (если periodTo задан).
+    var parts = ym.split('-');
+    var y = +parts[0], m = +parts[1];
+    var first = new Date(y, m - 1, 1);
+    var last = new Date(y, m, 0);
+    if (periodFrom && last < periodFrom) return false;
+    if (periodTo && first > periodTo) return false;
+    return true;
+  }
+  var inPeriodRows = opexRows.filter(function(r) { return ymInPeriod(r.month); });
+  // Если ни один месяц не попал — fallback на последний (чтобы не показывать пусто)
+  if (!inPeriodRows.length) inPeriodRows = [opexRows[opexRows.length - 1]];
+
+  // Aggregate periodTotal + per-cat sums
+  var periodTotal = 0;
+  var periodByCat = {};
+  allCats.forEach(function(c) { periodByCat[c] = 0; });
+  inPeriodRows.forEach(function(r) {
+    periodTotal += num(r['Итого']);
+    allCats.forEach(function(c) { periodByCat[c] += num(r[c]); });
+  });
+  var periodLabelStr = (typeof _periodLabel === 'function') ? _periodLabel() : 'период';
+  var periodMonthsCount = inPeriodRows.length;
+
+  // Выручка за тот же период из rev_monthly_tx (cash, SSoT по ADR-020)
+  var revPeriod = 0;
   try {
-    var k = await loadCacheTab('dashboard_kpis');
-    if (k && k[0]) revLastMonth = num(k[0].revenue_last_month);
+    var revRows = await loadCacheTab('rev_monthly_tx');
+    if (revRows) {
+      revRows.forEach(function(rr) {
+        if (rr.month && ymInPeriod(rr.month)) revPeriod += num(rr.total);
+      });
+    }
   } catch (e) {}
 
   // === KPI ===
-  document.getElementById('opx-kpi-total').textContent = fmtInt(Math.round(lastTotal)) + ' ₺';
-  document.getElementById('opx-kpi-total-hint').textContent = lastYM;
-  var perCourt = lastTotal / 4;
+  document.getElementById('opx-kpi-total').textContent = fmtInt(Math.round(periodTotal)) + ' ₺';
+  document.getElementById('opx-kpi-total-hint').textContent = periodLabelStr +
+    (periodMonthsCount > 1 ? ' (' + periodMonthsCount + ' мес)' : '');
+  var perCourt = periodTotal / 4;
   document.getElementById('opx-kpi-per-court').textContent = fmtInt(Math.round(perCourt)) + ' ₺';
-  var ratio = revLastMonth > 0 ? (lastTotal / revLastMonth * 100) : 0;
+  var ratio = revPeriod > 0 ? (periodTotal / revPeriod * 100) : 0;
   document.getElementById('opx-kpi-ratio').textContent = (ratio > 0 ? ratio.toFixed(0) + '%' : '—');
   var ratioCol = ratio > 90 ? 'var(--bad)' : (ratio > 70 ? '#f39c12' : 'var(--good)');
   document.getElementById('opx-kpi-ratio').style.color = ratioCol;
-  var sortedLast = allCats.map(function(c) { return { cat: c, amt: num(lastMonth[c]) }; })
+  var sortedLast = allCats.map(function(c) { return { cat: c, amt: periodByCat[c] }; })
                           .filter(function(p) { return p.amt > 0; })
                           .sort(function(a, b) { return b.amt - a.amt; });
+  // alias переменных чтобы не править остальной код функции (lastTotal, revLastMonth используются дальше)
+  var lastTotal = periodTotal;
+  var revLastMonth = revPeriod;
   if (sortedLast.length) {
     document.getElementById('opx-kpi-top').textContent = sortedLast[0].cat;
     var topPct = lastTotal > 0 ? (sortedLast[0].amt / lastTotal * 100).toFixed(0) + '%' : '—';
@@ -2051,9 +2093,20 @@ function updateRevPerHourKPI() {
   var wMap = tabData.income && tabData.income.weekMap;
   if (!wMap) { revHourEl.textContent = '—'; return; }
 
-  // Период: revenue из weekMap + часы из utl
+  // Период: revenue из weekMap (income + goods для сопоставимости с PnL/RPCH в cache)
+  // + часы из utl. Раньше считали только income → ₺/ч был занижен на ~5% (доля goods).
+  // 2026-05-03 fix: учитываем и goods, чтобы метрика отражала ВЕСЬ доход на корт-час.
+  var gMap = (tabData.goods && tabData.goods.weekMap) || {};
   var periodRev = 0;
   Object.values(wMap).forEach(function(w) {
+    for (var d = 0; d < 7; d++) {
+      var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+      if (dd >= today) continue;
+      if (!inPeriod(dd)) continue;
+      periodRev += w.days[d];
+    }
+  });
+  Object.values(gMap).forEach(function(w) {
     for (var d = 0; d < 7; d++) {
       var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
       if (dd >= today) continue;
@@ -2084,11 +2137,11 @@ function updateRevPerHourKPI() {
   requestAnimationFrame(function() {
     revHourEl.textContent = periodHours > 0 ? fmtInt(Math.round(periodPerH)) + ' ₺' : '—';
 
-    // Подсказка: часы периода + справка за 30 дней
+    // Подсказка: часы периода + справка за 30 дней + sanity check
     var periodLabel = _periodLabel();
     var hint = periodHours > 0 ? Math.round(periodHours) + ' ч / ' + periodDays + ' дн. (' + periodLabel + ')' : 'нет данных';
 
-    // Всегда показываем справку за последние 30 дней (бенчмарк)
+    // Всегда показываем справку за последние 30 дней (бенчмарк) — income+goods.
     var d30ago = new Date(today); d30ago.setDate(d30ago.getDate() - 30);
     var last30Hours = utl.filter(function(r) { return r.dt >= d30ago && r.dt < today && r.hours > 0; }).reduce(function(s, r) { return s + r.hours; }, 0);
     var last30Rev = 0;
@@ -2098,9 +2151,20 @@ function updateRevPerHourKPI() {
         if (dd >= d30ago && dd < today) last30Rev += w.days[d];
       }
     });
+    Object.values(gMap).forEach(function(w) {
+      for (var d = 0; d < 7; d++) {
+        var dd = new Date(w.mon); dd.setDate(dd.getDate() + d);
+        if (dd >= d30ago && dd < today) last30Rev += w.days[d];
+      }
+    });
     var last30PerH = last30Hours > 0 ? last30Rev / last30Hours : 0;
-    if (last30Hours > 0 && _periodMonths !== 1) {
+    if (last30Hours > 0 && _periodType !== 'this_month') {
       hint += ' · 30д: ' + fmtInt(Math.round(last30PerH)) + ' ₺/ч';
+    }
+    // Sanity guard: если ₺/ч в периоде получился < 500 — почти наверняка bug
+    // (cache не дотянул для какого-то дня, занижение). Подсветим это.
+    if (periodHours > 50 && periodPerH > 0 && periodPerH < 500) {
+      hint += ' · ⚠️ подозрительно низко';
     }
     revHourDelta.textContent = hint;
   });
@@ -4406,18 +4470,22 @@ async function _lazyBackfillTxDetails() {
     var rows = await loadSheet('transactions');
     if (!rows || !rows.length) return;
 
-    // RESET days[], total и dayTx[] на существующих weekMap — будем пересчитывать
+    // ВАЖНО: НЕ обнуляем w.days / w.total — они приходят из rev_weekly_income/goods
+    // cache, который является источником правды. Если transactions sheet частично
+    // обновлён раньше cache (или наоборот), reset+reaggregate выдаёт МЕНЬШЕ чем
+    // должен быть → KPI "Доход за месяц" падает в 649₺ вместо 43195₺ (баг 2026-05-02).
+    // Здесь только перезаписываем dayTx (для тултипов) — а ещё аккуратно достраиваем
+    // самую свежую неделю если её нет в cache.
     ['income','goods'].forEach(function(tn) {
       var wm = tabData[tn] && tabData[tn].weekMap;
       if (!wm) return;
       Object.values(wm).forEach(function(w) {
-        w.days = [0,0,0,0,0,0,0];
-        w.total = 0;
         w.dayTx = [[],[],[],[],[],[],[]];
       });
     });
 
-    // Re-aggregate из raw transactions
+    // Накапливаем raw по неделям — чтобы понять, есть ли у нас неделя НЕ в cache
+    var rawAgg = { income: {}, goods: {} };
     rows.forEach(function(r) {
       var d = parseDate(r.date);
       if (!d) return;
@@ -4428,22 +4496,38 @@ async function _lazyBackfillTxDetails() {
       if (!tn) return;
       var wk = weekKey(d);
       var wm = tabData[tn].weekMap;
-      // Если недели нет в weekMap — создаём (для самой свежей недели когда кэш ещё не догнал)
-      if (!wm[wk]) {
-        wm[wk] = { mon: getMonday(d), days: [0,0,0,0,0,0,0], total: 0, dayTx: [[],[],[],[],[],[],[]] };
-        if (tabData[tn].weekKeys) {
-          tabData[tn].weekKeys.unshift(wk); // самая свежая в начало (desc order)
-          tabData[tn].weekKeys.sort().reverse();
-        }
-      }
       var dow = isoWeekDow(d);
-      wm[wk].days[dow] += total;
-      wm[wk].total += total;
-      wm[wk].dayTx[dow].push({
-        total: total,
-        category: cat,
-        subcategory: r.subcategory || '',
-        comment: r.comment || ''
+
+      // dayTx — ВСЕГДА пишем (для тултипов)
+      if (wm[wk]) {
+        wm[wk].dayTx[dow].push({
+          total: total, category: cat,
+          subcategory: r.subcategory || '', comment: r.comment || ''
+        });
+      }
+
+      // Параллельно агрегируем для случая «недели нет в cache»
+      if (!rawAgg[tn][wk]) rawAgg[tn][wk] = { mon: getMonday(d), days: [0,0,0,0,0,0,0], total: 0, dayTx: [[],[],[],[],[],[],[]] };
+      rawAgg[tn][wk].days[dow] += total;
+      rawAgg[tn][wk].total += total;
+      rawAgg[tn][wk].dayTx[dow].push({
+        total: total, category: cat,
+        subcategory: r.subcategory || '', comment: r.comment || ''
+      });
+    });
+
+    // Если в raw есть неделя, которой нет в cache (свежая, ETL ещё не догнал) —
+    // добавляем её из rawAgg. Это покрывает «сегодня» когда кэш строился ночью.
+    ['income','goods'].forEach(function(tn) {
+      var wm = tabData[tn].weekMap;
+      Object.keys(rawAgg[tn]).forEach(function(wk) {
+        if (!wm[wk]) {
+          wm[wk] = rawAgg[tn][wk];
+          if (tabData[tn].weekKeys) {
+            tabData[tn].weekKeys.unshift(wk);
+            tabData[tn].weekKeys.sort().reverse();
+          }
+        }
       });
     });
 

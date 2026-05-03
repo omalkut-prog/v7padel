@@ -954,9 +954,34 @@ async function loadMonthlySeriesIndependent() {
       console.log('dashboard: full cache loaded in ' + Math.round(performance.now() - t0) + 'ms');
 
       // ── KPI CARDS ──
-      var revLM = toNum(kpis.revenue_last_month);
+      // SSoT (ADR-019): для оперативной выручки используем cash transactions
+      // (то же число что на /revenue, /clients и т.д.). PnL = бухгалтерская
+      // версия, держим для сверки на /finance. Раньше тут была только PnL →
+      // на /dashboard был 1.6M, а на /revenue 1.64M = у пользователя «не сходится».
+      var revPnL = toNum(kpis.revenue_last_month);
+      var revLM = revPnL;  // fallback на PnL пока tx не загрузился
       document.getElementById("kpi-rev").textContent = fmtK(revLM) + " ₺";
       document.getElementById("kpi-rev-mo").textContent = kpis.last_month || '';
+      // Параллельно подгружаем cash из rev_monthly_tx — заменим как только придёт
+      V7.loadCacheTab('rev_monthly_tx').then(function(rows) {
+        if (!rows || !kpis.last_month) return;
+        var lm = kpis.last_month;
+        var match = rows.find(function(r) { return r.month === lm; });
+        if (!match) return;
+        var revTx = toNum(match.total);
+        if (!revTx) return;
+        document.getElementById("kpi-rev").textContent = fmtK(revTx) + " ₺";
+        revLM = revTx;
+        // Если расхождение с PnL > 3% — показываем в подсказке для аудита
+        if (revPnL > 0) {
+          var delta = revTx - revPnL;
+          var pct = 100 * delta / revPnL;
+          if (Math.abs(pct) > 3) {
+            var subEl = document.getElementById("kpi-rev-mo");
+            if (subEl) subEl.title = 'PnL (бухгалтер): ' + fmtK(revPnL) + ' ₺ · Δ ' + (delta>=0?'+':'') + fmtK(delta) + ' (' + (pct>=0?'+':'') + pct.toFixed(1) + '%)';
+          }
+        }
+      }).catch(function(){});
       // Среднее в день + прогноз
       (function() {
         var lm = kpis.last_month || '';

@@ -173,7 +173,7 @@
     <div class="panel">
       <table class="fin" id="pnl-table">
         <thead>
-          <tr><th>Месяц</th><th>Выручка</th><th>OPEX</th><th>Оп. P&amp;L</th><th>Δ к прошлому</th></tr>
+          <tr><th>Месяц</th><th>Выручка PnL <small style="color:var(--text3);font-weight:400">бухгалтер</small></th><th>Tx (cash) <small style="color:var(--text3);font-weight:400">из transactions</small></th><th>Δ Tx-PnL</th><th>OPEX</th><th>Оп. P&amp;L</th><th>Δ к прошлому</th></tr>
         </thead>
         <tbody><tr><td colspan="5" class="loading">Читаю PnL бухгалтера…</td></tr></tbody>
         <tfoot></tfoot>
@@ -329,9 +329,18 @@ async function renderBlock1() {
   try {
     pnlData = await V7.loadPnL();
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="5" class="error">Ошибка загрузки PnL: ' + e.message + '</td></tr>'; return;
+    tbody.innerHTML = '<tr><td colspan="7" class="error">Ошибка загрузки PnL: ' + e.message + '</td></tr>'; return;
   }
-  if (!Object.keys(pnlData).length) { tbody.innerHTML = '<tr><td colspan="5" class="error">PnL пуст</td></tr>'; return; }
+  if (!Object.keys(pnlData).length) { tbody.innerHTML = '<tr><td colspan="7" class="error">PnL пуст</td></tr>'; return; }
+
+  // Reconciliation: подгружаем cash-выручку из rev_monthly_tx (transactions)
+  // чтобы видеть delta PnL vs cash. Если delta > 5% — желтый, > 10% — красный.
+  // ADR-019: cash-basis = SSoT, PnL = бухгалтерская сверка.
+  var txByMonth = {};
+  try {
+    var rows = await V7.loadCacheTab('rev_monthly_tx');
+    if (rows) rows.forEach(function(r) { txByMonth[r.month] = num(r.total); });
+  } catch (e) { console.warn('rev_monthly_tx load failed (non-critical):', e); }
 
   const monthsAsc = Object.keys(pnlData).filter(m => m >= V7.START_MONTH).sort();
   if (!monthsAsc.length) { tbody.innerHTML = '<tr><td colspan="5" class="error">Нет строк с октября 2025</td></tr>'; return; }
@@ -364,24 +373,47 @@ async function renderBlock1() {
     sumRev += rw.revenue; sumOpex += rw.opex; sumPnl += rw.pnl;
   });
   const months = monthsAsc.slice().reverse();
+  var sumTx = 0;
   tbody.innerHTML = months.map(m => {
     const rw = pnlData[m];
     const delta = deltas[m];
     const pnlCls = rw.pnl >= 0 ? 'pos' : 'neg';
     const dCls = delta == null ? 'muted' : delta >= 0 ? 'pos' : 'neg';
     const liveTag = rw.source === 'live' ? ' <span style="color:var(--accent);font-size:11px" title="Живые данные из транзакций">⚡live</span>' : '';
+    // Tx (cash) reconciliation
+    var tx = txByMonth[m];
+    var txDelta = (tx && rw.revenue) ? tx - rw.revenue : null;
+    var txPct = (tx && rw.revenue) ? 100 * txDelta / rw.revenue : 0;
+    var txCellCls = 'num';
+    var txDeltaCellCls = 'num muted';
+    if (tx && rw.revenue) {
+      sumTx += tx;
+      if (Math.abs(txPct) > 10) txDeltaCellCls = 'num neg';
+      else if (Math.abs(txPct) > 5) txDeltaCellCls = 'num';
+      else txDeltaCellCls = 'num muted';
+    }
+    var txCell = tx ? fmtMoney(tx) : '<span class="muted">—</span>';
+    var txDeltaCell = (tx && rw.revenue)
+      ? '<span title="' + (txPct>=0?'+':'') + txPct.toFixed(1) + '%">' + fmtSigned(txDelta) + '</span>'
+      : '<span class="muted">—</span>';
     return '<tr>' +
       '<td>' + ymLabel(m) + liveTag + '</td>' +
       '<td class="num">' + fmtMoney(rw.revenue) + '</td>' +
+      '<td class="' + txCellCls + '">' + txCell + '</td>' +
+      '<td class="' + txDeltaCellCls + '">' + txDeltaCell + '</td>' +
       '<td class="num">' + fmtMoney(rw.opex) + '</td>' +
       '<td class="num ' + pnlCls + '">' + fmtMoney(rw.pnl) + '</td>' +
       '<td class="num ' + dCls + '">' + (delta == null ? '—' : fmtSigned(delta)) + '</td>' +
     '</tr>';
   }).join('');
   const sumCls = sumPnl >= 0 ? 'pos' : 'neg';
+  var sumTxDelta = sumTx > 0 ? sumTx - sumRev : null;
   tfoot.innerHTML = '<tr>' +
     '<td>Итого</td>' +
     '<td class="num">' + fmtMoney(sumRev) + '</td>' +
+    '<td class="num">' + (sumTx > 0 ? fmtMoney(sumTx) : '—') + '</td>' +
+    '<td class="num ' + (sumTxDelta && sumTxDelta > 0 ? 'pos' : 'muted') + '">' +
+      (sumTxDelta == null ? '—' : fmtSigned(sumTxDelta)) + '</td>' +
     '<td class="num">' + fmtMoney(sumOpex) + '</td>' +
     '<td class="num ' + sumCls + '">' + fmtMoney(sumPnl) + '</td>' +
     '<td></td>' +
