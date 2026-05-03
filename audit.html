@@ -351,29 +351,39 @@
   });
 
   // ── Load data ──
-  let debts = [], movements = [], balances = [], clientTx = [];
+  // client_balances теперь из ListadoClientesConSaldo.aspx (1 запрос, точные
+  // балансы как в MP UI). Раньше брали из debts.balance (некорректно).
+  let debts = [], movements = [], balances = [];
   try {
-    [debts, movements, balances, clientTx] = await Promise.all([
+    [debts, movements, balances] = await Promise.all([
       loadSheet('debts').catch(() => []),
       loadSheet('balance_log').catch(() => []),
       loadSheet('client_balances').catch(() => []),
-      loadSheet('client_transactions').catch(() => []),
     ]);
   } catch (e) {
     console.error('Data load error:', e);
   }
 
-  // Map cid → last 10 tx (sorted desc by date)
-  const txByCid = {};
-  clientTx.forEach(t => {
-    const cid = String(t.customer_id || '').trim();
-    if (!cid) return;
-    if (!txByCid[cid]) txByCid[cid] = [];
-    txByCid[cid].push(t);
+  // Map имя_клиента → last 10 движений баланса (только Purchase/Recharge/Correction)
+  // Используем balance_log, не client_transactions — пользователь хочет видеть
+  // движения именно по балансу, не все продажи. Ключ = имя т.к. в balance_log
+  // нет customer_id, только client name.
+  function normName(n) { return (n || '').trim().toLowerCase(); }
+  const balLogByName = {};
+  movements.forEach(m => {
+    const k = normName(m.client);
+    if (!k) return;
+    if (!balLogByName[k]) balLogByName[k] = [];
+    balLogByName[k].push(m);
   });
-  Object.keys(txByCid).forEach(cid => {
-    txByCid[cid].sort((a, b) => (b.date || '') < (a.date || '') ? -1 : 1);
-    txByCid[cid] = txByCid[cid].slice(0, 10);
+  Object.keys(balLogByName).forEach(k => {
+    // Sort by date descending. Format: dd/mm/yyyy
+    balLogByName[k].sort((a, b) => {
+      const pa = (a.date || '').split('/').reverse().join('-');
+      const pb = (b.date || '').split('/').reverse().join('-');
+      return pb < pa ? -1 : 1;
+    });
+    balLogByName[k] = balLogByName[k].slice(0, 10);
   });
 
   // ── Process debts ──
@@ -420,32 +430,44 @@
 
   debtors.sort((a, b) => b.netDebt - a.netDebt);
 
-  // Surplus: clients with balance > 0 (from API, no manual export needed)
-  // GUARD 2026-05-03: Matchpoint у нескольких клиентов глючит и пишет
-  // абсурдные балансы (десятки миллиардов ₺ — баланс в копейках * timestamp).
-  // Фильтруем нереалистичное (>1M ₺ — точно баг). Реальный max баланс в padel-
-  // клубе ~50-100K у самых VIP. Подсветим аномалии в отдельном warning.
-  const REALISTIC_MAX_BALANCE = 1_000_000;
-  const allWithBalance = allClients.filter(c => c.balance > 0);
-  const anomalies = allWithBalance.filter(c => c.balance > REALISTIC_MAX_BALANCE);
-  const surplusClients = allWithBalance
-    .filter(c => c.balance <= REALISTIC_MAX_BALANCE)
+  // Surplus: из client_balances tab (свежий scrape_balances.py — 1 запрос
+  // к Matchpoint /Clientes/ListadoClientesConSaldo.aspx, точные данные).
+  // Раньше брали debts.balance — терялись клиенты без недавних бронирований
+  // и были off-by-one ошибки. ADR-021.
+  const SKIP_BAL_NAMES = ['olha test', 'prueba', 'demo', 'staff', 'olha bo', 'olha m'];
+  const surplusClients = (balances || [])
+    .map(b => {
+      const fullName = (b.name || '').trim() || ((b.first_name || '') + ' ' + (b.last_name || '')).trim();
+      const bal = parseFloat(b.balance) || 0;
+      return {
+        clientId: String(b.customer_id || '').trim(),
+        displayCode: String(b.display_code || '').trim(),
+        name: fullName,
+        balance: bal,
+        // realDebt из debts если есть, иначе 0
+        realDebt: 0, netDebt: -bal,
+      };
+    })
+    .filter(c => c.balance > 0 && !SKIP_BAL_NAMES.some(t => c.name.toLowerCase().includes(t)))
     .sort((a, b) => b.balance - a.balance);
+
+  // Подтягиваем real_debt из debts tab по customer_id (если есть)
+  const debtsByCid = {};
+  debts.forEach(d => {
+    const cid = String(d.client_id || '').trim();
+    if (cid) debtsByCid[cid] = d;
+  });
+  surplusClients.forEach(c => {
+    const d = debtsByCid[c.clientId];
+    if (d) {
+      c.realDebt = parseFloat(d.real_debt) || 0;
+      c.netDebt = c.realDebt - c.balance;
+    }
+  });
 
   const totalDebt = debtors.reduce((s, d) => s + d.netDebt, 0);
   const totalGross = debtors.reduce((s, d) => s + d.realDebt, 0);
   const totalSurplus = surplusClients.reduce((s, d) => s + d.balance, 0);
-
-  // Anomalies banner (если есть)
-  if (anomalies.length) {
-    var fr = document.getElementById('audit-freshness');
-    if (fr) {
-      fr.innerHTML += '<br><span style="color:var(--bad)">⚠️ ' + anomalies.length +
-        ' клиентов с нереалистичным балансом >' + REALISTIC_MAX_BALANCE.toLocaleString() +
-        ' ₺ (' + anomalies.map(c => c.name).slice(0,3).join(', ') +
-        ') — глюк Matchpoint, исключены из общей суммы. Связаться с Matchpoint поддержкой.</span>';
-    }
-  }
 
   // ── KPIs ──
   document.getElementById('kpi-debt-val').textContent = fmt(totalDebt);
@@ -510,22 +532,29 @@
     });
   }
 
-  // ── Surplus table ── с тултипом «последние 10 транзакций» (hover на имени клиента)
+  // ── Surplus table ── с тултипом последних движений БАЛАНСА (Recharge/Purchase/Correction)
   const sBody = document.querySelector('#surplus-table tbody');
-  function renderTxTooltip(cid) {
-    const txs = txByCid[String(cid)] || [];
-    if (!txs.length) return '<div style="padding:8px 12px;color:var(--text3);font-size:12px">Нет данных по транзакциям</div>';
-    let html = '<div style="padding:10px 12px;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--border)">Последние ' + txs.length + ' транзакций</div>';
+  function renderTxTooltip(name) {
+    const moves = balLogByName[normName(name)] || [];
+    if (!moves.length) return '<div style="padding:10px 14px;color:var(--text3);font-size:12px">Нет движений по балансу за last 60 дней.<br><small>balance_log хранит только последние операции; история обнуляется при ETL.</small></div>';
+    let html = '<div style="padding:10px 14px;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--border)">Последние ' + moves.length + ' операций по балансу</div>';
     html += '<table style="width:100%;font-size:12px"><tbody>';
-    txs.forEach(t => {
-      const total = parseFloat(t.total || 0);
-      const cancel = (String(t.is_cancel || '').toLowerCase() === 'true' || t.is_cancel === '1');
-      const amt = total.toLocaleString('tr-TR', { maximumFractionDigits: 0 }) + ' ₺';
-      const desc = (t.description || '').slice(0, 60);
+    moves.forEach(m => {
+      const amt = parseFloat(m.amount_num) || 0;
+      const type = m.type || '';
+      const before = m.balance_before || '—';
+      const after = m.balance_after || '—';
+      const desc = (m.description || '').slice(0, 80);
+      // Цвет типа
+      const typeStyle = type === 'Recharge' ? 'color:var(--good)' : type === 'Correction' ? 'color:var(--warn)' : 'color:var(--text2)';
+      const amtCls = amt < 0 ? 'neg' : 'pos';
+      const amtStr = (amt > 0 ? '+' : '') + Math.round(amt).toLocaleString('tr-TR') + ' ₺';
       html += '<tr style="border-bottom:1px solid var(--border)">' +
-        '<td style="padding:6px 10px;color:var(--text3);white-space:nowrap">' + (t.date || '—') + '</td>' +
-        '<td style="padding:6px 10px;color:var(--text)' + (cancel ? ';text-decoration:line-through;opacity:0.5' : '') + '">' + desc + '</td>' +
-        '<td style="padding:6px 10px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums" class="' + (cancel ? 'muted' : (total > 0 ? 'pos' : '')) + '">' + amt + '</td>' +
+        '<td style="padding:6px 10px;color:var(--text3);white-space:nowrap">' + (m.date || '—') + '</td>' +
+        '<td style="padding:6px 10px;font-weight:600;' + typeStyle + ';white-space:nowrap">' + type + '</td>' +
+        '<td style="padding:6px 10px;color:var(--text2);font-size:11px">' + desc + '</td>' +
+        '<td style="padding:6px 10px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums" class="' + amtCls + '">' + amtStr + '</td>' +
+        '<td style="padding:6px 10px;text-align:right;color:var(--text3);font-variant-numeric:tabular-nums">→ ' + after + '</td>' +
       '</tr>';
     });
     html += '</tbody></table>';
@@ -534,8 +563,8 @@
   if (!surplusClients.length) {
     sBody.innerHTML = '<tr><td colspan="4" class="loading">Нет клиентов с балансом</td></tr>';
   } else {
-    sBody.innerHTML = surplusClients.map((d, i) => `<tr data-tx-cid="${d.clientId}">
-      <td><span class="surplus-name" style="cursor:help;border-bottom:1px dotted var(--text3)" data-cid="${d.clientId}">${d.name}</span></td>
+    sBody.innerHTML = surplusClients.map((d, i) => `<tr>
+      <td><span class="surplus-name" style="cursor:help;border-bottom:1px dotted var(--text3)" data-name="${d.name.replace(/"/g,'&quot;')}">${d.name}</span></td>
       <td class="pos" style="font-weight:700">${fmt(d.balance)}</td>
       <td>${d.realDebt > 0 ? fmt(d.realDebt) : '—'}</td>
       <td>${d.netDebt < 0 ? '<span class="pos">переплата ' + fmt(Math.abs(d.netDebt)) + '</span>' : d.netDebt > 0 ? '<span class="neg">' + fmt(d.netDebt) + '</span>' : '—'}</td>
@@ -550,13 +579,13 @@
     if (!tooltipEl) {
       tooltipEl = document.createElement('div');
       tooltipEl.id = 'surplus-tx-tooltip';
-      tooltipEl.style.cssText = 'position:fixed;display:none;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);min-width:380px;max-width:520px;pointer-events:none';
+      tooltipEl.style.cssText = 'position:fixed;display:none;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);min-width:480px;max-width:680px;pointer-events:none';
       document.body.appendChild(tooltipEl);
     }
     document.querySelectorAll('.surplus-name').forEach(el => {
       el.addEventListener('mouseenter', e => {
-        const cid = el.dataset.cid;
-        tooltipEl.innerHTML = renderTxTooltip(cid);
+        const name = el.dataset.name;
+        tooltipEl.innerHTML = renderTxTooltip(name);
         tooltipEl.style.display = 'block';
       });
       el.addEventListener('mousemove', e => {
