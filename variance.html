@@ -11,6 +11,7 @@
 <script src="assets/theme.js"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
+<link rel="stylesheet" href="assets/sidebar.css">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
@@ -114,13 +115,11 @@
   <h1 class="page-title" id="variance-title">Variance Analysis · март vs февраль 2026</h1>
   <p class="page-sub">Методика CFO: price × volume × mix декомпозиция. Источник — P&amp;L бухгалтера (NEW_PNL, обновляется ежемесячно). Фокус: что именно подняло мартовскую выручку на +129%? Какие драйверы повторяемые, а какие one-off?</p>
 
-  <!-- ⚠️ Snapshot warning: данные захардкожены на момент анализа.
-       Backlog: переписать на динамику из pnlData когда апрель закроется. -->
-  <div id="variance-snapshot-banner" style="background:rgba(243,156,18,0.10);border:1px solid rgba(243,156,18,0.4);border-radius:10px;padding:12px 16px;margin:14px 0 18px;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:10px">
-    <span style="font-size:18px">📸</span>
+  <!-- KPI и trend chart — динамические из PnL. Waterfall ниже — snapshot за март -->
+  <div id="variance-snapshot-banner" style="background:rgba(10,186,181,0.06);border:1px solid rgba(10,186,181,0.25);border-radius:8px;padding:8px 14px;margin:10px 0 18px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:10px">
+    <span style="font-size:14px">📅</span>
     <div>
-      <strong>Snapshot data</strong> — числа захардкожены за <strong>март 2026 vs февраль 2026</strong>. Не обновляются автоматически. Когда апрель закроется в PnL у бухгалтера — нужно сделать новый анализ «апрель vs март».
-      <span id="variance-current-pnl-hint" style="display:block;margin-top:4px;color:var(--text3);font-size:12px">Проверяю последний закрытый месяц в PnL…</span>
+      <strong>KPI + chart</strong>: live из PnL · <strong>Waterfall + narrative</strong>: snapshot за март 2026 (требует ручного обновления). <span id="variance-current-pnl-hint" style="color:var(--text3)">Проверяю последний закрытый месяц…</span>
     </div>
   </div>
   <script>
@@ -386,7 +385,8 @@
   }
   if (!pnl) return;
 
-  // Берём только закрытые месяцы (не live)
+  // Берём все исторические месяцы кроме текущего live (включая cash_fill —
+  // апрель тоже показываем как закрытый, чтобы variance видела «апрель vs март»)
   var nowYM = new Date().toISOString().slice(0,7);
   var closedMonths = Object.keys(pnl).filter(function(m) {
     return m < nowYM && pnl[m].source !== 'live';
@@ -524,5 +524,6 @@
   }
 })();
 </script>
+<script src="assets/sidebar.js"></script>
 </body>
 </html>

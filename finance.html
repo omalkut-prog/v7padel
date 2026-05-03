@@ -379,7 +379,12 @@ async function renderBlock1() {
     const delta = deltas[m];
     const pnlCls = rw.pnl >= 0 ? 'pos' : 'neg';
     const dCls = delta == null ? 'muted' : delta >= 0 ? 'pos' : 'neg';
-    const liveTag = rw.source === 'live' ? ' <span style="color:var(--accent);font-size:11px" title="Живые данные из транзакций">⚡live</span>' : '';
+    var liveTag = '';
+    if (rw.source === 'live') {
+      liveTag = ' <span style="color:var(--accent);font-size:11px" title="Текущий месяц — данные из транзакций (cash) + расходы">⚡live</span>';
+    } else if (rw.source === 'cash_fill') {
+      liveTag = ' <span style="color:#f39c12;font-size:11px" title="Бухгалтер ещё не закрыл этот месяц — числа из cash transactions. Обновится когда бухгалтер впишет PnL.">📊 cash</span>';
+    }
     // Tx (cash) reconciliation
     var tx = txByMonth[m];
     var txDelta = (tx && rw.revenue) ? tx - rw.revenue : null;
@@ -420,7 +425,11 @@ async function renderBlock1() {
   '</tr>';
 
   // Chart (хронологический порядок)
-  const labels = monthsAsc.map(m => pnlData[m].source === 'live' ? ymLabel(m) + ' ⚡' : ymLabel(m));
+  const labels = monthsAsc.map(m => {
+    if (pnlData[m].source === 'live') return ymLabel(m) + ' ⚡';
+    if (pnlData[m].source === 'cash_fill') return ymLabel(m) + ' 📊';
+    return ymLabel(m);
+  });
   const revs = monthsAsc.map(m => pnlData[m].revenue);
   const opexs = monthsAsc.map(m => pnlData[m].opex);
   const pnls = monthsAsc.map(m => pnlData[m].pnl);
