@@ -100,6 +100,104 @@
   - Bulk actions: mark «called», export selected, send WhatsApp template
 - **Cross-link**: D.4 (Retention Agent) использует это API
 
+### N1.6. Lead Funnel + CAC tracking (КРИТИЧНО) — 4 часа
+
+> Володимир: «не вижу замеров почем лидов получаем, сколько они стоят, сколько приносят, разработка воронки и как её отслеживать — а это наверное одно из самых главных».
+
+**Принцип**: один CAC и одно ARPU **не существует** — у каждого канала / сегмента своя экономика. Турист CAC=2000₺/LTV=5000 ≠ Локал-VIP CAC=5000/LTV=200К.
+
+**Сегменты для tracking** (минимум):
+1. **Туристы EU/RU** (Instagram + Booking partnerships) — короткий цикл, низкий LTV, высокий объём
+2. **Турниры/кэмпы** (rating-driven) — выручка-под-событие, CAC = % от tournament fee
+3. **VIP / Inner Circle** (referrals + личный контакт) — длинный цикл, высочайший LTV
+4. **Новички / Open Games / бесплатные тренировки** (top-of-funnel) — большой объём, низкий ROI на 1-й бронь, но через 14d retention превращаются в активных
+5. **Дети / family** (родители платят) — отдельная воронка, разные точки входа (школы, детские мероприятия)
+
+**Что мерить (per канал × сегмент)**:
+- **Lead cost** (CPL) — сколько потратили на маркетинг / число лидов из источника
+- **Conversion rate** — лидов → платящих клиентов (по segment)
+- **Time to first booking** — сколько от lead до первой брони
+- **14d retention** для каждой когорты (см. /cohort.html)
+- **LTV proxy** — выручка от cohort за 90/180 дней
+- **CAC payback period** — когда LTV покрыл CAC
+
+**Реализация (поэтапно)**:
+- **Phase 1** (1 час): UTM-структура для всех ссылок (utm_source/medium/campaign/content). Spec под Эрдема.
+- **Phase 2** (1 час): добавить `source` поле в Matchpoint customer (manual at registration). Источник варианты: Instagram_Ads, Instagram_Organic, Tournament, Referral_VIP, Tourist_Booking, Walk-in, Other.
+- **Phase 3** (1.5 часа): новая страница `/funnel.html`: воронка по сегментам, CPL, CAC, payback period. Берёт из customers.source + ad_spend.json + cohort retention.
+- **Phase 4** (30 мин): автоматизация — webhook от Instagram Lead Form / WhatsApp на наш backend → автозаписать source.
+
+**Зависит от**: Backend Foundation (NOW.5) для phase 4. Phase 1-3 можно сделать без backend.
+
+**Эффект**: понимание что 50К/мес Ads окупается через 30 дней по туристам и 90 дней по локалам, а на детей вообще не работает (например). Перераспределяешь бюджет осознанно, не «по интуиции».
+
+### N1.7. Instagram Analytics dashboard — 1.5 часа
+
+> Володимир: «не вижу аналитику по инстаграм».
+
+Подписчики 2200 → 12000 — это **outcome**, не leading indicator.
+
+**Что мерить (leading)**:
+- Reach (охват) per post + story
+- Engagement rate (likes+comments+saves / followers)
+- **Save rate** — главный leading indicator (saves = намерение вернуться)
+- Story completion rate (сколько досмотрели до конца)
+- **Profile clicks → website clicks → bookings** (полная воронка)
+- Follower growth (signed: gained, lost, net)
+- **Sentiment** комментариев (позитив/нейтрал/негатив)
+
+**Реализация**:
+- API: Meta Graph API (Instagram Business Account) — 30 мин setup
+- Скрипт `etl/sync_instagram.py` — daily snapshot reach/engagement/saves в `instagram_metrics` tab
+- Страница `/social.html` — dashboards: тренды по неделям/месяцам, топ-5 postов по save rate, content type breakdown (reels/posts/stories)
+- Cohort tracking: «follower acquired in week N → bookings within 30 days» — связь с lead funnel
+
+**Owner**: Эрдем (доступ к IG Business аккаунту), Claude (код + автоматизация).
+
+### N1.8. Мерч-стратегия: Stickers + Bottle (Two-tier) — 8 часов
+
+> Володимир: «особенно про стикеры и для воды чашки... интересно в бэклог».
+
+**Концепция**: Two-tier мерч.
+- **Core** (постоянный, массовый, узнаваемость) — стикеры core-collection 4 дизайна 2000 шт, обычные бренд-бутылки 150 шт
+- **Limited** (drop-формат, нумерация, discontinued forever, ценность) — Limited Series 01 5 дизайнов по 100 шт, Founder Series Limited bottles 100 нумерованных для первых 100 active members
+
+**Stickers** (низкая цена, высокий objem):
+- Core: V7 logo · Padel-as-lifestyle · Hop-corte · Member badge — 4 дизайна × 500 шт = 2000 шт ($150-200)
+- Limited Series 01: 5 дизайнов × 100 шт = 500 шт, нумерация 01/100, ARTIST collab. Drop-формат: «Series 01 — Forever Discontinued»
+- **Distribution**: free со всеми бронированиями членов, продажа в Pro Shop, give-away на турнирах
+
+**Bottle** (среднеценный, premium-feel):
+- Core: V7 branded steel bottle 750ml — 150 шт, ~150₺ себестоимость, продажа 350₺
+- **Founder Series Limited**: 100 нумерованных бутылок, разной краской (gradient blue→teal), для первых 100 active members. **Раздача**: при регистрации в Inner Circle / при достижении milestone (50-я бронь). Ценность через scarcity + признание.
+
+**Брендинг**:
+- Дизайн-система $1500-3000 разово (1-2 недели)
+- Photoshoot мерча для сайта/Instagram (1 день, $500-800)
+
+**Tracking** (важно):
+- Sales velocity (продажи в неделю)
+- Free vs paid distribution ratio
+- Repeat buyers (кто купил 2+ раза = brand affinity)
+- Instagram tags / UGC от мерча
+
+**Owner**: Макс (CMO) — ведёт production + photoshoot. Эрдем — поддерживающий контент. Володимир — финальные approvals на дизайн.
+
+### N1.9. NPS Quarterly Member Survey — 1 час setup + 30 мин/квартал
+
+**Зачем**: единственный leading indicator который ловит «продукт ломается» ДО того как клиенты уйдут. Бенчмарк David Lloyd: NPS >60 = премиум, 40-60 = OK, <40 = продукт сломан.
+
+**Что измеряем**:
+1. **Client NPS**: «Насколько вероятно что вы порекомендуете V7 другу/коллеге? 0-10»
+2. **Coach NPS** (отдельно — тренеры держат 15-20% выручки): то же среди тренеров
+3. **Open question**: «Что мы должны улучшить в первую очередь?»
+
+**Реализация**:
+- Google Forms / Typeform → результаты в Google Sheet → ETL → cache → /clients NPS блок
+- Quarterly cycle: рассылаем 1 числа квартала (январь/апрель/июль/октябрь)
+- WhatsApp + Email + опрос на ресепшне (offline)
+- Public ответ через 30 дней («слышим тебя, делаем X, Y, Z»)
+
 ### N1.x. Карточка клиента — расширения (5 итераций)
 
 Базовая карточка уже есть на /clients (контакты, membership, паттерн игр, last 10 бронирований). Добавить пошагово:
