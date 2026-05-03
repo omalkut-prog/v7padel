@@ -160,7 +160,48 @@
     <div class="kpi-card">
       <div class="kpi-label">Всего рисков</div>
       <div class="kpi-value">13</div>
-      <div class="kpi-sub">реестр обновлён 2026-04-23</div>
+      <div class="kpi-sub" id="risk-updated-sub">реестр обновлён 2026-04-23</div>
+    </div>
+  </div>
+  <script>
+    // Динамические числа для риск-описаний (SSoT — берём из cache, не хардкодим).
+    // Если /clients или другая страница покажет другую долю — это значит cache
+    // обновился, риск автоматически подхватит. ADR-020.
+    (async function() {
+      try {
+        var [crRows] = await Promise.all([V7.loadSheet('client_revenue').catch(function(){return null;})]);
+        if (!crRows || !crRows.length) return;
+        // Total + Top-N (по amount_30d)
+        var staffCids = new Set(['14','5','7','9']);
+        var clients = crRows.filter(function(r) {
+          if (staffCids.has(String(r.customer_id || ''))) return false;
+          if ((r.email || '').toLowerCase().indexOf('@v7padel.com') >= 0) return false;
+          return true;
+        }).map(function(r) {
+          return { amt30: parseFloat(r.amount_30d) || 0, amtAll: parseFloat(r.amount_all) || 0 };
+        });
+        var total30 = clients.reduce(function(s, c) { return s + c.amt30; }, 0);
+        clients.sort(function(a, b) { return b.amt30 - a.amt30; });
+        // Top-5 share
+        var top5 = clients.slice(0, 5).reduce(function(s, c) { return s + c.amt30; }, 0);
+        var top5Pct = total30 > 0 ? Math.round(100 * top5 / total30) : 0;
+        // Top-60 share (контекст)
+        var top60 = clients.slice(0, 60).reduce(function(s, c) { return s + c.amt30; }, 0);
+        var top60Pct = total30 > 0 ? Math.round(100 * top60 / total30) : 0;
+        var el = document.getElementById('risk-r1-fact');
+        if (el) {
+          el.innerHTML = 'Топ-5 клиентов держат <strong>' + top5Pct + '% выручки</strong> ' +
+                         '(за 30д), Топ-60 = <strong>' + top60Pct + '%</strong>. Источник: /clients · обновлено live.';
+        }
+        // Update reestr date footer
+        var sub = document.getElementById('risk-updated-sub');
+        if (sub) {
+          var d = new Date();
+          sub.textContent = 'описания live из cache · реестр пересмотрен 2026-04-23';
+        }
+      } catch (e) { console.warn('risk live numbers failed:', e); }
+    })();
+  </script>
     </div>
   </div>
 
@@ -209,7 +250,7 @@
         <tbody>
           <tr>
             <td><strong>R1</strong></td>
-            <td><strong>Top-5 members уходят разом.</strong> Клиенты ≥10k₺/мес держат 30-40% выручки. Если 3 из них уйдут — провал.</td>
+            <td><strong>Top клиенты уходят разом.</strong> <span id="risk-r1-fact">Топ клиенты с ≥10k₺/мес держат значимую долю выручки</span>. Если 3 из них уйдут — провал.</td>
             <td><span class="pill red">high / high</span></td>
             <td>Персональный relationship manager для top-10 клиентов. Exit interviews за 30 дней до окончания member. Tailored offers (мастер-класс с тренером-про, закрытый турнир).</td>
             <td>Володимир + Оля</td>

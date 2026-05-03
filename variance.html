@@ -114,6 +114,38 @@
   <h1 class="page-title">Variance Analysis · март vs февраль 2026</h1>
   <p class="page-sub">Методика CFO: price × volume × mix декомпозиция. Источник — P&amp;L бухгалтера (NEW_PNL, обновляется ежемесячно). Фокус: что именно подняло мартовскую выручку на +129%? Какие драйверы повторяемые, а какие one-off?</p>
 
+  <!-- ⚠️ Snapshot warning: данные захардкожены на момент анализа.
+       Backlog: переписать на динамику из pnlData когда апрель закроется. -->
+  <div id="variance-snapshot-banner" style="background:rgba(243,156,18,0.10);border:1px solid rgba(243,156,18,0.4);border-radius:10px;padding:12px 16px;margin:14px 0 18px;font-size:13px;color:var(--text2);display:flex;align-items:center;gap:10px">
+    <span style="font-size:18px">📸</span>
+    <div>
+      <strong>Snapshot data</strong> — числа захардкожены за <strong>март 2026 vs февраль 2026</strong>. Не обновляются автоматически. Когда апрель закроется в PnL у бухгалтера — нужно сделать новый анализ «апрель vs март».
+      <span id="variance-current-pnl-hint" style="display:block;margin-top:4px;color:var(--text3);font-size:12px">Проверяю последний закрытый месяц в PnL…</span>
+    </div>
+  </div>
+  <script>
+    // Подсказка: какой сейчас актуальный месяц закрыт у бухгалтера
+    (async function(){
+      try {
+        var rows = await V7.loadCacheTab('dashboard_kpis');
+        if (rows && rows[0]) {
+          var lm = rows[0].last_month;
+          var hint = document.getElementById('variance-current-pnl-hint');
+          if (hint) {
+            if (lm && lm > '2026-03') {
+              hint.innerHTML = '⚠️ Бухгалтер закрыл уже <strong>' + lm + '</strong> — этот анализ устарел, нужно обновить.';
+              hint.style.color = 'var(--bad)';
+            } else if (lm === '2026-03') {
+              hint.textContent = 'Сейчас последний закрытый PnL = март 2026 → анализ актуальный.';
+            } else {
+              hint.textContent = 'Последний закрытый PnL: ' + (lm || '—');
+            }
+          }
+        }
+      } catch(e){}
+    })();
+  </script>
+
   <div class="hero-row">
     <div class="hero-kpi">
       <div class="label">Revenue Variance · март vs февраль</div>
