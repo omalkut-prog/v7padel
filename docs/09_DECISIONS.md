@@ -503,7 +503,11 @@ OPEX per court = total_opex / N courts            (удельные затрат
 
 Разница систематическая: `URL_id = БД_cid + 1` для всех клиентов.
 
-**Решение** (hotfix): `fetch_client_balance` использует `url_id = int(cid) + 1`. Тест на 4 known клиентах подтвердил: после fix все балансы матчатся ground truth.
+**Решение** (hotfix v1): `fetch_client_balance` использует `url_id = int(cid) + 1`. Прошёл тест на 4 known low-cid клиентах.
+
+**Hotfix v2 (тот же день)**: Володимир указал что у Ibrahim Kurt 19 200 ₺ — но в MP нет такого клиента. Раскопали: `+1` НЕ универсален. Для удалённых cids url=cid+1 даёт баланс **чужого клиента**.
+
+**Robust финальное решение**: парсим `TextBoxCodigo` со страницы FichaCliente и **верифицируем page.code == наш cid**. Пробуем 3 варианта: cid+1, cid, cid-1. Если ни один не совпал → balance=None (не приписываем чужой баланс). Тест: 8 known клиентов 8/8 ✓.
 
 **Где внимательно**:
 - ✅ `etl/scrape_debts.py::fetch_client_balance` — пофиксено
