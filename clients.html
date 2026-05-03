@@ -224,6 +224,29 @@
   <h1 class="page-title">Клиенты</h1>
   <p class="page-sub">База клиентов с сегментацией, воронкой и drill-down карточкой · источник: v7padel_db</p>
 
+  <!-- TAB BAR (Володимир: «сделать как в выручке вкладками») -->
+  <div class="cl-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin:14px 0 22px;border-bottom:1px solid var(--border);padding-bottom:0">
+    <button class="cl-tab active" data-tab="summary">📊 Сводка</button>
+    <button class="cl-tab" data-tab="top60">🎯 Top-60 ядро</button>
+    <button class="cl-tab" data-tab="top">🏆 Топ клиентов</button>
+    <button class="cl-tab" data-tab="table">📋 Все клиенты</button>
+    <button class="cl-tab" data-tab="cancel">❌ Отмены</button>
+    <button class="cl-tab" data-tab="recall">📞 Recall</button>
+  </div>
+  <style>
+    .cl-tab {
+      padding: 10px 18px; border: 0; background: transparent;
+      border-bottom: 2px solid transparent; cursor: pointer;
+      font-size: 13px; font-weight: 500; color: var(--text2);
+      font-family: inherit; transition: all .15s;
+    }
+    .cl-tab:hover { color: var(--text); }
+    .cl-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .cl-pane { display: none; }
+    .cl-pane.active { display: block; }
+  </style>
+
+  <div class="cl-pane active" id="cl-pane-summary">
   <!-- BLOCK 1: SUMMARY -->
   <section class="section">
     <div class="section-head"><h2>1 · Сводка</h2><span class="hint">клик на карточку → фильтр таблицы по сегменту</span></div>
@@ -256,6 +279,9 @@
     </div>
   </section>
 
+  </div><!-- /cl-pane-summary -->
+
+  <div class="cl-pane" id="cl-pane-top60">
   <!-- BLOCK 1.5: TOP 60 — ЗАЩИТА ДОХОДНОЙ БАЗЫ -->
   <section class="section" id="top60-section">
     <div class="section-head">
@@ -294,6 +320,9 @@
     </div>
   </section>
 
+  </div><!-- /cl-pane-top60 -->
+
+  <div class="cl-pane" id="cl-pane-top">
   <!-- BLOCK 2: TOP CLIENTS — REVENUE + VISITS + SEGMENTS -->
   <section class="section">
     <div class="section-head">
@@ -358,6 +387,9 @@
     </div>
   </section>
 
+  </div><!-- /cl-pane-top -->
+
+  <div class="cl-pane" id="cl-pane-table">
   <!-- BLOCK 3: TABLE -->
   <section class="section">
     <div class="section-head"><h2>3 · Таблица клиентов</h2><span class="hint">клик по строке → карточка</span></div>
@@ -395,6 +427,9 @@
     </div>
   </section>
 
+  </div><!-- /cl-pane-table -->
+
+  <div class="cl-pane" id="cl-pane-cancel">
   <!-- BLOCK 4: ОТМЕНЫ (перенесено с /dashboard 2026-04-17) -->
   <section class="section" id="cancel-section">
     <div class="section-head">
@@ -480,6 +515,9 @@
   </div>
 
   <!-- Recall-списки: Под риском + Кандидаты в клуб (перенесено с dashboard 2026-04-25) -->
+  </div><!-- /cl-pane-cancel -->
+
+  <div class="cl-pane" id="cl-pane-recall">
   <section class="section" id="recall-lists">
     <h2 style="font-size:18px;font-weight:600;margin-bottom:14px">Recall-списки</h2>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -499,6 +537,29 @@
       </div>
     </div>
   </section>
+  </div><!-- /cl-pane-recall -->
+
+  <script>
+    // Tab switching
+    (function(){
+      function activateTab(name) {
+        document.querySelectorAll('.cl-tab').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === name); });
+        document.querySelectorAll('.cl-pane').forEach(function(p){
+          p.classList.toggle('active', p.id === 'cl-pane-' + name);
+        });
+        // persist в location.hash для bookmarkable URL — но не ломает #cid=N
+        if (!location.hash.match(/cid=/)) {
+          history.replaceState(null, '', location.pathname + (name === 'summary' ? '' : '#tab=' + name));
+        }
+      }
+      document.querySelectorAll('.cl-tab').forEach(function(btn){
+        btn.addEventListener('click', function(){ activateTab(btn.dataset.tab); });
+      });
+      // Read tab from URL hash on init
+      var m = location.hash.match(/tab=([a-z0-9]+)/);
+      if (m) activateTab(m[1]);
+    })();
+  </script>
 
 </main>
 
@@ -696,19 +757,19 @@ const state = {
   applyFilters();
   bindUI();
 
-  // Auto-open client card если в URL есть #cid=N (приходим с /audit и др.)
+  // Auto-open client card если в URL есть #cid=N (приходим с /audit, /recall и др.)
   function tryOpenFromHash() {
     var m = location.hash.match(/cid=(\d+)/);
-    if (m) {
-      var cid = m[1];
-      // Try open. Если рендер ещё не готов — повторим через 300ms (max 5 раз).
-      var tries = 0;
-      var attempt = function() {
-        if (openCardByCid(cid)) return;
-        if (++tries < 5) setTimeout(attempt, 300);
-      };
-      attempt();
-    }
+    if (!m) return;
+    var cid = m[1];
+    // Retry до 30 раз × 500ms = 15 секунд (на медленную загрузку cache + top_clients)
+    var tries = 0;
+    var attempt = function() {
+      if (openCardByCid(cid)) return;
+      if (++tries < 30) setTimeout(attempt, 500);
+      else console.warn('[clients] не смог открыть карточку cid=' + cid + ' за 15 сек');
+    };
+    attempt();
   }
   tryOpenFromHash();
   window.addEventListener('hashchange', tryOpenFromHash);
