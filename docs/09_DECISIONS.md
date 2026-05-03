@@ -523,6 +523,40 @@ OPEX per court = total_opex / N courts            (удельные затрат
 
 ---
 
+## ADR-022 · 2026-05-03 · Балансы клиентов — из ListadoClientesConSaldo одним запросом
+
+**Контекст**: В Matchpoint UI есть страница **Finance → Clients with Balance** (`/Clientes/ListadoClientesConSaldo.aspx`) которая показывает ВСЕХ клиентов с положительным балансом одним списком. Володимир указал что нет смысла перебирать всех клиентов через FichaCliente — данные уже агрегированы.
+
+**Раньше**: scrape_debts.py делал 1350 индивидуальных запросов FichaCliente.aspx?id={cid} для проверки баланса каждого клиента. Время: ~30 минут. Плюс off-by-one в URL id (см. ADR-021) приводил к мисс-attribution балансов.
+
+**Теперь**: новый скрипт `etl/scrape_balances.py` запрашивает `ListadoClientesConSaldo.aspx`:
+- Page 1 (GET) → парсим 25 строк
+- Page 2+ (POST с __doPostBack) → ещё ~15 строк
+- Total: ~40 клиентов, **5 секунд**
+
+**Преимущества**:
+- В **360x быстрее** (5 сек vs 30 мин)
+- Точные данные (то что видит Володимир в MP UI)
+- Никакого off-by-one — `Code` парсится со страницы напрямую
+- Нет risk'а мисс-attribution балансов между соседними cids
+
+**Реализация**:
+- `etl/scrape_balances.py` — отдельный скрипт. Pagination через ASP.NET postback на target `ctl01$ctl00$CC$ContentPlaceHolderListado$GridViewListado`. ВАЖНО: payload должен содержать ВСЕ hidden inputs (включая `__VIEWSTATEENCRYPTED`, `__LASTFOCUS`, `ctl01$ctl00$ScriptManager1`, `ctl01$ctl00$CC$HiddenFieldCapaVisible`), иначе page=1 возвращает дубликаты.
+- Записывает в `v7padel_db.client_balances` (заменяя предыдущее содержимое).
+- Добавлен в `run_all_etl.py` G6 после `scrape_debts.py`.
+
+**Где используется на сайте**:
+- `/audit.html` Профицит таб — читает `client_balances` напрямую, не `debts.balance`.
+- Будущая карточка клиента в /clients — будет читать оттуда же.
+
+**Где смотреть код**:
+- `etl/scrape_balances.py` (весь файл ~120 строк)
+- Memory anchor: `reference_mp_balances.md`
+
+**Миграция**: устаревший fetch_balances_parallel в scrape_debts.py остаётся (для consistency `debts.balance`), но **источник правды для surplus = client_balances tab**.
+
+---
+
 ## Шаблон новой записи
 
 ```markdown
