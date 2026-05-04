@@ -52,8 +52,16 @@
 </style>
 </head>
 <body>
+<script>
+  // Embed mode (для использования как iframe внутри /clients) — без sidebar
+  var __embed = /[?&]embed=1/.test(location.search);
+  if (__embed) {
+    document.documentElement.setAttribute('data-embed','1');
+    document.write('<style>body{padding:0!important}main{margin:0!important;padding-left:0!important;padding-right:0!important;max-width:none!important}h1.page-title{display:none}.page-sub{display:none}#sidebar-mount{display:none}</style>');
+  }
+</script>
 <div id="sidebar-mount"></div>
-<script src="assets/sidebar.js?v=20260504"></script>
+<script>if(!__embed) document.write('<scr'+'ipt src="assets/sidebar.js?v=20260504"></scr'+'ipt>');</script>
 
 <main>
   <h1 class="page-title">🎂 Дни рождения</h1>

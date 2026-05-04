@@ -121,6 +121,10 @@
 </style>
 </head>
 <body>
+<script>
+  var __embed = /[?&]embed=1/.test(location.search);
+  if (__embed) document.write('<style>body{padding:0!important}main{padding-left:14px!important;padding-right:14px!important;max-width:none!important}h1.page-title,.page-sub{display:none}</style>');
+</script>
 
 <main>
   <h1 class="page-title">Recall-лист</h1>
@@ -209,7 +213,7 @@
   </section>
 </main>
 
-<script src="assets/sidebar.js"></script>
+<script>if(!__embed) document.write('<scr'+'ipt src="assets/sidebar.js"></scr'+'ipt>');</script>
 <script>
 // ============================================================
 // STATE
