@@ -183,6 +183,61 @@
 
 **Owner**: Макс (CMO) — ведёт production + photoshoot. Эрдем — поддерживающий контент. Володимир — финальные approvals на дизайн.
 
+### N1.12. Agent Control Center (`/agents.html`) — управление AI агентами (3-4 дня)
+
+> Володимир: «failure mode для AI это вообще гениально нужно в отдельную страницу, общение агентов, где мы будем задавать настройки и улучшать алгоритмы! фантастика».
+
+**Что это**: единая консоль управления всеми AI агентами V7. Не «один agent в /client.html», а **observability + settings + tuning** для всей agent layer.
+
+**Разделы страницы**:
+
+#### 1. Live Activity (главный экран)
+- Все active conversations (клиент пишет → AI обрабатывает → менеджер approves)
+- Pending approvals (drafts ожидают менеджера)
+- Today metrics: # interactions, % auto-handled, avg manager response time, escalation rate
+- Live feed: «10:32 — клиент Anna spr про слот, AI draft → Pars approved → sent (12s)»
+
+#### 2. Escalation Inbox
+- Все Level 2-3 escalations (sorted by priority + SLA timer)
+- Click → full context (history, notes, tags, last_visit) + draft response
+- Buttons: «I handle» / «Forward to other manager» / «Need founder»
+
+#### 3. Agent Settings
+- **Prompts** — редактируемые prompt templates per use case (с git history)
+- **Confidence thresholds** — slider Level 0/1/2 (по умолчанию 0.9/0.6/0.3)
+- **Languages** — переключение TR/EN/RU/UA/ES per agent
+- **Channels** — какие каналы активны (WhatsApp / Telegram / IG / Internal portal)
+- **Working hours** — когда AI auto-replies, когда waits manager
+- **Personas** — какому менеджеру AI «приписывает» ответ (Pars / Olha / Nastya)
+
+#### 4. Use Case Library
+- Список scenarios что AI обрабатывает: booking question, schedule, price, refund, complaint, etc
+- Per scenario: success rate, avg confidence, # escalations
+- Click → drill-down examples + tune
+
+#### 5. Learning Loop
+- Weekly review queue: cases где AI ошибся
+- Manual feedback: «AI должен был ответить так» → добавляется в few-shot examples
+- A/B testing prompts (новый vs старый, какой работает лучше)
+
+#### 6. KPI Dashboard
+- Escalation rate < 5% (target)
+- Time-to-human < 5 мин Level 2
+- Recovery rate > 80%
+- Per-channel performance
+- Per-language performance
+- Customer satisfaction (post-conversation 1-5 rating)
+
+**Tech**:
+- `/agents.html` страница в frontend
+- Backend endpoints `/api/agents/*` для CRUD на settings
+- Postgres таблицы: `agent_conversations`, `agent_escalations`, `agent_prompts` (versioned), `agent_metrics`
+- Real-time updates через WebSockets или polling
+
+**Effort**: 3-4 дня после Phase 1 admin agent готов.
+
+**Trigger**: когда Phase 1 + Phase 2 (survey) запущены и накопились ≥ 100 interactions.
+
 ### N1.11. AI Admin Agent (Phase 1) — natural language search для админа (1-2 дня)
 
 > Володимир: «дай мне игроков на турнир американо новичков пятница 20:00, дай ДР в ближайшую неделю, дай аналитику VIP/Club...»

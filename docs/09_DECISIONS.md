@@ -595,7 +595,14 @@ OPEX per court = total_opex / N courts            (удельные затрат
 
 **Failure modes** (см. ADR-025).
 
-## ADR-025 · 2026-05-04 · AI Failure & Escalation Strategy
+## ADR-025 (v2) · 2026-05-04 · AI Failure & Escalation Strategy — INVISIBLE TO CLIENT
+
+**ВАЖНОЕ ОБНОВЛЕНИЕ от Володимира**:
+> «Менеджер 🆘 не хочу. Хочу чтоб клиенты думали что они с менеджерами общаются. Лучше агент напишет Оле/Даше с помощью решить вопрос.»
+
+**Ключевой принцип**: клиент **никогда не знает** что общается с AI. Бренд V7 = «у нас лучший сервис, менеджеры всегда отвечают». Любая «AI выдача» = разрушение бренда.
+
+**Архитектура**: AI **только** prepares → **человек approves/edits/sends**. Клиент видит только финальное сообщение от человека.
 
 **Контекст**: Что когда AI ошибся — критически важный вопрос (Володимир спросил). Без чёткой escalation = потеря доверия клиента, риск для бренда V7.
 
@@ -645,13 +652,81 @@ OPEX per court = total_opex / N courts            (удельные затрат
 - Записать в `escalations` таб — что произошло, как разрешили, follow-up
 - Учесть в KPI «escalation rate» — должна быть < 5% от total interactions
 
-### Принципы
+### Принципы (ОБНОВЛЕНО 2026-05-04)
 
-1. **Speed over perfection** — лучше быстро ответить «передаю менеджеру» чем долго думать самому.
-2. **Кнопка panic от клиента** — в любом chat «**Менеджер 🆘**» ссылка → instant escalate.
-3. **Каждая escalation = learning event** — анализ раз в неделю, что AI не смог, тюним prompts.
-4. **Audit log** — все escalations сохраняются с full context для post-mortem.
-5. **VIP path > Standard path** — VIP/Club клиенты автоматически на 1 уровень выше escalation.
+1. **Invisible to client** — клиент НИКОГДА не видит «AI», «бот», «агент», «передаю менеджеру». Все исходящие — от имени **конкретного менеджера** (Оля, Даша, Настя, Pars).
+2. **AI = co-pilot для менеджера**, не autonomous agent. Менеджер видит draft → редактирует → отправляет. Клиент думает что менеджер написал сам.
+3. **Speed only когда AI confidence >0.9** — если AI на 100% уверен в ответе (типа «расписание турниров на эту неделю»), может ответить без approval. Иначе queue для менеджера.
+4. **Каждая escalation = learning event** — анализ раз в неделю, что AI не смог, тюним prompts.
+5. **Audit log** — все interactions сохраняются с full context.
+6. **VIP path > Standard path** — VIP/Club клиенты автоматически на 1 уровень выше priority.
+
+### Новая модель escalation (без panic button)
+
+**Уровни — это для МЕНЕДЖЕРОВ, не для клиента**:
+
+#### Level 0 — AI самостоятельно (только high-confidence factual)
+**Когда**: AI confidence ≥ 0.9 + factual question (часы работы, цена, расписание турниров)
+**Как**: AI отвечает мгновенно на языке клиента, как **от имени конкретного менеджера** (например Pars). Клиент думает «Pars быстро ответил».
+**Лог**: contact_log с пометкой `auto_handled=true`
+
+#### Level 1 — AI prepares, manager approves (default flow)
+**Когда**: любой вопрос требующий judgment (booking конкретного слота, рекомендация, softer questions)
+**Как**:
+1. AI prepares draft response в админ inbox (Telegram bot для менеджеров)
+2. Менеджер видит: входящее сообщение клиента + AI draft + быстрые кнопки [Send / Edit / Reject]
+3. Менеджер либо отправляет, либо редактирует, либо отвечает сам
+4. SLA: ≤ 5 минут в рабочее время
+
+**Клиент не видит ничего необычного** — менеджер ответил «как обычно».
+
+#### Level 2 — Manager handles directly (AI ассистирует)
+**Когда**: эмоциональный/сложный/VIP/жалобы/возвраты
+**Как**: AI не пытается ответить. Сразу alert менеджеру с full context (cid, history, last_visit, segment, notes). Менеджер пишет с нуля.
+
+**Триггеры**:
+- Detected emotion: anger / frustration / threat / complaint
+- Слова-маркеры: «лажа», «refund», «больше не приду», «отказ»
+- VIP/Club любой нетривиальный вопрос
+- Технические вопросы про оплату / membership / refund
+
+#### Level 3 — Manager escalates to founder/owner (AI помогает координировать)
+**Когда**: менеджер не может решить (рабочая schedule конфликт, refund большой, threat с лояльностью)
+**Как**:
+1. Менеджер в Telegram нажимает «Escalate» в drafted response
+2. AI создаёт ticket в `escalations` таблице с context для управляющей
+3. Уведомление управляющей через push (Telegram + SMS если VIP)
+4. **Если 1 час нет ответа** → AI пушит Володимиру
+
+**Клиент видит**: «Pars передал мой вопрос управляющей, перезвоним в течение часа.» — звучит как нормальный клубный сервис.
+
+#### Level 4 — Recovery & Bonus
+**После сложного case**:
+- Менеджер записывает в contact_log результат
+- Если был negative → клиент получает bonus (1 час корта free, voucher)
+- AI учится на этом case через manual review раз в неделю
+
+### Escalation путь — это путь МЕНЕДЖЕРОВ, не клиента
+
+```
+Клиент пишет
+   ↓
+[AI tries] → Level 0 if high-confidence factual → клиент видит ответ "от Pars"
+   ↓
+   ↓ (default)
+[AI prepares draft] → Level 1 → отправлен менеджеру в Telegram
+   ↓
+   ↓ (if can't handle / VIP / emotional)
+[Manager handles from scratch] → Level 2 → менеджер пишет сам, AI рядом
+   ↓
+   ↓ (if can't decide)
+[Manager escalates to manager-of-manager] → Level 3 → управляющая
+   ↓
+   ↓ (no response 1h)
+[Pushes founder] → Володимир уведомлён
+```
+
+**Клиент видит только final messages от menager'ов с человеческими именами.** Никаких "I'm an AI" или "transferring to manager".
 
 ### Реализация (когда будем строить)
 
