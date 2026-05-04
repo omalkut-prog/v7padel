@@ -275,7 +275,7 @@
       <div class="kpi" data-seg="never">
         <div class="label">Никогда не играл</div>
         <div class="value" id="sum-never">—</div>
-        <div class="sub">0 бронирований</div>
+        <div class="sub">0 броней И 0 транзакций</div>
       </div>
     </div>
   </section>
@@ -638,6 +638,31 @@ const state = {
       });
     }
   } catch(e) { console.warn('clients cache failed:', e); }
+
+  // ── Reclassify segment с учётом РЕАЛЬНОЙ активности (top_clients_revenue) ──
+  // Раньше сегмент "никогда не играл" определялся только по bookings.customer_id.
+  // Но bookings часто без customer_id (анонимные брони) → ложные «никогда».
+  // ADR: «никогда» должно означать 0 броней И 0 транзакций. Если есть выручка
+  // (amount_all > 0) — это «спящий» с broken booking linkage, не «никогда».
+  try {
+    var revenueRows = await V7.loadCacheTab('top_clients_revenue');
+    if (revenueRows && revenueRows.length) {
+      var revByCid = {};
+      revenueRows.forEach(function(r) {
+        var cid = String(r.customer_id || '').trim();
+        if (cid) revByCid[cid] = parseFloat(r.amount_all) || 0;
+      });
+      state.customers.forEach(function(c) {
+        var amount = revByCid[String(c.id)] || 0;
+        c.spendAll = amount;
+        // Перевод never → sleeping если есть выручка но нет броней
+        if (c.segment === 'never' && amount > 0) {
+          c.segment = 'sleeping';
+          c._reclassified = true;
+        }
+      });
+    }
+  } catch (e) { console.warn('clients: revenue reclass failed:', e); }
 
   // === SLOW FALLBACK: original 3-sheet loading + enrichment ===
   if (!usedCache) {
