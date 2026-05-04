@@ -183,6 +183,90 @@
 
 **Owner**: Макс (CMO) — ведёт production + photoshoot. Эрдем — поддерживающий контент. Володимир — финальные approvals на дизайн.
 
+### N1.13. Data Quality + Dead Souls audit (4 часа)
+
+> Володимир: «много где просто 111111, это фейк ты думаю умеешь такие определять. С ними мы работать не сможем.»
+
+**Что**: страница `/data-quality.html` + endpoint `/api/data-quality/contacts` для аудита базы клиентов.
+
+**Что показывает**:
+- Total clients vs Reachable (есть валидный email или phone)
+- Dead souls list (нет ни одного канала) — на удаление через админа
+- Fake/duplicate contacts (1111111, test@test.com, повторяющиеся цифры) — для очистки
+- Активные клиенты с fake контактами → срочно опрос менеджеру при следующей встрече
+
+**Cleanup actions**:
+- Bulk delete dead souls (после approve Володимира)
+- Highlight в /clients: клиенты с fake контактами → красная пометка «нужны контакты»
+- Admin при booking видит warning «у клиента нет валидного контакта»
+
+**Текущие цифры** (на 2026-05-04):
+- Всего: 1353
+- С обоими контактами: 833 (62%)
+- С одним: 496 (37%)
+- Dead souls: 24 (2%)
+- Fake email: 500 (37%) — много
+- Fake phone: 44 (3%)
+
+### N1.14. Postgres ETL pipeline + data attribution (Backend Phase 2)
+
+> Внешний AI совет (одобрено): без правильной attribution Marketing-агент = галлюцинации.
+
+**Что**: Postgres БД (Supabase или Railway) **дополняет** Sheets, не заменяет:
+- Sheets остаётся для existing flows (фронт + админы)
+- Postgres — для аналитики, joins, attribution
+
+**Schema**:
+- `events` — booking, cancel, no-show, signup, message, payment (cid, type, ts, channel, source)
+- `attribution` — lead_id → first_visit_id → second_visit_id (с UTM tags)
+- `ad_spend` — расходы по каналам (Meta, Google, IG, Tournament sponsorships)
+- `agent_state` — context для Phase 1+ агентов
+
+**ETL изменения**:
+- `etl.py` параллельно пишет в Sheets и Postgres
+- Sheets как fallback (если Postgres упал — фронт работает)
+
+**Эффект**: можно строить SQL дашборды, joins, время-серия аналитика в реальном времени.
+
+**Effort**: 1-2 дня с AI tooling (раньше я говорил 2-3 недели — это была ошибка по старым меркам).
+
+### N1.15. Marketing Funnel — UTM tracking + advisor v0 (3-4 часа)
+
+**Что делать СЕЙЧАС** (до полной attribution):
+
+**Phase A — UTM-tagging spec для Erdem** (1 час):
+- UTM на всех ссылках в IG bio, постах, Ads
+- Schema: utm_source/medium/campaign/content
+- Lead form поле «откуда узнали о V7?» (turistic / friend / IG / Google / tournament / other)
+- Все capture'ы → leads_inbox через webhook
+
+**Phase B — Source поле в customers** (30 мин):
+- Новое поле `source` в Matchpoint customer (manually на ресепшне сейчас)
+- ETL пишет в customers.source
+- Dashboard /funnel.html показывает breakdown by source
+
+**Phase C — Marketing Advisor agent** (2 часа):
+- НЕ automation, а **рекомендации куда смотреть**
+- Пример output: «Tourist канал CAC 1500 ₺, средний tourist 1 booking → LTV ≤3000 ₺. Подозрительно. Проверь.»
+- Запускается раз в неделю, отчёт в Telegram Володимиру
+- На ограниченных данных — даёт directional insights, не precise numbers
+
+### N1.16. Pre-launch testing playbook для нового клуба (LATER)
+
+> Внешний AI совет: тестируй спрос ДО подписи лиза.
+
+**Что**: documented playbook как тестировать спрос на новой локации до инвестиции:
+1. Лендинг с локацией (3 часа)
+2. Meta Ads / Google Ads с фокусом на гео (1 час setup + budget)
+3. Обещание «открываем X числа» с запиской интереса (email capture)
+4. 2 недели тестирования
+5. Метрики: CPL, ratio просмотров → email captures, opening rate writeup
+6. Решение: подписывать лиз / искать другую локацию / отложить
+
+**Effort**: 2 недели real-time + 4 часа моей работы на playbook + landing template.
+
+**Trigger**: когда Володимир рассматривает 2-й клуб.
+
 ### N1.12. Agent Control Center (`/agents.html`) — управление AI агентами (3-4 дня)
 
 > Володимир: «failure mode для AI это вообще гениально нужно в отдельную страницу, общение агентов, где мы будем задавать настройки и улучшать алгоритмы! фантастика».

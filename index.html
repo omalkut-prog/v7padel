@@ -284,6 +284,96 @@
 </section>
 
 <main>
+  <!-- LIVE KPI STRIP (added 2026-05-04) -->
+  <section class="hp-kpi-strip" id="hp-kpi">
+    <a class="hp-kpi" href="revenue.html">
+      <div class="hp-kpi-label">Выручка месяц</div>
+      <div class="hp-kpi-value" id="hp-rev">—</div>
+      <div class="hp-kpi-sub" id="hp-rev-sub">загрузка</div>
+    </a>
+    <a class="hp-kpi" href="dashboard.html">
+      <div class="hp-kpi-label">Клиентов всего</div>
+      <div class="hp-kpi-value" id="hp-clients">—</div>
+      <div class="hp-kpi-sub" id="hp-clients-sub">в базе</div>
+    </a>
+    <a class="hp-kpi" href="clients.html">
+      <div class="hp-kpi-label">Активных 30д</div>
+      <div class="hp-kpi-value" id="hp-active">—</div>
+      <div class="hp-kpi-sub" id="hp-active-sub">с бронями</div>
+    </a>
+    <a class="hp-kpi" href="cohort.html">
+      <div class="hp-kpi-label">Retention 14д</div>
+      <div class="hp-kpi-value" id="hp-ret">—</div>
+      <div class="hp-kpi-sub" id="hp-ret-sub">новички возврат</div>
+    </a>
+    <a class="hp-kpi" href="club-members.html">
+      <div class="hp-kpi-label">Memberships</div>
+      <div class="hp-kpi-value" id="hp-memb">—</div>
+      <div class="hp-kpi-sub" id="hp-memb-sub">/ потолок 55</div>
+    </a>
+  </section>
+  <style>
+    .hp-kpi-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 0 auto 36px; max-width: 1200px; padding: 0 20px; }
+    .hp-kpi { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 14px; padding: 16px 18px; text-decoration: none; transition: all .2s; display: block; }
+    .hp-kpi:hover { background: rgba(10,186,181,0.08); border-color: rgba(10,186,181,0.3); transform: translateY(-2px); }
+    .hp-kpi-label { font-size: 11px; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+    .hp-kpi-value { font-size: 24px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; line-height: 1.1; }
+    .hp-kpi-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 4px; }
+    @media (prefers-color-scheme: light) {
+      .hp-kpi { background: var(--surface); border: 1px solid var(--border); }
+      .hp-kpi-label { color: var(--text3); }
+      .hp-kpi-value { color: var(--text); }
+      .hp-kpi-sub { color: var(--text3); }
+    }
+  </style>
+  <script src="assets/data.js?v=20260501e"></script>
+  <script>
+    (async function() {
+      try {
+        var cache = await V7.loadFullCache();
+        var k = (cache && cache.kpis) || {};
+        var fmt = function(n) {
+          n = +n || 0;
+          if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+          if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+          return Math.round(n).toString();
+        };
+        if (k.revenue_last_month) {
+          document.getElementById('hp-rev').textContent = fmt(k.revenue_last_month) + ' ₺';
+          document.getElementById('hp-rev-sub').textContent = (k.last_month || '');
+        }
+        if (k.clients_total) {
+          document.getElementById('hp-clients').textContent = (+k.clients_total).toLocaleString('ru-RU');
+          document.getElementById('hp-clients-sub').textContent = (k.clients_new_30d || 0) + ' новых /30д';
+        }
+        if (k.clients_active_30d) {
+          document.getElementById('hp-active').textContent = (+k.clients_active_30d).toLocaleString('ru-RU');
+        }
+        if (k.memberships_total != null) {
+          document.getElementById('hp-memb').textContent = k.memberships_total + ' / 55';
+          var pct = Math.round(100 * k.memberships_total / 55);
+          document.getElementById('hp-memb-sub').textContent = pct + '% cap';
+        }
+      } catch (e) { console.warn('KPI strip failed:', e); }
+      // Retention отдельно из new_clients_retention
+      try {
+        var rows = await V7.loadCacheTab('new_clients_retention');
+        if (rows && rows.length) {
+          var nowYM = new Date().toISOString().slice(0,7);
+          var valid = rows.filter(function(r){ return r.month && r.month !== nowYM && parseInt(r.cohort_size) > 5; });
+          var last = valid[valid.length - 1];
+          if (last) {
+            var pct = parseInt(last.ret_14d_pct) || 0;
+            var el = document.getElementById('hp-ret');
+            el.textContent = pct + '%';
+            el.style.color = pct >= 60 ? '#13c296' : pct >= 50 ? '#f39c12' : '#e74c3c';
+            document.getElementById('hp-ret-sub').textContent = last.month + ' цель 60%';
+          }
+        }
+      } catch (e) {}
+    })();
+  </script>
+
   <div class="section-intro" id="sections">
     <div class="section-intro-label">Платформа управления</div>
     <h2>Все разделы</h2>
