@@ -183,6 +183,108 @@
 
 **Owner**: Макс (CMO) — ведёт production + photoshoot. Эрдем — поддерживающий контент. Володимир — финальные approvals на дизайн.
 
+### N1.17. Карточка клиента — heatmap + дни рождения + recall (3-4 часа)
+
+> Володимир запросы 2026-05-04:
+> - Heatmap день недели × время суток («чтобы понимать когда играет»)
+> - Раздел «Дни рождения» с фильтром «от ближайшего», + фильтр «потратил >X₺»
+> - Sub-section «Анализ переписок» (для повышения конверсии менеджеров)
+
+**Heatmap (день недели × время суток)** в карточке клиента:
+- 7 дней × 4 timeslots (утро 7-12, день 12-17, вечер 17-22, поздний 22+)
+- Источник: `client_transactions` (где есть time) или bookings.start_ts когда customer_id заполнен
+- Цвет интенсивности = % visits (тёплая карта)
+- При наведении: «вторник вечером — 8 визитов из 22 (36%)»
+
+**Дни рождения — отдельная вкладка `/birthdays.html`**:
+- Сортировка: ближайшие 30 дней
+- Фильтры:
+  - Все клиенты / только активные / только VIP / только Top-60
+  - «Потратил >X₺» (slider 1k / 5k / 10k / 50k)
+  - Сегмент (active/sleeping/never)
+- Колонки: имя, дата ДР (через сколько дней), потратил всего, last_visit, телефон+WhatsApp, Telegram
+- Action: «Скопировать список для рассылки» / «Подготовить поздравление» (Phase 2 = AI генерит multilingual)
+
+**Анализ переписок — отдельная страница `/conversations.html`** (заглушка пока):
+- Все переписки менеджеров с клиентами (когда подключим Telegram UserBot — N1.18)
+- Метрики: avg response time, conversion to booking, sentiment trend
+- AI insights: «Pars лучше всех конвертит ДР-приглашения», «WhatsApp на турецком работает x2 чем RU»
+- Per-manager: scoreboard
+- Зависит: WhatsApp Business + Telegram UserBot (отложено)
+
+### N1.18. Telegram UserBot интеграция (1.5-2 дня MVP)
+
+> Володимир: дашборд + UserBot session на отдельном V7 аккаунте + AI prepares drafts → менеджер approves → клиент видит сообщение от менеджера (никогда не от AI).
+
+**Phase 1 (3-4 часа) — Core**:
+- Telethon session manager (1 account: @v7padel_pars или подобный)
+- Read incoming messages → save в backend БД с привязкой к cid
+- Send outbound (manual trigger из admin panel)
+- Логирование всего
+
+**Phase 2 (3-4 часа) — Admin Panel `/telegram.html`**:
+- Inbox (входящие с client context)
+- Drafts queue (AI-prepared ответы для approval)
+- Sent history + analytics
+- Health: rate limit status, account ban risk
+
+**Phase 3 (2-3 часа) — Bulk messaging**:
+- Кнопка «Отправить приглашение» на любом списке клиентов
+- AI generates personalized drafts (TR/EN/RU/UA)
+- Approval list (можно edit каждое)
+- Throttled send в фоне (1 каждые 30-60s)
+
+**Phase 4 (2 часа) — AI integration**:
+- Multilingual auto-draft при входящем
+- Контекст из карточки клиента
+
+**Critical safeguards**:
+- Отдельный V7 account (НЕ личный менеджера)
+- Rate limits: 100/день, 5/час новым контактам, random delays
+- Каждое сообщение minimum 10% variation
+- Opt-in flag mandatory (KVKK)
+
+**Когда**: после Phase 1 Admin Agent (N1.11) + opt-in flow реализован.
+
+### N1.19. /clients сводка — пересборка
+
+> Володимир: «я б вообще пересобрал дашборд клиентов (сводку)».
+
+Текущая сводка (Block 1 на /clients) = 5 KPI: всего, новые 30д, активные, спящие, никогда. Плоско, мало действия.
+
+**Что добавить**:
+- Воронка визуализация (1300 базы → 580 active → 60 ядро → 39 members) — кликабельные сегменты
+- Trend для каждого: ▲/▼ vs прошлый месяц
+- «Сейчас в clube» (кто играет прямо сейчас — bookings today) — для admin context
+- Top-10 by spend last 30d
+- 14d retention индикатор сразу (как на /cohort)
+- ДР в ближайшие 7 дней (прямо в сводке)
+- Health metrics: % с валидным телефоном / email / Racket.ID matched / opt-in
+
+### N1.20. Recall — унификация /clients таб vs /recall.html
+
+> Володимир: «recall там есть название но оно отличается от этого recall».
+
+Сейчас 2 разных «Recall»:
+- /clients tab «Recall» — короткие списки cold/risk
+- /recall.html — полный admin tool со status (todo/called/no_answer/etc)
+
+**Решение**: tab на /clients = preview + ссылка «Полный Recall →». Не дублировать данные, не путать пользователя.
+
+### N1.21. Категория Racket.ID на /clients (после Топ клиентов)
+
+> Володимир: «добавил бы категорию Racket.ID после топ клиентов, там фильтр по рейтингу и по тому какие турниры играет».
+
+Новый таб на /clients: «🎾 Racket.ID игроки»:
+- Все клиенты с matched Racket.ID профилем (~ часть из 402)
+- Колонки: имя, рейтинг, last tournament, tournaments_count, level (Pro/Adv/Int/Beg)
+- Фильтры:
+  - Slider рейтинг (от X до Y)
+  - Сколько турниров за 30/90/365 дней
+  - Тип турнира (Americano / Mexicano / Ranked / etc)
+  - Только active/Top-60
+- Use case: «найди мне 8 advanced игроков для Sunday Ranked» → instant список
+
 ### N1.13. Data Quality + Dead Souls audit (4 часа)
 
 > Володимир: «много где просто 111111, это фейк ты думаю умеешь такие определять. С ними мы работать не сможем.»
