@@ -75,13 +75,16 @@
   .note-del:hover { color: var(--bad); }
   .note-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 60px; }
 
-  /* Timeline chart — 12 месяцев игр */
-  .timeline { display: flex; align-items: end; gap: 4px; height: 80px; padding: 8px 0; }
-  .tl-month { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
-  .tl-bar { width: 100%; background: linear-gradient(180deg, var(--accent), var(--accent-soft)); border-radius: 3px 3px 0 0; min-height: 2px; transition: opacity .15s; }
-  .tl-bar:hover { opacity: 0.8; }
-  .tl-label { font-size: 9px; color: var(--text3); text-align: center; white-space: nowrap; }
-  .tl-value { font-size: 10px; color: var(--text2); font-weight: 600; }
+  /* Timeline chart — 12 месяцев */
+  .timeline { display: flex; align-items: end; gap: 4px; height: 110px; padding: 8px 0; }
+  .tl-month { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; cursor: help; }
+  .tl-bar { width: 100%; border-radius: 3px 3px 0 0; min-height: 2px; transition: opacity .15s; }
+  .tl-month:hover .tl-bar { opacity: 0.85; }
+  .tl-month:hover .tl-label, .tl-month:hover .tl-year { color: var(--accent); }
+  .tl-label { font-size: 10px; color: var(--text3); text-align: center; white-space: nowrap; font-weight: 500; }
+  .tl-year { display: none; }
+  .tl-value { font-size: 10px; color: var(--text2); font-weight: 600; height: 12px; }
+  .tl-visits { font-size: 11px; color: var(--text); font-weight: 700; padding-top: 4px; }
   .tl-empty { color: var(--text3); font-style: italic; padding: 14px; text-align: center; font-size: 12px; }
 
   /* Top categories list */
@@ -148,6 +151,8 @@ function render(p, cid) {
   var timeline = p.timeline || [];
   var topCats = p.top_categories || [];
   var rid = p.racket_id;
+  var catsAll = (f && f.categories_all) || {};
+  var cats30 = (f && f.categories_30d) || {};
 
   // Breadcrumb name
   document.getElementById('bc-name').textContent = i.name || 'cid=' + cid;
@@ -211,22 +216,73 @@ function render(p, cid) {
     '<strong>🤖 AI-анализ паттернов</strong> — в разработке. План: автоматически анализировать историю игр и подсказывать заметки типа «играет по утрам Пн/Ср, чаще с Иваном, любит P2». Пока пишите вручную ниже.' +
     '</div>';
 
-  // Timeline chart (12 месяцев)
+  // Timeline chart (12 месяцев) — улучшено: gap-fill, spend bars + visits + читаемые labels
+  var MONTH_NAMES_RU = ['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
   var timelineHtml = '';
   if (timeline.length) {
-    var maxVisits = Math.max.apply(null, timeline.map(function(t) { return t.visits; })) || 1;
-    timelineHtml = '<div class="timeline">' + timeline.map(function(t) {
-      var h = Math.max(2, (t.visits / maxVisits) * 70);
-      var monthLabel = t.month.slice(5, 7) + '.' + t.month.slice(2, 4);
-      return '<div class="tl-month" title="' + escapeHtml(t.month) + ': ' + t.visits + ' игр, ' + Math.round(t.spend).toLocaleString('ru-RU') + ' ₺">' +
-             '<div class="tl-value">' + (t.visits || '') + '</div>' +
-             '<div class="tl-bar" style="height:' + h + 'px"></div>' +
-             '<div class="tl-label">' + monthLabel + '</div>' +
+    // Заполняем gaps — последние 12 месяцев подряд
+    var now = new Date();
+    var fullTimeline = [];
+    for (var k = 11; k >= 0; k--) {
+      var d = new Date(now.getFullYear(), now.getMonth() - k, 1);
+      var ym = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+      var existing = timeline.find(function(t) { return t.month === ym; });
+      fullTimeline.push(existing || { month: ym, visits: 0, spend: 0 });
+    }
+    var maxSpend = Math.max.apply(null, fullTimeline.map(function(t) { return t.spend; })) || 1;
+    timelineHtml = '<div class="timeline">' + fullTimeline.map(function(t) {
+      var h = t.spend > 0 ? Math.max(4, (t.spend / maxSpend) * 70) : 2;
+      var d = new Date(t.month + '-01');
+      var label = MONTH_NAMES_RU[d.getMonth()];
+      var year = String(d.getFullYear()).slice(2);
+      var spendStr = t.spend > 0 ? Math.round(t.spend / 1000) + 'k' : '';
+      var color = t.spend === 0 ? 'var(--surface2)' : 'linear-gradient(180deg,var(--accent),var(--accent-soft))';
+      var titleText = label + ' ' + d.getFullYear() + ': ' + (t.visits || 0) + ' визитов, ' + Math.round(t.spend).toLocaleString('ru-RU') + ' ₺';
+      return '<div class="tl-month" title="' + escapeHtml(titleText) + '">' +
+             '<div class="tl-value">' + spendStr + '</div>' +
+             '<div class="tl-bar" style="height:' + h + 'px;background:' + color + '"></div>' +
+             '<div class="tl-visits">' + (t.visits || '·') + '</div>' +
+             '<div class="tl-label">' + label + ' \'' + year + '</div>' +
              '</div>';
-    }).join('') + '</div>';
+    }).join('') + '</div>' +
+    '<div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin-top:8px;padding:0 4px">' +
+      '<span>k = тысячи ₺ потрачено</span><span>число под bar = визиты</span>' +
+    '</div>';
   } else {
-    timelineHtml = '<div class="tl-empty">Нет данных за последние 12 месяцев</div>';
+    timelineHtml = '<div class="tl-empty">Нет транзакций за последние 12 месяцев</div>';
   }
+
+  // Структура трат (как в /revenue) — 5 категорий + переключатель периода
+  function renderCatBreakdown(cats, periodLabel) {
+    var entries = [
+      { key: 'memberships', label: '👑 Membership (Club/VIP)', amount: cats.memberships || 0 },
+      { key: 'training', label: '🎾 Тренировки', amount: cats.training || 0 },
+      { key: 'tournaments', label: '🏆 Турниры', amount: cats.tournaments || 0 },
+      { key: 'courts', label: '⏱ Корты (аренда)', amount: cats.courts || 0 },
+      { key: 'goods', label: '🛒 Магазин/инвентарь', amount: cats.goods || 0 },
+      { key: 'other', label: '· Прочее', amount: cats.other || 0 },
+    ];
+    var total = entries.reduce(function(s, e) { return s + e.amount; }, 0);
+    if (total === 0) return '<div style="color:var(--text3);font-size:12px;font-style:italic;padding:14px 0">Нет трат за период</div>';
+    entries = entries.filter(function(e) { return e.amount > 0; }).sort(function(a, b) { return b.amount - a.amount; });
+    var maxAmt = entries[0].amount;
+    var html = '<div class="cat-list">';
+    entries.forEach(function(e) {
+      var pct = (e.amount / maxAmt) * 100;
+      var sharePct = total > 0 ? Math.round(100 * e.amount / total) : 0;
+      html += '<div class="cat-row">' +
+              '<div class="cat-name">' + e.label + '</div>' +
+              '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:' + pct + '%"></div></div>' +
+              '<div class="cat-amt">' + Math.round(e.amount).toLocaleString('ru-RU') + ' ₺<span style="color:var(--text3);font-size:10px;margin-left:6px">' + sharePct + '%</span></div>' +
+              '</div>';
+    });
+    html += '</div>';
+    html += '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);text-align:right">' +
+            'Итого ' + escapeHtml(periodLabel) + ': <strong>' + Math.round(total).toLocaleString('ru-RU') + ' ₺</strong></div>';
+    return html;
+  }
+  var catsAllHtml = renderCatBreakdown(catsAll, 'за всё время');
+  var cats30Html = renderCatBreakdown(cats30, 'за 30 дней');
 
   // Racket.ID block (если match есть)
   var ridHtml = '';
@@ -256,13 +312,33 @@ function render(p, cid) {
         '</div>' +
         (rid.profile_url ? '<a class="btn btn-primary" href="' + escapeHtml(rid.profile_url) + '" target="_blank">Открыть в Racket.ID →</a>' : '') +
       '</div>' +
-      ((rid.recent_tournaments || []).length ? '<div style="margin-top:8px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px">Последние турниры</div>' +
+      ((rid.recent_tournaments || []).length ? '<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:10px">Последние ' + rid.recent_tournaments.length + ' турниров (всего ' + (rid.tournaments_count || 0) + ')</div>' +
+        '<div style="display:grid;grid-template-columns:1fr;gap:6px">' +
         rid.recent_tournaments.map(function(t) {
-          return '<div style="font-size:12px;padding:6px 10px;background:var(--surface2);border-radius:6px;margin-bottom:4px;display:flex;justify-content:space-between;gap:10px">' +
-                 '<span>' + escapeHtml(t.title || '—') + '</span>' +
-                 '<span style="color:var(--text3);white-space:nowrap">' + escapeHtml(t.date || '') + '</span>' +
+          // Date format: "2026-04-04 10:00:00" → "04 апр · 10:00"
+          var dateStr = t.date || '';
+          var dateClean = '—', timeClean = '';
+          if (dateStr) {
+            var parts = dateStr.split(' ');
+            var datePart = parts[0]; // 2026-04-04
+            var timePart = parts[1] ? parts[1].slice(0,5) : ''; // 10:00
+            if (datePart) {
+              var d = new Date(datePart);
+              if (!isNaN(d)) {
+                dateClean = String(d.getDate()).padStart(2,'0') + ' ' + MONTH_NAMES_RU[d.getMonth()] + ' \'' + String(d.getFullYear()).slice(2);
+                timeClean = timePart;
+              }
+            }
+          }
+          // Очистка title — обрезаем, нормализуем
+          var title = (t.title || '—').trim();
+          if (title.length > 50) title = title.slice(0, 47) + '...';
+          return '<div style="display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;padding:8px 12px;background:var(--surface2);border-radius:8px;font-size:13px">' +
+                 '<div style="font-weight:600;color:var(--text)">' + escapeHtml(dateClean) + '</div>' +
+                 '<div style="color:var(--text2)">' + escapeHtml(title) + '</div>' +
+                 '<div style="font-size:11px;color:var(--text3);font-variant-numeric:tabular-nums">' + escapeHtml(timeClean) + '</div>' +
                  '</div>';
-        }).join('') + '</div>' : '') +
+        }).join('') + '</div></div>' : '') +
       '</div>';
   } else {
     ridHtml = '<div class="card" style="opacity:0.7">' +
@@ -339,8 +415,14 @@ function render(p, cid) {
         '</div>' +
 
         '<div class="card">' +
-          '<h2>🛒 Топ покупок (90 дней)</h2>' +
-          catsHtml +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px">' +
+            '<h2 style="margin:0">💸 Структура трат</h2>' +
+            '<div style="display:flex;gap:4px;background:var(--surface2);padding:3px;border-radius:8px">' +
+              '<button class="cat-period-btn" data-period="30d" style="padding:6px 14px;border:0;background:transparent;cursor:pointer;font-size:12px;color:var(--text2);border-radius:6px;font-family:inherit">30 дней</button>' +
+              '<button class="cat-period-btn active" data-period="all" style="padding:6px 14px;border:0;background:var(--accent);color:white;cursor:pointer;font-size:12px;border-radius:6px;font-family:inherit">Всё время</button>' +
+            '</div>' +
+          '</div>' +
+          '<div id="cat-content">' + catsAllHtml + '</div>' +
         '</div>' +
 
         '<div class="card">' +
@@ -377,6 +459,22 @@ function render(p, cid) {
 
   // Bind handlers
   bindHandlers(cid);
+
+  // Category period switcher
+  document.querySelectorAll('.cat-period-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.cat-period-btn').forEach(function(b) {
+        b.classList.remove('active');
+        b.style.background = 'transparent';
+        b.style.color = 'var(--text2)';
+      });
+      btn.classList.add('active');
+      btn.style.background = 'var(--accent)';
+      btn.style.color = 'white';
+      var period = btn.dataset.period;
+      document.getElementById('cat-content').innerHTML = period === '30d' ? cats30Html : catsAllHtml;
+    });
+  });
 }
 
 function renderTagsHtml(tags) {
