@@ -183,6 +183,46 @@
 
 **Owner**: Макс (CMO) — ведёт production + photoshoot. Эрдем — поддерживающий контент. Володимир — финальные approvals на дизайн.
 
+### N1.11. AI Admin Agent (Phase 1) — natural language search для админа (1-2 дня)
+
+> Володимир: «дай мне игроков на турнир американо новичков пятница 20:00, дай ДР в ближайшую неделю, дай аналитику VIP/Club...»
+
+**Главное конкурентное преимущество**: ни один padel-клуб в Турции (и почти никто в мире) не имеет admin-агента который понимает natural language и даёт actionable lists.
+
+**Что делает Phase 1**:
+- Admin/Володимир пишет в окне: «найди игроков на американо в пятницу 20:00 для новичков»
+- Backend endpoint `POST /api/agent/query` отправляет в Claude API с structured context (наша БД)
+- Возвращает: список клиентов + telephony + last_visit + любимый партнёр + draft messages на их языке (TR/EN/RU/UA)
+- Admin ревьюит, корректирует, отправляет (Phase 1 НЕ автоматизирует отправку)
+
+**Use cases (10 базовых)**:
+1. Игроки для турнира (filter by level, time pattern, segment)
+2. ДР в ближайшие 7-14 дней + suggestion
+3. VIP/Club analytics (уровень, пол, время, ДР, last contact)
+4. Cold/slow клиенты (>14 дней не были)
+5. Кому давно не делали touch (>30д без contact_log)
+6. Кандидаты в Inner Circle (top по выручке + active)
+7. Recall candidates (bucket 31_90d)
+8. Members истекают через 14 дней
+9. Клиенты-новички которые перестали (14d retention отвал)
+10. Кросс-фильтры (например «турки + advanced + играли в субботу»)
+
+**Multilingual drafts**: agent пишет приглашения на языке клиента (поле `language` в customers + автоопределение по тексту прошлых сообщений).
+
+**Tech**:
+- Backend `/api/agent/query` endpoint
+- Claude API с structured prompt (~5 KB context per query)
+- UI в `/client.html` + новая консоль `/agent.html` (главный терминал админа)
+- Cost ~$10/мес на 1000 запросов
+
+**Зависит от**: backend (есть), customers/bookings/transactions (есть).
+
+**НЕ зависит от**: WhatsApp templates (Phase 1 не отправляет, только показывает drafts), AI auto-notes (это другой level).
+
+**Risk**: минимальный — клиент НЕ взаимодействует с AI напрямую. Только админ.
+
+**Trigger для запуска**: после того как Володимир скажет ОК на Phase 1 (предложение принято).
+
 ### N1.10. AI Auto-Notes — заметки на основе истории игр (3-4 часа)
 
 > Володимир: «мне нужно чтоб ии заметки делал исходя из того что уже отыграл, те из истории».
