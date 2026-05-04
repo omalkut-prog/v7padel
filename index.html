@@ -327,11 +327,23 @@
     }
   </style>
   <script src="assets/data.js?v=20260501e"></script>
+  <script src="assets/backend.js?v=20260504a"></script>
   <script>
     (async function() {
       try {
-        var cache = await V7.loadFullCache();
-        var k = (cache && cache.kpis) || {};
+        // Сначала пробуем backend (быстро), fallback на прямой Sheets
+        var k = {};
+        try {
+          if (window.V7Backend) {
+            var resp = await V7Backend.cache('dashboard_kpis');
+            if (resp && resp.rows && resp.rows[0]) k = resp.rows[0];
+          }
+        } catch (e) {}
+        if (!k.revenue_last_month) {
+          // fallback
+          var cache = await V7.loadFullCache();
+          k = (cache && cache.kpis) || {};
+        }
         var fmt = function(n) {
           n = +n || 0;
           if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
