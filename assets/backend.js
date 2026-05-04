@@ -65,6 +65,10 @@
   async function apiFetch(method, path, body) {
     var token = await ensureAuth();
     if (!token) throw new Error('Not authenticated');
+    // AbortController — timeout 12 сек, чтобы Railway cold start (~5-8s) укладывался,
+    // но если сервер реально завис — не висим бесконечно (страница не зависает).
+    var ctl = new AbortController();
+    var to = setTimeout(() => ctl.abort(), 12000);
     var resp = await fetch(BASE + path, {
       method: method,
       headers: {
@@ -72,7 +76,8 @@
         'Content-Type': 'application/json',
       },
       body: body ? JSON.stringify(body) : undefined,
-    });
+      signal: ctl.signal,
+    }).finally(() => clearTimeout(to));
     if (resp.status === 401) {
       // token expired
       sessionStorage.removeItem(TOKEN_KEY);

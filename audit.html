@@ -10,7 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260424d"></script>
-<script src="assets/backend.js?v=20260504a"></script>
+<script src="assets/backend.js?v=20260504b"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <link rel="stylesheet" href="assets/sidebar.css">
@@ -363,14 +363,23 @@
   // Backend кэширует на 10 минут → второй запрос <100ms.
   let debts = [], movements = [], balances = [], clientTx = [];
 
+  // Backend может «спать» (Railway free tier cold start) или DNS висеть —
+  // race с timeout 6 сек, иначе откатываемся на прямой Sheets fetch.
   async function loadViaBackend(tab, sheetType) {
+    var timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('backend timeout 6s')), 6000));
     try {
       if (window.V7Backend) {
-        var r = sheetType === 'cache' ? await V7Backend.cache(tab) : await V7Backend.db(tab);
-        return r.rows || [];
+        var p = sheetType === 'cache' ? V7Backend.cache(tab) : V7Backend.db(tab);
+        var r = await Promise.race([p, timeout]);
+        if (r && (r.rows || []).length) return r.rows;
+        // backend ответил пустым — пробуем прямой sheet
+        console.warn('[audit] backend returned empty for', tab, '— fallback to direct Sheets');
       }
-    } catch (e) { console.warn('Backend load failed for', tab, e); }
-    return await loadSheet(tab).catch(() => []);
+    } catch (e) { console.warn('[audit] backend load failed for', tab, e.message || e); }
+    return await loadSheet(tab).catch((e) => {
+      console.error('[audit] direct loadSheet failed for', tab, e);
+      return [];
+    });
   }
 
   try {
