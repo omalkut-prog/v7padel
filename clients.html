@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260501e"></script>
-<script src="assets/backend.js?v=20260504b"></script>
+<script src="assets/backend.js?v=20260504e"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
@@ -340,10 +340,18 @@
       loadTab('memberships', 'db'),
       loadTab('mp_birthdays', 'db'),  // 620 ДР из Matchpoint
     ]);
-    // Merge ДР: MP — primary source
+    // Merge ДР: MP — primary source. Аккуратно с null/int (gspread может вернуть int)
     var bdByCid = {};
-    (mpBd || []).forEach(function(b) { var cid=String(b.customer_id||'').trim(); if (cid && b.birthday) bdByCid[cid]=String(b.birthday).trim(); });
-    (customers || []).forEach(function(c) { var cid=String(c.customer_id||'').trim(); if (bdByCid[cid]) c.birthday = bdByCid[cid]; });
+    (mpBd || []).forEach(function(b) {
+      var cid = String(b.customer_id == null ? '' : b.customer_id).trim();
+      var bd = String(b.birthday == null ? '' : b.birthday).trim();
+      if (cid && bd) bdByCid[cid] = bd;
+    });
+    (customers || []).forEach(function(c) {
+      var cid = String(c.customer_id == null ? '' : c.customer_id).trim();
+      if (bdByCid[cid]) c.birthday = bdByCid[cid];
+    });
+    console.log('[clients] mp_birthdays merged:', (mpBd||[]).length, 'rows →', Object.keys(bdByCid).length, 'cids');
 
     var STAFF = ['gulcan yanar','olha bo','olha malkut','dilara akbiyik','mert davas'];
     var isStaff = function(n) { var k = (n||'').toLowerCase(); return STAFF.some(function(x){return k.indexOf(x)>=0;}) || k.indexOf('@v7padel')>=0 || k.indexOf('prueba')>=0 || k.indexOf('demo')>=0; };
@@ -924,11 +932,11 @@
         // Lazy-load iframes для встроенных страниц
         if (name === 'birthdays') {
           var f = document.getElementById('frame-birthdays');
-          if (f && !f.src) f.src = 'birthdays.html?embed=1';
+          if (f && !f.src) f.src = 'birthdays.html?embed=1&v=20260504e';
         }
         if (name === 'recall') {
           var fr = document.getElementById('frame-recall');
-          if (fr && !fr.src) fr.src = 'recall.html?embed=1';
+          if (fr && !fr.src) fr.src = 'recall.html?embed=1&v=20260504e';
         }
         document.querySelectorAll('.cl-tab').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === name); });
         document.querySelectorAll('.cl-pane').forEach(function(p){

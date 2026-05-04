@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260424d"></script>
-<script src="assets/backend.js?v=20260504b"></script>
+<script src="assets/backend.js?v=20260504e"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -139,18 +139,18 @@
     loadTab('mp_birthdays', 'db'),  // 620 ДР из Matchpoint
   ]);
 
-  // Merge: для каждого клиента берём ДР из mp_birthdays если есть, иначе customers.birthday
+  // Merge: MP — primary source, customers.birthday — fallback
   var bdByCid = {};
   (mpBd || []).forEach(function(b) {
-    var cid = String(b.customer_id || '').trim();
-    if (cid && b.birthday) bdByCid[cid] = String(b.birthday).trim();
+    var cid = String(b.customer_id == null ? '' : b.customer_id).trim();
+    var bd = String(b.birthday == null ? '' : b.birthday).trim();
+    if (cid && bd) bdByCid[cid] = bd;
   });
   (customers || []).forEach(function(c) {
-    var cid = String(c.customer_id || '').trim();
-    if (bdByCid[cid] && !c.birthday) c.birthday = bdByCid[cid];
-    else if (bdByCid[cid] && c.birthday) c.birthday = bdByCid[cid]; // MP — primary
-    else if (!c.birthday && bdByCid[cid]) c.birthday = bdByCid[cid];
+    var cid = String(c.customer_id == null ? '' : c.customer_id).trim();
+    if (bdByCid[cid]) c.birthday = bdByCid[cid];
   });
+  console.log('[birthdays] mp_birthdays:', (mpBd || []).length, '| merged into customers:', Object.keys(bdByCid).length);
 
   // Index by cid
   var enrByCid = {};
