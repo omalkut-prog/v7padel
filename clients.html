@@ -732,7 +732,12 @@
   </div>
 
   <div class="cl-pane" id="cl-pane-recall">
-    <iframe id="frame-recall" src="" style="width:100%;border:0;min-height:1500px;background:transparent"></iframe>
+    <div style="text-align:center;padding:60px 20px">
+      <div style="font-size:48px;margin-bottom:18px">📞</div>
+      <h2 style="font-size:20px;font-weight:600;margin-bottom:10px">Recall — звонки клиентам</h2>
+      <p style="color:var(--text2);font-size:14px;margin-bottom:24px;max-width:560px;margin-left:auto;margin-right:auto">Полный список клиентов под звонок со статусами (TODO/звонил/не ответил/закрыт), приоритетами и фильтрами по сегментам.</p>
+      <a href="recall.html" style="display:inline-block;padding:12px 28px;background:var(--accent);color:white;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px">Открыть Recall →</a>
+    </div>
   </div>
 
   <script>
@@ -1093,11 +1098,7 @@
     (function(){
       function activateTab(name) {
         // Lazy-load iframes для встроенных страниц
-        // ДР теперь нативно встроен в pane (без iframe), ничего лениво грузить не надо
-        if (name === 'recall') {
-          var fr = document.getElementById('frame-recall');
-          if (fr && !fr.src) fr.src = 'recall.html?embed=1&v=20260504e';
-        }
+        // ДР встроен нативно, Recall — кнопка-ссылка
         document.querySelectorAll('.cl-tab').forEach(function(b){ b.classList.toggle('active', b.dataset.tab === name); });
         document.querySelectorAll('.cl-pane').forEach(function(p){
           p.classList.toggle('active', p.id === 'cl-pane-' + name);
