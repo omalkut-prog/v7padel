@@ -758,15 +758,19 @@ const state = {
   applyFilters();
   bindUI();
 
-  // Auto-open client card если в URL есть #cid=N
-  // С 2026-05-04 по умолчанию редирект на /client.html?cid=N (full page CRM).
-  // Модалка остаётся как fallback для коротких просмотров.
+  // Auto-open client card если в URL есть #cid=N — открывает модалку (быстрый view)
+  // Full page /client.html?cid=N доступна по кнопке в модалке.
   function tryOpenFromHash() {
     var m = location.hash.match(/cid=(\d+)/);
     if (!m) return;
     var cid = m[1];
-    // Редирект на full-page карточку
-    location.href = 'client.html?cid=' + cid;
+    var tries = 0;
+    var attempt = function() {
+      if (openCardByCid(cid)) return;
+      if (++tries < 30) setTimeout(attempt, 500);
+      else console.warn('[clients] не открыл cid=' + cid + ' за 15с');
+    };
+    attempt();
   }
   tryOpenFromHash();
   window.addEventListener('hashchange', tryOpenFromHash);
@@ -918,7 +922,10 @@ function openCard(c) {
   const body = document.getElementById('modal-body');
   body.innerHTML =
     '<button class="modal-close" aria-label="Закрыть" onclick="closeCard()">×</button>' +
-    '<h3>' + c.name + '</h3>' +
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:8px">' +
+      '<h3 style="margin:0">' + c.name + '</h3>' +
+      '<a href="client.html?cid=' + (c.id || '') + '" style="font-size:12px;color:var(--accent);text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);padding:4px 10px;border-radius:6px;white-space:nowrap;flex-shrink:0" title="Полная карточка с CRM">📂 Открыть полную</a>' +
+    '</div>' +
     '<div class="sub">ID: ' + (c.id || '—') + ' · ' + segLabel + newLabel + '</div>' +
     '<div class="fields">' +
       '<div class="f"><span>Телефон</span><b>' + c.phone + '</b></div>' +
@@ -1545,8 +1552,9 @@ function renderTop60Protection(rows) {
       else waLink = phone;
     }
     var cid = r.customer_id || '';
+    // Cursor pointer + dataset cid → handler ниже откроет модалку
     var nameCell = cid
-      ? '<a href="#cid=' + cid + '" style="color:var(--text);text-decoration:none;border-bottom:1px dotted var(--accent)" title="Открыть карточку клиента"><b>' + (r.name || '—') + '</b></a>'
+      ? '<span class="top60-name" data-cid="' + cid + '" style="cursor:pointer;border-bottom:1px dotted var(--accent)" title="Открыть карточку клиента"><b>' + (r.name || '—') + '</b></span>'
       : '<b>' + (r.name || '—') + '</b>';
     html += '<tr>' +
       '<td class="muted">' + (i + 1) + '</td>' +
@@ -1558,6 +1566,16 @@ function renderTop60Protection(rows) {
       '</tr>';
   });
   tbody.innerHTML = html;
+  // Bind click handler для имён в Top-60 — открыть модалку
+  tbody.querySelectorAll('.top60-name').forEach(function(el) {
+    el.addEventListener('click', function() {
+      var cid = el.dataset.cid;
+      if (!cid) return;
+      if (typeof openCardByCid === 'function' && openCardByCid(cid)) return;
+      // Fallback — на full page если cid не найден в state
+      location.href = 'client.html?cid=' + cid;
+    });
+  });
 }
 
 /* ========================================================================
