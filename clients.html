@@ -758,19 +758,15 @@ const state = {
   applyFilters();
   bindUI();
 
-  // Auto-open client card если в URL есть #cid=N (приходим с /audit, /recall и др.)
+  // Auto-open client card если в URL есть #cid=N
+  // С 2026-05-04 по умолчанию редирект на /client.html?cid=N (full page CRM).
+  // Модалка остаётся как fallback для коротких просмотров.
   function tryOpenFromHash() {
     var m = location.hash.match(/cid=(\d+)/);
     if (!m) return;
     var cid = m[1];
-    // Retry до 30 раз × 500ms = 15 секунд (на медленную загрузку cache + top_clients)
-    var tries = 0;
-    var attempt = function() {
-      if (openCardByCid(cid)) return;
-      if (++tries < 30) setTimeout(attempt, 500);
-      else console.warn('[clients] не смог открыть карточку cid=' + cid + ' за 15 сек');
-    };
-    attempt();
+    // Редирект на full-page карточку
+    location.href = 'client.html?cid=' + cid;
   }
   tryOpenFromHash();
   window.addEventListener('hashchange', tryOpenFromHash);

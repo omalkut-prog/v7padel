@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Клиент</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<script src="assets/data.js?v=20260501e"></script>
+<script src="assets/backend.js?v=20260504a"></script>
+<link rel="stylesheet" href="assets/theme.css?v=20260418">
+<link rel="stylesheet" href="assets/sidebar.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1200px; margin: 0 auto; padding: 24px 20px 80px; }
+  .breadcrumb { font-size: 12px; color: var(--text3); margin-bottom: 12px; }
+  .breadcrumb a { color: var(--accent); text-decoration: none; }
+  .breadcrumb a:hover { text-decoration: underline; }
+
+  /* Header */
+  .client-header { display: grid; grid-template-columns: 1fr auto; gap: 24px; align-items: start; padding: 20px 24px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 22px; box-shadow: var(--shadow); }
+  .ch-name { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; }
+  .ch-meta { font-size: 12px; color: var(--text3); margin-top: 4px; display: flex; gap: 14px; flex-wrap: wrap; }
+  .ch-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+  .badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .b-active { background: rgba(19,194,150,0.1); color: var(--good); }
+  .b-vip { background: rgba(155,89,182,0.1); color: #9b59b6; }
+  .b-new { background: rgba(243,156,18,0.1); color: var(--warn); }
+  .b-segment { background: var(--accent-soft); color: var(--accent); }
+
+  .ch-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+  .btn { padding: 8px 14px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); cursor: pointer; font-size: 13px; font-weight: 500; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all .15s; }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-primary:hover { opacity: 0.9; color: white; }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; }
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } }
+
+  /* Card */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px; }
+  .card h2 { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 14px; }
+
+  /* Finance grid */
+  .fin-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+  .fin-cell { padding: 12px 14px; background: var(--surface2); border-radius: 10px; }
+  .fin-cell .label { font-size: 10.5px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 4px; }
+  .fin-cell .value { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .fin-cell .sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .fin-cell.pos .value { color: var(--good); }
+  .fin-cell.neg .value { color: var(--bad); }
+
+  /* Identity grid */
+  .id-grid { display: grid; grid-template-columns: 100px 1fr; gap: 8px 14px; font-size: 13px; }
+  .id-grid .key { color: var(--text3); }
+  .id-grid .val { color: var(--text); }
+  .id-grid a { color: var(--accent); text-decoration: none; }
+
+  /* CRM */
+  .crm-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; min-height: 30px; align-items: center; }
+  .tag-chip { padding: 3px 10px; border-radius: 12px; background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; }
+  .tag-chip .x { cursor: pointer; opacity: 0.5; }
+  .tag-chip .x:hover { opacity: 1; color: var(--bad); }
+  .tag-input-row { display: flex; gap: 6px; }
+  .tag-input { flex: 1; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; }
+
+  .note-list { margin-bottom: 10px; }
+  .note { background: var(--surface2); border-radius: 10px; padding: 12px 14px; margin-bottom: 8px; font-size: 13px; line-height: 1.55; }
+  .note-meta { font-size: 11px; color: var(--text3); margin-top: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .note-del { background: none; border: 0; color: var(--text3); cursor: pointer; font-size: 13px; padding: 0 6px; }
+  .note-del:hover { color: var(--bad); }
+  .note-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 60px; }
+
+  /* Pattern */
+  .pattern-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .pb { background: var(--surface2); padding: 10px 6px; border-radius: 8px; text-align: center; }
+  .pb b { display: block; font-size: 18px; font-weight: 700; }
+  .pb span { font-size: 10px; color: var(--text3); text-transform: uppercase; }
+
+  .ai-hint { background: linear-gradient(135deg, rgba(10,186,181,0.06), rgba(155,89,182,0.04)); border: 1px solid rgba(10,186,181,0.25); border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; color: var(--text2); }
+  .ai-hint strong { color: var(--accent); }
+
+  .loading { text-align: center; padding: 40px; color: var(--text3); }
+</style>
+</head>
+<body>
+<main>
+  <div class="breadcrumb">
+    <a href="clients.html">← Все клиенты</a>
+    <span style="margin: 0 8px;">/</span>
+    <span id="bc-name">…</span>
+  </div>
+
+  <div id="content">
+    <div class="loading">Загружаю клиента…</div>
+  </div>
+</main>
+
+<script>
+(async function() {
+  // Get cid from URL
+  var match = location.search.match(/[?&]cid=(\d+)/);
+  if (!match) {
+    document.getElementById('content').innerHTML = '<div class="card"><h2>Ошибка</h2><p>Не указан cid в URL. Используй ?cid=N</p></div>';
+    return;
+  }
+  var cid = match[1];
+
+  // Load profile from backend
+  var profile;
+  try {
+    profile = await V7Backend.client(cid);
+  } catch (e) {
+    document.getElementById('content').innerHTML =
+      '<div class="card"><h2>Ошибка загрузки</h2><p>' + e.message + '</p>' +
+      '<p style="margin-top:8px"><a href="clients.html" style="color:var(--accent)">← Вернуться к списку</a></p></div>';
+    return;
+  }
+
+  if (profile.error) {
+    document.getElementById('content').innerHTML =
+      '<div class="card"><h2>Клиент не найден</h2><p>cid=' + cid + ' не существует в базе.</p></div>';
+    return;
+  }
+
+  render(profile, cid);
+})();
+
+function render(p, cid) {
+  var i = p.identity || {};
+  var f = p.finance || {};
+  var crm = p.crm || { notes: [], tags: [], contact_log: [] };
+
+  // Breadcrumb name
+  document.getElementById('bc-name').textContent = i.name || 'cid=' + cid;
+  document.title = 'V7 Padel — ' + (i.name || 'Клиент');
+
+  var fmt = function(n) { return Math.round(n || 0).toLocaleString('ru-RU'); };
+  var fmtMoney = function(n) { return fmt(n) + ' ₺'; };
+
+  // Badges
+  var badges = '';
+  if (f.activity_bucket === 'active' || (f.days_since_last_tx > 0 && f.days_since_last_tx <= 30)) {
+    badges += '<span class="badge b-active">🟢 активный</span>';
+  } else if (f.days_since_last_tx > 30) {
+    badges += '<span class="badge b-new" style="background:rgba(231,76,60,0.1);color:var(--bad)">🔴 ' + f.days_since_last_tx + 'д не был</span>';
+  }
+  if ((crm.tags || []).some(function(t) { return /vip/i.test(t.tag); })) {
+    badges += '<span class="badge b-vip">💎 VIP</span>';
+  }
+  if (f.segment) {
+    badges += '<span class="badge b-segment">' + escapeHtml(f.segment) + '</span>';
+  }
+
+  // Action buttons
+  var actions = '';
+  if (i.whatsapp) {
+    var wa = String(i.whatsapp).replace(/\D/g, '');
+    actions += '<a class="btn btn-primary" href="https://wa.me/' + wa + '" target="_blank">💬 WhatsApp</a>';
+  } else if (i.phone) {
+    var ph = String(i.phone).replace(/\D/g, '');
+    if (ph) actions += '<a class="btn btn-primary" href="https://wa.me/' + ph + '" target="_blank">💬 WhatsApp</a>';
+  }
+  if (i.telegram) {
+    actions += '<a class="btn" href="https://t.me/' + escapeHtml(i.telegram.replace(/^@/, '')) + '" target="_blank">📱 Telegram</a>';
+  }
+  if (i.email) {
+    actions += '<a class="btn" href="mailto:' + escapeHtml(i.email) + '">✉️ Email</a>';
+  }
+
+  // Identity grid
+  var idHtml = '';
+  if (i.phone) idHtml += '<div class="key">Телефон</div><div class="val">' + escapeHtml(i.phone) + '</div>';
+  if (i.email) idHtml += '<div class="key">Email</div><div class="val"><a href="mailto:' + escapeHtml(i.email) + '">' + escapeHtml(i.email) + '</a></div>';
+  if (i.level) idHtml += '<div class="key">Уровень</div><div class="val">' + escapeHtml(i.level) + '</div>';
+  if (i.gender || i.age) idHtml += '<div class="key">Возраст/пол</div><div class="val">' + escapeHtml(i.gender || '') + ' ' + (i.age ? i.age + ' лет' : '') + '</div>';
+  if (i.nationality) idHtml += '<div class="key">Национальность</div><div class="val">' + escapeHtml(i.nationality) + '</div>';
+  if (i.language) idHtml += '<div class="key">Язык</div><div class="val">' + escapeHtml(i.language) + '</div>';
+  if (i.birthday) idHtml += '<div class="key">День рождения</div><div class="val">' + escapeHtml(i.birthday) + '</div>';
+  if (i.subs_date) idHtml += '<div class="key">С нами с</div><div class="val">' + escapeHtml(i.subs_date) + '</div>';
+
+  // Finance grid
+  var finHtml = '';
+  finHtml += '<div class="fin-cell ' + (f.balance > 0 ? 'pos' : '') + '"><div class="label">Баланс</div><div class="value">' + fmtMoney(f.balance) + '</div><div class="sub">' + (f.balance > 0 ? 'клуб должен клиенту' : '—') + '</div></div>';
+  finHtml += '<div class="fin-cell"><div class="label">Выручка всё</div><div class="value">' + fmtMoney(f.amount_all) + '</div><div class="sub">' + (f.bookings_all || 0) + ' визитов</div></div>';
+  finHtml += '<div class="fin-cell"><div class="label">За 30 дней</div><div class="value">' + fmtMoney(f.amount_30d) + '</div><div class="sub">' + (f.bookings_30d || 0) + ' визитов</div></div>';
+  finHtml += '<div class="fin-cell"><div class="label">За 90 дней</div><div class="value">' + fmtMoney(f.amount_90d) + '</div><div class="sub">—</div></div>';
+  finHtml += '<div class="fin-cell"><div class="label">Средний чек</div><div class="value">' + fmtMoney(f.avg_check_30d || f.avg_check_all) + '</div><div class="sub">' + (f.avg_check_30d ? 'за 30д' : 'за всё') + '</div></div>';
+  finHtml += '<div class="fin-cell"><div class="label">Последний визит</div><div class="value" style="font-size:14px">' + (f.last_tx ? f.last_tx : '—') + '</div><div class="sub">' + (f.days_since_last_tx ? f.days_since_last_tx + 'д назад' : '—') + '</div></div>';
+
+  // AI hint placeholder (Phase 2)
+  var aiHint = '<div class="ai-hint">' +
+    '<strong>🤖 AI-анализ паттернов</strong> — в разработке. План: автоматически анализировать историю игр и подсказывать заметки типа «играет по утрам Пн/Ср, чаще с Иваном, любит P2». Пока пишите вручную ниже.' +
+    '</div>';
+
+  // Tags
+  var tagsHtml = renderTagsHtml(crm.tags || []);
+
+  // Notes
+  var notesHtml = renderNotesHtml(crm.notes || []);
+
+  // Contact log
+  var contactsHtml = '';
+  if ((crm.contact_log || []).length) {
+    contactsHtml = '<div style="margin-top:10px">' +
+      crm.contact_log.slice(0, 5).map(function(c) {
+        return '<div style="font-size:12px;color:var(--text2);padding:6px 10px;background:var(--surface2);border-radius:6px;margin-bottom:4px">' +
+               '<strong>' + escapeHtml(c.channel) + '</strong> · ' + escapeHtml(c.result) +
+               (c.note ? ' — ' + escapeHtml(c.note) : '') +
+               ' <span style="color:var(--text3);font-size:11px">(' + new Date(c.created_at).toLocaleDateString('ru-RU') + ')</span>' +
+               '</div>';
+      }).join('') +
+      '</div>';
+  } else {
+    contactsHtml = '<div style="color:var(--text3);font-size:12px;font-style:italic">пока нет записей</div>';
+  }
+
+  document.getElementById('content').innerHTML =
+    '<div class="client-header">' +
+      '<div>' +
+        '<div class="ch-name">' + escapeHtml(i.name || 'cid=' + cid) + '</div>' +
+        '<div class="ch-meta">' +
+          '<span>ID: ' + cid + '</span>' +
+          (i.subs_date ? '<span>· регистрация ' + escapeHtml(i.subs_date) + '</span>' : '') +
+          (f.bookings_all ? '<span>· ' + f.bookings_all + ' визитов</span>' : '') +
+        '</div>' +
+        '<div class="ch-badges">' + badges + '</div>' +
+      '</div>' +
+      '<div class="ch-actions">' + actions + '</div>' +
+    '</div>' +
+
+    '<div class="grid">' +
+      '<div>' +
+        '<div class="card">' +
+          '<h2>💰 Финансы</h2>' +
+          '<div class="fin-grid">' + finHtml + '</div>' +
+        '</div>' +
+
+        '<div class="card">' +
+          '<h2>📝 Заметки</h2>' +
+          aiHint +
+          '<div class="note-list" id="notes-list">' + notesHtml + '</div>' +
+          '<textarea class="note-input" id="note-input" placeholder="Написать заметку (что обсудили, что важно помнить, что любит)..."></textarea>' +
+          '<button class="btn btn-primary" id="note-add" style="margin-top:8px">Сохранить заметку</button>' +
+        '</div>' +
+      '</div>' +
+
+      '<div>' +
+        '<div class="card">' +
+          '<h2>👤 Идентификация</h2>' +
+          '<div class="id-grid">' + idHtml + '</div>' +
+        '</div>' +
+
+        '<div class="card">' +
+          '<h2>🏷️ Теги</h2>' +
+          '<div class="crm-tags" id="tags-list">' + tagsHtml + '</div>' +
+          '<div class="tag-input-row">' +
+            '<input class="tag-input" id="tag-input" type="text" placeholder="VIP, инфлюенсер, любит коуча X..." />' +
+            '<button class="btn btn-primary" id="tag-add">+</button>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="card">' +
+          '<h2>📞 Контакты</h2>' +
+          contactsHtml +
+          '<button class="btn" id="contact-add" style="margin-top:10px;width:100%">+ Записать контакт</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+  // Bind handlers
+  bindHandlers(cid);
+}
+
+function renderTagsHtml(tags) {
+  if (!tags.length) return '<span style="color:var(--text3);font-size:12px;font-style:italic">тегов нет</span>';
+  return tags.map(function(t) {
+    return '<span class="tag-chip">' + escapeHtml(t.tag) + '</span>';
+  }).join('');
+}
+
+function renderNotesHtml(notes) {
+  if (!notes.length) return '<div style="color:var(--text3);font-size:12px;font-style:italic;text-align:center;padding:20px">Пока нет заметок</div>';
+  return notes.map(function(n) {
+    var dt = new Date(n.created_at);
+    var dtStr = dt.toLocaleDateString('ru-RU') + ' ' + dt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    return '<div class="note">' +
+           '<div style="white-space:pre-wrap">' + escapeHtml(n.text) + '</div>' +
+           '<div class="note-meta">' +
+             '<span>' + escapeHtml(n.author || 'admin') + ' · ' + dtStr + '</span>' +
+             '<button class="note-del" data-id="' + n.id + '" title="Удалить">✕</button>' +
+           '</div>' +
+           '</div>';
+  }).join('');
+}
+
+function bindHandlers(cid) {
+  // Add note
+  var noteAdd = document.getElementById('note-add');
+  var noteInput = document.getElementById('note-input');
+  noteAdd.addEventListener('click', async function() {
+    var v = noteInput.value.trim();
+    if (!v) return;
+    try {
+      await V7Backend.notes.create(parseInt(cid), v);
+      noteInput.value = '';
+      var notes = await V7Backend.notes.list(parseInt(cid));
+      document.getElementById('notes-list').innerHTML = renderNotesHtml(notes);
+      bindNoteDeleteHandlers(cid);
+    } catch (e) { alert('Не удалось: ' + e.message); }
+  });
+  bindNoteDeleteHandlers(cid);
+
+  // Add tag
+  var tagAdd = document.getElementById('tag-add');
+  var tagInput = document.getElementById('tag-input');
+  tagAdd.addEventListener('click', async function() {
+    var v = tagInput.value.trim();
+    if (!v) return;
+    try {
+      await V7Backend.tags.create(parseInt(cid), v);
+      tagInput.value = '';
+      var data = await V7Backend.client(cid);
+      document.getElementById('tags-list').innerHTML = renderTagsHtml((data.crm || {}).tags || []);
+    } catch (e) { alert('Не удалось: ' + e.message); }
+  });
+  tagInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') tagAdd.click(); });
+
+  // Contact log
+  document.getElementById('contact-add').addEventListener('click', async function() {
+    var channel = prompt('Канал (whatsapp / call / email / in_person)?', 'whatsapp');
+    if (!channel) return;
+    var result = prompt('Результат (answered / no_answer / booked / refused / scheduled)?', 'answered');
+    if (!result) return;
+    var note = prompt('Заметка (опционально):', '');
+    try {
+      await V7Backend.contactLog.create(parseInt(cid), { channel: channel, direction: 'out', result: result, note: note || '' });
+      location.reload();
+    } catch (e) { alert('Не удалось: ' + e.message); }
+  });
+}
+
+function bindNoteDeleteHandlers(cid) {
+  document.querySelectorAll('.note-del').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      if (!confirm('Удалить заметку?')) return;
+      try {
+        await V7Backend.notes.delete(parseInt(btn.dataset.id));
+        var notes = await V7Backend.notes.list(parseInt(cid));
+        document.getElementById('notes-list').innerHTML = renderNotesHtml(notes);
+        bindNoteDeleteHandlers(cid);
+      } catch (e) { alert('Не удалось: ' + e.message); }
+    });
+  });
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+</script>
+<script src="assets/sidebar.js"></script>
+</body>
+</html>
