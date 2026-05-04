@@ -75,11 +75,22 @@
   .note-del:hover { color: var(--bad); }
   .note-input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; font-family: inherit; resize: vertical; min-height: 60px; }
 
-  /* Pattern */
-  .pattern-bars { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-  .pb { background: var(--surface2); padding: 10px 6px; border-radius: 8px; text-align: center; }
-  .pb b { display: block; font-size: 18px; font-weight: 700; }
-  .pb span { font-size: 10px; color: var(--text3); text-transform: uppercase; }
+  /* Timeline chart — 12 месяцев игр */
+  .timeline { display: flex; align-items: end; gap: 4px; height: 80px; padding: 8px 0; }
+  .tl-month { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+  .tl-bar { width: 100%; background: linear-gradient(180deg, var(--accent), var(--accent-soft)); border-radius: 3px 3px 0 0; min-height: 2px; transition: opacity .15s; }
+  .tl-bar:hover { opacity: 0.8; }
+  .tl-label { font-size: 9px; color: var(--text3); text-align: center; white-space: nowrap; }
+  .tl-value { font-size: 10px; color: var(--text2); font-weight: 600; }
+  .tl-empty { color: var(--text3); font-style: italic; padding: 14px; text-align: center; font-size: 12px; }
+
+  /* Top categories list */
+  .cat-list { display: flex; flex-direction: column; gap: 8px; }
+  .cat-row { display: grid; grid-template-columns: 110px 1fr auto; gap: 10px; align-items: center; }
+  .cat-name { font-size: 12px; color: var(--text2); }
+  .cat-bar-track { height: 6px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+  .cat-bar-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width .4s; }
+  .cat-amt { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
   .ai-hint { background: linear-gradient(135deg, rgba(10,186,181,0.06), rgba(155,89,182,0.04)); border: 1px solid rgba(10,186,181,0.25); border-radius: 10px; padding: 14px 18px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; color: var(--text2); }
   .ai-hint strong { color: var(--accent); }
@@ -134,6 +145,8 @@ function render(p, cid) {
   var i = p.identity || {};
   var f = p.finance || {};
   var crm = p.crm || { notes: [], tags: [], contact_log: [] };
+  var timeline = p.timeline || [];
+  var topCats = p.top_categories || [];
 
   // Breadcrumb name
   document.getElementById('bc-name').textContent = i.name || 'cid=' + cid;
@@ -197,6 +210,39 @@ function render(p, cid) {
     '<strong>🤖 AI-анализ паттернов</strong> — в разработке. План: автоматически анализировать историю игр и подсказывать заметки типа «играет по утрам Пн/Ср, чаще с Иваном, любит P2». Пока пишите вручную ниже.' +
     '</div>';
 
+  // Timeline chart (12 месяцев)
+  var timelineHtml = '';
+  if (timeline.length) {
+    var maxVisits = Math.max.apply(null, timeline.map(function(t) { return t.visits; })) || 1;
+    timelineHtml = '<div class="timeline">' + timeline.map(function(t) {
+      var h = Math.max(2, (t.visits / maxVisits) * 70);
+      var monthLabel = t.month.slice(5, 7) + '.' + t.month.slice(2, 4);
+      return '<div class="tl-month" title="' + escapeHtml(t.month) + ': ' + t.visits + ' игр, ' + Math.round(t.spend).toLocaleString('ru-RU') + ' ₺">' +
+             '<div class="tl-value">' + (t.visits || '') + '</div>' +
+             '<div class="tl-bar" style="height:' + h + 'px"></div>' +
+             '<div class="tl-label">' + monthLabel + '</div>' +
+             '</div>';
+    }).join('') + '</div>';
+  } else {
+    timelineHtml = '<div class="tl-empty">Нет данных за последние 12 месяцев</div>';
+  }
+
+  // Top categories
+  var catsHtml = '';
+  if (topCats.length) {
+    var maxAmt = Math.max.apply(null, topCats.map(function(c) { return c.amount; })) || 1;
+    catsHtml = '<div class="cat-list">' + topCats.map(function(c) {
+      var pct = (c.amount / maxAmt) * 100;
+      return '<div class="cat-row">' +
+             '<div class="cat-name">' + escapeHtml(c.category) + '</div>' +
+             '<div class="cat-bar-track"><div class="cat-bar-fill" style="width:' + pct + '%"></div></div>' +
+             '<div class="cat-amt">' + Math.round(c.amount).toLocaleString('ru-RU') + ' ₺</div>' +
+             '</div>';
+    }).join('') + '</div>';
+  } else {
+    catsHtml = '<div style="color:var(--text3);font-size:12px;font-style:italic">Нет покупок за 90 дней</div>';
+  }
+
   // Tags
   var tagsHtml = renderTagsHtml(crm.tags || []);
 
@@ -238,6 +284,16 @@ function render(p, cid) {
         '<div class="card">' +
           '<h2>💰 Финансы</h2>' +
           '<div class="fin-grid">' + finHtml + '</div>' +
+        '</div>' +
+
+        '<div class="card">' +
+          '<h2>📊 Активность по месяцам</h2>' +
+          timelineHtml +
+        '</div>' +
+
+        '<div class="card">' +
+          '<h2>🛒 Топ покупок (90 дней)</h2>' +
+          catsHtml +
         '</div>' +
 
         '<div class="card">' +
