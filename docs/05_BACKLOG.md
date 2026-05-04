@@ -339,6 +339,24 @@
 
 ## LATER
 
+### Backend → свой сервер (миграция с Railway)
+
+- **Сейчас**: backend на Railway $5/мес (https://backend-production-7989f.up.railway.app)
+- **Цель**: VPS в Турции (или у программиста Володимира) для KVKK compliance + полного контроля
+- **План**:
+  1. Программист даёт SSH доступ к VPS (или поднимаем свой Hetzner/DigitalOcean)
+  2. Ставим Docker + nginx + Let's Encrypt SSL (30 мин)
+  3. Pull `ghcr.io/volodimirrykov-lang/v7padel-backend:latest` (тот же образ что Railway)
+  4. Domain `api.v7padel.club` → server IP
+  5. Backup стратегия (rsync / Borg)
+  6. Cutover: переключаем frontend, отключаем Railway
+- **Effort**: 30-60 мин когда есть VPS
+- **Когда**: после того как backend стабильно работает 1-2 недели на Railway, добавлены notes/tags/CRM v0
+- **Trigger**: открытие 2-го клуба ИЛИ запрос KVKK compliance ИЛИ Railway проблемы
+- **Преимущества**: полный контроль, дешевле в долгосроке, data residency, privacy
+- **Минусы**: sysadmin support нужен, бэкапы сами, диагностика самим
+
+
 - **Snapshot-tracking отмен → cid** — для ТОП-клиентов по отменам
 - AI-предсказание churn risk
 - Авто-классификация description → service_type

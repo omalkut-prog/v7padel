@@ -420,6 +420,8 @@ function doSignIn() {
     var match = PASSWORD_HASHES[hash];
     if (match) {
       sessionStorage.setItem('v7role', match.role);
+      // Сохраняем пароль в session для backend.js (auto-login на API)
+      sessionStorage.setItem('v7-password', val);
       if (match.role === 'coach' || match.role === 'administrator') {
         if (!sessionStorage.getItem('v7lang')) sessionStorage.setItem('v7lang', 'en');
       }

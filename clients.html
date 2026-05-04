@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260501e"></script>
+<script src="assets/backend.js?v=20260504a"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
@@ -957,8 +958,151 @@ function openCard(c) {
            : '<div class="loading">Нет истории бронирований</div>'))
       : '<h4>История игр</h4><div style="padding:14px 16px;background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.25);border-radius:10px;font-size:12px;color:var(--warn);line-height:1.5">⚠ В таблице <code>bookings</code> поле <code>customer_id</code> не заполнено — историю игр конкретного клиента показать нельзя. После доработки ETL (привязка brooking к клиенту по имени) здесь появятся последние 10 игр и паттерн игры по дням и времени суток.</div>');
 
+  // ── CRM: notes / tags / contact_log (через backend) ──
+  // Добавляем блок ПОСЛЕ остального контента, lazy-load когда модалка открыта.
+  var crmBlock = document.createElement('div');
+  crmBlock.id = 'modal-crm-block';
+  crmBlock.style.cssText = 'margin-top:24px;padding-top:18px;border-top:1px solid var(--border)';
+  crmBlock.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:12px">Загружаю заметки…</div>';
+  body.appendChild(crmBlock);
+  if (window.V7Backend && c.id) {
+    renderCrmBlock(c.id, crmBlock);
+  } else {
+    crmBlock.innerHTML = '<div style="color:var(--text3);font-size:12px">Backend недоступен</div>';
+  }
+
   document.getElementById('modal-backdrop').classList.add('active');
 }
+
+/* ──── CRM block: notes/tags/contact_log в карточке клиента ──── */
+async function renderCrmBlock(cid, container) {
+  var html = '<h4 style="margin-bottom:12px">📝 CRM (заметки и теги)</h4>';
+  // Tags row
+  html += '<div id="crm-tags-' + cid + '" style="margin-bottom:14px">' +
+          '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Теги</div>' +
+          '<div class="crm-tags-list" style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' +
+            '<span style="color:var(--text3);font-size:12px">загрузка…</span>' +
+          '</div>' +
+          '<div style="margin-top:6px;display:flex;gap:6px">' +
+            '<input class="crm-tag-input" type="text" placeholder="новый тег (VIP, инфлюенсер…)" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:inherit">' +
+            '<button class="crm-tag-add" style="padding:6px 14px;background:var(--accent);color:#fff;border:0;border-radius:6px;font-size:12px;cursor:pointer">+</button>' +
+          '</div>' +
+          '</div>';
+  // Notes row
+  html += '<div id="crm-notes-' + cid + '" style="margin-bottom:14px">' +
+          '<div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Заметки</div>' +
+          '<div class="crm-notes-list" style="margin-bottom:8px"></div>' +
+          '<textarea class="crm-note-input" placeholder="написать заметку…" style="width:100%;min-height:54px;padding:8px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box"></textarea>' +
+          '<button class="crm-note-add" style="margin-top:6px;padding:6px 14px;background:var(--accent);color:#fff;border:0;border-radius:6px;font-size:12px;cursor:pointer">Сохранить заметку</button>' +
+          '</div>';
+  // Contact log button
+  html += '<div style="font-size:12px;color:var(--text3);margin-top:14px">' +
+          '<button class="crm-contact-btn" style="padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;font-size:12px;cursor:pointer">📞 Записать контакт</button>' +
+          '<span style="margin-left:10px">— зафиксировать что вышли на связь (звонок, WhatsApp, email)</span>' +
+          '</div>';
+  container.innerHTML = html;
+
+  // Load full client data (notes + tags + contact_log)
+  try {
+    var data = await V7Backend.client(cid);
+    var crm = data.crm || {};
+    renderTags(cid, container, crm.tags || []);
+    renderNotes(cid, container, crm.notes || []);
+  } catch (e) {
+    container.innerHTML = '<div style="color:var(--bad);font-size:12px">Ошибка загрузки CRM: ' + e.message + '</div>';
+    return;
+  }
+
+  // Bind handlers
+  var tagAdd = container.querySelector('.crm-tag-add');
+  var tagInput = container.querySelector('.crm-tag-input');
+  tagAdd.addEventListener('click', async function() {
+    var v = tagInput.value.trim();
+    if (!v) return;
+    try {
+      await V7Backend.tags.create(cid, v);
+      tagInput.value = '';
+      var data = await V7Backend.client(cid);
+      renderTags(cid, container, (data.crm || {}).tags || []);
+    } catch (e) { alert('Не удалось добавить тег: ' + e.message); }
+  });
+  tagInput.addEventListener('keydown', function(e) { if (e.key === 'Enter') tagAdd.click(); });
+
+  var noteAdd = container.querySelector('.crm-note-add');
+  var noteInput = container.querySelector('.crm-note-input');
+  noteAdd.addEventListener('click', async function() {
+    var v = noteInput.value.trim();
+    if (!v) return;
+    try {
+      await V7Backend.notes.create(cid, v);
+      noteInput.value = '';
+      var notes = await V7Backend.notes.list(cid);
+      renderNotes(cid, container, notes);
+    } catch (e) { alert('Не удалось сохранить: ' + e.message); }
+  });
+
+  var contactBtn = container.querySelector('.crm-contact-btn');
+  contactBtn.addEventListener('click', async function() {
+    var channel = prompt('Канал контакта (whatsapp / call / email / in_person)?', 'whatsapp');
+    if (!channel) return;
+    var result = prompt('Результат (answered / no_answer / booked / refused / scheduled)?', 'answered');
+    if (!result) return;
+    var note = prompt('Заметка о разговоре (опционально):', '');
+    try {
+      await V7Backend.contactLog.create(cid, { channel: channel, direction: 'out', result: result, note: note || '' });
+      alert('✓ Контакт записан');
+    } catch (e) { alert('Ошибка: ' + e.message); }
+  });
+}
+
+function renderTags(cid, container, tags) {
+  var list = container.querySelector('.crm-tags-list');
+  if (!tags.length) {
+    list.innerHTML = '<span style="color:var(--text3);font-size:12px">тегов нет</span>';
+    return;
+  }
+  list.innerHTML = tags.map(function(t) {
+    return '<span style="background:var(--accent-soft);border:1px solid var(--accent-border);color:var(--accent);' +
+           'padding:3px 10px;border-radius:12px;font-size:12px;font-weight:500">' + escapeHtml(t.tag) + '</span>';
+  }).join('');
+}
+
+function renderNotes(cid, container, notes) {
+  var list = container.querySelector('.crm-notes-list');
+  if (!notes.length) {
+    list.innerHTML = '<div style="color:var(--text3);font-size:12px;font-style:italic">пока нет заметок</div>';
+    return;
+  }
+  list.innerHTML = notes.map(function(n) {
+    var dt = new Date(n.created_at);
+    var dtStr = dt.toLocaleDateString('ru-RU') + ' ' + dt.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+    return '<div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:6px;font-size:13px">' +
+           '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">' +
+           '<div style="white-space:pre-wrap;flex:1">' + escapeHtml(n.text) + '</div>' +
+           '<button data-note-id="' + n.id + '" class="crm-note-del" style="background:none;border:0;color:var(--text3);cursor:pointer;font-size:14px;padding:0 4px" title="удалить">✕</button>' +
+           '</div>' +
+           '<div style="font-size:11px;color:var(--text3);margin-top:4px">' + escapeHtml(n.author || 'admin') + ' · ' + dtStr + '</div>' +
+           '</div>';
+  }).join('');
+  // Bind delete handlers
+  list.querySelectorAll('.crm-note-del').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      if (!confirm('Удалить заметку?')) return;
+      try {
+        await V7Backend.notes.delete(parseInt(btn.dataset.noteId));
+        var notes = await V7Backend.notes.list(cid);
+        renderNotes(cid, container, notes);
+      } catch (e) { alert('Не удалось: ' + e.message); }
+    });
+  });
+}
+
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, function(c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+
 function closeCard() { document.getElementById('modal-backdrop').classList.remove('active'); }
 window.closeCard = closeCard;
 
