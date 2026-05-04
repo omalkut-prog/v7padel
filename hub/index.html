@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V7 Padel — HubV7 контекст</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #000; color: #f5f5f7; font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif; padding: 40px 20px 80px; line-height: 1.55; }
+  main { max-width: 720px; margin: 0 auto; }
+  h1 { font-size: 32px; font-weight: 600; letter-spacing: -1px; margin-bottom: 6px; }
+  .sub { color: #888; font-size: 14px; margin-bottom: 32px; }
+  h2 { font-size: 18px; font-weight: 600; margin: 32px 0 14px; color: #d4f03a; }
+  p { color: #c4c4c8; margin-bottom: 12px; font-size: 15px; }
+  code { background: #1a1a1a; padding: 2px 8px; border-radius: 4px; font-size: 13px; color: #d4f03a; font-family: 'SF Mono', Menlo, monospace; }
+  a { color: #d4f03a; text-decoration: none; border-bottom: 1px dotted; }
+  a:hover { border-bottom-style: solid; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; padding: 14px 28px; background: #d4f03a; color: #000; border: 0; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer; text-decoration: none; margin: 8px 8px 8px 0; transition: opacity .15s; font-family: inherit; }
+  .btn:hover { opacity: 0.9; border: 0; }
+  .btn.secondary { background: #1a1a1a; color: #f5f5f7; border: 1px solid #2a2a2a; }
+  .url-box { background: #111; border: 1px solid #222; border-radius: 10px; padding: 14px 18px; margin: 16px 0; word-break: break-all; font-size: 13px; font-family: 'SF Mono', Menlo, monospace; color: #d4f03a; user-select: all; }
+  ol, ul { padding-left: 24px; margin-bottom: 16px; }
+  ol li, ul li { margin-bottom: 8px; color: #c4c4c8; font-size: 15px; }
+  .step-num { color: #d4f03a; font-weight: 600; }
+  hr { border: 0; border-top: 1px solid #222; margin: 32px 0; }
+  .small { font-size: 12px; color: #888; }
+  #copy-status { display:none; background:rgba(212,240,58,0.15); color:#d4f03a; padding:10px 14px; border-radius:8px; font-size:13px; margin: 12px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🤖 HubV7 — контекст V7 Padel</h1>
+  <p class="sub">Одна ссылка → HubV7 знает всё про твой клуб</p>
+
+  <h2>Способ 1 — Дать HubV7 ссылку</h2>
+  <p>Если HubV7 умеет читать URL, просто отправь ему:</p>
+  <div class="url-box" id="url1">https://v7padel.space/hub/v7-context.md</div>
+  <p>С сообщением:</p>
+  <div class="url-box" id="msg1">Прочитай мой контекст по этой ссылке и работай по этим правилам: https://v7padel.space/hub/v7-context.md</div>
+  <button class="btn" onclick="copyText('msg1')">📋 Скопировать сообщение</button>
+  <a class="btn secondary" href="v7-context.md" target="_blank">Открыть файл</a>
+
+  <hr>
+
+  <h2>Способ 2 — Скопировать всё в первое сообщение</h2>
+  <p>Если HubV7 не читает URL — скопируй весь файл и вставь в первое сообщение HubV7:</p>
+  <ol>
+    <li><a href="v7-context.md" target="_blank">Открыть файл v7-context.md</a></li>
+    <li>Ctrl+A → Ctrl+C</li>
+    <li>В HubV7: <code>"Вот мой контекст по V7 Padel, запомни и работай по этим правилам:"</code> + Ctrl+V</li>
+  </ol>
+
+  <hr>
+
+  <h2>Способ 3 — Project Knowledge</h2>
+  <p>Если HubV7 поддерживает Projects (как Claude Projects):</p>
+  <ol>
+    <li>Создай Project «<strong>V7 Padel Antalya</strong>»</li>
+    <li>В <code>Custom Instructions</code> вставь содержимое <a href="https://raw.githubusercontent.com/omalkut-prog/v7padel/main/hub/system-prompt.md" target="_blank">00_SYSTEM_PROMPT.md</a></li>
+    <li>В <code>Project Knowledge</code> загрузи <a href="v7-context.md" target="_blank">v7-context.md</a></li>
+  </ol>
+
+  <hr>
+
+  <h2>📝 Что внутри файла</h2>
+  <ul>
+    <li>Кто я (Володимир: позиция по войне, ритм, стиль работы)</li>
+    <li>Команда V7 + кого фильтровать из отчётов</li>
+    <li>Инфраструктура: Sheets, Backend Railway, ETL, Racket.ID</li>
+    <li>Правила учёта: cash-basis, MP cid offset, TR-locale fix, отмены</li>
+    <li>Сегменты клиентов и метрики ретеншна</li>
+    <li>Тарифы и расписание</li>
+    <li>Бэклог проекта</li>
+    <li>Что было сделано в последних сессиях</li>
+    <li>Полный дамп memory из Claude Code (~1500 строк глубокого контекста)</li>
+  </ul>
+
+  <hr>
+
+  <h2>🔄 Когда обновлять</h2>
+  <p>После каждой большой сессии в Claude Code на ноуте просто скажи мне: <em>«Пересобери HubV7 контекст»</em> — я обновлю файл, GitHub Pages раздаст новую версию через ~1 минуту, ссылка остаётся той же.</p>
+
+  <p class="small">Файл размером ~250 KB. Если HubV7 жалуется на размер — используй только System Prompt + загрузи <a href="v7-context.md" target="_blank">v7-context.md</a> как knowledge file.</p>
+
+  <div id="copy-status">✓ Скопировано в буфер</div>
+</main>
+
+<script>
+function copyText(id) {
+  var t = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(t).then(function() {
+    var s = document.getElementById('copy-status');
+    s.style.display = 'block';
+    setTimeout(function(){ s.style.display = 'none'; }, 2000);
+  });
+}
+</script>
+</body>
+</html>
