@@ -147,6 +147,7 @@ function render(p, cid) {
   var crm = p.crm || { notes: [], tags: [], contact_log: [] };
   var timeline = p.timeline || [];
   var topCats = p.top_categories || [];
+  var rid = p.racket_id;
 
   // Breadcrumb name
   document.getElementById('bc-name').textContent = i.name || 'cid=' + cid;
@@ -227,6 +228,50 @@ function render(p, cid) {
     timelineHtml = '<div class="tl-empty">Нет данных за последние 12 месяцев</div>';
   }
 
+  // Racket.ID block (если match есть)
+  var ridHtml = '';
+  if (rid && rid.user_id) {
+    var rating = rid.rating != null ? rid.rating : '?';
+    var ratingColor = rid.rating == null ? 'var(--text3)' :
+                      rid.rating >= 1500 ? '#9b59b6' :  // pro
+                      rid.rating >= 1200 ? '#0ABAB5' :  // advanced
+                      rid.rating >= 900 ? '#f39c12' :   // intermediate
+                      '#7c8898';                         // beginner
+    var levelLabel = rid.rating == null ? '—' :
+                     rid.rating >= 1500 ? 'Pro' :
+                     rid.rating >= 1200 ? 'Advanced' :
+                     rid.rating >= 900 ? 'Intermediate' :
+                     'Beginner';
+    ridHtml = '<div class="card">' +
+      '<h2>🎾 Racket.ID профиль</h2>' +
+      '<div style="display:flex;align-items:center;gap:18px;margin-bottom:14px">' +
+        '<div style="background:linear-gradient(135deg,' + ratingColor + ',var(--surface2));color:#fff;padding:14px 20px;border-radius:12px;text-align:center;min-width:90px">' +
+          '<div style="font-size:11px;opacity:0.85;text-transform:uppercase;letter-spacing:0.8px">Рейтинг</div>' +
+          '<div style="font-size:24px;font-weight:700">' + rating + '</div>' +
+          '<div style="font-size:11px;opacity:0.85">' + levelLabel + '</div>' +
+        '</div>' +
+        '<div style="flex:1;font-size:13px;color:var(--text2)">' +
+          '<div><strong>Турниров:</strong> ' + (rid.tournaments_count || 0) + '</div>' +
+          '<div style="margin-top:4px;font-size:11px;color:var(--text3)">match по ' + escapeHtml(rid.matched_by) + '</div>' +
+        '</div>' +
+        (rid.profile_url ? '<a class="btn btn-primary" href="' + escapeHtml(rid.profile_url) + '" target="_blank">Открыть в Racket.ID →</a>' : '') +
+      '</div>' +
+      ((rid.recent_tournaments || []).length ? '<div style="margin-top:8px"><div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:8px">Последние турниры</div>' +
+        rid.recent_tournaments.map(function(t) {
+          return '<div style="font-size:12px;padding:6px 10px;background:var(--surface2);border-radius:6px;margin-bottom:4px;display:flex;justify-content:space-between;gap:10px">' +
+                 '<span>' + escapeHtml(t.title || '—') + '</span>' +
+                 '<span style="color:var(--text3);white-space:nowrap">' + escapeHtml(t.date || '') + '</span>' +
+                 '</div>';
+        }).join('') + '</div>' : '') +
+      '</div>';
+  } else {
+    ridHtml = '<div class="card" style="opacity:0.7">' +
+      '<h2>🎾 Racket.ID профиль</h2>' +
+      '<div style="font-size:13px;color:var(--text3);font-style:italic">Профиль не найден. Попроси клиента зарегистрироваться на ' +
+        '<a href="https://racket.id" target="_blank" style="color:var(--accent)">racket.id</a> для рейтинга и турниров.</div>' +
+      '</div>';
+  }
+
   // Top categories
   var catsHtml = '';
   if (topCats.length) {
@@ -285,6 +330,8 @@ function render(p, cid) {
           '<h2>💰 Финансы</h2>' +
           '<div class="fin-grid">' + finHtml + '</div>' +
         '</div>' +
+
+        ridHtml +
 
         '<div class="card">' +
           '<h2>📊 Активность по месяцам</h2>' +

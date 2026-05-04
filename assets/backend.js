@@ -107,5 +107,6 @@
     },
     client: function(cid) { return apiFetch('GET', '/api/client/' + cid); },
     cache: function(tab) { return apiFetch('GET', '/api/cache/' + tab); },
+    db: function(tab) { return apiFetch('GET', '/api/db/' + tab); },
   };
 })();

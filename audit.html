@@ -10,6 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260424d"></script>
+<script src="assets/backend.js?v=20260504a"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <link rel="stylesheet" href="assets/sidebar.css">
@@ -357,16 +358,26 @@
   });
 
   // ── Load data ──
-  // Главные источники: debts, balance_log, client_balances. Загружаем сначала
-  // их, чтобы UI отрисовался быстро. client_transactions большой (~10К строк) —
-  // грузим параллельно, но НЕ блокируем основной рендер. Tooltip с движениями
-  // обогащается когда clientTx загрузится.
+  // Через backend (cached, parallel, instant after warmup). Раньше было через
+  // прямые Google Sheets calls — cold cache = 3-5 сек на пользователя.
+  // Backend кэширует на 10 минут → второй запрос <100ms.
   let debts = [], movements = [], balances = [], clientTx = [];
+
+  async function loadViaBackend(tab, sheetType) {
+    try {
+      if (window.V7Backend) {
+        var r = sheetType === 'cache' ? await V7Backend.cache(tab) : await V7Backend.db(tab);
+        return r.rows || [];
+      }
+    } catch (e) { console.warn('Backend load failed for', tab, e); }
+    return await loadSheet(tab).catch(() => []);
+  }
+
   try {
     const results = await Promise.allSettled([
-      loadSheet('debts'),
-      loadSheet('balance_log'),
-      loadSheet('client_balances'),
+      loadViaBackend('debts', 'db'),
+      loadViaBackend('balance_log', 'db'),
+      loadViaBackend('client_balances', 'db'),
     ]);
     debts = results[0].status === 'fulfilled' ? results[0].value : [];
     movements = results[1].status === 'fulfilled' ? results[1].value : [];
@@ -374,10 +385,10 @@
   } catch (e) {
     console.error('Data load error:', e);
   }
-  // client_transactions грузится отдельно (background) — обогащает tooltip popup
+  // client_transactions огромный — грузим отдельно background, не блокируем
   loadSheet('client_transactions').then(rows => {
     clientTx = rows || [];
-    rebuildBalLog(); // пересобираем мапинги когда tx подъехали
+    rebuildBalLog();
   }).catch(() => {});
 
   // Map имя_клиента → last 10 движений баланса.

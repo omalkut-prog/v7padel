@@ -758,19 +758,10 @@ const state = {
   applyFilters();
   bindUI();
 
-  // Auto-open client card если в URL есть #cid=N — открывает модалку (быстрый view)
-  // Full page /client.html?cid=N доступна по кнопке в модалке.
+  // #cid=N → редирект на полную страницу /client.html?cid=N
   function tryOpenFromHash() {
     var m = location.hash.match(/cid=(\d+)/);
-    if (!m) return;
-    var cid = m[1];
-    var tries = 0;
-    var attempt = function() {
-      if (openCardByCid(cid)) return;
-      if (++tries < 30) setTimeout(attempt, 500);
-      else console.warn('[clients] не открыл cid=' + cid + ' за 15с');
-    };
-    attempt();
+    if (m) location.href = 'client.html?cid=' + m[1];
   }
   tryOpenFromHash();
   window.addEventListener('hashchange', tryOpenFromHash);
@@ -843,7 +834,11 @@ function renderTable() {
       '</tr>';
     }).join('');
     tbody.querySelectorAll('tr').forEach(tr => {
-      tr.addEventListener('click', () => openCard(customers[+tr.dataset.idx]));
+      tr.addEventListener('click', () => {
+        const idx = +tr.dataset.idx;
+        const c = customers[idx];
+        if (c && c.id) location.href = 'client.html?cid=' + c.id;
+      });
     });
   }
   // Pagination info
@@ -1400,10 +1395,7 @@ function bindTopRowClick() {
     var tr = e.target.closest('tr[data-cid]');
     if (!tr) return;
     var cid = tr.getAttribute('data-cid');
-    if (openCardByCid(cid)) return;
-    var name = tr.querySelector('.name-cell') ? tr.querySelector('.name-cell').textContent : '';
-    if (openCardByName(name)) return;
-    console.warn('top-client not found in enriched:', cid, name);
+    if (cid) location.href = 'client.html?cid=' + cid;
   });
 }
 
@@ -1566,14 +1558,11 @@ function renderTop60Protection(rows) {
       '</tr>';
   });
   tbody.innerHTML = html;
-  // Bind click handler для имён в Top-60 — открыть модалку
+  // Bind click handler для имён в Top-60 — открыть полную страницу
   tbody.querySelectorAll('.top60-name').forEach(function(el) {
     el.addEventListener('click', function() {
       var cid = el.dataset.cid;
-      if (!cid) return;
-      if (typeof openCardByCid === 'function' && openCardByCid(cid)) return;
-      // Fallback — на full page если cid не найден в state
-      location.href = 'client.html?cid=' + cid;
+      if (cid) location.href = 'client.html?cid=' + cid;
     });
   });
 }
