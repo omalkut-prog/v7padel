@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>V7 Audit · Сверки и контроль</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="assets/v7-shared.css" />
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; max-width: 1100px; margin: 0 auto; padding: 16px; }
+    h1 { margin-bottom: 4px; }
+    .lead { color: #666; margin-bottom: 24px; }
+    .tabs { display: flex; gap: 4px; border-bottom: 2px solid #eaeaea; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab { padding: 10px 14px; cursor: pointer; border-bottom: 3px solid transparent; user-select: none; }
+    .tab.active { border-color: #0066cc; font-weight: 600; }
+    .pane { display: none; }
+    .pane.active { display: block; }
+    table { border-collapse: collapse; width: 100%; margin-top: 8px; }
+    th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #eee; }
+    th { background: #f6f7f9; font-weight: 600; }
+    td.num { text-align: right; font-variant-numeric: tabular-nums; }
+    .alert { color: #c0392b; font-weight: 600; }
+    .ok { color: #27ae60; font-weight: 600; }
+    .placeholder { background: #fffceb; border-left: 4px solid #f1c40f; padding: 12px 16px; border-radius: 4px; margin: 12px 0; }
+    .sources { color: #888; font-size: 13px; margin-top: 8px; }
+    .controls { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    input[type="date"] { padding: 6px 8px; border: 1px solid #ccc; border-radius: 4px; }
+    button { padding: 8px 14px; border: 1px solid #ccc; background: white; border-radius: 4px; cursor: pointer; }
+    button:hover { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h1>Аудит и сверки</h1>
+  <div class="lead">Контроль расхождений между источниками. Истина — что админы вбивают в 1GDRZ Income. Matchpoint используется для сверки.</div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-pane="zone1">Z1 · Daily POS recon</div>
+    <div class="tab" data-pane="zone2">Z2 · Турниры</div>
+    <div class="tab" data-pane="zone3">Z3 · Балансы</div>
+    <div class="tab" data-pane="zone4">Z4 · Брони vs оплаты</div>
+    <div class="tab" data-pane="zone5">Z5 · Касса</div>
+  </div>
+
+  <!-- ZONE 1 -->
+  <div class="pane active" id="zone1">
+    <div class="controls">
+      <label>Дата: <input type="date" id="z1-date" /></label>
+      <button id="z1-load">Загрузить</button>
+      <span id="z1-status" class="sources"></span>
+    </div>
+
+    <h3>Сводка</h3>
+    <table id="z1-summary">
+      <thead><tr><th>Источник</th><th class="num">Сумма ₺</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <p style="margin-top:16px;"><strong>Дельта:</strong> <span id="z1-delta">—</span></p>
+
+    <h3>transactions по source</h3>
+    <table id="z1-tx-by-source">
+      <thead><tr><th>source</th><th class="num">count</th><th class="num">total ₺</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <h3>client_transactions (Matchpoint Tickets)</h3>
+    <table id="z1-ct-detail">
+      <thead><tr><th>cid</th><th>ticket</th><th class="num">total ₺</th><th>тип</th></tr></thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="sources">
+      Источник: backend API <code>/api/audit/daily-recon?date=…</code> (TODO endpoint).<br>
+      Сейчас данные читаются из локального JSON в репо. Ниже — инструкция для агента <code>v7-audit</code> чтобы публиковать снапшоты.
+    </div>
+  </div>
+
+  <!-- ZONE 2 -->
+  <div class="pane" id="zone2">
+    <div class="placeholder">
+      <strong>Турниры — поимённый учёт оплат.</strong> Тут будет таблица: для каждого турнира список участников из Matchpoint Reservas, статус оплаты, причина если не оплатил (VIP / прощено / нет данных / возможная утечка).
+    </div>
+    <p>Источник участников: <code>bookings</code> где tipo=Tournaments (синкается <code>sync_bookings_matchpoint.py</code>).</p>
+    <p>Источник оплат: <code>client_transactions</code> с категорией Tournaments + <code>manual_entries</code>.</p>
+    <p>Сверка по cid + дате турнира.</p>
+  </div>
+
+  <!-- ZONE 3 -->
+  <div class="pane" id="zone3">
+    <div class="placeholder">
+      <strong>Балансы клиентов — дельта vs вчера.</strong> Если у клиента баланс уменьшился — должна быть Purchase в balance_log. Если нет — дыра.
+    </div>
+    <p>Источник: <code>client_balances</code> + <code>balance_log</code> (обновляются <code>scrape_balances.py</code>, <code>scrape_debts.py</code>).</p>
+  </div>
+
+  <!-- ZONE 4 -->
+  <div class="pane" id="zone4">
+    <div class="placeholder">
+      <strong>Бронь была — оплаты нет.</strong> Каждая бронь с customer_id и status=active за день, без соответствующей транзакции. Исключения: VIP/member, free booking. Остальное — дыра.
+    </div>
+    <p>Источник: <code>bookings</code> + <code>client_transactions</code> + <code>memberships</code>.</p>
+  </div>
+
+  <!-- ZONE 5 -->
+  <div class="pane" id="zone5">
+    <div class="placeholder">
+      <strong>Касса физическая vs учёт.</strong> Утренний остаток + cash приёмы − cash расходы = вечерний остаток. Сверка с фактическим cash на закрытии.
+    </div>
+    <p>Источник: 1GDRZ method=Cash + admin_cash_log (<code>expenses</code>).</p>
+    <p>Нужно: ежедневный фактический cash на закрытии (где-то фиксируется?).</p>
+  </div>
+
+  <script>
+    // Tab switching
+    document.querySelectorAll('.tab').forEach(t => {
+      t.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.pane').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        document.getElementById(t.dataset.pane).classList.add('active');
+      });
+    });
+
+    // Zone 1 — load latest audit JSON
+    const z1Date = document.getElementById('z1-date');
+    const yesterday = new Date(Date.now() - 86400000);
+    z1Date.value = yesterday.toISOString().slice(0, 10);
+
+    async function loadZone1(date) {
+      const status = document.getElementById('z1-status');
+      status.textContent = 'Загрузка...';
+      try {
+        // Сейчас тянем из репо (TODO — заменить на backend API)
+        const url = `https://raw.githubusercontent.com/omalkut-prog/v7padel/main/audit-data/${date}.json`;
+        const r = await fetch(url);
+        if (!r.ok) throw new Error('Нет данных за этот день. Запусти `v7-audit` → `python scripts/audit_daily.py --date ' + date + '` и закоммить результат.');
+        const data = await r.json();
+        renderZone1(data);
+        status.textContent = 'Источник: ' + url;
+      } catch (e) {
+        status.textContent = 'Ошибка: ' + e.message;
+      }
+    }
+
+    function renderZone1(d) {
+      const summaryRows = [
+        ['1GDRZ (истина админа)', d.tx_1gdrz],
+        ['MP Tickets Venta (gross)', d.ct_venta],
+        ['MP Tickets Abonos', d.ct_abonos],
+        ['MP top-up в transactions', d.tx_topup],
+        ['MP gross итого', d.mp_total_pos],
+      ];
+      const tb = document.querySelector('#z1-summary tbody');
+      tb.innerHTML = summaryRows.map(([k, v]) =>
+        `<tr><td>${k}</td><td class="num">${(v || 0).toLocaleString('ru-RU')}</td></tr>`
+      ).join('');
+
+      const deltaEl = document.getElementById('z1-delta');
+      const cls = d.alert ? 'alert' : 'ok';
+      const sign = d.delta >= 0 ? '+' : '';
+      deltaEl.innerHTML = `<span class="${cls}">${sign}${(d.delta || 0).toLocaleString('ru-RU')} ₺ (${(d.delta_pct * 100).toFixed(1)}%)</span> ${d.alert ? '⚠ алерт' : '✓ норма'}`;
+
+      // tx by source
+      const txTb = document.querySelector('#z1-tx-by-source tbody');
+      txTb.innerHTML = Object.entries(d.tx_by_source || {}).map(([s, info]) =>
+        `<tr><td>${s}</td><td class="num">${info.count}</td><td class="num">${info.total.toLocaleString('ru-RU')}</td></tr>`
+      ).join('');
+
+      // client_transactions
+      const ctTb = document.querySelector('#z1-ct-detail tbody');
+      ctTb.innerHTML = (d.ct_rows || []).map(r =>
+        `<tr><td>${r.customer_id || '?'}</td><td>${r.ticket_no || '?'}</td><td class="num">${(r.total || 0).toLocaleString('ru-RU')}</td><td>${r.is_credit_note ? 'Credit Note' : 'Venta'}</td></tr>`
+      ).join('');
+    }
+
+    document.getElementById('z1-load').addEventListener('click', () => loadZone1(z1Date.value));
+    loadZone1(z1Date.value);
+  </script>
+</body>
+</html>

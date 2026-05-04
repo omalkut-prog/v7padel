@@ -1,0 +1,133 @@
+{
+  "date": "2026-05-04",
+  "tx_1gdrz": 34155.0,
+  "tx_topup": 250.0,
+  "tx_by_source": {
+    "new_inc": {
+      "count": 14,
+      "total": 34155.0
+    },
+    "matchpoint_topup": {
+      "count": 1,
+      "total": 250.0
+    }
+  },
+  "ct_rows": [
+    {
+      "customer_id": 0,
+      "ticket_no": null,
+      "total": 2378.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 1399,
+      "ticket_no": null,
+      "total": 500.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 10,
+      "ticket_no": null,
+      "total": 250.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 10,
+      "ticket_no": null,
+      "total": 0.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 10,
+      "ticket_no": null,
+      "total": 0.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 0,
+      "ticket_no": null,
+      "total": 6500.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 35,
+      "ticket_no": null,
+      "total": 200.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 390,
+      "ticket_no": null,
+      "total": 95.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 696,
+      "ticket_no": null,
+      "total": 200.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 52,
+      "ticket_no": null,
+      "total": 200.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 390,
+      "ticket_no": null,
+      "total": 560.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 0,
+      "ticket_no": null,
+      "total": 6500.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 0,
+      "ticket_no": null,
+      "total": 2500.0,
+      "is_credit_note": false,
+      "concept": ""
+    },
+    {
+      "customer_id": 70,
+      "ticket_no": null,
+      "total": -750.0,
+      "is_credit_note": true,
+      "concept": ""
+    },
+    {
+      "customer_id": 30,
+      "ticket_no": null,
+      "total": -750.0,
+      "is_credit_note": true,
+      "concept": ""
+    }
+  ],
+  "ct_venta": 19883.0,
+  "ct_abonos": -1500.0,
+  "ct_net": 18383.0,
+  "mp_total_pos": 20133.0,
+  "delta": -14022.0,
+  "delta_pct": 0.41054018445322793,
+  "alert": true,
+  "thresholds": {
+    "try": 500,
+    "pct": 0.05
+  }
+}
