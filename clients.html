@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260501e"></script>
-<script src="assets/backend.js?v=20260504a"></script>
+<script src="assets/backend.js?v=20260504b"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
@@ -233,6 +233,7 @@
     <button class="cl-tab" data-tab="table">📋 Все клиенты</button>
     <button class="cl-tab" data-tab="cancel">❌ Отмены</button>
     <button class="cl-tab" data-tab="recall">📞 Recall</button>
+    <button class="cl-tab" data-tab="racket">🎾 Racket.ID</button>
   </div>
   <style>
     .cl-tab {
@@ -280,7 +281,138 @@
     </div>
   </section>
 
+  <!-- BLOCK 1.1: FUNNEL + LIVE -->
+  <section class="section" style="margin-top:24px">
+    <div class="section-head"><h2>1.1 · Воронка</h2><span class="hint">от базы до ядра клуба</span></div>
+    <div id="funnel-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:18px">
+      <div class="kpi" style="position:relative;overflow:hidden"><div class="label">База</div><div class="value" id="fn-base">—</div><div class="sub">всего клиентов</div></div>
+      <div class="kpi" style="position:relative;overflow:hidden"><div class="label">Активные 30д</div><div class="value" id="fn-active">—</div><div class="sub" id="fn-active-pct">—</div></div>
+      <div class="kpi" style="position:relative;overflow:hidden"><div class="label">Ядро</div><div class="value" id="fn-core">—</div><div class="sub" id="fn-core-pct">≥10k₺/30д</div></div>
+      <div class="kpi" style="position:relative;overflow:hidden"><div class="label">Members</div><div class="value" id="fn-members">—</div><div class="sub" id="fn-members-pct">/ потолок 55</div></div>
+    </div>
+  </section>
+
+  <!-- BLOCK 1.2: ДР preview + Top-10 30d + Health -->
+  <section class="section" style="margin-top:8px">
+    <div class="section-head"><h2>1.2 · На радаре</h2><span class="hint">что сделать сегодня</span></div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px">
+      <!-- ДР preview -->
+      <div class="kpi" style="padding:16px 18px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+          <div class="label">🎂 Ближайшие ДР (7 дней)</div>
+          <a href="birthdays.html" style="font-size:11px;color:var(--accent);text-decoration:none">Все →</a>
+        </div>
+        <div id="bd-preview" style="font-size:13px;color:var(--text2)">Загрузка…</div>
+      </div>
+      <!-- Top-10 spent 30d -->
+      <div class="kpi" style="padding:16px 18px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+          <div class="label">💎 Top-10 за 30 дней</div>
+          <span style="font-size:11px;color:var(--text3)" id="top10-total"></span>
+        </div>
+        <div id="top10-preview" style="font-size:12px;color:var(--text2)">Загрузка…</div>
+      </div>
+      <!-- Health -->
+      <div class="kpi" style="padding:16px 18px">
+        <div class="label" style="margin-bottom:10px">🩺 Качество базы</div>
+        <div id="health-preview" style="font-size:12px;color:var(--text2)">Загрузка…</div>
+      </div>
+    </div>
+  </section>
   </div><!-- /cl-pane-summary -->
+
+  <script>
+  // ── Сводка 1.1+1.2: воронка, ДР preview, Top-10 30d, Health ──
+  (async function() {
+    function loadTab(tab, type) {
+      var p = (type === 'cache' && window.V7Backend) ? V7Backend.cache(tab) :
+              (window.V7Backend) ? V7Backend.db(tab) : null;
+      if (!p) return V7.loadSheet(tab).catch(function(){return [];});
+      var to = new Promise(function(_,rej){setTimeout(function(){rej(new Error('to'));},8000);});
+      return Promise.race([p, to]).then(function(r){return (r&&r.rows)||[];}).catch(function(){return V7.loadSheet(tab).catch(function(){return [];});});
+    }
+    function fmt(n) { if (!n) return '—'; n = +n; if (n >= 1e6) return (n/1e6).toFixed(2) + 'M'; if (n >= 1e3) return (n/1e3).toFixed(1) + 'K'; return Math.round(n); }
+
+    var [customers, revenue, members] = await Promise.all([
+      loadTab('customers', 'db'),
+      loadTab('top_clients_revenue', 'cache'),
+      loadTab('memberships', 'db'),
+    ]);
+
+    var STAFF = ['gulcan yanar','olha bo','olha malkut','dilara akbiyik','mert davas'];
+    var isStaff = function(n) { var k = (n||'').toLowerCase(); return STAFF.some(function(x){return k.indexOf(x)>=0;}) || k.indexOf('@v7padel')>=0 || k.indexOf('prueba')>=0 || k.indexOf('demo')>=0; };
+    customers = (customers||[]).filter(function(c){return !isStaff(c.name);});
+
+    // ── Funnel ──
+    var revByCid = {};
+    (revenue||[]).forEach(function(r){var cid=String(r.customer_id||'').trim();if(cid)revByCid[cid]=r;});
+    var base = customers.length;
+    var active30 = customers.filter(function(c){var r=revByCid[String(c.customer_id||'')];return r && parseFloat(r.amount_30d)>0;}).length;
+    var core = customers.filter(function(c){var r=revByCid[String(c.customer_id||'')];return r && parseFloat(r.amount_30d)>=10000;}).length;
+    var membersActive = (members||[]).filter(function(m){return String(m.status||'').toLowerCase()==='active';}).length;
+
+    document.getElementById('fn-base').textContent = base.toLocaleString('ru-RU');
+    document.getElementById('fn-active').textContent = active30.toLocaleString('ru-RU');
+    document.getElementById('fn-active-pct').textContent = base ? Math.round(100*active30/base) + '% от базы' : '—';
+    document.getElementById('fn-core').textContent = core;
+    document.getElementById('fn-core-pct').textContent = '≥10k₺/30д · ' + (active30 ? Math.round(100*core/active30) + '% от активных' : '');
+    document.getElementById('fn-members').textContent = membersActive;
+    document.getElementById('fn-members-pct').textContent = membersActive + ' / 55 · ' + Math.round(100*membersActive/55) + '%';
+
+    // ── ДР 7 дней ──
+    function parseBd(s) {
+      if (!s) return null; s = String(s).trim(); var m;
+      m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return {m:+m[2],d:+m[3]};
+      m = s.match(/^(\d{1,2})[.\/](\d{1,2})/); if (m) return {m:+m[2],d:+m[1]};
+      return null;
+    }
+    var today = new Date(); today.setHours(0,0,0,0);
+    var bds = [];
+    customers.forEach(function(c) {
+      var bd = parseBd(c.birthday); if (!bd) return;
+      var thisYr = new Date(today.getFullYear(), bd.m-1, bd.d);
+      if (thisYr < today) thisYr = new Date(today.getFullYear()+1, bd.m-1, bd.d);
+      var d = Math.round((thisYr - today)/86400000);
+      if (d <= 7) bds.push({name:c.name||'—', cid:c.customer_id||'', dleft:d, bd:bd});
+    });
+    bds.sort(function(a,b){return a.dleft-b.dleft;});
+    var bdEl = document.getElementById('bd-preview');
+    if (!bds.length) { bdEl.innerHTML = '<span style="color:var(--text3)">Нет ДР в ближайшие 7 дней</span>'; }
+    else {
+      bdEl.innerHTML = bds.slice(0,5).map(function(b){
+        var when = b.dleft===0?'<strong style="color:var(--bad)">сегодня</strong>':b.dleft===1?'завтра':'через '+b.dleft+'д';
+        var nm = b.cid?'<a href="client.html?cid='+b.cid+'" style="color:var(--accent);text-decoration:none">'+b.name+'</a>':b.name;
+        return '<div style="padding:4px 0;border-bottom:1px dotted var(--border)"><span style="font-weight:500">'+nm+'</span> · <span style="color:var(--text3);font-size:11px">'+when+'</span></div>';
+      }).join('') + (bds.length>5?'<div style="margin-top:6px;font-size:11px;color:var(--text3)">…и ещё '+(bds.length-5)+'</div>':'');
+    }
+
+    // ── Top-10 за 30 дней ──
+    var top10 = (revenue||[]).filter(function(r){return parseFloat(r.amount_30d)>0;})
+      .sort(function(a,b){return parseFloat(b.amount_30d)-parseFloat(a.amount_30d);}).slice(0,10);
+    var top10Total = top10.reduce(function(s,r){return s+parseFloat(r.amount_30d||0);},0);
+    document.getElementById('top10-total').textContent = fmt(top10Total) + ' ₺';
+    var t10El = document.getElementById('top10-preview');
+    if (!top10.length) t10El.innerHTML = '<span style="color:var(--text3)">Нет данных</span>';
+    else t10El.innerHTML = top10.slice(0,5).map(function(r,i){
+      var nm = r.customer_id?'<a href="client.html?cid='+r.customer_id+'" style="color:var(--accent);text-decoration:none">'+(r.name||'—')+'</a>':(r.name||'—');
+      return '<div style="display:flex;justify-content:space-between;padding:3px 0"><span><span style="color:var(--text3);font-size:11px">'+(i+1)+'.</span> '+nm+'</span><span style="font-variant-numeric:tabular-nums;font-weight:600">'+fmt(parseFloat(r.amount_30d))+' ₺</span></div>';
+    }).join('') + '<div style="margin-top:6px;font-size:11px;color:var(--text3)">+5 ниже…</div>';
+
+    // ── Health metrics ──
+    var phoneOk = customers.filter(function(c){return String(c.phone||'').replace(/\D/g,'').length>=9;}).length;
+    var emailOk = customers.filter(function(c){return /@/.test(String(c.email||''));}).length;
+    var birthdayOk = customers.filter(function(c){return parseBd(c.birthday);}).length;
+    function bar(v, t, label) {
+      var pct = t ? Math.round(100*v/t) : 0;
+      var col = pct>=80?'var(--good)':pct>=50?'var(--warn)':'var(--bad)';
+      return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span>'+label+'</span><span style="color:'+col+';font-weight:600">'+pct+'%</span></div><div style="height:5px;background:var(--bg);border-radius:3px;overflow:hidden"><div style="height:100%;background:'+col+';width:'+pct+'%"></div></div><div style="font-size:10px;color:var(--text3);margin-top:2px">'+v.toLocaleString('ru-RU')+' / '+t.toLocaleString('ru-RU')+'</div></div>';
+    }
+    document.getElementById('health-preview').innerHTML =
+      bar(phoneOk, base, '📞 Телефон') +
+      bar(emailOk, base, '✉️ Email') +
+      bar(birthdayOk, base, '🎂 ДР заполнен');
+  })();
+  </script>
 
   <div class="cl-pane" id="cl-pane-top60">
   <!-- BLOCK 1.5: TOP 60 — ЗАЩИТА ДОХОДНОЙ БАЗЫ -->
@@ -520,7 +652,10 @@
 
   <div class="cl-pane" id="cl-pane-recall">
   <section class="section" id="recall-lists">
-    <h2 style="font-size:18px;font-weight:600;margin-bottom:14px">Recall-списки</h2>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <h2 style="font-size:18px;font-weight:600;margin:0">Recall-списки <small style="color:var(--text3);font-weight:400;font-size:12px;margin-left:8px">preview · только короткие списки</small></h2>
+      <a href="recall.html" style="font-size:13px;color:var(--accent);text-decoration:none;border:1px solid var(--accent-border);background:var(--accent-soft);padding:6px 14px;border-radius:8px">Полный Recall со статусами →</a>
+    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px">
         <h3 style="font-size:15px;font-weight:600;margin-bottom:14px">Под риском <small style="color:var(--text3);font-weight:400;font-size:12px;margin-left:8px">топ клиентов с ≥10k₺/90д, 0 за 30д</small></h3>
@@ -539,6 +674,209 @@
     </div>
   </section>
   </div><!-- /cl-pane-recall -->
+
+  <div class="cl-pane" id="cl-pane-racket">
+  <section class="section">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <h2 style="font-size:18px;font-weight:600;margin:0">🎾 Racket.ID — наши клиенты с турнирным рейтингом</h2>
+      <span id="rk-count" style="font-size:12px;color:var(--text3)">—</span>
+    </div>
+
+    <!-- Filters -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px">
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Уровень:</span>
+      <button class="chip rk-lvl active" data-lvl="all">Все</button>
+      <button class="chip rk-lvl" data-lvl="pro" style="border-color:rgba(155,89,182,0.4);color:#b483d6">Pro 1500+</button>
+      <button class="chip rk-lvl" data-lvl="adv" style="border-color:rgba(10,186,181,0.4);color:var(--accent)">Adv 1200+</button>
+      <button class="chip rk-lvl" data-lvl="int" style="border-color:rgba(243,156,18,0.4);color:var(--warn)">Int 900+</button>
+      <button class="chip rk-lvl" data-lvl="beg">Beg &lt;900</button>
+      <span style="width:1px;height:18px;background:var(--border)"></span>
+      <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Турниры:</span>
+      <button class="chip rk-tn active" data-tn="all">Все</button>
+      <button class="chip rk-tn" data-tn="active">Играют (≥1 за 90д)</button>
+      <button class="chip rk-tn" data-tn="cold">Не играют &gt;90д</button>
+      <span style="width:1px;height:18px;background:var(--border)"></span>
+      <input type="search" id="rk-search" placeholder="Имя…" style="padding:6px 12px;border:1px solid var(--border);background:var(--bg);color:var(--text);border-radius:8px;font-size:12px;font-family:inherit;width:140px">
+    </div>
+
+    <div class="table-wrap" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+      <table class="recall" style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);background:var(--bg);border-bottom:1px solid var(--border)">Клиент</th>
+            <th style="text-align:right;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);background:var(--bg);border-bottom:1px solid var(--border);cursor:pointer" data-sort="rating">Рейтинг ▾</th>
+            <th style="text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);background:var(--bg);border-bottom:1px solid var(--border)">Уровень</th>
+            <th style="text-align:right;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);background:var(--bg);border-bottom:1px solid var(--border);cursor:pointer" data-sort="tn90">90д</th>
+            <th style="text-align:right;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);background:var(--bg);border-bottom:1px solid var(--border);cursor:pointer" data-sort="tnAll">Всего</th>
+            <th style="text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);background:var(--bg);border-bottom:1px solid var(--border)">Последний</th>
+            <th style="text-align:left;padding:10px 14px;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--text3);background:var(--bg);border-bottom:1px solid var(--border)">Match</th>
+          </tr>
+        </thead>
+        <tbody id="rk-tbody"><tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">Загрузка…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+  </div><!-- /cl-pane-racket -->
+
+  <script>
+  // ── Racket.ID tab — load + render ──
+  (async function() {
+    async function loadTab(tab, sheetType) {
+      try {
+        if (window.V7Backend) {
+          var p = sheetType === 'cache' ? V7Backend.cache(tab) : V7Backend.db(tab);
+          var to = new Promise(function(_, rej) { setTimeout(function() { rej(new Error('timeout')); }, 8000); });
+          var r = await Promise.race([p, to]);
+          if (r && (r.rows || []).length) return r.rows;
+        }
+      } catch (e) { console.warn('[rk]', tab, e.message || e); }
+      return await V7.loadSheet(tab).catch(function() { return []; });
+    }
+
+    var [members, participants, customers] = await Promise.all([
+      loadTab('racketid_members', 'db'),
+      loadTab('racketid_participants', 'db'),
+      loadTab('customers', 'db'),
+    ]);
+
+    if (!members || !members.length) {
+      document.getElementById('rk-tbody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">Нет данных Racket.ID</td></tr>';
+      return;
+    }
+
+    // Index customers by email + last 9 phone digits
+    var custByEmail = {}, custByPhone9 = {};
+    (customers || []).forEach(function(c) {
+      var em = String(c.email || '').trim().toLowerCase();
+      if (em) custByEmail[em] = c;
+      var ph = String(c.phone || '').replace(/\D/g, '');
+      if (ph.length >= 9) custByPhone9[ph.slice(-9)] = c;
+    });
+
+    // Aggregate participants by user_id with date analysis
+    var cutoff90 = new Date(); cutoff90.setDate(cutoff90.getDate() - 90);
+    var partByUser = {};
+    (participants || []).forEach(function(p) {
+      var uid = String(p.user_id || '').trim();
+      if (!uid) return;
+      if (!partByUser[uid]) partByUser[uid] = { all: 0, last90: 0, lastDate: '', lastTitle: '' };
+      partByUser[uid].all++;
+      var dStr = String(p.date || '').slice(0, 10);
+      var dt = dStr ? new Date(dStr) : null;
+      if (dt && !isNaN(dt) && dt >= cutoff90) partByUser[uid].last90++;
+      if (dStr > partByUser[uid].lastDate) {
+        partByUser[uid].lastDate = dStr;
+        partByUser[uid].lastTitle = p.title || '';
+      }
+    });
+
+    // Build rows — only members matched to a customer
+    var rows = [];
+    members.forEach(function(m) {
+      var em = String(m.email || '').trim().toLowerCase();
+      var phRaw = String(m.phone || '').replace(/\D/g, '');
+      var ph9 = phRaw.length >= 9 ? phRaw.slice(-9) : '';
+      var matched = (em && custByEmail[em]) || (ph9 && custByPhone9[ph9]);
+      var matchBy = (em && custByEmail[em]) ? 'email' : (ph9 && custByPhone9[ph9]) ? 'phone' : null;
+      if (!matched) return;  // skip unmatched
+      var rating = parseFloat(m.padel_rating);
+      if (!isFinite(rating)) rating = null;
+      var uid = String(m.user_id || '').trim();
+      var pStats = partByUser[uid] || { all: 0, last90: 0, lastDate: '', lastTitle: '' };
+      rows.push({
+        cid: matched.customer_id || '',
+        name: matched.name || m.name || '—',
+        rating: rating,
+        userId: uid,
+        tn90: pStats.last90,
+        tnAll: pStats.all,
+        lastDate: pStats.lastDate,
+        lastTitle: pStats.lastTitle,
+        matchBy: matchBy,
+      });
+    });
+
+    var state = { lvl: 'all', tn: 'all', search: '', sort: 'rating' };
+    var tbody = document.getElementById('rk-tbody');
+    var countEl = document.getElementById('rk-count');
+
+    function level(r) {
+      if (r.rating == null) return 'beg';
+      if (r.rating >= 1500) return 'pro';
+      if (r.rating >= 1200) return 'adv';
+      if (r.rating >= 900) return 'int';
+      return 'beg';
+    }
+    function levelLabel(r) {
+      var l = level(r);
+      var col = l === 'pro' ? '#9b59b6' : l === 'adv' ? 'var(--accent)' : l === 'int' ? 'var(--warn)' : 'var(--text3)';
+      var txt = l === 'pro' ? 'Pro' : l === 'adv' ? 'Advanced' : l === 'int' ? 'Intermediate' : 'Beginner';
+      return '<span style="color:' + col + ';font-weight:600;font-size:12px">' + txt + '</span>';
+    }
+
+    function render() {
+      var filtered = rows.filter(function(r) {
+        if (state.lvl !== 'all' && level(r) !== state.lvl) return false;
+        if (state.tn === 'active' && r.tn90 < 1) return false;
+        if (state.tn === 'cold' && r.tn90 >= 1) return false;
+        if (state.search && r.name.toLowerCase().indexOf(state.search) < 0) return false;
+        return true;
+      });
+      // Sort
+      filtered.sort(function(a, b) {
+        var k = state.sort;
+        var va = a[k] == null ? -Infinity : a[k];
+        var vb = b[k] == null ? -Infinity : b[k];
+        return vb - va;
+      });
+      countEl.textContent = filtered.length + ' игроков из ' + rows.length;
+      if (!filtered.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:30px;color:var(--text3)">Никого не найдено</td></tr>';
+        return;
+      }
+      tbody.innerHTML = filtered.map(function(r) {
+        var nameLink = r.cid
+          ? '<a href="client.html?cid=' + r.cid + '" style="color:var(--accent);text-decoration:none;font-weight:500">' + escapeHtml(r.name) + '</a>'
+          : escapeHtml(r.name);
+        var profileLink = r.userId ? ' <a href="https://racket.id/u/' + r.userId + '" target="_blank" style="font-size:10px;color:var(--text3);text-decoration:none" title="Открыть на Racket.ID">↗</a>' : '';
+        return '<tr style="border-bottom:1px solid var(--border)">' +
+          '<td style="padding:10px 14px">' + nameLink + profileLink + '</td>' +
+          '<td style="padding:10px 14px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">' + (r.rating != null ? r.rating.toFixed(0) : '—') + '</td>' +
+          '<td style="padding:10px 14px">' + levelLabel(r) + '</td>' +
+          '<td style="padding:10px 14px;text-align:right;font-variant-numeric:tabular-nums;' + (r.tn90 ? 'font-weight:600;color:var(--accent)' : 'color:var(--text3)') + '">' + (r.tn90 || '—') + '</td>' +
+          '<td style="padding:10px 14px;text-align:right;font-variant-numeric:tabular-nums">' + (r.tnAll || '—') + '</td>' +
+          '<td style="padding:10px 14px;font-size:12px;color:var(--text2)">' + (r.lastDate ? r.lastDate + (r.lastTitle ? '<br><span style="font-size:10px;color:var(--text3)">' + escapeHtml(r.lastTitle.slice(0, 40)) + '</span>' : '') : '—') + '</td>' +
+          '<td style="padding:10px 14px;font-size:11px;color:var(--text3)">' + (r.matchBy || '—') + '</td>' +
+        '</tr>';
+      }).join('');
+    }
+
+    function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]; }); }
+
+    document.querySelectorAll('.rk-lvl').forEach(function(b) {
+      b.addEventListener('click', function() {
+        document.querySelectorAll('.rk-lvl').forEach(function(x) { x.classList.remove('active'); });
+        b.classList.add('active');
+        state.lvl = b.dataset.lvl; render();
+      });
+    });
+    document.querySelectorAll('.rk-tn').forEach(function(b) {
+      b.addEventListener('click', function() {
+        document.querySelectorAll('.rk-tn').forEach(function(x) { x.classList.remove('active'); });
+        b.classList.add('active');
+        state.tn = b.dataset.tn; render();
+      });
+    });
+    document.getElementById('rk-search').addEventListener('input', function(e) {
+      state.search = e.target.value.trim().toLowerCase(); render();
+    });
+    document.querySelectorAll('th[data-sort]').forEach(function(th) {
+      th.addEventListener('click', function() { state.sort = th.dataset.sort; render(); });
+    });
+
+    render();
+  })();
+  </script>
 
   <script>
     // Tab switching

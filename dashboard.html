@@ -376,6 +376,103 @@
 
   <!-- Блоки отмен перенесены на /clients (раздел «4 · Отмены») 2026-04-17 -->
 
+  <!-- Heatmap: день недели × время суток (когда играют) -->
+  <section class="section" id="heatmap-section" style="margin-top:32px">
+    <div class="section-head" style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+      <h2 style="font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:1.2px;color:var(--text2);margin:0">Когда играют — heatmap</h2>
+      <span style="font-size:11px;color:var(--text3)">источник: bookings · последние 90 дней</span>
+    </div>
+    <div class="card" style="padding:18px">
+      <div id="heatmap-wrap" style="overflow-x:auto">
+        <div style="color:var(--text3);font-size:13px;text-align:center;padding:30px">Загрузка heatmap…</div>
+      </div>
+      <div id="heatmap-legend" style="display:none;margin-top:12px;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text3)">
+        <span>Меньше</span>
+        <div style="display:flex;gap:2px">
+          <div style="width:18px;height:14px;background:rgba(10,186,181,0.06);border-radius:3px"></div>
+          <div style="width:18px;height:14px;background:rgba(10,186,181,0.20);border-radius:3px"></div>
+          <div style="width:18px;height:14px;background:rgba(10,186,181,0.40);border-radius:3px"></div>
+          <div style="width:18px;height:14px;background:rgba(10,186,181,0.65);border-radius:3px"></div>
+          <div style="width:18px;height:14px;background:rgba(10,186,181,0.95);border-radius:3px"></div>
+        </div>
+        <span>Больше</span>
+        <span style="margin-left:auto" id="heatmap-summary"></span>
+      </div>
+    </div>
+  </section>
+  <script>
+  // Heatmap rendering — defer until V7 ready
+  (async function() {
+    function waitV7() { return new Promise(function(res) {
+      var t = setInterval(function() { if (window.V7) { clearInterval(t); res(); } }, 50);
+    }); }
+    await waitV7();
+    var bookings = await V7.loadSheet('bookings').catch(function(){ return []; });
+    var wrap = document.getElementById('heatmap-wrap');
+    if (!bookings || !bookings.length) { wrap.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px">Нет данных bookings</div>'; return; }
+
+    // Last 90 days only
+    var cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 90);
+    var grid = {};  // dayOfWeek (0=Mon) -> hour -> count
+    for (var d = 0; d < 7; d++) { grid[d] = {}; for (var h = 7; h <= 23; h++) grid[d][h] = 0; }
+    var total = 0;
+
+    bookings.forEach(function(b) {
+      var ts = b.start_ts || b.date || '';
+      if (!ts) return;
+      // Try parse: YYYY-MM-DD HH:MM:SS or DD/MM/YYYY HH:MM
+      var m = String(ts).match(/(\d{4})-(\d{1,2})-(\d{1,2})[ T](\d{1,2}):(\d{2})/) ||
+              String(ts).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})[ T](\d{1,2}):(\d{2})/);
+      var dt = null, hour = null;
+      if (m && m.length >= 6) {
+        if (m[1].length === 4) dt = new Date(+m[1], +m[2]-1, +m[3]); // ISO
+        else dt = new Date(+m[3], +m[2]-1, +m[1]); // EU
+        hour = +m[4];
+      }
+      if (!dt || isNaN(dt) || dt < cutoff) return;
+      var dow = (dt.getDay() + 6) % 7;  // 0=Mon..6=Sun
+      if (hour < 7 || hour > 23) return;
+      grid[dow][hour] = (grid[dow][hour] || 0) + 1;
+      total++;
+    });
+
+    if (!total) { wrap.innerHTML = '<div style="color:var(--text3);font-size:13px;text-align:center;padding:24px">Нет броней с временем за 90 дней</div>'; return; }
+
+    // Find max for normalization
+    var maxV = 0;
+    for (var d2 = 0; d2 < 7; d2++) for (var h2 = 7; h2 <= 23; h2++) if (grid[d2][h2] > maxV) maxV = grid[d2][h2];
+
+    var DAYS = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+    function color(v) {
+      if (!v) return 'rgba(128,128,128,0.04)';
+      var alpha = 0.06 + 0.89 * (v / maxV);
+      return 'rgba(10,186,181,' + alpha.toFixed(2) + ')';
+    }
+
+    var html = '<table style="border-collapse:separate;border-spacing:3px;font-size:11px;font-variant-numeric:tabular-nums"><thead><tr><th style="width:42px"></th>';
+    for (var hh = 7; hh <= 23; hh++) html += '<th style="font-weight:500;color:var(--text3);text-align:center;min-width:30px">' + hh + '</th>';
+    html += '</tr></thead><tbody>';
+    for (var dd = 0; dd < 7; dd++) {
+      html += '<tr><td style="color:var(--text2);font-weight:600;padding-right:6px">' + DAYS[dd] + '</td>';
+      for (var hhh = 7; hhh <= 23; hhh++) {
+        var v = grid[dd][hhh];
+        var pct = total ? Math.round(100 * v / total) : 0;
+        var tip = DAYS[dd] + ' ' + hhh + ':00 — ' + v + ' броней (' + pct + '% от total)';
+        html += '<td title="' + tip + '" style="background:' + color(v) + ';color:' + (v >= maxV*0.5 ? '#fff' : 'var(--text2)') + ';text-align:center;padding:8px 4px;border-radius:4px;cursor:default">' + (v || '') + '</td>';
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    wrap.innerHTML = html;
+
+    // Summary: peak slot
+    var peakD = 0, peakH = 0, peakV = 0;
+    for (var ad = 0; ad < 7; ad++) for (var ah = 7; ah <= 23; ah++) if (grid[ad][ah] > peakV) { peakV = grid[ad][ah]; peakD = ad; peakH = ah; }
+    document.getElementById('heatmap-legend').style.display = 'flex';
+    document.getElementById('heatmap-summary').textContent = 'Пик: ' + DAYS[peakD] + ' ' + peakH + ':00 — ' + peakV + ' броней (' + Math.round(100*peakV/total) + '%) · всего ' + total + ' броней за 90 дней';
+  })();
+  </script>
+
   <!-- 'Под риском' и 'Кандидаты в клуб' перенесены в /clients
        (отдельный подраздел) — 2026-04-25 по запросу пользователя.
        На дашборде остались только финансовые/операционные KPI. -->
