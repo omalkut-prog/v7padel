@@ -55,6 +55,7 @@
       { label: 'Когорта',    href: 'cohort.html',              icon: 'clients',     roles: ['admin', 'manager'] },
       { label: 'Участники',  href: 'club-members.html',        icon: 'members',     roles: ['admin', 'manager'] },
       { label: 'Recall',     href: 'recall.html',              icon: 'recall',      roles: ['admin', 'manager'] },
+      { label: 'Дни рождения', href: 'birthdays.html',         icon: 'recall',      roles: ['admin', 'manager'] },
       { label: 'Турниры',    href: 'tournament-analytics.html', icon: 'tournaments', roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Управление', href: 'management.html',          icon: 'management',  roles: ['admin'] },
       { label: 'Команда',    href: 'team.html',                icon: 'team',        roles: ['admin'], cls: 'team-link' },

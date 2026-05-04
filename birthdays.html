@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="assets/auth-guard.js"></script>
+<title>V7 Padel — Дни рождения</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="assets/theme.js"></script>
+<script src="assets/data.js?v=20260424d"></script>
+<script src="assets/backend.js?v=20260504b"></script>
+<link rel="stylesheet" href="assets/theme.css?v=20260418">
+<link rel="stylesheet" href="assets/sidebar.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1300px; margin: 0 auto; padding: 24px 20px 80px; }
+  h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
+
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px; align-items: center; }
+  .chip { background: var(--surface); border: 1px solid var(--border); color: var(--text2); font-size: 12px; padding: 6px 12px; border-radius: 18px; cursor: pointer; transition: all .15s; font-family: inherit; }
+  .chip:hover { border-color: var(--accent-border); color: var(--text); }
+  .chip.active { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); }
+  .chip-divider { width: 1px; height: 18px; background: var(--border); margin: 0 6px; }
+  .count { font-size: 12px; color: var(--text3); margin-left: auto; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .kpi .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+  .kpi .value { font-size: 22px; font-weight: 700; }
+  .kpi .sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+  .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  table.bd { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.bd th { text-align: left; padding: 12px 14px; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); }
+  table.bd td { padding: 12px 14px; border-bottom: 1px solid var(--border); }
+  table.bd tr:hover { background: rgba(128,128,128,0.04); }
+  table.bd tr:last-child td { border-bottom: none; }
+  .name-link { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .name-link:hover { text-decoration: underline; }
+  .days { font-weight: 700; font-variant-numeric: tabular-nums; }
+  .days.today { color: var(--bad); }
+  .days.soon { color: var(--warn); }
+  .days.next { color: var(--text2); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+  .badge.vip { background: rgba(155,89,182,0.16); color: #b483d6; }
+  .badge.club { background: rgba(10,186,181,0.14); color: var(--accent); }
+  .money { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .loading { padding: 28px; text-align: center; color: var(--text3); }
+</style>
+</head>
+<body>
+<div id="sidebar-mount"></div>
+<script src="assets/sidebar.js?v=20260504"></script>
+
+<main>
+  <h1 class="page-title">🎂 Дни рождения</h1>
+  <div class="page-sub">Поздравить вовремя — самый дешёвый способ удержать клиента.</div>
+
+  <div class="kpi-row">
+    <div class="kpi"><div class="label">Сегодня</div><div class="value" id="kpi-today">—</div><div class="sub">с ДР сегодня</div></div>
+    <div class="kpi"><div class="label">7 дней</div><div class="value" id="kpi-7d">—</div><div class="sub">в ближайшую неделю</div></div>
+    <div class="kpi"><div class="label">30 дней</div><div class="value" id="kpi-30d">—</div><div class="sub">в этом месяце</div></div>
+    <div class="kpi"><div class="label">Найдено ДР</div><div class="value" id="kpi-known">—</div><div class="sub">из <span id="kpi-total">—</span> клиентов</div></div>
+  </div>
+
+  <div class="filters">
+    <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px">Окно:</span>
+    <button class="chip active" data-win="30">30 дней</button>
+    <button class="chip" data-win="60">60 дней</button>
+    <button class="chip" data-win="90">90 дней</button>
+    <button class="chip" data-win="365">Все</button>
+    <span class="chip-divider"></span>
+    <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px">Потратил всего:</span>
+    <button class="chip active" data-spent="0">Все</button>
+    <button class="chip" data-spent="1000">≥ 1k ₺</button>
+    <button class="chip" data-spent="5000">≥ 5k</button>
+    <button class="chip" data-spent="10000">≥ 10k</button>
+    <button class="chip" data-spent="50000">≥ 50k</button>
+    <span class="count" id="flt-count">—</span>
+  </div>
+
+  <div class="table-wrap">
+    <table class="bd">
+      <thead>
+        <tr>
+          <th>Когда</th>
+          <th>Клиент</th>
+          <th>Возраст</th>
+          <th>Карта</th>
+          <th style="text-align:right">Потратил</th>
+          <th style="text-align:right">30 дней</th>
+          <th>Сегмент</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="7" class="loading">Загрузка данных...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<script>
+(async function() {
+  var fmt = function(n) {
+    if (!isFinite(n) || !n) return '—';
+    return Math.round(n).toLocaleString('ru-RU') + ' ₺';
+  };
+
+  // ── Load data ──
+  // customers (для birthday поля) + clients_enriched (для segment) +
+  // top_clients_revenue (для spent). Параллельно.
+  async function loadTab(tab, sheetType) {
+    try {
+      if (window.V7Backend) {
+        var p = sheetType === 'cache' ? V7Backend.cache(tab) : V7Backend.db(tab);
+        var to = new Promise(function(_, rej) { setTimeout(function() { rej(new Error('timeout')); }, 8000); });
+        var r = await Promise.race([p, to]);
+        if (r && (r.rows || []).length) return r.rows;
+      }
+    } catch (e) { console.warn('[bd] backend', tab, e.message || e); }
+    return await V7.loadSheet(tab).catch(function() { return []; });
+  }
+
+  var [customers, enriched, revenue] = await Promise.all([
+    loadTab('customers', 'db'),
+    loadTab('clients_enriched', 'cache'),
+    loadTab('top_clients_revenue', 'cache'),
+  ]);
+
+  // Index by cid
+  var enrByCid = {};
+  (enriched || []).forEach(function(c) {
+    var cid = String(c.customer_id || '').trim();
+    if (cid) enrByCid[cid] = c;
+  });
+  var revByCid = {};
+  (revenue || []).forEach(function(r) {
+    var cid = String(r.customer_id || '').trim();
+    if (cid) revByCid[cid] = r;
+  });
+
+  // Parse birthday (multiple formats: YYYY-MM-DD, DD.MM.YYYY, DD/MM/YYYY)
+  function parseBirthday(s) {
+    if (!s) return null;
+    s = String(s).trim();
+    if (!s) return null;
+    var m;
+    // ISO YYYY-MM-DD
+    m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return { y: +m[1], m: +m[2], d: +m[3] };
+    // DD.MM.YYYY or DD/MM/YYYY
+    m = s.match(/^(\d{1,2})[.\/](\d{1,2})[.\/](\d{4})/);
+    if (m) return { y: +m[3], m: +m[2], d: +m[1] };
+    // DD.MM (no year)
+    m = s.match(/^(\d{1,2})[.\/](\d{1,2})$/);
+    if (m) return { y: 0, m: +m[2], d: +m[1] };
+    return null;
+  }
+
+  function daysUntilBirthday(bd, today) {
+    if (!bd || !bd.m || !bd.d) return null;
+    var thisYear = new Date(today.getFullYear(), bd.m - 1, bd.d);
+    if (thisYear < today) thisYear = new Date(today.getFullYear() + 1, bd.m - 1, bd.d);
+    var ms = thisYear - today;
+    return Math.round(ms / 86400000);
+  }
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  var STAFF_NAMES = new Set(['gulcan yanar', 'olha bo', 'olha malkut', 'dilara akbiyik', 'mert davas', 'prueba', 'demo']);
+  function isStaff(n) {
+    var k = (n || '').trim().toLowerCase();
+    return STAFF_NAMES.has(k) || k.indexOf('olha test') >= 0 || k.indexOf('@v7padel') >= 0;
+  }
+
+  // Build list
+  var rows = [];
+  (customers || []).forEach(function(c) {
+    if (isStaff(c.name)) return;
+    var bd = parseBirthday(c.birthday);
+    if (!bd) return;
+    var dleft = daysUntilBirthday(bd, today);
+    if (dleft == null) return;
+    var cid = String(c.customer_id || '').trim();
+    var enr = enrByCid[cid] || {};
+    var rev = revByCid[cid] || {};
+    var spent = parseFloat(rev.amount_all) || 0;
+    var spent30 = parseFloat(rev.amount_30d) || 0;
+    var age = bd.y && bd.y > 1900 ? (new Date(today.getFullYear() + (dleft < 0 ? 0 : 0), bd.m - 1, bd.d).getFullYear() - bd.y + (dleft >= 0 ? 0 : 1)) : null;
+    // age = years on next birthday
+    if (bd.y && bd.y > 1900) {
+      var nextBdYear = today.getFullYear() + (dleft < (today.getMonth() === (bd.m-1) && today.getDate() === bd.d ? 1 : 0) ? 0 : 0);
+      // Simpler: this year birthday year - birth year, +1 if already passed
+      var nextBdAge = today.getFullYear() - bd.y;
+      var thisYearBd = new Date(today.getFullYear(), bd.m - 1, bd.d);
+      if (thisYearBd < today) nextBdAge = today.getFullYear() + 1 - bd.y;
+      else nextBdAge = today.getFullYear() - bd.y;
+      // If birthday is today
+      if (thisYearBd.getTime() === today.getTime()) nextBdAge = today.getFullYear() - bd.y;
+      else if (thisYearBd < today) nextBdAge = today.getFullYear() + 1 - bd.y;
+      age = nextBdAge;
+    }
+    rows.push({
+      cid: cid,
+      name: c.name || '—',
+      bd: bd,
+      bdStr: String(bd.d).padStart(2,'0') + '.' + String(bd.m).padStart(2,'0') + (bd.y ? '.' + bd.y : ''),
+      dleft: dleft,
+      age: age,
+      card: enr.card || '—',
+      segment: enr.segment || '—',
+      spent: spent,
+      spent30: spent30,
+    });
+  });
+
+  rows.sort(function(a, b) { return a.dleft - b.dleft; });
+
+  // KPIs
+  document.getElementById('kpi-today').textContent = rows.filter(function(r) { return r.dleft === 0; }).length;
+  document.getElementById('kpi-7d').textContent = rows.filter(function(r) { return r.dleft <= 7; }).length;
+  document.getElementById('kpi-30d').textContent = rows.filter(function(r) { return r.dleft <= 30; }).length;
+  document.getElementById('kpi-known').textContent = rows.length;
+  document.getElementById('kpi-total').textContent = (customers || []).length;
+
+  // Filters state
+  var state = { window: 30, spent: 0 };
+
+  function render() {
+    var filtered = rows.filter(function(r) {
+      if (r.dleft > state.window) return false;
+      if (state.spent && r.spent < state.spent) return false;
+      return true;
+    });
+    document.getElementById('flt-count').textContent = filtered.length + ' клиентов';
+    var tbody = document.getElementById('tbody');
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="7" class="loading">Никого не найдено по фильтрам</td></tr>';
+      return;
+    }
+    tbody.innerHTML = filtered.map(function(r) {
+      var dCls = r.dleft === 0 ? 'today' : r.dleft <= 7 ? 'soon' : 'next';
+      var dText = r.dleft === 0 ? 'СЕГОДНЯ' :
+                  r.dleft === 1 ? 'завтра' :
+                  r.dleft <= 30 ? 'через ' + r.dleft + ' дн' :
+                  r.bdStr.slice(0, 5);
+      var cardBadge = r.card === 'VIP' ? '<span class="badge vip">VIP</span>' :
+                      r.card === 'Club' ? '<span class="badge club">Club</span>' :
+                      r.card !== '—' ? r.card : '';
+      var segLabel = r.segment === 'core' ? '🟣 ядро' :
+                     r.segment === 'risk' ? '🟠 риск' :
+                     r.segment === 'growing' ? '🟢 рост' :
+                     r.segment === 'occasional' ? '⚫ разовый' :
+                     r.segment === 'active' ? 'активный' :
+                     r.segment === 'sleeping' ? 'спящий' :
+                     r.segment === 'never' ? 'нет игр' : r.segment;
+      return '<tr>' +
+        '<td><span class="days ' + dCls + '">' + dText + '</span><div style="font-size:10px;color:var(--text3);margin-top:2px">' + r.bdStr + '</div></td>' +
+        '<td>' + (r.cid ? '<a class="name-link" href="client.html?cid=' + r.cid + '">' + r.name + '</a>' : r.name) + '</td>' +
+        '<td>' + (r.age ? r.age + ' лет' : '—') + '</td>' +
+        '<td>' + cardBadge + '</td>' +
+        '<td style="text-align:right" class="money">' + fmt(r.spent) + '</td>' +
+        '<td style="text-align:right" class="money">' + fmt(r.spent30) + '</td>' +
+        '<td style="font-size:11px;color:var(--text2)">' + segLabel + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  // Bind filters
+  document.querySelectorAll('.chip[data-win]').forEach(function(b) {
+    b.addEventListener('click', function() {
+      document.querySelectorAll('.chip[data-win]').forEach(function(x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      state.window = parseInt(b.dataset.win);
+      render();
+    });
+  });
+  document.querySelectorAll('.chip[data-spent]').forEach(function(b) {
+    b.addEventListener('click', function() {
+      document.querySelectorAll('.chip[data-spent]').forEach(function(x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      state.spent = parseInt(b.dataset.spent);
+      render();
+    });
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
