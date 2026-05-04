@@ -334,11 +334,16 @@
     }
     function fmt(n) { if (!n) return '—'; n = +n; if (n >= 1e6) return (n/1e6).toFixed(2) + 'M'; if (n >= 1e3) return (n/1e3).toFixed(1) + 'K'; return Math.round(n); }
 
-    var [customers, revenue, members] = await Promise.all([
+    var [customers, revenue, members, mpBd] = await Promise.all([
       loadTab('customers', 'db'),
       loadTab('top_clients_revenue', 'cache'),
       loadTab('memberships', 'db'),
+      loadTab('mp_birthdays', 'db'),  // 620 ДР из Matchpoint
     ]);
+    // Merge ДР: MP — primary source
+    var bdByCid = {};
+    (mpBd || []).forEach(function(b) { var cid=String(b.customer_id||'').trim(); if (cid && b.birthday) bdByCid[cid]=String(b.birthday).trim(); });
+    (customers || []).forEach(function(c) { var cid=String(c.customer_id||'').trim(); if (bdByCid[cid]) c.birthday = bdByCid[cid]; });
 
     var STAFF = ['gulcan yanar','olha bo','olha malkut','dilara akbiyik','mert davas'];
     var isStaff = function(n) { var k = (n||'').toLowerCase(); return STAFF.some(function(x){return k.indexOf(x)>=0;}) || k.indexOf('@v7padel')>=0 || k.indexOf('prueba')>=0 || k.indexOf('demo')>=0; };
@@ -720,6 +725,7 @@
       <button class="chip rk-lvl" data-lvl="adv" style="border-color:rgba(10,186,181,0.4);color:var(--accent)">Adv 1200+</button>
       <button class="chip rk-lvl" data-lvl="int" style="border-color:rgba(243,156,18,0.4);color:var(--warn)">Int 900+</button>
       <button class="chip rk-lvl" data-lvl="beg">Beg &lt;900</button>
+      <button class="chip rk-lvl" data-lvl="unknown">Базовый (без игр)</button>
       <span style="width:1px;height:18px;background:var(--border)"></span>
       <span style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px">Турниры:</span>
       <button class="chip rk-tn active" data-tn="all">Все</button>
@@ -831,7 +837,9 @@
     var countEl = document.getElementById('rk-count');
 
     function level(r) {
-      if (r.rating == null) return 'beg';
+      if (r.rating == null) return 'unknown';
+      // 1000 = базовый рейтинг при регистрации, нет реальных игр → н/д
+      if ((r.rating === 1000 || Math.abs(r.rating - 1000) < 0.5) && (!r.tnAll || r.tnAll === 0)) return 'unknown';
       if (r.rating >= 1500) return 'pro';
       if (r.rating >= 1200) return 'adv';
       if (r.rating >= 900) return 'int';
@@ -839,6 +847,7 @@
     }
     function levelLabel(r) {
       var l = level(r);
+      if (l === 'unknown') return '<span style="color:var(--text3);font-style:italic;font-size:12px">базовый (нет игр)</span>';
       var col = l === 'pro' ? '#9b59b6' : l === 'adv' ? 'var(--accent)' : l === 'int' ? 'var(--warn)' : 'var(--text3)';
       var txt = l === 'pro' ? 'Pro' : l === 'adv' ? 'Advanced' : l === 'int' ? 'Intermediate' : 'Beginner';
       return '<span style="color:' + col + ';font-weight:600;font-size:12px">' + txt + '</span>';

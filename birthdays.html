@@ -132,11 +132,25 @@
     return await V7.loadSheet(tab).catch(function() { return []; });
   }
 
-  var [customers, enriched, revenue] = await Promise.all([
+  var [customers, enriched, revenue, mpBd] = await Promise.all([
     loadTab('customers', 'db'),
     loadTab('clients_enriched', 'cache'),
     loadTab('top_clients_revenue', 'cache'),
+    loadTab('mp_birthdays', 'db'),  // 620 ДР из Matchpoint
   ]);
+
+  // Merge: для каждого клиента берём ДР из mp_birthdays если есть, иначе customers.birthday
+  var bdByCid = {};
+  (mpBd || []).forEach(function(b) {
+    var cid = String(b.customer_id || '').trim();
+    if (cid && b.birthday) bdByCid[cid] = String(b.birthday).trim();
+  });
+  (customers || []).forEach(function(c) {
+    var cid = String(c.customer_id || '').trim();
+    if (bdByCid[cid] && !c.birthday) c.birthday = bdByCid[cid];
+    else if (bdByCid[cid] && c.birthday) c.birthday = bdByCid[cid]; // MP — primary
+    else if (!c.birthday && bdByCid[cid]) c.birthday = bdByCid[cid];
+  });
 
   // Index by cid
   var enrByCid = {};

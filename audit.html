@@ -4,797 +4,254 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="assets/auth-guard.js"></script>
-<title>V7 Padel — Аудит платежей</title>
+<title>V7 Padel — Аудит балансов</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="assets/theme.js"></script>
 <script src="assets/data.js?v=20260424d"></script>
-<script src="assets/backend.js?v=20260504b"></script>
+<script src="assets/backend.js?v=20260504c"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
-<link rel="stylesheet" href="assets/sidebar.css">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    -webkit-font-smoothing: antialiased;
-  }
-
-  nav {
-    position: sticky; top: 0; z-index: 100;
-    height: 56px; background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; padding: 0 24px;
-  }
-  .nav-logo { font-size: 16px; font-weight: 600; color: var(--text); text-decoration: none; margin-right: auto; }
-  .nav-logo em { color: var(--accent); font-style: normal; }
-  .nav-links li { list-style: none; }
-  .nav-links a { display: block; padding: 0 14px; font-size: 13px; color: var(--text2); text-decoration: none; line-height: 56px; transition: color .2s; }
-  .nav-links a:hover { color: var(--text); }
-  .nav-links a.active { color: var(--accent); }
-  .nav-pill { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--accent); font-size: 11px; font-weight: 600; padding: 4px 12px; border-radius: 20px; margin-right: 12px; }
-
-  main { max-width: 1400px; margin: 0 auto; padding: 24px 20px 80px; }
+  body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
+  main { max-width: 1300px; margin: 0 auto; padding: 24px 20px 80px; }
   h1.page-title { font-size: 28px; font-weight: 600; letter-spacing: -0.8px; margin-bottom: 4px; }
-  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 28px; }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 24px; }
 
-  .section { margin-bottom: 36px; }
-  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; padding: 0 2px; gap: 16px; flex-wrap: wrap; }
-  .section-head h2 { font-size: 15px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.2px; color: var(--text2); }
-  .section-head .hint { font-size: 11px; color: var(--text3); }
+  .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
+  .kpi .label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; }
+  .kpi .value { font-size: 24px; font-weight: 700; }
+  .kpi .sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .kpi.good .value { color: var(--good); }
 
-  .panel {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 24px; box-shadow: var(--shadow);
-  }
-  .panel + .panel { margin-top: 14px; }
-
-  /* KPI row */
-  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
-  .kpi-card {
-    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 22px 24px; box-shadow: var(--shadow);
-  }
-  .kpi-card .kpi-label { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); margin-bottom: 8px; }
-  .kpi-card .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -1px; color: var(--text); font-variant-numeric: tabular-nums; line-height: 1.1; }
-  .kpi-card .kpi-sub { font-size: 12px; color: var(--text3); margin-top: 6px; }
-  .kpi-card.danger .kpi-value { color: var(--bad); }
-  .kpi-card.good .kpi-value { color: var(--good); }
-
-  /* Tables */
-  table.fin { width: 100%; border-collapse: collapse; font-size: 13px; }
-  table.fin th {
-    text-align: right; padding: 10px 10px; color: var(--text3);
-    font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
-    background: var(--surface2); border-bottom: 1px solid var(--border);
-    white-space: nowrap;
-  }
-  table.fin th:first-child, table.fin td:first-child { text-align: left; }
-  table.fin td {
-    padding: 10px 10px; border-bottom: 1px solid var(--border);
-    text-align: right; white-space: nowrap;
-  }
-  table.fin td:first-child { text-align: left; font-weight: 500; }
-  table.fin tr:hover { background: var(--surface2); }
-  table.fin .total-row { font-weight: 700; background: var(--surface2); }
-  table.fin .neg { color: var(--bad); }
-  table.fin .pos { color: var(--good); }
-
-  .chart-box { position: relative; height: 300px; }
-  .loading { color: var(--text3); font-size: 14px; padding: 20px; text-align: center; }
-  .err-msg { color: var(--bad); font-size: 13px; padding: 16px; text-align: center; }
-  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-
-  /* Badge */
-  .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
-  .badge.red { background: rgba(231,76,60,0.15); color: var(--bad); }
-  .badge.green { background: rgba(46,204,113,0.15); color: var(--good); }
-  .badge.grey { background: var(--surface2); color: var(--text3); }
-
-  /* Tabs */
-  .tab-bar { display: flex; gap: 4px; margin-bottom: 20px; }
-  .tab-btn { padding: 8px 20px; font-size: 13px; font-weight: 500; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text2); cursor: pointer; transition: all .2s; }
-  .tab-btn:hover { background: var(--surface2); }
-  .tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
-
-  /* Sortable table headers */
-  table.fin th.sortable { cursor: pointer; user-select: none; }
-  table.fin th.sortable:hover { color: var(--accent); }
-  table.fin th.sortable::after { content: ' ⇅'; font-size: 10px; opacity: 0.4; }
-  table.fin th.sortable.asc::after { content: ' ↑'; opacity: 1; }
-  table.fin th.sortable.desc::after { content: ' ↓'; opacity: 1; }
-
-  @media (max-width: 960px) {
-    .kpi-row { grid-template-columns: repeat(2, 1fr); }
-    .two-col { grid-template-columns: 1fr; }
-    .tab-bar { flex-wrap: wrap; }
-  }
-  @media (max-width: 600px) {
-    .kpi-row { grid-template-columns: 1fr; }
-    main { padding: 16px 12px 60px; }
-  }
-
-  .advice-block { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px 28px; margin: 32px 0 0; box-shadow: var(--shadow); position: relative; }
-  .advice-block::before { content: ''; position: absolute; top: 0; left: 28px; right: 28px; height: 2px; background: linear-gradient(90deg, var(--accent), transparent); }
-  .advice-block .advice-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
-  .advice-block .advice-title { font-size: 20px; font-weight: 500; color: var(--text); letter-spacing: -0.3px; font-style: italic; }
-  .advice-block .advice-from { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1.6px; font-weight: 500; }
-  .advice-block ul.advice-list { list-style: none; padding: 0; margin: 0; }
-  .advice-block li { padding: 18px 0; border-bottom: 1px solid var(--border); font-size: 14px; line-height: 1.65; color: var(--text2); display: grid; grid-template-columns: 56px 1fr; gap: 20px; align-items: start; }
-  .advice-block li:last-child { border-bottom: 0; }
-  .advice-block li .advice-num { font-size: 32px; color: var(--accent); font-weight: 300; line-height: 0.9; padding-top: 2px; letter-spacing: -1.5px; font-style: italic; }
-  .advice-block li strong { color: var(--text); font-weight: 600; display: block; margin-bottom: 4px; font-size: 14.5px; }
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  table.bal { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.bal th { text-align: left; padding: 12px 14px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; color: var(--text3); background: var(--bg); border-bottom: 1px solid var(--border); }
+  table.bal td { padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.bal tr:last-child td { border-bottom: none; }
+  table.bal tr:hover { background: rgba(128,128,128,0.04); }
+  .name-link { color: var(--accent); text-decoration: none; font-weight: 500; }
+  .name-link:hover { text-decoration: underline; }
+  .pos { color: var(--good); font-weight: 700; font-variant-numeric: tabular-nums; }
+  .neg { color: var(--bad); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .tx-list { display: flex; flex-direction: column; gap: 4px; }
+  .tx-item { display: flex; gap: 8px; font-size: 12px; color: var(--text2); }
+  .tx-date { color: var(--text3); white-space: nowrap; min-width: 70px; }
+  .tx-type { font-weight: 600; min-width: 80px; }
+  .tx-type.recharge { color: var(--good); }
+  .tx-type.purchase { color: var(--text2); }
+  .tx-type.correction { color: var(--warn); }
+  .tx-amt { font-variant-numeric: tabular-nums; min-width: 75px; text-align: right; }
+  .err-banner { background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.3); color: var(--bad); padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 13px; }
+  .info-banner { background: var(--accent-soft); border: 1px solid var(--accent-border); color: var(--text2); padding: 12px 16px; border-radius: 10px; margin-bottom: 18px; font-size: 12px; }
+  .loading { padding: 30px; text-align: center; color: var(--text3); }
 </style>
 </head>
 <body>
-
-<nav>
-  <a class="nav-logo" href="index.html">V7 <em>Padel</em></a>
-  <ul class="nav-links">
-    <li><a href="index.html">Главная</a></li>
-    <li><a href="dashboard.html">Дашборд</a></li>
-    <li><a href="revenue.html">Выручка</a></li>
-    <li><a href="management.html">Управление</a></li>
-    <li><a href="finance.html">Финансы</a></li>
-    <li><a href="clients.html">Клиенты</a></li>
-    <li><a href="data.html">Данные</a></li>
-    <li><a href="tournament-analytics.html">Турниры</a></li>
-    <li><a href="risk.html">Риски</a></li>
-    <li><a href="variance.html">Variance</a></li>
-    <li><a href="audit.html" class="active">Аудит</a></li>
-    <li><a href="brain.html">Brain</a></li>
-  </ul>
-  <span class="nav-pill">Внутренний портал</span>
-</nav>
+<div id="sidebar-mount"></div>
+<script src="assets/sidebar.js"></script>
 
 <main>
-  <h1 class="page-title">Аудит платежей</h1>
-  <p class="page-sub">Должники · Балансы · Движения по балансу · из Matchpoint API</p>
-  <div style="background:rgba(10,186,181,0.06);border:1px solid rgba(10,186,181,0.25);border-radius:8px;padding:8px 14px;margin:10px 0 18px;font-size:12px;color:var(--text2);display:flex;align-items:center;gap:10px">
-    <span style="font-size:14px">📅</span>
-    <div id="audit-freshness">Загружаю данные…</div>
-  </div>
-  <script>
-    // Дата актуальности данных audit. ETL для долгов теперь в cron 23:50 ежедневно.
-    (async function() {
-      try {
-        var rows = await V7.loadSheet('debts').catch(function(){return null;});
-        if (!rows || !rows.length) {
-          document.getElementById('audit-freshness').textContent = '⚠ Данные не загружены.';
-          return;
-        }
-        // Берем самую свежую scraped_at (или last_booking как fallback)
-        var latest = '';
-        rows.forEach(function(r) {
-          var d = r.scraped_at || r.last_booking || '';
-          if (d > latest) latest = d;
-        });
-        var el = document.getElementById('audit-freshness');
-        if (el) {
-          el.innerHTML = '<strong>Последнее обновление данных</strong>: ' + (latest || '—') +
-                         ' · обновляется автоматически каждый день в 23:50 (cron) вместе с основным ETL.';
-        }
-      } catch (e) {}
-    })();
-  </script>
+  <h1 class="page-title">💰 Аудит балансов клиентов</h1>
+  <div class="page-sub">Клиенты с положительным балансом из Matchpoint + связанные движения по балансу</div>
 
-  <!-- KPI cards (порядок 2026-05-03: профицит сверху, потом долги) -->
+  <div id="status-banner"></div>
+
   <div class="kpi-row">
-    <div class="kpi-card good" id="kpi-surplus">
-      <div class="kpi-label">Профицит балансов</div>
-      <div class="kpi-value" id="kpi-surplus-val">—</div>
-      <div class="kpi-sub" id="kpi-surplus-sub">клиентов с положительным балансом</div>
-    </div>
-    <div class="kpi-card" style="opacity:0.5">
-      <div class="kpi-label">Чистый долг</div>
-      <div class="kpi-value" style="font-size:14px;color:var(--text3)">в работе</div>
-      <div class="kpi-sub">формула пересматривается · ADR-023</div>
-    </div>
-    <div class="kpi-card" style="opacity:0.5">
-      <div class="kpi-label">Должников</div>
-      <div class="kpi-value" style="font-size:14px;color:var(--text3)">в работе</div>
-      <div class="kpi-sub">включая штрафы за late-cancel с 1 мая</div>
-    </div>
-    <div class="kpi-card" id="kpi-movements">
-      <div class="kpi-label">Движений баланса</div>
-      <div class="kpi-value" id="kpi-movements-val">—</div>
-      <div class="kpi-sub" id="kpi-movements-sub">записей в логе</div>
-    </div>
+    <div class="kpi good"><div class="label">Профицит балансов</div><div class="value" id="kpi-surplus">—</div><div class="sub" id="kpi-surplus-sub">клиентов с балансом &gt; 0</div></div>
+    <div class="kpi"><div class="label">Средний баланс</div><div class="value" id="kpi-avg">—</div><div class="sub">по клиентам с балансом</div></div>
+    <div class="kpi"><div class="label">Топ баланс</div><div class="value" id="kpi-top">—</div><div class="sub" id="kpi-top-name">—</div></div>
+    <div class="kpi"><div class="label">Источник</div><div class="value" style="font-size:14px" id="kpi-src">Matchpoint</div><div class="sub" id="kpi-updated">—</div></div>
   </div>
 
-  <!-- Tab bar (порядок 2026-05-03: профицит сверху, потом должники — приоритет
-       видеть деньги КЛИЕНТОВ на балансе в первую очередь) -->
-  <div class="tab-bar">
-    <button class="tab-btn active" data-tab="surplus">Профицит</button>
-    <button class="tab-btn" data-tab="debtors" title="Формула долга в работе — текущий расчёт некорректный, см. ADR-023">Должники <span style="opacity:0.6;font-size:11px">⏸</span></button>
-    <button class="tab-btn" data-tab="movements">Движения баланса</button>
-    <button class="tab-btn" data-tab="chart">Графики</button>
+  <div class="panel">
+    <table class="bal">
+      <thead>
+        <tr>
+          <th>Клиент</th>
+          <th style="text-align:right">Баланс</th>
+          <th>Последние движения по балансу</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="3" class="loading">Загрузка балансов из Matchpoint...</td></tr>
+      </tbody>
+    </table>
   </div>
-  <div id="debt-warning" style="display:none;background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);border-radius:10px;padding:14px 18px;margin-bottom:14px;font-size:13px;color:var(--text2)">
-    ⚠️ <strong>Расчёт долга временно скрыт</strong>. Текущая формула (sum of <code>OtrosImportesPendientes</code> + <code>PendienteReserva</code>) даёт некорректные числа — Matchpoint в своём отчёте «Clientes con Deudas» показывает 0 клиентов, наш расчёт — 25 на 90К ₺. Разрабатываем новую формулу: A) неоплаченные сыгранные брони, C) товары в долг, D) штрафы за late-cancel с 1 мая. См. ADR-023 (черновик).
-  </div>
-
-  <!-- Tab: Debtors -->
-  <div class="tab-content" id="tab-debtors">
-    <section class="section">
-      <div class="section-head">
-        <h2>Должники</h2>
-        <span class="hint" id="debtors-hint">клиенты с неоплаченными бронями</span>
-      </div>
-      <div class="panel">
-        <table class="fin" id="debtors-table">
-          <thead>
-            <tr>
-              <th class="sortable" data-sort="name">Клиент</th>
-              <th class="sortable" data-sort="pendRes">Брони</th>
-              <th>Свет</th>
-              <th class="sortable" data-sort="debtOther">Прочее</th>
-              <th class="sortable" data-sort="realDebt">Долг (gross)</th>
-              <th class="sortable" data-sort="balance">Баланс</th>
-              <th class="sortable desc" data-sort="netDebt">Чистый долг</th>
-              <th class="sortable" data-sort="unpaid">Неопл.</th>
-              <th class="sortable" data-sort="lastBooking">Посл. бронь</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="9" class="loading">Загрузка данных...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-
-  <!-- Tab: Surplus -->
-  <div class="tab-content active" id="tab-surplus">
-    <section class="section">
-      <div class="section-head">
-        <h2>Клиенты с балансом</h2>
-        <span class="hint">из Matchpoint API (FichaCliente)</span>
-      </div>
-      <div class="panel">
-        <table class="fin" id="surplus-table">
-          <thead>
-            <tr>
-              <th>Клиент</th>
-              <th>Баланс</th>
-              <th>Долг</th>
-              <th>Нетто</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="6" class="loading">Загрузка данных...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-
-  <!-- Tab: Balance Movements -->
-  <div class="tab-content" id="tab-movements">
-    <section class="section">
-      <div class="section-head">
-        <h2>Движения по балансу</h2>
-        <span class="hint" id="movements-hint">из ListadoMovimientosSaldo</span>
-      </div>
-      <div class="panel">
-        <table class="fin" id="movements-table">
-          <thead>
-            <tr>
-              <th>Дата</th>
-              <th>Тип</th>
-              <th>Клиент</th>
-              <th>Сумма</th>
-              <th>Баланс до</th>
-              <th>Баланс после</th>
-              <th>Описание</th>
-              <th>Админ</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="8" class="loading">Загрузка данных...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-  </div>
-
-  <!-- Tab: Charts -->
-  <div class="tab-content" id="tab-chart">
-    <section class="section">
-      <div class="two-col">
-        <div class="panel">
-          <h3 style="font-size:14px; font-weight:600; margin-bottom:14px;">Топ должников</h3>
-          <div class="chart-box"><canvas id="debt-chart"></canvas></div>
-        </div>
-        <div class="panel">
-          <h3 style="font-size:14px; font-weight:600; margin-bottom:14px;">Движения баланса (по дням)</h3>
-          <div class="chart-box"><canvas id="movements-chart"></canvas></div>
-        </div>
-      </div>
-    </section>
-  </div>
-
-
-  <div class="advice-block">
-    <div class="advice-header">
-      <span class="advice-title">Совет индустрии</span>
-      <span class="advice-from">Интернал аудитор - ACCA-квалификация</span>
-    </div>
-    <ul class="advice-list">
-      <li><span class="advice-num">01</span><span><strong>Monthly reconciliation.</strong> Bank statement - CRM transactions - cash register - должны сходиться. Любое расхождение больше 1% расследовать в 48 часов.</span></li>
-      <li><span class="advice-num">02</span><span><strong>3-way match:</strong> booking -> payment -> court schedule. Bookings без payment через 24 часа = cancellation. Payment без booking = investigate.</span></li>
-      <li><span class="advice-num">03</span><span><strong>Staff cash handling review.</strong> Кто принимает cash? Лимит per transaction? Daily reconciliation? Процесс, не честность.</span></li>
-      <li><span class="advice-num">04</span><span><strong>Quarterly inventory count.</strong> Мячи, ракетки, мерч, напитки - по бумаге vs факту. Расхождения = leakage или ошибки учёта.</span></li>
-      <li><span class="advice-num">05</span><span><strong>Document retention policy.</strong> Invoices 5 лет - contracts 10 лет - tax 7 лет. Цифровое хранение с backup минимум в 2 локациях.</span></li>
-    </ul>
-  </div>
-
 </main>
 
 <script>
 (async function() {
-  console.log('[audit] page version 2026-05-04c — TR-locale fix + defensive');
-  // Visible diagnostic: если страница висит — пользователь увидит этот баннер
-  function showLoadingError(msg) {
-    document.querySelectorAll('tbody .loading').forEach(function(td){
-      td.innerHTML = '<span style="color:var(--bad)">⚠ ' + msg + '</span><br><small style="color:var(--text3)">F5 / Ctrl+Shift+R чтобы пересоздать сессию</small>';
-    });
+  console.log('[audit] page version 2026-05-04d (rebuilt: surplus-only)');
+  var fmt = function(v) {
+    if (v == null || isNaN(v)) return '—';
+    return Math.round(+v).toLocaleString('ru-RU') + ' ₺';
+  };
+  var statusEl = document.getElementById('status-banner');
+  var tbody = document.getElementById('tbody');
+
+  function showError(msg) {
+    statusEl.innerHTML = '<div class="err-banner">⚠ ' + msg + '<br><small>Жми Ctrl+Shift+R для жёсткой перезагрузки</small></div>';
+    tbody.innerHTML = '<tr><td colspan="3" class="loading" style="color:var(--bad)">' + msg + '</td></tr>';
   }
-  if (!window.V7) {
-    showLoadingError('data.js не загрузился — проверь сеть');
+
+  // ── Load data with backend → fallback to direct Sheets ──
+  async function loadTab(tab) {
+    if (window.V7Backend) {
+      try {
+        var to = new Promise(function(_, rej) { setTimeout(function() { rej(new Error('timeout 10s')); }, 10000); });
+        var r = await Promise.race([V7Backend.db(tab), to]);
+        if (r && r.rows) return { rows: r.rows, src: 'backend' };
+      } catch (e) {
+        console.warn('[audit] backend ' + tab + ':', e.message || e);
+      }
+    }
+    // Fallback to direct Sheets
+    if (window.V7 && V7.loadSheet) {
+      try {
+        var rows = await V7.loadSheet(tab);
+        return { rows: rows || [], src: 'gviz' };
+      } catch (e) {
+        console.warn('[audit] direct ' + tab + ':', e.message || e);
+      }
+    }
+    return { rows: [], src: 'failed' };
+  }
+
+  var balResp, movResp, txResp;
+  try {
+    [balResp, movResp, txResp] = await Promise.all([
+      loadTab('client_balances'),
+      loadTab('balance_log'),
+      loadTab('client_transactions').catch(function() { return { rows: [], src: 'skip' }; }),
+    ]);
+  } catch (e) {
+    showError('Не удалось загрузить данные: ' + (e.message || e));
     return;
   }
-  const { loadSheet } = V7;
-  const fmt = v => {
-    if (v == null || isNaN(v)) return '—';
-    return Number(v).toLocaleString('tr-TR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' TRY';
+
+  var balances = balResp.rows || [];
+  var movements = movResp.rows || [];
+  var clientTx = txResp.rows || [];
+  console.log('[audit] loaded:', balances.length, 'balances,', movements.length, 'movements,', clientTx.length, 'tx (sources:', balResp.src, movResp.src, txResp.src + ')');
+
+  if (!balances.length) {
+    showError('Backend не вернул client_balances. Проверь логин или backend health: ' + (window.V7Backend ? V7Backend.BASE : '—'));
+    return;
+  }
+
+  // Filter out staff/test
+  var SKIP = ['olha test', 'prueba', 'demo', 'staff', 'olha bo', 'olha m', 'dilara akb', 'mert davas'];
+  var isTest = function(n) {
+    var k = (n || '').toLowerCase();
+    return SKIP.some(function(s) { return k.indexOf(s) >= 0; });
   };
-  // Глобальный safety net — любая ошибка в скрипте превращается в видимое сообщение
-  window.addEventListener('error', function(e) { showLoadingError('JS ошибка: ' + (e.message || e)); });
 
-  // ── Tab switching ──
-  document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      btn.classList.add('active');
-      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-      // Show warning banner ONLY on debtors tab
-      var dw = document.getElementById('debt-warning');
-      if (dw) dw.style.display = btn.dataset.tab === 'debtors' ? 'block' : 'none';
-    });
-  });
-
-  // ── Load data ──
-  // Через backend (cached, parallel, instant after warmup). Раньше было через
-  // прямые Google Sheets calls — cold cache = 3-5 сек на пользователя.
-  // Backend кэширует на 10 минут → второй запрос <100ms.
-  let debts = [], movements = [], balances = [], clientTx = [];
-
-  // Backend может «спать» (Railway free tier cold start) или DNS висеть —
-  // race с timeout 6 сек, иначе откатываемся на прямой Sheets fetch.
-  async function loadViaBackend(tab, sheetType) {
-    var timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('backend timeout 6s')), 6000));
-    try {
-      if (window.V7Backend) {
-        var p = sheetType === 'cache' ? V7Backend.cache(tab) : V7Backend.db(tab);
-        var r = await Promise.race([p, timeout]);
-        if (r && (r.rows || []).length) return r.rows;
-        // backend ответил пустым — пробуем прямой sheet
-        console.warn('[audit] backend returned empty for', tab, '— fallback to direct Sheets');
-      }
-    } catch (e) { console.warn('[audit] backend load failed for', tab, e.message || e); }
-    return await loadSheet(tab).catch((e) => {
-      console.error('[audit] direct loadSheet failed for', tab, e);
-      return [];
-    });
-  }
-
-  try {
-    const results = await Promise.allSettled([
-      loadViaBackend('debts', 'db'),
-      loadViaBackend('balance_log', 'db'),
-      loadViaBackend('client_balances', 'db'),
-    ]);
-    debts = results[0].status === 'fulfilled' ? results[0].value : [];
-    movements = results[1].status === 'fulfilled' ? results[1].value : [];
-    balances = results[2].status === 'fulfilled' ? results[2].value : [];
-  } catch (e) {
-    console.error('Data load error:', e);
-  }
-  // client_transactions огромный — грузим отдельно background, не блокируем
-  loadSheet('client_transactions').then(rows => {
-    clientTx = rows || [];
-    rebuildBalLog();
-  }).catch(() => {});
-
-  // Map имя_клиента → last 10 движений баланса.
-  // Источники:
-  // 1) balance_log (Recharge/Purchase/Correction, ~25 общих последних) — приоритет
-  // 2) client_transactions с keyword «balance»/«saldo» в description — fallback
-  //    для клиентов которые не попали в последние 25 операций
-  function normName(n) { return (n || '').trim().toLowerCase(); }
-  let balLogByName = {};
-  function rebuildBalLog() {
-    balLogByName = {};
-    movements.forEach(m => {
-      const k = normName(m.client);
-      if (!k) return;
-      if (!balLogByName[k]) balLogByName[k] = [];
-      balLogByName[k].push({
-        _src: 'balance_log',
-        date: m.date, type: m.type, description: m.description,
-        amount_num: m.amount_num, balance_after: m.balance_after,
-      });
-    });
-    // Fallback: client_transactions
-    const cidToName = {};
-    balances.forEach(b => {
-      const cid = String(b.customer_id || '').trim();
-      if (cid) cidToName[cid] = (b.name || '').trim() ||
-        ((b.first_name || '') + ' ' + (b.last_name || '')).trim();
-    });
-    debts.forEach(d => {
-      const cid = String(d.client_id || '').trim();
-      if (cid && !cidToName[cid]) cidToName[cid] = (d.client_name || '').trim();
-    });
-    clientTx.forEach(t => {
-      const desc = (t.description || '').toLowerCase();
-      if (!desc.includes('balance') && !desc.includes('saldo') && !desc.includes('recharge')) return;
-      const cid = String(t.customer_id || '').trim();
-      const nm = (t.client_name || cidToName[cid] || '').trim();
-      if (!nm) return;
-      const k = normName(nm);
-      if (!balLogByName[k]) balLogByName[k] = [];
-      const total = parseFloat(t.total) || 0;
-      const dup = balLogByName[k].some(x =>
-        x.date === t.date && Math.abs((x.amount_num || 0) - total) < 0.01
-      );
-      if (dup) return;
-      const type = desc.includes('recharge') ? 'Recharge' : 'Purchase';
-      balLogByName[k].push({
-        _src: 'tx', date: t.date, type: type, description: t.description,
-        amount_num: total, balance_after: '',
-      });
-    });
-    Object.keys(balLogByName).forEach(k => {
-      balLogByName[k].sort((a, b) => {
-        const norm = (d) => !d ? '' : (d.includes('/') ? d.split('/').reverse().join('-') : d);
-        return norm(b.date) < norm(a.date) ? -1 : 1;
-      });
-      balLogByName[k] = balLogByName[k].slice(0, 10);
-    });
-  }
-  rebuildBalLog();
-
-  // ── Process debts ──
-  // real_debt = OtrosPendientes + PendienteReserva (snapshot from latest booking)
-  // This is the TOTAL client debt as Matchpoint sees it
-  const SKIP_NAMES = ['prueba', 'demo', 'olha test', 'olha malkut', 'dilara akbiyik', 'mert davas'];
-  const isTest = name => SKIP_NAMES.some(t => name.toLowerCase().includes(t));
-
-  const debtors = [];
-
-  const allClients = [];
-
-  debts.forEach(r => {
-    const name = r.client_name || r.client_id || '?';
-    if (isTest(name)) return;
-
-    const realDebt = parseFloat(r.real_debt) || 0;
-    const balance = parseFloat(r.balance) || 0;
-    const netDebt = parseFloat(r.net_debt) || (realDebt - balance);
-    const pendRes = parseFloat(r.pending_res_latest) || 0;
-    const debtOther = parseFloat(r.debt_other) || 0;
-    const debtLuz = parseFloat(r.debt_luz) || 0;
-
-    const rec = {
-      name,
-      clientId: r.client_id,
-      realDebt,
-      balance,
-      netDebt,
-      pendRes,
-      debtOther,
-      debtLuz,
-      unpaid: parseInt(r.bookings_unpaid) || 0,
-      totalBookings: parseInt(r.bookings_total) || 0,
-      lastBooking: r.last_booking || '',
-      lastCourt: r.last_court || '',
+  // Surplus = balance > 0
+  var surplus = balances.map(function(b) {
+    var name = (b.name || '').trim() || ((b.first_name || '') + ' ' + (b.last_name || '')).trim();
+    var bal = parseFloat(b.balance);
+    if (!isFinite(bal)) bal = 0;
+    return {
+      cid: String(b.customer_id || '').trim(),
+      name: name,
+      balance: bal,
+      mobile: b.mobile || '',
+      email: b.email || '',
+      membership: b.membership || '',
     };
+  }).filter(function(c) { return c.balance > 0 && !isTest(c.name); })
+    .sort(function(a, b) { return b.balance - a.balance; });
 
-    allClients.push(rec);
-    if (netDebt > 10) {
-      debtors.push(rec);
-    }
+  // Build movements index: name (lowercase trim) → recent transactions
+  function nk(n) { return (n || '').trim().toLowerCase(); }
+  var moveByName = {};
+  movements.forEach(function(m) {
+    var k = nk(m.client);
+    if (!k) return;
+    if (!moveByName[k]) moveByName[k] = [];
+    moveByName[k].push({
+      date: m.date, type: m.type, desc: m.description,
+      amt: parseFloat(m.amount_num || m.amount) || 0,
+      after: m.balance_after,
+    });
+  });
+  // Fallback from client_transactions if balance_log empty for that client
+  clientTx.forEach(function(t) {
+    var desc = (t.description || '').toLowerCase();
+    if (desc.indexOf('balance') < 0 && desc.indexOf('saldo') < 0 && desc.indexOf('recharge') < 0 && desc.indexOf('voucher') < 0) return;
+    var k = nk(t.client_name);
+    if (!k) return;
+    if (!moveByName[k]) moveByName[k] = [];
+    moveByName[k].push({
+      date: t.date, type: desc.indexOf('recharge') >= 0 ? 'Recharge' : 'Purchase',
+      desc: t.description, amt: parseFloat(t.total) || 0, after: '',
+    });
+  });
+  // Sort each list by date desc, top 5
+  Object.keys(moveByName).forEach(function(k) {
+    moveByName[k].sort(function(a, b) {
+      var da = (a.date || '').replace(/\//g, '-');
+      var db = (b.date || '').replace(/\//g, '-');
+      return db < da ? -1 : 1;
+    });
+    moveByName[k] = moveByName[k].slice(0, 5);
   });
 
-  debtors.sort((a, b) => b.netDebt - a.netDebt);
+  // KPIs
+  var totalSurplus = surplus.reduce(function(s, c) { return s + c.balance; }, 0);
+  var avgBal = surplus.length ? totalSurplus / surplus.length : 0;
+  document.getElementById('kpi-surplus').textContent = fmt(totalSurplus);
+  document.getElementById('kpi-surplus-sub').textContent = surplus.length + ' клиентов с балансом &gt; 0';
+  document.getElementById('kpi-avg').textContent = fmt(avgBal);
+  if (surplus.length) {
+    document.getElementById('kpi-top').textContent = fmt(surplus[0].balance);
+    document.getElementById('kpi-top-name').textContent = surplus[0].name;
+  }
+  document.getElementById('kpi-src').textContent = balResp.src === 'backend' ? 'Backend cache' : 'Direct Sheets';
+  document.getElementById('kpi-updated').textContent = balances[0] && balances[0].updated_at ? balances[0].updated_at : 'live';
 
-  // Surplus: из client_balances tab (свежий scrape_balances.py — 1 запрос
-  // к Matchpoint /Clientes/ListadoClientesConSaldo.aspx, точные данные).
-  // Раньше брали debts.balance — терялись клиенты без недавних бронирований
-  // и были off-by-one ошибки. ADR-021.
-  const SKIP_BAL_NAMES = ['olha test', 'prueba', 'demo', 'staff', 'olha bo', 'olha m'];
-  const surplusClients = (balances || [])
-    .map(b => {
-      const fullName = (b.name || '').trim() || ((b.first_name || '') + ' ' + (b.last_name || '')).trim();
-      const bal = parseFloat(b.balance) || 0;
-      return {
-        clientId: String(b.customer_id || '').trim(),
-        displayCode: String(b.display_code || '').trim(),
-        name: fullName,
-        balance: bal,
-        // realDebt из debts если есть, иначе 0
-        realDebt: 0, netDebt: -bal,
-      };
-    })
-    .filter(c => c.balance > 0 && !SKIP_BAL_NAMES.some(t => c.name.toLowerCase().includes(t)))
-    .sort((a, b) => b.balance - a.balance);
-
-  // Подтягиваем real_debt из debts tab по customer_id (если есть)
-  const debtsByCid = {};
-  debts.forEach(d => {
-    const cid = String(d.client_id || '').trim();
-    if (cid) debtsByCid[cid] = d;
-  });
-  surplusClients.forEach(c => {
-    const d = debtsByCid[c.clientId];
-    if (d) {
-      c.realDebt = parseFloat(d.real_debt) || 0;
-      c.netDebt = c.realDebt - c.balance;
-    }
-  });
-
-  const totalDebt = debtors.reduce((s, d) => s + d.netDebt, 0);
-  const totalGross = debtors.reduce((s, d) => s + d.realDebt, 0);
-  const totalSurplus = surplusClients.reduce((s, d) => s + d.balance, 0);
-
-  // ── KPIs ──
-  document.getElementById('kpi-debt-val').textContent = fmt(totalDebt);
-  document.getElementById('kpi-debt-sub').textContent = debtors.length + ' клиентов (gross ' + fmt(totalGross) + ')';
-  document.getElementById('kpi-debtors-val').textContent = debtors.length;
-  document.getElementById('kpi-debtors-sub').textContent = 'с неоплаченными бронями';
-  document.getElementById('kpi-surplus-val').textContent = fmt(totalSurplus);
-  document.getElementById('kpi-surplus-sub').textContent = surplusClients.length + ' клиентов с балансом';
-  document.getElementById('kpi-movements-val').textContent = movements.length;
-  document.getElementById('kpi-movements-sub').textContent = 'записей в логе';
-
-  // ── Debtors table ──
-  const dtBody = document.querySelector('#debtors-table tbody');
-  const renderRow = d => `<tr>
-      <td>${d.clientId ? '<a href="clients.html#cid=' + d.clientId + '" style="color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent)" title="Карточка клиента">' + d.name + '</a>' : d.name}</td>
-      <td>${fmt(d.pendRes)}</td>
-      <td>${d.debtLuz ? fmt(d.debtLuz) : '—'}</td>
-      <td>${fmt(d.debtOther)}</td>
-      <td>${fmt(d.realDebt)}</td>
-      <td class="${d.balance > 0 ? 'pos' : ''}">${d.balance ? fmt(d.balance) : '—'}</td>
-      <td class="neg" style="font-weight:700">${fmt(d.netDebt)}</td>
-      <td>${d.unpaid}</td>
-      <td>${d.lastBooking}</td>
-    </tr>`;
-  const totalRow = (arr) => `<tr class="total-row">
-      <td>ИТОГО (${arr.length})</td>
-      <td>${fmt(arr.reduce((s,d) => s+d.pendRes, 0))}</td>
-      <td>${fmt(arr.reduce((s,d) => s+d.debtLuz, 0))}</td>
-      <td>${fmt(arr.reduce((s,d) => s+d.debtOther, 0))}</td>
-      <td>${fmt(arr.reduce((s,d) => s+d.realDebt, 0))}</td>
-      <td class="pos">${fmt(arr.reduce((s,d) => s+d.balance, 0))}</td>
-      <td class="neg" style="font-weight:700">${fmt(totalDebt)}</td>
-      <td>${arr.reduce((s,d) => s+d.unpaid, 0)}</td>
-      <td></td>
-    </tr>`;
-
-  if (!debtors.length) {
-    dtBody.innerHTML = '<tr><td colspan="9" class="loading">Нет должников</td></tr>';
-  } else {
-    dtBody.innerHTML = debtors.map(renderRow).join('') + totalRow(debtors);
-    document.getElementById('debtors-hint').textContent = debtors.length + ' клиентов · чистый долг ' + fmt(totalDebt);
-
-    // ── Sortable headers ──
-    const renderDebtors = (sorted) => {
-      dtBody.innerHTML = sorted.map(renderRow).join('') + totalRow(sorted);
-    };
-
-    document.querySelectorAll('#debtors-table th.sortable').forEach(th => {
-      th.addEventListener('click', () => {
-        const key = th.dataset.sort;
-        const wasAsc = th.classList.contains('asc');
-        document.querySelectorAll('#debtors-table th.sortable').forEach(h => h.classList.remove('asc', 'desc'));
-        const asc = !wasAsc;
-        th.classList.add(asc ? 'asc' : 'desc');
-        const sorted = [...debtors].sort((a, b) => {
-          const va = typeof a[key] === 'string' ? a[key] : +a[key];
-          const vb = typeof b[key] === 'string' ? b[key] : +b[key];
-          return asc ? (va > vb ? 1 : -1) : (va < vb ? 1 : -1);
-        });
-        renderDebtors(sorted);
-      });
-    });
+  // Render
+  if (!surplus.length) {
+    tbody.innerHTML = '<tr><td colspan="3" class="loading">Нет клиентов с положительным балансом</td></tr>';
+    return;
   }
 
-  // ── Surplus table ── с тултипом последних движений БАЛАНСА (Recharge/Purchase/Correction)
-  const sBody = document.querySelector('#surplus-table tbody');
-  function renderTxTooltip(name) {
-    const moves = balLogByName[normName(name)] || [];
-    if (!moves.length) return '<div style="padding:10px 14px;color:var(--text3);font-size:12px">Нет движений по балансу за last 60 дней.<br><small>balance_log хранит только последние операции; история обнуляется при ETL.</small></div>';
-    let html = '<div style="padding:10px 14px;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.6px;border-bottom:1px solid var(--border)">Последние ' + moves.length + ' операций по балансу</div>';
-    html += '<table style="width:100%;font-size:12px"><tbody>';
-    moves.forEach(m => {
-      const amt = parseFloat(m.amount_num) || 0;
-      const type = m.type || '';
-      const before = m.balance_before || '—';
-      const after = m.balance_after || '—';
-      const desc = (m.description || '').slice(0, 80);
-      // Цвет типа
-      const typeStyle = type === 'Recharge' ? 'color:var(--good)' : type === 'Correction' ? 'color:var(--warn)' : 'color:var(--text2)';
-      const amtCls = amt < 0 ? 'neg' : 'pos';
-      const amtStr = (amt > 0 ? '+' : '') + Math.round(amt).toLocaleString('tr-TR') + ' ₺';
-      html += '<tr style="border-bottom:1px solid var(--border)">' +
-        '<td style="padding:6px 10px;color:var(--text3);white-space:nowrap">' + (m.date || '—') + '</td>' +
-        '<td style="padding:6px 10px;font-weight:600;' + typeStyle + ';white-space:nowrap">' + type + '</td>' +
-        '<td style="padding:6px 10px;color:var(--text2);font-size:11px">' + desc + '</td>' +
-        '<td style="padding:6px 10px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums" class="' + amtCls + '">' + amtStr + '</td>' +
-        '<td style="padding:6px 10px;text-align:right;color:var(--text3);font-variant-numeric:tabular-nums">→ ' + after + '</td>' +
-      '</tr>';
-    });
-    html += '</tbody></table>';
-    return html;
-  }
-  if (!surplusClients.length) {
-    sBody.innerHTML = '<tr><td colspan="4" class="loading">Нет клиентов с балансом</td></tr>';
-  } else {
-    sBody.innerHTML = surplusClients.map((d, i) => {
-      // Кликабельное имя → /clients.html#cid=N открывает карточку клиента.
-      // Hover на имени всё ещё показывает popup с движениями баланса.
-      var nameHtml = d.clientId
-        ? '<a class="surplus-name" href="clients.html#cid=' + d.clientId + '" style="cursor:pointer;color:var(--accent);text-decoration:none;border-bottom:1px dotted var(--accent);" data-name="' + d.name.replace(/"/g,'&quot;') + '" title="Кликни — карточка клиента · наведи — движения баланса">' + d.name + '</a>'
-        : '<span class="surplus-name" style="cursor:help;border-bottom:1px dotted var(--text3)" data-name="' + d.name.replace(/"/g,'&quot;') + '">' + d.name + '</span>';
-      return `<tr>
-        <td>${nameHtml}</td>
-        <td class="pos" style="font-weight:700">${fmt(d.balance)}</td>
-        <td><span style="color:var(--text3);font-size:12px">в работе</span></td>
-        <td><span class="pos">+${fmt(d.balance)}</span></td>
-      </tr>`;
-    }).join('') + `<tr class="total-row">
-      <td>ИТОГО (${surplusClients.length} клиентов)</td>
-      <td class="pos" style="font-weight:700">${fmt(totalSurplus)}</td>
-      <td colspan="2"></td>
-    </tr>`;
+  function escapeHtml(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]; }); }
 
-    // Singleton tooltip — следует за курсором
-    let tooltipEl = document.getElementById('surplus-tx-tooltip');
-    if (!tooltipEl) {
-      tooltipEl = document.createElement('div');
-      tooltipEl.id = 'surplus-tx-tooltip';
-      tooltipEl.style.cssText = 'position:fixed;display:none;z-index:1000;background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,0.18);min-width:480px;max-width:680px;pointer-events:none';
-      document.body.appendChild(tooltipEl);
-    }
-    document.querySelectorAll('.surplus-name').forEach(el => {
-      el.addEventListener('mouseenter', e => {
-        const name = el.dataset.name;
-        tooltipEl.innerHTML = renderTxTooltip(name);
-        tooltipEl.style.display = 'block';
-      });
-      el.addEventListener('mousemove', e => {
-        const offset = 14;
-        const tw = tooltipEl.offsetWidth, th = tooltipEl.offsetHeight;
-        let x = e.clientX + offset, y = e.clientY + offset;
-        if (x + tw > window.innerWidth - 8) x = e.clientX - tw - offset;
-        if (y + th > window.innerHeight - 8) y = e.clientY - th - offset;
-        tooltipEl.style.left = x + 'px';
-        tooltipEl.style.top = y + 'px';
-      });
-      el.addEventListener('mouseleave', () => {
-        tooltipEl.style.display = 'none';
-      });
-    });
-  }
+  tbody.innerHTML = surplus.map(function(c) {
+    var moves = moveByName[nk(c.name)] || [];
+    var movesHtml = moves.length ? '<div class="tx-list">' + moves.map(function(m) {
+      var typeCls = (m.type || '').toLowerCase().indexOf('recharge') >= 0 ? 'recharge' :
+                    (m.type || '').toLowerCase().indexOf('correc') >= 0 ? 'correction' : 'purchase';
+      var amtCls = m.amt > 0 ? 'pos' : 'neg';
+      var amtStr = (m.amt > 0 ? '+' : '') + Math.round(m.amt).toLocaleString('ru-RU') + ' ₺';
+      return '<div class="tx-item">' +
+        '<span class="tx-date">' + escapeHtml(m.date || '') + '</span>' +
+        '<span class="tx-type ' + typeCls + '">' + escapeHtml(m.type || '—') + '</span>' +
+        '<span class="tx-amt ' + amtCls + '">' + escapeHtml(amtStr) + '</span>' +
+        '<span style="color:var(--text3);font-size:11px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="' + escapeHtml(m.desc || '') + '">' + escapeHtml((m.desc || '').slice(0, 60)) + '</span>' +
+        '</div>';
+    }).join('') + '</div>' : '<span style="color:var(--text3);font-size:11px;font-style:italic">нет движений в логе (старые операции)</span>';
 
-  // ── Movements table ──
-  const mBody = document.querySelector('#movements-table tbody');
-  if (!movements.length) {
-    mBody.innerHTML = '<tr><td colspan="8" class="loading">Нет данных о движениях</td></tr>';
-  } else {
-    mBody.innerHTML = movements.map(m => {
-      const amt = parseFloat(m.amount_num || m.amount || 0);
-      return `<tr>
-        <td>${m.date || ''}</td>
-        <td>${m.type || ''}</td>
-        <td>${m.client || ''}</td>
-        <td class="${amt > 0 ? 'pos' : amt < 0 ? 'neg' : ''}">${amt ? fmt(amt) : '—'}</td>
-        <td>${m.balance_before || ''}</td>
-        <td>${m.balance_after || ''}</td>
-        <td style="white-space:normal; max-width:200px; font-size:12px;">${m.description || ''}</td>
-        <td style="font-size:12px;">${m.admin || ''}</td>
-      </tr>`;
-    }).join('');
-    document.getElementById('movements-hint').textContent = movements.length + ' записей';
-  }
-
-  // ── Charts ──
-  // Top debtors bar chart
-  if (debtors.length) {
-    const top = debtors.slice(0, 15);
-    new Chart(document.getElementById('debt-chart'), {
-      type: 'bar',
-      data: {
-        labels: top.map(d => d.name.length > 20 ? d.name.slice(0, 18) + '...' : d.name),
-        datasets: [{
-          label: 'Долг',
-          data: top.map(d => d.netDebt),
-          backgroundColor: 'rgba(231, 76, 60, 0.7)',
-        }],
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
-        scales: {
-          x: { ticks: { callback: v => (v/1000).toFixed(0) + 'k' }, grid: { color: 'rgba(128,128,128,0.1)' } },
-          y: { ticks: { font: { size: 11 } } },
-        },
-      },
-    });
-  }
-
-  // Balance movements timeline
-  if (movements.length) {
-    // Group by date
-    const byDate = {};
-    movements.forEach(m => {
-      const d = m.date || '?';
-      if (!byDate[d]) byDate[d] = { pos: 0, neg: 0 };
-      const amt = parseFloat(m.amount_num || m.amount || 0);
-      if (amt > 0) byDate[d].pos += amt;
-      else byDate[d].neg += amt;
-    });
-    const dates = Object.keys(byDate).sort();
-    new Chart(document.getElementById('movements-chart'), {
-      type: 'bar',
-      data: {
-        labels: dates,
-        datasets: [{
-          label: 'Пополнения',
-          data: dates.map(d => byDate[d].pos),
-          backgroundColor: 'rgba(46, 204, 113, 0.7)',
-        }, {
-          label: 'Списания',
-          data: dates.map(d => byDate[d].neg),
-          backgroundColor: 'rgba(231, 76, 60, 0.7)',
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } } },
-        scales: {
-          x: { stacked: true, ticks: { font: { size: 10 }, maxRotation: 45 }, grid: { display: false } },
-          y: { stacked: true, ticks: { callback: v => (v/1000).toFixed(1) + 'k' }, grid: { color: 'rgba(128,128,128,0.1)' } },
-        },
-      },
-    });
-  }
-
-  // ── No data state ──
-  if (!debts.length && !movements.length) {
-    document.querySelector('.tab-bar').insertAdjacentHTML('afterend',
-      '<div class="panel" style="text-align:center; padding:40px; margin-bottom:20px;">' +
-      '<p style="font-size:16px; font-weight:500; margin-bottom:8px;">Данные ещё не загружены</p>' +
-      '<p style="font-size:13px; color:var(--text3);">Запустите ETL: <code>python etl/scrape_debts.py --write --days 60</code></p>' +
-      '</div>'
-    );
-  }
-
+    var nameHtml = c.cid
+      ? '<a class="name-link" href="client.html?cid=' + c.cid + '">' + escapeHtml(c.name) + '</a>'
+      : escapeHtml(c.name);
+    return '<tr>' +
+      '<td>' + nameHtml +
+        '<div style="font-size:11px;color:var(--text3);margin-top:2px">' + (c.cid ? 'cid=' + c.cid : '') + (c.membership ? ' · ' + escapeHtml(c.membership) : '') + '</div>' +
+      '</td>' +
+      '<td style="text-align:right" class="pos">' + fmt(c.balance) + '</td>' +
+      '<td>' + movesHtml + '</td>' +
+    '</tr>';
+  }).join('') + '<tr style="background:var(--surface2);font-weight:700">' +
+    '<td>ИТОГО (' + surplus.length + ' клиентов)</td>' +
+    '<td style="text-align:right" class="pos">' + fmt(totalSurplus) + '</td>' +
+    '<td></td>' +
+  '</tr>';
 })();
 </script>
-
-<script src="assets/sidebar.js"></script>
 </body>
 </html>
