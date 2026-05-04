@@ -557,6 +557,117 @@ OPEX per court = total_opex / N courts            (удельные затрат
 
 ---
 
+## ADR-023 · 2026-05-04 · Backend Foundation v0 на Railway + ghcr.io
+
+**Контекст**: Система всё сложнее (30+ страниц, ETL, dashboards). Notes/tags/follow_up для CRM v0 невозможно сделать без backend (нужен auth + permissions + API). Multi-tenant впереди (2-й клуб). WhatsApp/Lead webhooks нужны.
+
+**Решение**: Запущен FastAPI backend на Railway Hobby ($5/мес).
+- URL: https://backend-production-7989f.up.railway.app
+- Repo: https://github.com/volodimirrykov-lang/v7padel-backend (public)
+- CI: GitHub Actions → ghcr.io → Railway (manual redeploy)
+- Storage: SQLite (notes, tags, contact_log, leads_inbox)
+- Auth: JWT + same password как login.html
+
+**Почему Railway, а не свой VPS**: быстрый MVP. Phase 2 миграция на свой сервер запланирована (см. backlog).
+
+**Почему через ghcr.io public image, а не GitHub App**: GitHub App требует `workflow` scope для PAT который мы не могли получить (regenerate не сохраняет scope). Public image простой workaround.
+
+**Тесты**: 20 pytest passed (auth, notes, tags, contact_log, webhooks, cache proxy). См. `v7padel-backend/tests/`.
+
+**Performance** (после optimization): cold ~1.1s, warm ~750ms. Раньше было 5s — параллельные sheets reads + cache prewarm + HTTP cache headers.
+
+## ADR-024 · 2026-05-04 · AI Agent Roadmap — phased rollout
+
+**Контекст**: Володимир видит конкурентное преимущество в AI-агенте который знает каждого клиента лично (multilingual, контекст, escalation). В индустрии padel этого никто не делает.
+
+**Решение**: 4 фазы строго по очереди:
+
+1. **Phase 1 — Admin Agent** — agent помогает админу/Володимиру (не пишет клиенту). Natural language search, lists, drafts.
+2. **Phase 2 — Survey Agent** — собирает preferences через onboarding опрос. Pre-condition для Phase 3-4.
+3. **Phase 3 — Inbox-aware Agent** — отвечает на входящие сообщения от клиентов. НЕ инициирует.
+4. **Phase 4 — Outreach Agent** — сам инициирует общение. Только после Phase 1-3 + WhatsApp templates approved.
+
+**Тестирование** (одобрено Володимиром): Володимир сам → 5 близких → 10-15 лояльных → 50-200 → массово. Никогда не запускать на массу без узкого тестирования.
+
+**KVKK**: opt-in галочка обязательна на регистрации. Без неё — клиент не попадает в outreach.
+
+**Каналы**: WhatsApp + Telegram + IG DM + Matchpoint mailings + V7 portal. Multilingual: TR/EN/RU/UA/ES.
+
+**Failure modes** (см. ADR-025).
+
+## ADR-025 · 2026-05-04 · AI Failure & Escalation Strategy
+
+**Контекст**: Что когда AI ошибся — критически важный вопрос (Володимир спросил). Без чёткой escalation = потеря доверия клиента, риск для бренда V7.
+
+**4 уровня escalation**:
+
+### Level 0 — AI поняла, ответила сама
+- Клиент задал вопрос → agent ответил с confidence ≥ 0.8 → лог в contact_log → done.
+
+### Level 1 — Soft escalation (admin notification)
+**Триггеры**:
+- AI confidence < 0.6 (не уверен в ответе)
+- Клиент написал «не понял» / «what do you mean?» 1 раз
+- Запрос вне scope (booking + question + price → mixed intent)
+- Прошло >30 минут без active conversation после первого AI ответа
+
+**Действие**: AI отвечает заглушкой «Проверяю детали, менеджер свяжется в течение часа» + alert в **Telegram канал админа** + ticket в backend `escalations` таблице.
+
+### Level 2 — Manager intervention (instant alert)
+**Триггеры**:
+- Клиент написал «не понял» 2 раза подряд
+- Detected emotion: anger / frustration / complaint
+- Слова-маркеры: «лажа», «отвратительно», «больше не приду», «отказ», «refund», «верните деньги»
+- VIP/Club клиент задал вопрос которому AI не смог ответить с confidence > 0.7
+- Технические вопросы про оплату / membership / возврат
+
+**Действие**:
+- AI извиняется: «Извини, я не могу помочь с этим — передаю менеджеру **прямо сейчас**.»
+- Push-notification в **Telegram чат менеджеров** с context (cid, message, history)
+- VIP/Club → дополнительный SMS управляющей
+- SLA: ответ от человека ≤ 15 минут в рабочее время
+
+### Level 3 — Founder escalation (срочный звонок)
+**Триггеры**:
+- Threat (юридическое разбирательство, негативный отзыв в СМИ)
+- VIP клиент unresponded > 1 час после Level 2 escalation
+- Системная ошибка (AI завис, написал лютую дичь)
+- Multiple complaints в течение часа (>3 клиентов)
+
+**Действие**:
+- Автоматический **звонок управляющей** через Twilio API (приоритет)
+- Если не отвечает в 5 минут → **звонок Володимиру**
+- В canned response клиенту: «Передал руководству, перезвоним в 30 минут.»
+
+### Level 4 — Recovery & Bonus
+**После любого escalation**:
+- Клиент получает small bonus (1 час корта free, voucher на тренировку, free racket rental)
+- Записать в `escalations` таб — что произошло, как разрешили, follow-up
+- Учесть в KPI «escalation rate» — должна быть < 5% от total interactions
+
+### Принципы
+
+1. **Speed over perfection** — лучше быстро ответить «передаю менеджеру» чем долго думать самому.
+2. **Кнопка panic от клиента** — в любом chat «**Менеджер 🆘**» ссылка → instant escalate.
+3. **Каждая escalation = learning event** — анализ раз в неделю, что AI не смог, тюним prompts.
+4. **Audit log** — все escalations сохраняются с full context для post-mortem.
+5. **VIP path > Standard path** — VIP/Club клиенты автоматически на 1 уровень выше escalation.
+
+### Реализация (когда будем строить)
+
+- `escalations` таблица в backend SQLite (cid, level, trigger, message_id, status, resolved_by, bonus, notes)
+- Telegram bot для уведомлений admin/manager/founder
+- Twilio API для звонков (Level 3)
+- UI на /escalations.html — admin видит все active + history
+
+### Метрики
+
+- Escalation rate: <5% от total interactions
+- Time-to-human: <15 мин Level 2, <5 мин Level 3
+- Recovery rate: % клиентов которые остаются после escalation (target ≥80%)
+
+---
+
 ## Шаблон новой записи
 
 ```markdown
