@@ -147,6 +147,28 @@
       "_note": "Запрошено Володимиром 2026-05-05. Финальное направление: 'обучение/тренажёр в игровой форме'."
     },
     {
+      "id": "H13",
+      "title": "Skills Matrix + Individual Development Plans (IDPs) — Talent Management",
+      "priority": "P1",
+      "size": "L",
+      "owner": "Володимир + v7-team",
+      "deadline": "Q3 2026 (этап 1: matrix W4-W5 после H11 MVP · этап 2: IDPs Q3 · этап 3: динамика over time Q4)",
+      "linked_okr": "(team scaling — критично для понимания кого куда расти)",
+      "linked_tasks": ["H06 Performance Review", "H07 Career Ladders", "H11 SJT Trainer (data source)", "H12 LMS (далеко — для модулей обучения)"],
+      "status": "backlog",
+      "deliverable": "Skills Matrix per role на /team/skills.html: 5 ролей (Админ / Онлайн-менеджер / Управляющий клуба / Тренер / Маркетолог-SMM) × 5-6 role-specific компетенций × шкала 1-5. Heatmap всех сотрудников. Динамика over time (каждый проход H11 SJT → новая точка). Auto-IDP per employee от AI: сильные стороны (как использовать) + gaps (план развития: модули / менторинг / ротация / re-test через 60 дней).",
+      "rationale": "Володимир 2026-05-05: 'знаешь в каких темах силён, и в какие можно прокачивать'. Это Talent Management System. Каждый проход H11 → data point в Skills Matrix → видна карта команды + auto-IDP. Бенчмарки: Cornerstone OnDemand, 15Five, Lattice, Pluralsight Skills. Без этого H11 — просто assessment-инструмент. С Skills Matrix — полноценный talent development.",
+      "method_short": "1) Володимир + Оля ПМ определяют 5-6 role-specific компетенций для каждой из 5 ролей. 2) Шкала 1-5 с поведенческими дескрипторами (что делает на 1, что на 3, что на 5). 3) Mapping H11 reasoning categories → competencies (например 'stakeholder mapping' в reasoning → 'team leadership' в competency). 4) AI generates IDP per employee на основе gaps. 5) В Q3 связать с H06 (формальный квартальный review).",
+      "competencies_draft": {
+        "admin": ["Customer focus", "Operational thinking", "Cash management", "Crisis handling", "Brand consistency"],
+        "online_manager": ["Customer attribution", "Digital communication", "Conversion optimization", "Reactivation strategy", "Process discipline"],
+        "club_manager": ["Team leadership", "P&L thinking", "Operational coordination", "Conflict resolution", "Strategic alignment"],
+        "coach": ["Technical coaching", "Group dynamics", "Customer retention", "Sales (FT→paid)", "Brand consistency"],
+        "marketing_smm": ["Content creation", "Funnel analysis", "Sponsorship sales", "Brand voice", "ROI mindset"]
+      },
+      "_note": "Володимир 2026-05-05 ведущая идея: 'админов, онлайн-менеджеров, управляющих, маркетологов, даже SMM' — все роли через тренажёр, разные компетенции."
+    },
+    {
       "id": "H12",
       "title": "V7 Academy LMS — полноценная Learning Management System",
       "priority": "P3",
