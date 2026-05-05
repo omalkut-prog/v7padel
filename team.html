@@ -106,6 +106,19 @@
   .alert-item b { color: var(--text); }
   .loading { color: var(--text3); padding: 30px; text-align: center; }
 
+  /* Sub-tabs (по ФИО) внутри KPI таба */
+  .sub-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .sub-tab { padding: 8px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 22px; cursor: pointer; font-size: 13px; color: var(--text2); transition: all 0.15s; user-select: none; }
+  .sub-tab:hover { color: var(--text); border-color: var(--border-hover); }
+  .sub-tab.active { background: var(--accent-soft); border-color: var(--accent-border); color: var(--accent); font-weight: 600; }
+  .sub-tab .role-dot { display: inline-block; font-size: 10px; opacity: 0.6; margin-left: 6px; }
+  .emp-pane { display: none; }
+  .emp-pane.active { display: block; }
+  .emp-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 14px; }
+  .summary-tile { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; text-align: center; }
+  .summary-tile .num { font-size: 20px; font-weight: 700; color: var(--text); }
+  .summary-tile .lbl { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
   @media (max-width: 720px) {
     main { padding: 16px 12px 60px; }
     .grid-okr, .grid-team { grid-template-columns: 1fr; }
@@ -162,7 +175,7 @@
       <b>Привязка к OKR:</b> каждый KPI помечен тэгом цели <span class="okr-tag">→ O5</span>. Красный <span class="okr-tag orphan">orphan</span> = KPI без связи с OKR (рассинхрон).
       <b>Источник:</b> <span class="auto-badge auto-yes">auto</span> из cache · <span class="auto-badge auto-partial">partial</span> требует доработки источника · <span class="auto-badge auto-no">manual</span> ручной ввод.
     </div>
-    <div class="grid grid-team" id="team-list"><div class="loading">Загружаю команду…</div></div>
+    <div id="team-list"><div class="loading">Загружаю команду…</div></div>
   </div>
 
   <div class="pane" id="processes">
