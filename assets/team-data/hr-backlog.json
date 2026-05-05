@@ -133,17 +133,18 @@
     },
     {
       "id": "H11",
-      "title": "Тренажёр действий — Situational Judgment Tests (SJT) для отбора и обучения",
+      "title": "Тренажёр действий — game-based SJT (Situational Judgment Tests) для отбора + обучения",
       "priority": "P1",
       "size": "L",
       "owner": "Володимир + v7-team + Оля ПМ",
-      "deadline": "Q3 (поэтапно: банк 10 кейсов W2-W3, веб-форма W4-W5, валидация на текущей команде Q3)",
-      "linked_okr": "(critical для масштабирования сети — отбор+обучение)",
+      "deadline": "Поэтапно: MVP 20 кейсов W2-W3 · Story mode W3-W4 · Gamification W5-W6 · AI feedback W7-W8 · Validation Q3",
+      "linked_okr": "(critical для масштабирования сети — отбор+обучение в pipeline)",
       "status": "backlog",
-      "deliverable": "Уровень 1: web-страница /team/sjt.html (защищённая) с банком 30-50 SJT-кейсов разделённых на 4 компетенции (Customer focus / Decision quality / Operational thinking / Brand consistency). Кандидат проходит 20 random за 30 мин. Auto-scoring + AI-feedback после каждого вопроса. Используется на 3 этапах: (1) первичный отбор кандидатов с улицы, (2) обучение новичков с разбором, (3) monthly pulse текущей команды. Уровень 2 (через месяц): In-Basket для менеджеров. Уровень 3 (для финалистов): live role-play.",
-      "rationale": "У V7 постоянный отбор+обучение. Без формализации — 'знаем людей лично' не масштабируется на А2/А3. SJT — самая дешёвая и scaled методика (Unilever/IBM/Deloitte/Ritz-Carlton используют). Особое преимущество V7: AI может давать персональный feedback после каждого ответа — уровень выше большинства корп решений. Связан с H07 (lower-bound для перехода Junior→Coach: пройти SJT) и H10 (банк готовых кандидатов).",
-      "method_short": "1) Володимир + senior team пишут банк 30-50 кейсов из реальных инцидентов V7. 2) Каждый кейс: 4-5 вариантов ответа × ranked по best/good/marginal/worst/wrong. 3) Scoring rubric валидируется на 3-5 senior людях. 4) Web-форма с auto-scoring и AI-explanations. 5) Convergent validity через 6 мес — сравнить SJT score новичка → реальный perf → откалибровать.",
-      "_note": "Запрошено Володимиром 2026-05-05: 'у нас постоянный отбор и обучение, для сети критическая история'."
+      "deliverable": "Game-based SJT-тренажёр на /team/sjt.html. Story-driven mini-game 'День в V7' (утро/день/вечер) с накопительным effect — выбор утром влияет на сценарии днём/вечером. Банк 30-50 кейсов из реальных инцидентов разделённых на 4 компетенции (Customer focus / Decision quality / Operational thinking / Brand consistency). 20 random за 30 мин. Прогресс-бары компетенций + AI-feedback per ответ с reference на предыдущие решения кандидата. Уровень: Junior / Middle / Senior. Два режима: assessment (отбор, без feedback в процессе) и learning (текущая команда, с feedback). Поэтапно: W1-W2 MVP disconnected кейсы → W3-W4 story branching → W5-W6 gamification → W7-W8 personalised AI feedback. Уровень 2: In-Basket для менеджеров. Уровень 3: Live role-play для финалистов.",
+      "rationale": "У V7 постоянный pipeline отбор+обучение. Без формализации 'знаем людей лично' не масштабируется на А2/А3. Game-based SJT (Pymetrics/Arctic Shores/Owiwi) повышает completion rate +30-40% и снижает gaming the test. AI persoonal feedback — преимущество V7 над типовыми корп SJT.",
+      "method_short": "1) Володимир + senior team пишут банк 30-50 кейсов из реальных инцидентов. 2) Каждый кейс: 4-5 вариантов × ranked best/good/marginal/worst/wrong. 3) Rubric валидируется на 3-5 senior. 4) Story branching 2-3 ключевых развилки на день (не каждый кейс — иначе exponential complexity). 5) AI feedback с reference на предыдущие ответы. 6) Convergent validity через 6 мес — сравнить SJT score новичка → реальный perf → откалибровать.",
+      "anti_patterns": ["leaderboard в первой версии (может разделить команду 6 человек разных ролей)", "перебор анимаций (теряется serious mindset)", "общий AI feedback ('хорошо подумал!') вместо конкретного по rubric", "exponential branching (3 варианта × 20 шагов = 3.5B комбинаций — невозможно поддерживать)"],
+      "_note": "Запрошено Володимиром 2026-05-05. Финальное направление: 'обучение/тренажёр в игровой форме'."
     }
   ]
 }
