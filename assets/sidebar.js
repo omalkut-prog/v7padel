@@ -58,7 +58,7 @@
       { label: 'Дни рождения', href: 'birthdays.html',         icon: 'recall',      roles: ['admin', 'manager'] },
       { label: 'Турниры',    href: 'tournament-analytics.html', icon: 'tournaments', roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Управление', href: 'management.html',          icon: 'management',  roles: ['admin'] },
-      { label: 'Команда',    href: 'team.html',                icon: 'team',        roles: ['admin'], cls: 'team-link' },
+      { label: 'Команда',    href: 'team.html',                icon: 'team',        roles: ['admin', 'manager'] },
     ]},
     { group: 'Инструменты', items: [
       { label: 'Данные',      href: 'data.html',                 icon: 'data',       roles: ['admin'] },
