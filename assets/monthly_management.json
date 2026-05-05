@@ -1,0 +1,9 @@
+{
+  "_comment": "ID управленческих таблиц Анталии по месяцам (на каждый месяц свой spreadsheet). build_cache.py использует это для fallback ИТОГО OPEX в dashboard_kpis когда бухгалтер не закрыл master PnL. Tab 'Сводные расходы по периоду' содержит готовый итог.",
+  "_when_to_update": "Когда бухгалтер создаёт новую месячную управленку — добавь YYYY-MM → spreadsheet_id (из URL /spreadsheets/d/{id}/edit).",
+  "sheets_by_month": {
+    "2026-04": "1jUxfbpHAWILhl6CV2I3wLBP0NlzeT2JPs97QmUyIyTg"
+  },
+  "opex_tab": "Сводные расходы по периоду",
+  "opex_total_row_label": "ИТОГО"
+}
