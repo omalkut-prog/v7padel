@@ -145,6 +145,21 @@
       "method_short": "1) Володимир + senior team пишут банк 30-50 кейсов из реальных инцидентов. 2) Каждый кейс: 4-5 вариантов × ranked best/good/marginal/worst/wrong. 3) Rubric валидируется на 3-5 senior. 4) Story branching 2-3 ключевых развилки на день (не каждый кейс — иначе exponential complexity). 5) AI feedback с reference на предыдущие ответы. 6) Convergent validity через 6 мес — сравнить SJT score новичка → реальный perf → откалибровать.",
       "anti_patterns": ["leaderboard в первой версии (может разделить команду 6 человек разных ролей)", "перебор анимаций (теряется serious mindset)", "общий AI feedback ('хорошо подумал!') вместо конкретного по rubric", "exponential branching (3 варианта × 20 шагов = 3.5B комбинаций — невозможно поддерживать)"],
       "_note": "Запрошено Володимиром 2026-05-05. Финальное направление: 'обучение/тренажёр в игровой форме'."
+    },
+    {
+      "id": "H12",
+      "title": "V7 Academy LMS — полноценная Learning Management System",
+      "priority": "P3",
+      "size": "XL",
+      "owner": "Володимир + v7-product (нет пока)",
+      "deadline": "Q4 2026 — Q1 2027 (зависит от триггера)",
+      "trigger": "Когда сеть достигнет 15+ людей ИЛИ 3+ контент-модулей кроме SJT (KVKK, safety, sales scripts, V7 culture)",
+      "linked_okr": "(team scaling — only when team grows)",
+      "status": "backlog (long-term direction)",
+      "deliverable": "Internal LMS V7 Academy: модули обучения per role (Coach / Manager / Admin), video/audio контент, прогресс-tracking per user, certificates, manager dashboards. SJT-тренажёр (H11) встраивается как компонент. Подход выбирается на момент trigger'а: Buy (TalentLMS/Litmos/360Learning) vs Open (Moodle selfhost) vs Build (FastAPI+PostgreSQL).",
+      "rationale": "Свой LMS = competitive advantage сети (как McDonald's Hamburger University, Disney Institute, Ritz-Carlton). Но сейчас overkill для 6 людей. ROI пилот→LMS окупается со 100+ людей. До этого H11 SJT покрывает 80% боли отбор+обучение без LMS overhead. Bench: TalentLMS $50/мес 5чел, Litmos $300/мес 50чел, Moodle бесплатно selfhost.",
+      "method_short": "1) В Q3 оценить trigger. 2) Если положительно — попробовать TalentLMS sandbox 30 дней. 3) Если SaaS не покрывает — Moodle на VPS. 4) Build только если 1+2 не подходят и есть бюджет 3-6 мес разработки.",
+      "_note": "Володимир 2026-05-05: 'LMS по сути разработка'. Я (Hub) рекомендую НЕ строить сейчас — ждать trigger. H11 — самодостаточный модуль не требующий LMS платформы."
     }
   ]
 }
