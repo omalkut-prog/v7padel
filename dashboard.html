@@ -1286,7 +1286,26 @@ V7.loadCacheTab('liabilities').then(function(rows) {
 // ── MODAL FUNCTIONS ──
 var _revMixCache = null; // {labels:[], data:[]} — legacy, для совместимости
 var _revByCatMonthly = null; // массив {month, Корты, ...} из rev_by_month_cat
-var _revModalPeriod = 1; // месяцев в модале: 1, 3, 6, 0 (всё)
+var _revModalPeriod = 'this_month'; // 'last_month' | 'this_month' | 'm3' | 'm6' | 'm12' | 'all'
+
+// Выбор строк из массива агрегатов по месяцу для периода модалки.
+// Поскольку данные агрегированы по месяцам — точные 7д/30д/90д невозможны,
+// поэтому "Прошлый месяц"/"Этот месяц" работают по календарным месяцам,
+// а 3/6/12 мес — последние N месяцев из имеющихся.
+function _selectByPeriod(rows, type) {
+  if (!rows || !rows.length) return [];
+  var now = new Date();
+  var curYM = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  var prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  var prevYM = prev.getFullYear() + '-' + String(prev.getMonth()+1).padStart(2,'0');
+  if (type === 'this_month') return rows.filter(function(r){ return r.month === curYM; });
+  if (type === 'last_month') return rows.filter(function(r){ return r.month === prevYM; });
+  if (type === 'm3') return rows.slice(-3);
+  if (type === 'm6') return rows.slice(-6);
+  if (type === 'm12') return rows.slice(-12);
+  if (type === 'all') return rows.slice();
+  return rows.slice(-1);
+}
 
 function closeDashModal() {
   document.getElementById('dash-modal').classList.remove('active');
@@ -1319,14 +1338,10 @@ function _renderRevModalBody() {
     container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных</div>';
     return;
   }
-  // Определяем список месяцев под период.
-  // N месяцев = последние N месяцев из имеющихся (включая текущий). 0 = все.
-  var selected;
-  if (_revModalPeriod <= 0) selected = rows.slice();
-  else selected = rows.slice(-_revModalPeriod);
-
+  // Выбираем строки под выбранный период (см. _selectByPeriod).
+  var selected = _selectByPeriod(rows, _revModalPeriod);
   if (!selected.length) {
-    container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных за период</div>';
+    container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных за этот период</div>';
     return;
   }
 
@@ -1362,30 +1377,29 @@ document.getElementById('kpi-rev-card').addEventListener('click', async function
   document.getElementById('modal-title').textContent = 'Структура выручки по периодам';
   document.getElementById('modal-body').innerHTML =
     '<div class="modal-period">' +
-    '  <button data-months="1">Текущий месяц</button>' +
-    '  <button data-months="3">Последние 3 мес.</button>' +
-    '  <button data-months="6">Последние 6 мес.</button>' +
-    '  <button data-months="12">Последние 12 мес.</button>' +
-    '  <button data-months="0">Всё время</button>' +
+    '  <button data-period="last_month">Прошлый месяц</button>' +
+    '  <button data-period="this_month">Этот месяц</button>' +
+    '  <button data-period="m3">3 мес</button>' +
+    '  <button data-period="m6">6 мес</button>' +
+    '  <button data-period="m12">12 мес</button>' +
+    '  <button data-period="all">Всё</button>' +
     '</div>' +
     '<div id="rev-modal-table"><div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div></div>';
   document.getElementById('dash-modal').classList.add('active');
 
   await _ensureRevByCatLoaded();
 
-  // Подсветим активную кнопку
   function _setActive() {
     document.querySelectorAll('#modal-body .modal-period button').forEach(function(b) {
-      b.classList.toggle('active', parseInt(b.dataset.months, 10) === _revModalPeriod);
+      b.classList.toggle('active', b.dataset.period === _revModalPeriod);
     });
   }
   _setActive();
   _renderRevModalBody();
 
-  // Обработчики переключения периода
   document.querySelectorAll('#modal-body .modal-period button').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      _revModalPeriod = parseInt(btn.dataset.months, 10) || 0;
+      _revModalPeriod = btn.dataset.period;
       _setActive();
       _renderRevModalBody();
     });
@@ -1394,7 +1408,7 @@ document.getElementById('kpi-rev-card').addEventListener('click', async function
 
 // OPEX KPI click → category breakdown с выбором периода (зеркало Revenue).
 var _opexByCatMonthly = null;
-var _opexModalPeriod = 1;
+var _opexModalPeriod = 'this_month';
 
 async function _ensureOpexByCatLoaded() {
   if (_opexByCatMonthly) return _opexByCatMonthly;
@@ -1417,9 +1431,9 @@ function _renderOpexModalBody() {
     container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных</div>';
     return;
   }
-  var selected = _opexModalPeriod <= 0 ? rows.slice() : rows.slice(-_opexModalPeriod);
+  var selected = _selectByPeriod(rows, _opexModalPeriod);
   if (!selected.length) {
-    container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных за период</div>';
+    container.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">Нет данных за этот период</div>';
     return;
   }
   // Категории = все поля кроме month и Итого
@@ -1457,11 +1471,12 @@ document.getElementById('kpi-opex-card').addEventListener('click', async functio
   document.getElementById('modal-title').textContent = 'Структура OPEX по периодам';
   document.getElementById('modal-body').innerHTML =
     '<div class="modal-period">' +
-    '  <button data-months="1">Текущий месяц</button>' +
-    '  <button data-months="3">Последние 3 мес.</button>' +
-    '  <button data-months="6">Последние 6 мес.</button>' +
-    '  <button data-months="12">Последние 12 мес.</button>' +
-    '  <button data-months="0">Всё время</button>' +
+    '  <button data-period="last_month">Прошлый месяц</button>' +
+    '  <button data-period="this_month">Этот месяц</button>' +
+    '  <button data-period="m3">3 мес</button>' +
+    '  <button data-period="m6">6 мес</button>' +
+    '  <button data-period="m12">12 мес</button>' +
+    '  <button data-period="all">Всё</button>' +
     '</div>' +
     '<div id="opex-modal-table"><div style="color:var(--text3);padding:20px;text-align:center">Загружаю…</div></div>';
   document.getElementById('dash-modal').classList.add('active');
@@ -1470,7 +1485,7 @@ document.getElementById('kpi-opex-card').addEventListener('click', async functio
 
   function _setActiveOpex() {
     document.querySelectorAll('#modal-body .modal-period button').forEach(function(b) {
-      b.classList.toggle('active', parseInt(b.dataset.months, 10) === _opexModalPeriod);
+      b.classList.toggle('active', b.dataset.period === _opexModalPeriod);
     });
   }
   _setActiveOpex();
@@ -1478,7 +1493,7 @@ document.getElementById('kpi-opex-card').addEventListener('click', async functio
 
   document.querySelectorAll('#modal-body .modal-period button').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      _opexModalPeriod = parseInt(btn.dataset.months, 10) || 0;
+      _opexModalPeriod = btn.dataset.period;
       _setActiveOpex();
       _renderOpexModalBody();
     });
