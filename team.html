@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="assets/theme.js"></script>
+<script src="assets/data.js?v=20260505"></script>
 <link rel="stylesheet" href="assets/theme.css?v=20260418">
 <link rel="stylesheet" href="assets/sidebar.css">
 <style>
@@ -50,7 +51,7 @@
   .pane { display: none; }
   .pane.active { display: block; }
 
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; overflow-wrap: anywhere; }
   .grid { display: grid; gap: 14px; }
   .grid-okr { grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); }
   .grid-team { grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); }
@@ -73,11 +74,12 @@
   .emp h3 { font-size: 17px; color: var(--text); margin-bottom: 2px; }
   .emp-role { color: var(--text3); font-size: 12px; margin-bottom: 4px; }
   .emp-zones { color: var(--text2); font-size: 12px; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
-  .kpi-row { padding: 10px 0; border-bottom: 1px dashed var(--border); }
+  .kpi-row { padding: 10px 0; border-bottom: 1px dashed var(--border); display: grid; grid-template-columns: 1fr auto; gap: 8px 12px; align-items: baseline; }
   .kpi-row:last-child { border-bottom: none; }
   .kpi-name { font-weight: 500; color: var(--text); font-size: 13px; }
-  .kpi-fact { float: right; font-weight: 600; font-size: 13px; color: var(--text); }
+  .kpi-fact { font-weight: 600; font-size: 13px; color: var(--text); text-align: right; }
   .kpi-fact.muted { color: var(--text3); font-weight: 400; font-style: italic; }
+  .kpi-meta { grid-column: 1 / -1; }
   .kpi-meta { font-size: 11px; color: var(--text3); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .okr-tag { display: inline-block; background: var(--accent-soft); color: var(--accent); padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; }
   .okr-tag.orphan { background: rgba(231,76,60,0.15); color: var(--bad); }
@@ -295,24 +297,33 @@ async function loadAll() {
     okr.okr.forEach(o => { MAP_OKR[o.id] = o; });
   } catch (e) {
     console.error('JSON load failed', e);
+    const msg = '<div class="alert-item"><b>Не удалось загрузить данные команды.</b> ' + (e.message || e) + '</div>';
+    ['okr-list','team-list','backlog-list','alerts-list'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = msg;
+    });
+    const tbody = document.querySelector('#proc-table tbody');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="6">' + msg + '</td></tr>';
     return;
   }
-  // North Star auto-fact из backend cache
   loadNorthStar();
   render();
 }
 
 async function loadNorthStar() {
   try {
-    const r = await fetch('https://backend-production-7989f.up.railway.app/api/cache/dashboard_kpis');
-    if (!r.ok) {
-      document.getElementById('ns-hours-fact').innerHTML = '<span class="fact-source">backend недоступен</span>';
-      document.getElementById('ns-rpch-fact').innerHTML = '<span class="fact-source">backend недоступен</span>';
+    if (!window.V7 || !window.V7.loadCacheTab) {
+      document.getElementById('ns-hours-fact').innerHTML = '<span class="fact-source">data.js не загружен</span>';
+      document.getElementById('ns-rpch-fact').innerHTML = '<span class="fact-source">data.js не загружен</span>';
       return;
     }
-    const j = await r.json();
-    const d = j.rows && j.rows[0];
-    if (!d) return;
+    const rows = await V7.loadCacheTab('dashboard_kpis');
+    const d = rows && rows[0];
+    if (!d) {
+      document.getElementById('ns-hours-fact').innerHTML = '<span class="fact-source">cache пуст</span>';
+      document.getElementById('ns-rpch-fact').innerHTML = '<span class="fact-source">cache пуст</span>';
+      return;
+    }
     const hoursLm = parseFloat(d.total_hours_lm) || 0;
     const lm = d.last_month || '';
     let daysInMonth = 30;
