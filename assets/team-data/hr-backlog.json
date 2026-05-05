@@ -147,6 +147,20 @@
       "_note": "Запрошено Володимиром 2026-05-05. Финальное направление: 'обучение/тренажёр в игровой форме'."
     },
     {
+      "id": "H14",
+      "title": "Customer Outreach Engine — AI-агент авто-коммуникации для заполнения 40 ч/день",
+      "priority": "P0",
+      "size": "L",
+      "owner": "Hub + v7-outreach сессия (новая)",
+      "deadline": "Phase 0 эта неделя · Phase 1 следующие 2 недели · Phase 2 месяц",
+      "linked_okr": "O1 (40 корто-часов/день — главная)",
+      "status": "in-progress",
+      "deliverable": "Event-driven AI-агент который видит триггеры (post-tournament / реактивация / pre-tournament fill / booking gap / FT-followup / membership expiring) → генерит drafts на 4 языках → manager approve → отправка через WhatsApp/Telegram. Phase 0 = post-tournament на whitelist (Володимир + 2-3 друга). Phase 1 = реактивация 1192 спящих. Phase 2 = все 6 триггеров с авто-отправкой через WhatsApp Cloud API.",
+      "rationale": "Володимир 2026-05-05: 'Раньше делали руками — регистрация шла. Сейчас не делают — турниры не заполнены. Это автоматизируется.' Реальный impact для 40 ч/день: реактивация спящих +10-17 ч/день, pre-tournament fill +2-4, post-tournament +1-3. Post-tournament — лучший MVP (foundation для остальных). КРИТИЧЕСКИ зависит от H02 Attribution для измерения ROI (сообщение → бронь).",
+      "method_phase_0": "Cron каждые 15 мин читает bookings → tournament закончился <30 мин → AI drafts → /outreach-queue.html → менеджер копирует в WhatsApp/Telegram. Whitelist test_mode для безопасности.",
+      "_note": "Меняет приоритет всего бэклога: H01/H03 откладываются как 'не двигают 40 часов'. H02 Attribution ускоряется (нужен для ROI tracking)."
+    },
+    {
       "id": "H13",
       "title": "Skills Matrix + Individual Development Plans (IDPs) — Talent Management",
       "priority": "P1",
