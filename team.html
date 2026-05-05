@@ -247,11 +247,23 @@ function renderOKR() {
 }
 
 function renderTeam() {
+  const employees = DATA.kpi.employees;
   const host = document.getElementById('team-list');
-  host.innerHTML = DATA.kpi.employees.map(emp => {
+  const subTabsHtml = employees.map((e, i) => `
+    <div class="sub-tab ${i === 0 ? 'active' : ''}" data-emp="${e.id}">
+      ${e.name}<span class="role-dot">· ${e.role}</span>
+    </div>
+  `).join('');
+
+  const panesHtml = employees.map((emp, i) => {
+    const totalKpi = emp.kpi.length;
+    const orphanKpi = emp.kpi.filter(k => !k.okr || k.okr === '?').length;
+    const autoKpi = emp.kpi.filter(k => k.auto === 'yes').length;
+    const manualKpi = emp.kpi.filter(k => k.auto === 'no').length;
     const kpiHtml = emp.kpi.map(k => {
+      const okrTitle = (k.okr && MAP_OKR[k.okr]) ? MAP_OKR[k.okr].title : '';
       const okrTag = (k.okr && k.okr !== '?')
-        ? `<span class="okr-tag">→ ${k.okr}</span>`
+        ? `<span class="okr-tag" title="${okrTitle}">→ ${k.okr}</span>`
         : '<span class="okr-tag orphan">orphan</span>';
       const autoBadge = `<span class="auto-badge auto-${k.auto}">${k.auto === 'yes' ? 'auto' : k.auto === 'partial' ? 'partial' : 'manual'}</span>`;
       return `
@@ -260,20 +272,40 @@ function renderTeam() {
           <span class="kpi-fact muted">факт TBD</span>
           <div class="kpi-meta">
             <span>Цель: ${k.target}</span>${okrTag}${autoBadge}
+            <small style="color:var(--text3);width:100%;margin-top:2px">${k.method || ''}</small>
           </div>
         </div>
       `;
     }).join('');
     return `
-      <div class="card emp">
-        <h3>${emp.name}</h3>
-        <div class="emp-role">${emp.role}</div>
-        <div class="emp-zones">${emp.zones}</div>
-        ${kpiHtml}
-        <a class="doc-link" href="${emp.doc_url}" target="_blank">📄 Полный KPI-документ →</a>
+      <div class="emp-pane ${i === 0 ? 'active' : ''}" data-emp="${emp.id}">
+        <div class="card emp">
+          <h3>${emp.name}</h3>
+          <div class="emp-role">${emp.role}</div>
+          <div class="emp-zones">${emp.zones}</div>
+          <div class="emp-summary">
+            <div class="summary-tile"><div class="num">${totalKpi}</div><div class="lbl">всего KPI</div></div>
+            <div class="summary-tile"><div class="num" style="color:var(--good)">${autoKpi}</div><div class="lbl">auto-факт</div></div>
+            <div class="summary-tile"><div class="num" style="color:var(--bad)">${manualKpi}</div><div class="lbl">manual</div></div>
+            <div class="summary-tile"><div class="num" style="color:${orphanKpi > 0 ? 'var(--bad)' : 'var(--text3)'}">${orphanKpi}</div><div class="lbl">orphan</div></div>
+          </div>
+          ${kpiHtml}
+          <a class="doc-link" href="${emp.doc_url}" target="_blank">📄 Полный KPI-документ →</a>
+        </div>
       </div>
     `;
   }).join('');
+
+  host.innerHTML = `<div class="sub-tabs">${subTabsHtml}</div>${panesHtml}`;
+
+  host.querySelectorAll('.sub-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      host.querySelectorAll('.sub-tab').forEach(x => x.classList.remove('active'));
+      host.querySelectorAll('.emp-pane').forEach(x => x.classList.remove('active'));
+      t.classList.add('active');
+      host.querySelector('.emp-pane[data-emp="' + t.dataset.emp + '"]').classList.add('active');
+    });
+  });
 }
 
 function renderProcesses() {
