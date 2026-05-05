@@ -1,0 +1,135 @@
+{
+  "_meta": {
+    "updated_at": "2026-05-05",
+    "owner_session": "v7-team (Claude Code)",
+    "_note": "Бэклог HR/Team задач из CHRO-критики 2026-05-05. Обсуждаем и закрываем через сессию v7-team в claude.ai/code — там детализируем каждую до процесса.",
+    "priorities": {
+      "P0": "блокер — без него остальное на песке",
+      "P1": "важно — следующая итерация",
+      "P2": "делать когда P0/P1 закрыты",
+      "P3": "long-term, по мере роста"
+    }
+  },
+  "tasks": [
+    {
+      "id": "H01",
+      "title": "Сформулировать Mission & Vision V7",
+      "priority": "P0",
+      "size": "S",
+      "owner": "Володимир",
+      "deadline": "W1 (до 12 мая)",
+      "linked_okr": "(вверху всех OKR)",
+      "status": "backlog",
+      "deliverable": "1 предложение Mission + 1 Vision на 3-5 лет в шапке /team.html. Без них OKR висят в вакууме (David Lloyd: 'Make people lives better through sport').",
+      "rationale": "При расширении на сеть — критично. Команда не знает 'зачем' если есть только 'что'."
+    },
+    {
+      "id": "H02",
+      "title": "Внедрить Attribution-tag в transactions (поле seller / lead_source)",
+      "priority": "P0",
+      "size": "M",
+      "owner": "Володимир + админы (вводят в 1GDRZ)",
+      "deadline": "W1-W2",
+      "linked_okr": "O2, O8 (зависит много KPI)",
+      "status": "backlog",
+      "deliverable": "Доп. колонка в 1GDRZ Income: 'кто продал' (Бородаенко/Кирсанова/Эрдем/walk-in). ETL парсит → cache. Без этого 6 KPI команды нельзя посчитать (выручка per менеджер, реактивация per менеджер, IG-конверсия).",
+      "rationale": "Сейчас все эти KPI partial/manual. На честном слове."
+    },
+    {
+      "id": "H03",
+      "title": "NPS Quarterly клиентов — добавить как O9 в OKR",
+      "priority": "P0",
+      "size": "S",
+      "owner": "Кирсанова + Бородаенко",
+      "deadline": "W2 (до 18 мая)",
+      "linked_okr": "новый O9 (NPS ≥60)",
+      "status": "backlog",
+      "deliverable": "3-вопросная анкета (NPS 0-10 + что улучшить + рекомендуете?) на 4 языках (TR/EN/RU/UA). Рассылка через WhatsApp + email + ресепшн. NPS >60 = премиум (David Lloyd benchmark).",
+      "rationale": "У тебя 8 OKR — все про operations и финансы. Где 'клиент'? Это главный leading-indicator деградации продукта ДО того как клиенты уходят."
+    },
+    {
+      "id": "H04",
+      "title": "Cascade view OKR↔KPI: клик на OKR → список всех KPI",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Hub-сессия (frontend)",
+      "deadline": "W2-W3",
+      "linked_okr": "(infra)",
+      "status": "backlog",
+      "deliverable": "В табе OKR — клик на карточку O5 раскрывает список KPI команды которые на него работают (forward сейчас уже есть: KPI→OKR, нужен reverse OKR→KPI).",
+      "rationale": "Founder должен видеть кто закрывает каждую цель."
+    },
+    {
+      "id": "H05",
+      "title": "Annual + Quarterly OKR (3-уровневая иерархия)",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Володимир",
+      "deadline": "W3-W4",
+      "linked_okr": "(meta)",
+      "status": "backlog",
+      "deliverable": "Аннуальные цели V7 на 2026 (3-5 штук) → квартальные (Q2/Q3/Q4) → месячные (как сейчас). На /team.html — переключатель Annual/Quarterly/Monthly.",
+      "rationale": "Сейчас May 2026 в вакууме. Без верхнего уровня — May-цели произвольные, неясно куда они в году."
+    },
+    {
+      "id": "H06",
+      "title": "Performance Review framework",
+      "priority": "P1",
+      "size": "L",
+      "owner": "Володимир + Оля ПМ",
+      "deadline": "W3-W4 (запуск с июня)",
+      "linked_okr": "(team development)",
+      "status": "backlog",
+      "deliverable": "Ежемесячный 1:1 30 мин с каждым (founder/manager) + квартальный rating 1-5 по 4 компетенциям + годовой review. Фиксация в Notion или /team.html отдельный таб.",
+      "rationale": "Без формализации ключевые люди не растут — при сети уйдут."
+    },
+    {
+      "id": "H07",
+      "title": "Карьерная лестница тренеров (J → C → S → Head → Director)",
+      "priority": "P1",
+      "size": "M",
+      "owner": "Володимир + Умур",
+      "deadline": "W4-W5",
+      "linked_okr": "(team development)",
+      "status": "backlog",
+      "deliverable": "5 уровней × 4-5 компетенций (technical / coaching skills / leadership / business). Критерии перехода. Ставки. Применить к Умуру (Senior) и Хусейну (V7 Coach) сейчас.",
+      "rationale": "Когда А2 откроется — кого делать Head Coach? По чему критерию? Сейчас субъективно."
+    },
+    {
+      "id": "H08",
+      "title": "eNPS quarterly + staff retention metric",
+      "priority": "P2",
+      "size": "S",
+      "owner": "Володимир (анонимная анкета)",
+      "deadline": "Q3 запуск",
+      "linked_okr": "(team health)",
+      "status": "backlog",
+      "deliverable": "Quarterly eNPS (Employee NPS) + measure staff turnover %. Отдельный OKR при росте до 15+ людей.",
+      "rationale": "Удержание команды — critical при росте на сеть. Сейчас 6 человек, всех знаешь лично — но при 30+ это не масштаб."
+    },
+    {
+      "id": "H09",
+      "title": "Annual bonus pool + long-term vesting для key people",
+      "priority": "P2",
+      "size": "L",
+      "owner": "Володимир + Ваня (юр)",
+      "deadline": "Q3-Q4",
+      "linked_okr": "O8 (косвенно)",
+      "status": "backlog",
+      "deliverable": "Annual bonus pool 10-20% от operating profit для команды. Long-term equity-like vesting для Умура / Бородаенко / Кирсановой / Дарьи (3-4 года). Юр.оформление через Ваню.",
+      "rationale": "Сейчас только ad-hoc commission Эрдему. Когда А2 откроется — Умур уйдёт без stake в успехе сети."
+    },
+    {
+      "id": "H10",
+      "title": "Succession plan: backup для каждой ключевой роли",
+      "priority": "P3",
+      "size": "M",
+      "owner": "Володимир + Оля ПМ",
+      "deadline": "Q4",
+      "linked_okr": "(team resilience)",
+      "status": "backlog",
+      "deliverable": "Карта Bus-factor: для каждой роли (управляющий / онлайн-менеджер / senior coach / SMM) — кто backup. Если уйдёт — за сколько найти/обучить замену? Минимум 1 backup на каждую критичную роль.",
+      "rationale": "Сейчас bus_factor каждой роли = 1. Это риск который проявится в самый неудобный момент."
+    }
+  ]
+}
