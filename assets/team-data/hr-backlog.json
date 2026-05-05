@@ -8,6 +8,12 @@
       "P1": "важно — следующая итерация",
       "P2": "делать когда P0/P1 закрыты",
       "P3": "long-term, по мере роста"
+    },
+    "statuses": {
+      "backlog": "ещё не начали",
+      "in-progress": "в работе",
+      "deferred": "отложено сознательно (с причиной в _note)",
+      "done": "закрыто"
     }
   },
   "tasks": [
@@ -19,9 +25,10 @@
       "owner": "Володимир",
       "deadline": "W1 (до 12 мая)",
       "linked_okr": "(вверху всех OKR)",
-      "status": "backlog",
+      "status": "deferred",
       "deliverable": "1 предложение Mission + 1 Vision на 3-5 лет в шапке /team.html. Без них OKR висят в вакууме (David Lloyd: 'Make people lives better through sport').",
-      "rationale": "При расширении на сеть — критично. Команда не знает 'зачем' если есть только 'что'."
+      "rationale": "При расширении на сеть — критично. Команда не знает 'зачем' если есть только 'что'.",
+      "_deferred_note": "Володимир 2026-05-05: 'не двигает 40 часов'. Возврат после H14 Outreach Phase 2."
     },
     {
       "id": "H02",
@@ -43,9 +50,10 @@
       "owner": "Кирсанова + Бородаенко",
       "deadline": "W2 (до 18 мая)",
       "linked_okr": "новый O9 (NPS ≥60)",
-      "status": "backlog",
+      "status": "deferred",
       "deliverable": "3-вопросная анкета (NPS 0-10 + что улучшить + рекомендуете?) на 4 языках (TR/EN/RU/UA). Рассылка через WhatsApp + email + ресепшн. NPS >60 = премиум (David Lloyd benchmark).",
-      "rationale": "У тебя 8 OKR — все про operations и финансы. Где 'клиент'? Это главный leading-indicator деградации продукта ДО того как клиенты уходят."
+      "rationale": "У тебя 8 OKR — все про operations и финансы. Где 'клиент'? Это главный leading-indicator деградации продукта ДО того как клиенты уходят.",
+      "_deferred_note": "Володимир 2026-05-05: 'не двигает 40 часов'. Возврат после H14 Outreach Phase 1."
     },
     {
       "id": "H04",
@@ -191,7 +199,8 @@
       "deadline": "Q4 2026 — Q1 2027 (зависит от триггера)",
       "trigger": "Когда сеть достигнет 15+ людей ИЛИ 3+ контент-модулей кроме SJT (KVKK, safety, sales scripts, V7 culture)",
       "linked_okr": "(team scaling — only when team grows)",
-      "status": "backlog (long-term direction)",
+      "status": "backlog",
+      "_long_term": true,
       "deliverable": "Internal LMS V7 Academy: модули обучения per role (Coach / Manager / Admin), video/audio контент, прогресс-tracking per user, certificates, manager dashboards. SJT-тренажёр (H11) встраивается как компонент. Подход выбирается на момент trigger'а: Buy (TalentLMS/Litmos/360Learning) vs Open (Moodle selfhost) vs Build (FastAPI+PostgreSQL).",
       "rationale": "Свой LMS = competitive advantage сети (как McDonald's Hamburger University, Disney Institute, Ritz-Carlton). Но сейчас overkill для 6 людей. ROI пилот→LMS окупается со 100+ людей. До этого H11 SJT покрывает 80% боли отбор+обучение без LMS overhead. Bench: TalentLMS $50/мес 5чел, Litmos $300/мес 50чел, Moodle бесплатно selfhost.",
       "method_short": "1) В Q3 оценить trigger. 2) Если положительно — попробовать TalentLMS sandbox 30 дней. 3) Если SaaS не покрывает — Moodle на VPS. 4) Build только если 1+2 не подходят и есть бюджет 3-6 мес разработки.",

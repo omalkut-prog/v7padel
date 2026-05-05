@@ -81,9 +81,9 @@
   .kpi-fact.muted { color: var(--text3); font-weight: 400; font-style: italic; }
   .kpi-meta { grid-column: 1 / -1; }
   .kpi-meta { font-size: 11px; color: var(--text3); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-  .okr-tag { display: inline-block; background: var(--accent-soft); color: var(--accent); padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+  .okr-tag { display: inline-block; background: var(--accent-soft); color: var(--accent); padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-left: 4px; }
   .okr-tag.orphan { background: rgba(231,76,60,0.15); color: var(--bad); }
-  .auto-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+  .auto-badge { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 10px; font-weight: 600; margin-left: 4px; }
   .auto-yes { background: rgba(19,194,150,0.15); color: var(--good); }
   .auto-no { background: rgba(231,76,60,0.15); color: var(--bad); }
   .auto-partial { background: rgba(243,156,18,0.15); color: var(--warn); }
@@ -140,6 +140,14 @@
   /* Backlog */
   .backlog-grid { display: grid; gap: 10px; }
   .backlog-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: grid; grid-template-columns: 60px 1fr auto auto; gap: 14px; align-items: start; font-size: 13px; }
+  .backlog-item.deferred { opacity: 0.55; }
+  .backlog-item.in-progress { border-color: var(--accent-border); background: linear-gradient(140deg, var(--surface) 0%, rgba(124,58,237,0.05) 100%); }
+  .backlog-status { display: inline-block; padding: 1px 7px; border-radius: 3px; font-size: 10px; font-weight: 600; }
+  .backlog-status.s-backlog { background: var(--surface2); color: var(--text3); }
+  .backlog-status.s-in-progress { background: var(--accent-soft); color: var(--accent); }
+  .backlog-status.s-deferred { background: rgba(148,163,184,0.18); color: var(--text3); }
+  .backlog-status.s-done { background: rgba(19,194,150,0.18); color: var(--good); }
+  .backlog-defnote { color: var(--text3); font-size: 11px; font-style: italic; margin-top: 4px; }
   .backlog-pri { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; text-align: center; height: fit-content; }
   .backlog-pri.P0 { background: rgba(231,76,60,0.18); color: var(--bad); }
   .backlog-pri.P1 { background: rgba(243,156,18,0.18); color: var(--warn); }
@@ -336,15 +344,16 @@ async function loadNorthStar() {
     const hoursPct = Math.min(100, hoursPerDay / hoursTarget * 100);
     const rpch = parseFloat(d.rpch_lm) || 0;
     const rpchTarget = 2000;
-    const rpchPct = Math.min(100, rpch / rpchTarget * 100);
+    const rpchPct = rpch / rpchTarget * 100;
+    const hoursPctReal = hoursPerDay / hoursTarget * 100;
     document.getElementById('ns-hours-fact').innerHTML =
-      '<strong>' + hoursPerDay.toFixed(1) + ' ч</strong> (' + hoursPct.toFixed(0) + '% от цели)';
-    document.getElementById('ns-hours-bar').style.width = hoursPct + '%';
+      '<strong>' + hoursPerDay.toFixed(1) + ' ч</strong> (' + hoursPctReal.toFixed(0) + '% от цели)';
+    document.getElementById('ns-hours-bar').style.width = Math.min(100, hoursPctReal) + '%';
     document.getElementById('ns-hours-period').textContent =
       lm ? ('средняя за ' + lm + ' (' + Math.round(hoursLm) + ' ч / ' + daysInMonth + ' дн)') : '';
     document.getElementById('ns-rpch-fact').innerHTML =
-      '<strong>' + Math.round(rpch).toLocaleString('ru-RU') + ' ₺/ч</strong> (' + rpchPct.toFixed(0) + '%)';
-    document.getElementById('ns-rpch-bar').style.width = rpchPct + '%';
+      '<strong>' + Math.round(rpch).toLocaleString('ru-RU') + ' ₺/ч</strong> (' + rpchPct.toFixed(0) + '%' + (rpchPct > 100 ? ' — выше цели' : '') + ')';
+    document.getElementById('ns-rpch-bar').style.width = Math.min(100, rpchPct) + '%';
     document.getElementById('ns-rpch-period').textContent =
       lm ? ('RPCH за ' + lm + ' = revenue / hours') : '';
 
@@ -483,25 +492,38 @@ function cadenceToDays(cad) {
   return null;
 }
 
+function isPlaceholderKpi(k) {
+  return /^TBD\b/i.test(k.name || '') || k.target_value === 0 && (k.target || '').toUpperCase() === 'TBD';
+}
+
 function renderAlerts() {
   const alerts = [];
+  // KPI алерты: orphan + manual без method (исключая TBD-плейсхолдеры)
   DATA.kpi.employees.forEach(emp => {
-    emp.kpi.forEach(k => {
+    const placeholders = emp.kpi.filter(isPlaceholderKpi);
+    const real = emp.kpi.filter(k => !isPlaceholderKpi(k));
+    if (placeholders.length && real.length === 0) {
+      alerts.push({who: emp.name, what: 'KPI не определены', msg: placeholders[0].method || 'плейсхолдер ' + placeholders[0].name});
+    }
+    real.forEach(k => {
       if (!k.okr || k.okr === '?') alerts.push({who: emp.name, what: k.name, msg: 'KPI без привязки к OKR'});
       if (k.auto === 'no' && !k.method) alerts.push({who: emp.name, what: k.name, msg: 'manual KPI без method — нечем считать'});
     });
   });
+  // OKR без исполнителей
   DATA.okr.okr.forEach(o => {
     let cnt = 0;
     DATA.kpi.employees.forEach(emp => emp.kpi.forEach(k => { if (k.okr === o.id) cnt++; }));
     if (cnt === 0) alerts.push({who: 'компания', what: o.id + ': ' + o.title, msg: 'Цель без исполнителей в KPI команды'});
   });
+  // Процессы: группа active-без-last_run одной строкой
   const today = new Date();
+  const noLastRun = [];
   DATA.processes.processes.forEach(p => {
     const has = (p.linked_okr || []).length > 0 || (p.linked_kpi || []).length > 0;
     if (!has) alerts.push({who: p.owner, what: p.name, msg: 'Процесс без связи с OKR/KPI — для чего он?'});
     if (p.status === 'active' && !p.last_run) {
-      alerts.push({who: p.owner, what: p.name, msg: 'active, но никогда не запускался — заполнить last_run или поменять статус на pilot'});
+      noLastRun.push(p);
     } else if (p.last_run && cadenceToDays(p.cadence)) {
       const lr = new Date(p.last_run);
       if (!isNaN(lr.getTime())) {
@@ -513,11 +535,19 @@ function renderAlerts() {
       }
     }
   });
-  // Бэклог P0 status=backlog без deadline
+  if (noLastRun.length) {
+    const list = noLastRun.map(p => p.name).join(' · ');
+    alerts.push({
+      who: 'процесс-долг',
+      what: noLastRun.length + ' active процессов без last_run',
+      msg: 'нужен механизм фиксации запусков (write last_run в JSON или badge на team.html). Список: ' + list,
+    });
+  }
+  // Бэклог: P0 в backlog (deferred — не алерт), in-progress задачи без _why-not-done
   if (DATA.backlog && DATA.backlog.tasks) {
     DATA.backlog.tasks.forEach(t => {
       if (t.priority === 'P0' && t.status === 'backlog') {
-        alerts.push({who: t.owner || '?', what: t.id + ': ' + t.title, msg: 'P0 в статусе backlog — должна быть in-progress'});
+        alerts.push({who: t.owner || '?', what: t.id + ': ' + t.title, msg: 'P0 в статусе backlog — должна быть in-progress или deferred'});
       }
     });
   }
@@ -541,22 +571,33 @@ function renderBacklog() {
     host.innerHTML = '<div class="alert-item ok">Бэклог пуст</div>';
     return;
   }
-  // Сортировка P0 → P1 → P2 → P3
-  const sorted = tasks.slice().sort((a, b) => (a.priority || 'Z').localeCompare(b.priority || 'Z'));
-  host.innerHTML = sorted.map(t => `
-    <div class="backlog-item">
+  // Сортировка: in-progress → backlog → deferred → done; внутри по priority
+  const statusOrder = {'in-progress': 0, 'backlog': 1, 'deferred': 2, 'done': 3};
+  const sorted = tasks.slice().sort((a, b) => {
+    const sa = statusOrder[a.status] ?? 1;
+    const sb = statusOrder[b.status] ?? 1;
+    if (sa !== sb) return sa - sb;
+    return (a.priority || 'Z').localeCompare(b.priority || 'Z');
+  });
+  host.innerHTML = sorted.map(t => {
+    const statusClass = (t.status || 'backlog');
+    const defNote = t._deferred_note ? `<div class="backlog-defnote">отложено: ${t._deferred_note}</div>` : '';
+    return `
+    <div class="backlog-item ${statusClass}">
       <span class="backlog-pri ${t.priority}">${t.priority}</span>
       <div>
         <div class="backlog-title">${t.title}</div>
         <div class="backlog-meta">
-          ${t.owner ? 'Owner: ' + t.owner + ' · ' : ''}${t.deadline ? 'Срок: ' + t.deadline + ' · ' : ''}${t.linked_okr ? 'OKR: ' + t.linked_okr + ' · ' : ''}статус: <b>${t.status || 'backlog'}</b>
+          ${t.owner ? 'Owner: ' + t.owner + ' · ' : ''}${t.deadline ? 'Срок: ' + t.deadline + ' · ' : ''}${t.linked_okr ? 'OKR: ' + t.linked_okr + ' · ' : ''}<span class="backlog-status s-${statusClass}">${statusClass}</span>
         </div>
+        ${defNote}
         ${t.deliverable ? '<div class="backlog-meta" style="margin-top:6px;color:var(--text2)">' + t.deliverable + '</div>' : ''}
       </div>
       <span class="backlog-size">${t.size || ''}</span>
       <span class="backlog-meta" style="text-align:right">${t.id || ''}</span>
     </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function render() {
