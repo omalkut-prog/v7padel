@@ -43,8 +43,6 @@
     { group: 'Бизнес', roles: ['admin'], items: [
       { label: 'Выручка',  href: 'revenue.html',    icon: 'revenue',   roles: ['admin'] },
       { label: 'Финансы',  href: 'finance.html',    icon: 'finance',   roles: ['admin'] },
-      { label: 'Variance', href: 'variance.html',   icon: 'variance',  roles: ['admin'] },
-      { label: 'Риски',    href: 'risk.html',       icon: 'risk',      roles: ['admin'] },
       { label: 'Аудит',    href: 'audit.html',      icon: 'audit',     roles: ['admin'] },
     ]},
     { group: 'Маркетинг', roles: ['admin'], items: [
@@ -52,7 +50,6 @@
     ]},
     { group: 'Клуб', items: [
       { label: 'Клиенты',    href: 'clients.html',             icon: 'clients',     roles: ['admin', 'manager', 'coach', 'administrator'] },
-      { label: 'Когорта',    href: 'cohort.html',              icon: 'clients',     roles: ['admin', 'manager'] },
       { label: 'Участники',  href: 'club-members.html',        icon: 'members',     roles: ['admin', 'manager'] },
       { label: 'Recall',     href: 'recall.html',              icon: 'recall',      roles: ['admin', 'manager'] },
       { label: 'Дни рождения', href: 'birthdays.html',         icon: 'recall',      roles: ['admin', 'manager'] },
@@ -62,7 +59,6 @@
     ]},
     { group: 'Инструменты', items: [
       { label: 'Данные',      href: 'data.html',                 icon: 'data',       roles: ['admin'] },
-      { label: 'Brain',       href: 'brain.html',                icon: 'brain',      roles: ['admin'], cls: 'brain-link' },
       { label: 'Baseline',    href: 'baseline.html',             icon: 'knowledge',  roles: ['admin'] },
       { label: 'База знаний', href: 'brain.html',                icon: 'knowledge',  roles: ['admin', 'manager', 'coach', 'administrator'] },
       { label: 'Расписание',  href: 'schedule-builder.html',     icon: 'schedule',   roles: ['admin', 'manager', 'coach', 'administrator'] },
