@@ -298,7 +298,7 @@
 
   <!-- KPI row -->
   <div class="kpi-row" id="kpi-row">
-    <div class="kpi clickable" id="kpi-rev-card" title="Клик — разбивка по категориям"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span><span class="sub" id="kpi-rev-avg"></span><span class="sub" id="kpi-rev-forecast"></span></div>
+    <div class="kpi clickable" id="kpi-rev-card" title="Клик — разбивка по категориям"><span class="label">Выручка (посл. месяц)</span><span class="value" id="kpi-rev">—</span><span class="sub" id="kpi-rev-mo"></span><span class="sub" id="kpi-rev-cash"></span><span class="sub" id="kpi-rev-avg"></span><span class="sub" id="kpi-rev-forecast"></span></div>
     <div class="kpi clickable" id="kpi-opex-card" title="Клик — разбивка OPEX по статьям"><span class="label">OPEX (посл. месяц)</span><span class="value" id="kpi-opex">—</span><span class="sub" id="kpi-opex-mo"></span></div>
     <div class="kpi"><span class="label">Операц. P&L</span><span class="value" id="kpi-pnl">—</span><span class="sub" id="kpi-pnl-mo"></span></div>
     <div class="kpi"><span class="label">Клиентов всего</span><span class="value" id="kpi-clients">—</span><span class="sub" id="kpi-clients-active"></span><span class="sub" id="kpi-clients-sub"></span></div>
@@ -1051,34 +1051,24 @@ async function loadMonthlySeriesIndependent() {
       console.log('dashboard: full cache loaded in ' + Math.round(performance.now() - t0) + 'ms');
 
       // ── KPI CARDS ──
-      // SSoT (ADR-019): для оперативной выручки используем cash transactions
-      // (то же число что на /revenue, /clients и т.д.). PnL = бухгалтерская
-      // версия, держим для сверки на /finance. Раньше тут была только PnL →
-      // на /dashboard был 1.6M, а на /revenue 1.64M = у пользователя «не сходится».
+      // Главная цифра = PnL бухгалтера (kpis.revenue_last_month). Рядом sub-строка
+      // показывает cash из transactions (revenue_cash_lm) и delta для аудита —
+      // не подменяем одно на другое. Правило Володимира 2026-05-05:
+      // "две цифры выводить чтоб сравнивать, а то не будем понимать куда деньги деваются".
       var revPnL = toNum(kpis.revenue_last_month);
-      var revLM = revPnL;  // fallback на PnL пока tx не загрузился
+      var revCash = toNum(kpis.revenue_cash_lm);
+      var revDelta = toNum(kpis.revenue_delta_lm);
+      var revLM = revPnL; // главная цифра дашборда — PnL бухгалтера
       document.getElementById("kpi-rev").textContent = fmtK(revLM) + " ₺";
       document.getElementById("kpi-rev-mo").textContent = kpis.last_month || '';
-      // Параллельно подгружаем cash из rev_monthly_tx — заменим как только придёт
-      V7.loadCacheTab('rev_monthly_tx').then(function(rows) {
-        if (!rows || !kpis.last_month) return;
-        var lm = kpis.last_month;
-        var match = rows.find(function(r) { return r.month === lm; });
-        if (!match) return;
-        var revTx = toNum(match.total);
-        if (!revTx) return;
-        document.getElementById("kpi-rev").textContent = fmtK(revTx) + " ₺";
-        revLM = revTx;
-        // Если расхождение с PnL > 3% — показываем в подсказке для аудита
-        if (revPnL > 0) {
-          var delta = revTx - revPnL;
-          var pct = 100 * delta / revPnL;
-          if (Math.abs(pct) > 3) {
-            var subEl = document.getElementById("kpi-rev-mo");
-            if (subEl) subEl.title = 'PnL (бухгалтер): ' + fmtK(revPnL) + ' ₺ · Δ ' + (delta>=0?'+':'') + fmtK(delta) + ' (' + (pct>=0?'+':'') + pct.toFixed(1) + '%)';
-          }
-        }
-      }).catch(function(){});
+      // Sub-строка с cash + delta (только если данные есть и delta заметна)
+      var revCashEl = document.getElementById("kpi-rev-cash");
+      if (revCash > 0 && revCashEl) {
+        var sign = revDelta >= 0 ? '+' : '';
+        var deltaTxt = Math.abs(revDelta) >= 1000 ? ' · Δ ' + sign + fmtK(revDelta) : '';
+        revCashEl.textContent = 'cash: ' + fmtK(revCash) + ' ₺' + deltaTxt;
+        revCashEl.title = 'PnL (бухгалтер): ' + fmtK(revPnL) + ' ₺ · Cash (1GDRZ): ' + fmtK(revCash) + ' ₺ · Δ ' + sign + fmtK(revDelta);
+      }
       // Среднее в день + прогноз
       (function() {
         var lm = kpis.last_month || '';
