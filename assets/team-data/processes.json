@@ -1,0 +1,206 @@
+{
+  "_meta": {
+    "period": "2026-05",
+    "updated_at": "2026-05-05",
+    "_principle": "Гипотеза → подтверждение → процесс. Без формализации в процесс — деградирует через месяц. См. project_v7_processes_over_pilots.md в памяти хаба.",
+    "status_legend": {
+      "active": "стабильно работает по cadence",
+      "pilot": "тестируется, ещё не закреплено",
+      "degraded": "должен был быть, но не делался > cadence × 2 — алерт",
+      "archived": "осознанно отказались"
+    }
+  },
+  "processes": [
+    {
+      "id": "P01",
+      "name": "Еженедельная таблица план/факт по турнирам",
+      "owner": "Бородаенко",
+      "cadence": "каждый Пн",
+      "trigger": "начало недели",
+      "steps": [
+        "Собрать список запланированных турниров недели",
+        "Обновить факт прошлой недели",
+        "Посчитать % заполнения",
+        "Внести в Sheet таблицу план/факт"
+      ],
+      "output": "Готовая Sheet с план/факт по турнирам",
+      "linked_okr": ["O5"],
+      "linked_kpi": ["borodaenko:Заполнение турниров"],
+      "status": "active",
+      "last_run": null
+    },
+    {
+      "id": "P02",
+      "name": "Утренняя сверка кассы",
+      "owner": "Дарья + админ смены",
+      "cadence": "ежедневно 09:00",
+      "trigger": "открытие клуба",
+      "steps": [
+        "Сверить вчерашний остаток с фактом",
+        "Отметить в balances tab",
+        "Если расхождение > 500₺ — алерт"
+      ],
+      "output": "Запись в balances tab",
+      "linked_okr": ["O8"],
+      "linked_kpi": [],
+      "status": "active",
+      "last_run": null
+    },
+    {
+      "id": "P03",
+      "name": "Ежедневная актуализация Spanish Intensive",
+      "owner": "Кирсанова",
+      "cadence": "ежедневно до 10 мая",
+      "trigger": "до закрытия 18 мест",
+      "steps": [
+        "Внести новые заявки",
+        "Обновить статусы оплат",
+        "Актуализировать слоты"
+      ],
+      "output": "Актуальная Sheet до 10 мая",
+      "linked_okr": ["O7"],
+      "linked_kpi": ["kirsanova:Spanish Intensive"],
+      "status": "active",
+      "deadline": "2026-05-10",
+      "last_run": null
+    },
+    {
+      "id": "P04",
+      "name": "Free Training → follow-up",
+      "owner": "Тренер + Бородаенко",
+      "cadence": "после каждого FT (~1р/нед)",
+      "trigger": "провели FT",
+      "steps": [
+        "Фиксировать имена пришедших",
+        "В течение 48ч персональное предложение пакета",
+        "14 дней tracking — купил/нет"
+      ],
+      "output": "Список конверсий FT→платная",
+      "linked_okr": ["O6"],
+      "linked_kpi": ["borodaenko:Free Training → 2 платных", "umur:Free Training → платная", "huseyin:Free Training → платная"],
+      "status": "pilot",
+      "last_run": null,
+      "_note": "Главная боль: гипотеза подтверждается, но процесс пока не формализован"
+    },
+    {
+      "id": "P05",
+      "name": "Реактивация спящих 30+ дн",
+      "owner": "Бородаенко",
+      "cadence": "каждый Чт",
+      "trigger": "еженедельно",
+      "steps": [
+        "Выгрузить спящих 30+ дн (top_clients_revenue)",
+        "Персональное сообщение каждому",
+        "Трекать ответы и покупки"
+      ],
+      "output": "Список реактивированных",
+      "linked_okr": ["O2"],
+      "linked_kpi": ["borodaenko:Реактивация спящих 30+ дн"],
+      "status": "active",
+      "last_run": null
+    },
+    {
+      "id": "P06",
+      "name": "Аудит групп — посещаемость",
+      "owner": "Тренеры + Бородаенко",
+      "cadence": "каждый Пт",
+      "trigger": "конец недели",
+      "steps": [
+        "Состав каждой группы",
+        "Пропуски",
+        "Если <3 чел — добор из базы за неделю"
+      ],
+      "output": "Список групп с заполнением",
+      "linked_okr": ["O1"],
+      "linked_kpi": ["borodaenko:Укомплектованность групп", "umur:Стабильных групп", "huseyin:Стабильных групп"],
+      "status": "active",
+      "last_run": null
+    },
+    {
+      "id": "P07",
+      "name": "Контроль продлений Membership",
+      "owner": "Кирсанова",
+      "cadence": "еженедельно + 14д до экспирации",
+      "trigger": "card_expiring алерт",
+      "steps": [
+        "Список кто истекает в ближайшие 14 дн",
+        "Персональное напоминание",
+        "Трек продления"
+      ],
+      "output": "Список продлений",
+      "linked_okr": ["O4"],
+      "linked_kpi": ["kirsanova:Club Membership new+renew", "kirsanova:VIP Membership new+renew"],
+      "status": "active",
+      "last_run": null
+    },
+    {
+      "id": "P08",
+      "name": "Daily POS reconciliation (1GDRZ vs MP)",
+      "owner": "audit_daily.py / VPS",
+      "cadence": "после каждого ETL (3р/день)",
+      "trigger": "ETL завершение",
+      "steps": [
+        "Сравнить 1GDRZ Income vs MP Tickets gross за день",
+        "Если |Δ| > 500₺ или > 5% — алерт",
+        "Запись в audit-data/{date}.json"
+      ],
+      "output": "audit-recon.html Zone 1",
+      "linked_okr": ["O8"],
+      "linked_kpi": [],
+      "status": "pilot",
+      "last_run": null
+    },
+    {
+      "id": "P09",
+      "name": "ETL в облаке — обновление dashboard",
+      "owner": "VPS systemd timer",
+      "cadence": "13:30 / 18:30 / 23:30 Antalya (3 раза в день)",
+      "trigger": "cron",
+      "steps": [
+        "etl.py: 1GDRZ + Old Income + expenses + PnL → v7padel_db",
+        "build_cache.py: агрегаты → v7padel_cache",
+        "POST /api/cache/clear: backend подхватывает свежее"
+      ],
+      "output": "Свежий dashboard 3р/день",
+      "linked_okr": ["O1", "O2", "O3", "O4", "O5", "O6", "O7", "O8"],
+      "linked_kpi": [],
+      "status": "active",
+      "last_run": null,
+      "_note": "Базовый процесс — без него все остальные не имеют свежих данных"
+    },
+    {
+      "id": "P10",
+      "name": "Mid-month review команды",
+      "owner": "Володимир + ассистент Hub",
+      "cadence": "15 числа",
+      "trigger": "середина месяца",
+      "steps": [
+        "Собрать факт KPI на сейчас",
+        "Прогноз % выполн. на конец месяца",
+        "Красные < 50% — план реанимации"
+      ],
+      "output": "Отчёт по команде",
+      "linked_okr": [],
+      "linked_kpi": [],
+      "status": "pilot",
+      "last_run": null
+    },
+    {
+      "id": "P11",
+      "name": "EOM закрытие KPI",
+      "owner": "Володимир + ассистент",
+      "cadence": "последний день месяца",
+      "trigger": "EOM",
+      "steps": [
+        "Фактические значения каждого KPI",
+        "Причины красных (< 80% target)",
+        "Уроки на след. месяц"
+      ],
+      "output": "KPI отчёт + уроки",
+      "linked_okr": [],
+      "linked_kpi": [],
+      "status": "pilot",
+      "last_run": null
+    }
+  ]
+}

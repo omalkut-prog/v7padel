@@ -1,0 +1,87 @@
+{
+  "_meta": {
+    "period": "2026-05",
+    "period_label": "Май 2026",
+    "updated_at": "2026-05-05",
+    "owner_root": "Володимир Рыков",
+    "_note": "OKR компании на месяц. Каждый KPI сотрудника должен ссылаться на минимум один OKR (см. team.html → таб Sync-алерты)."
+  },
+  "okr": [
+    {
+      "id": "O1",
+      "title": "Заполнить корты — операционная эффективность",
+      "kr": "40 корто-часов / день в среднем за месяц",
+      "target_value": 40,
+      "target_unit": "ч/день",
+      "owner": "Володимир + Бородаенко + тренеры",
+      "auto_source": "cache:dashboard_kpis.total_hours_lm / 30",
+      "_note": "Главная цель клуба на май"
+    },
+    {
+      "id": "O2",
+      "title": "Вырасти база активных клиентов",
+      "kr": "+50 новых активных за май",
+      "target_value": 50,
+      "target_unit": "новых активных",
+      "owner": "Бородаенко + Кирсанова + Эрдем",
+      "auto_source": "cache:dashboard_kpis.clients_new_30d"
+    },
+    {
+      "id": "O3",
+      "title": "Удержать ядро (top-1%)",
+      "kr": "0 ушедших VIP за май",
+      "target_value": 0,
+      "target_unit": "ушедших",
+      "owner": "Настя VIP",
+      "auto_source": "cache:dashboard_kpis.churn_expired_this_month_n",
+      "_note": "0 — лучшее значение"
+    },
+    {
+      "id": "O4",
+      "title": "Membership рост",
+      "kr": "15 Club + 8 VIP новых",
+      "target_value": 23,
+      "target_unit": "новых membership",
+      "owner": "Кирсанова",
+      "auto_source": "cache:memberships (фильтр start_date in this_month)"
+    },
+    {
+      "id": "O5",
+      "title": "Турниры — заполнение",
+      "kr": "≥90% средне по всем турнирам",
+      "target_value": 90,
+      "target_unit": "%",
+      "owner": "Бородаенко + тренеры",
+      "auto_source": "manual (нет план/факт в источнике)"
+    },
+    {
+      "id": "O6",
+      "title": "Free Training conversion",
+      "kr": "50% пришедших → купили платную тренировку",
+      "target_value": 50,
+      "target_unit": "%",
+      "owner": "Тренеры + Бородаенко",
+      "auto_source": "manual (нужен FT-tag в customers)"
+    },
+    {
+      "id": "O7",
+      "title": "Spanish Intensive",
+      "kr": "18/18 закрыть до 10 мая",
+      "target_value": 18,
+      "target_unit": "участников",
+      "deadline": "2026-05-10",
+      "owner": "Кирсанова",
+      "auto_source": "manual + transactions cat=Camp"
+    },
+    {
+      "id": "O8",
+      "title": "P&L клуба",
+      "kr": "> 800К ₺ за май",
+      "target_value": 800000,
+      "target_unit": "₺",
+      "owner": "Володимир",
+      "auto_source": "cache:dashboard_kpis.pnl_last_month",
+      "_note": "Реалистичная цель — апрель был +628К"
+    }
+  ]
+}
